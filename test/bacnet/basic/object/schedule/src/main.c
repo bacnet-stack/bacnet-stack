@@ -8,6 +8,7 @@
  */
 
 #include <zephyr/ztest.h>
+#include <bacnet/bacstr.h>
 #include <bacnet/basic/object/schedule.h>
 #include <property_test.h>
 
@@ -99,6 +100,8 @@ static void testSchedule(void)
             &object_property_reference, &test_object_property_reference);
         zassert_true(status, NULL);
     }
+    bacnet_object_name_ascii_test(
+        object_instance, Schedule_Name_Set, Schedule_Name_ASCII);
     status =
         Schedule_Effective_Period_Set(object_instance, &start_date, &end_date);
     zassert_true(status, NULL);

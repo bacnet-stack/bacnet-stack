@@ -11,6 +11,7 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
+#include "bacnet/bacstr.h"
 #include "bacnet/bactext.h"
 #include "bacnet/proplist.h"
 #include "bacnet/timestamp.h"
@@ -51,7 +52,7 @@ static const int32_t Schedule_Properties_Required[] = {
 
 static const int32_t Schedule_Properties_Optional[] = {
     /* list of optional properties */
-    PROP_WEEKLY_SCHEDULE,
+    PROP_DESCRIPTION, PROP_WEEKLY_SCHEDULE,
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
     PROP_EXCEPTION_SCHEDULE,
 #endif
@@ -66,6 +67,8 @@ static const int32_t Schedule_Properties_Proprietary[] = { -1 };
    that is always writable.  */
 static const int32_t Writable_Properties[] = {
     /* unordered list of always writable properties */
+    PROP_OBJECT_NAME,
+    PROP_DESCRIPTION,
     PROP_OUT_OF_SERVICE,
     PROP_WEEKLY_SCHEDULE,
     PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES,
@@ -179,6 +182,8 @@ void Schedule_Init(void)
                 21.0f; /* 21 C, room temperature */
             psched->obj_prop_ref_cnt = 0; /* no references, add as needed */
             psched->Priority_For_Writing = 16; /* lowest priority */
+            characterstring_ansi_free(&psched->Object_Name);
+            characterstring_ansi_free(&psched->Description);
             psched->Out_Of_Service = false;
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
             for (e = 0; e < BACNET_EXCEPTION_SCHEDULE_SIZE; e++) {
@@ -257,23 +262,161 @@ unsigned Schedule_Instance_To_Index(uint32_t instance)
 }
 
 /**
- * @brief Determines the object name for a given object instance number
- * @param  object_instance - object-instance number of the object
- * @param  object_name - object name of the object
- * @return true if the object name is valid, and false if not
+ * @brief Set the object-name property value using write-property context.
+ * @param wp_data [in,out] Write property request/response context.
+ * @param cstring [in] New object-name value.
+ * @return true if object-name was set.
+ */
+static bool Schedule_Object_Name_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(wp_data->object_instance);
+    if (pObject) {
+        status = characterstring_ansi_from_characterstring_strdup(
+            &pObject->Object_Name, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Determines the object name for a given object instance number.
+ * @param object_instance - object-instance number of the object.
+ * @param object_name - object name of the object.
+ * @return true if the object name is valid, and false if not.
  */
 bool Schedule_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    char text[32] = "";
-    unsigned int index;
     bool status = false;
+    SCHEDULE_DESCR *pObject;
+    int len = 0;
 
-    index = Schedule_Instance_To_Index(object_instance);
-    if (index < MAX_SCHEDULES) {
-        snprintf(
-            text, sizeof(text), "SCHEDULE %lu", (unsigned long)object_instance);
-        status = characterstring_init_ansi(object_name, text);
+    pObject = Schedule_Object(object_instance);
+    if (pObject) {
+        status = characterstring_ansi_to_characterstring(
+            object_name, &pObject->Object_Name);
+        if (!status) {
+            len = characterstring_utf8_snprintf(
+                object_name, "SCHEDULE-%lu", (unsigned long)object_instance);
+            if (len > 0) {
+                status = true;
+            }
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Set the object-name for a given object instance number.
+ * @param object_instance - object-instance number of the object.
+ * @param new_name - holds the object-name to be set.
+ * @return true if object-name was set.
+ */
+bool Schedule_Name_Set(uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(object_instance);
+    if (pObject) {
+        status =
+            characterstring_ansi_const_init(&pObject->Object_Name, new_name);
+    }
+
+    return status;
+}
+
+/**
+ * @brief Return the object name C string.
+ * @param object_instance - BACnet object instance number.
+ * @return object name or NULL if not found.
+ */
+const char *Schedule_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(object_instance);
+    if (pObject) {
+        name = characterstring_ansi_value_const(&pObject->Object_Name);
+    }
+
+    return name;
+}
+
+/**
+ * @brief Set the description property value using write-property context.
+ * @param wp_data [in,out] Write property request/response context.
+ * @param cstring [in] New description value.
+ * @return true if description was set.
+ */
+static bool Schedule_Description_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(wp_data->object_instance);
+    if (pObject) {
+        status = characterstring_ansi_from_characterstring_strdup(
+            &pObject->Description, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Return the description for a given object instance number.
+ * @param object_instance - object-instance number of the object.
+ * @return description text or empty string if not found or unset.
+ */
+const char *Schedule_Description(uint32_t object_instance)
+{
+    const char *name = NULL;
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(object_instance);
+    if (pObject) {
+        name = characterstring_ansi_value_default(&pObject->Description, "");
+    }
+
+    return name;
+}
+
+/**
+ * @brief Set the description for a given object instance number.
+ * @param object_instance - object-instance number of the object.
+ * @param new_name - holds the description to be set.
+ * @return true if description was set.
+ */
+bool Schedule_Description_Set(uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    SCHEDULE_DESCR *pObject;
+
+    pObject = Schedule_Object(object_instance);
+    if (pObject) {
+        status =
+            characterstring_ansi_const_init(&pObject->Description, new_name);
     }
 
     return status;
@@ -608,6 +751,12 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_OBJECT_NAME:
             Schedule_Object_Name(rpdata->object_instance, &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+        case PROP_DESCRIPTION:
+            characterstring_init_ansi(
+                &char_string, Schedule_Description(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -1016,6 +1165,22 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
 #endif
+        case PROP_OBJECT_NAME:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Schedule_Object_Name_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+        case PROP_DESCRIPTION:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Schedule_Description_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
         default:
             if (property_lists_member(
                     Schedule_Properties_Required, Schedule_Properties_Optional,
