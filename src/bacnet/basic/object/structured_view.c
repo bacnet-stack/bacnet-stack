@@ -18,6 +18,7 @@
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
+#include "bacnet/bacstr.h"
 #include "bacnet/proplist.h"
 #include "bacnet/rp.h"
 #include "bacnet/basic/sys/keylist.h"
@@ -27,10 +28,10 @@
 #include "structured_view.h"
 
 struct object_data {
-    char *Object_Name;
-    char *Description;
+    BACNET_CHARACTER_STRING_ANSI Object_Name;
+    BACNET_CHARACTER_STRING_ANSI Description;
     BACNET_NODE_TYPE Node_Type;
-    char *Node_Subtype;
+    BACNET_CHARACTER_STRING_ANSI Node_Subtype;
     void *Context;
     OS_Keylist Subordinate_List;
     BACNET_RELATIONSHIP Default_Subordinate_Relationship;
@@ -219,18 +220,19 @@ bool Structured_View_Object_Name(
 {
     bool status = false;
     struct object_data *pObject;
-    char name_text[48] = "";
+    int len = 0;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (pObject->Object_Name) {
-            status =
-                characterstring_init_ansi(object_name, pObject->Object_Name);
-        } else {
-            snprintf(
-                name_text, sizeof(name_text), "Structured-View-%lu",
+        status = characterstring_ansi_to_characterstring(
+            object_name, &pObject->Object_Name);
+        if (!status) {
+            len = characterstring_utf8_snprintf(
+                object_name, "STRUCTURED-VIEW-%lu",
                 (unsigned long)object_instance);
-            status = characterstring_init_ansi(object_name, name_text);
+            if (len > 0) {
+                status = true;
+            }
         }
     }
 
@@ -253,9 +255,8 @@ bool Structured_View_Name_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        status = true;
-        free(pObject->Object_Name);
-        pObject->Object_Name = bacnet_strdup(new_name);
+        status =
+            characterstring_ansi_const_init(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -273,7 +274,7 @@ const char *Structured_View_Name_ASCII(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        name = pObject->Object_Name;
+        name = characterstring_ansi_value_const(&pObject->Object_Name);
     }
 
     return name;
@@ -293,11 +294,7 @@ const char *Structured_View_Description(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (pObject->Description) {
-            name = pObject->Description;
-        } else {
-            name = "";
-        }
+        return characterstring_ansi_value_default(&pObject->Description, "");
     }
 
     return name;
@@ -319,9 +316,8 @@ bool Structured_View_Description_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        status = true;
-        free(pObject->Description);
-        pObject->Description = bacnet_strdup(new_name);
+        status =
+            characterstring_ansi_const_init(&pObject->Description, new_name);
     }
 
     return status;
@@ -378,11 +374,7 @@ const char *Structured_View_Node_Subtype(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (pObject->Node_Subtype) {
-            name = pObject->Node_Subtype;
-        } else {
-            name = "";
-        }
+        name = characterstring_ansi_value_default(&pObject->Node_Subtype, "");
     }
 
     return name;
@@ -402,9 +394,8 @@ bool Structured_View_Node_Subtype_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        status = true;
-        free(pObject->Node_Subtype);
-        pObject->Node_Subtype = bacnet_strdup(new_name);
+        status =
+            characterstring_ansi_const_init(&pObject->Node_Subtype, new_name);
     }
 
     return status;
@@ -1512,16 +1503,14 @@ static bool Structured_View_Object_Name_Write(
 {
     bool status = false; /* return value */
     struct object_data *pObject;
-    char *utf8_name = NULL;
 
     pObject = Keylist_Data(Object_List, wp_data->object_instance);
     if (pObject) {
-        utf8_name =
-            write_property_characterstring_utf8_strdup(wp_data, cstring);
-        if (utf8_name) {
-            free(pObject->Object_Name);
-            pObject->Object_Name = utf8_name;
-            status = true;
+        status = characterstring_ansi_from_characterstring_strdup(
+            &pObject->Object_Name, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
         }
     } else {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -1544,16 +1533,14 @@ static bool Structured_View_Description_Write(
 {
     bool status = false; /* return value */
     struct object_data *pObject;
-    char *utf8_name = NULL;
 
     pObject = Keylist_Data(Object_List, wp_data->object_instance);
     if (pObject) {
-        utf8_name =
-            write_property_characterstring_utf8_strdup(wp_data, cstring);
-        if (utf8_name) {
-            free(pObject->Description);
-            pObject->Description = utf8_name;
-            status = true;
+        status = characterstring_ansi_from_characterstring_strdup(
+            &pObject->Description, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
         }
     } else {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -1576,16 +1563,14 @@ static bool Structured_View_Node_Subtype_Write(
 {
     bool status = false; /* return value */
     struct object_data *pObject;
-    char *utf8_name = NULL;
 
     pObject = Keylist_Data(Object_List, wp_data->object_instance);
     if (pObject) {
-        utf8_name =
-            write_property_characterstring_utf8_strdup(wp_data, cstring);
-        if (utf8_name) {
-            free(pObject->Node_Subtype);
-            pObject->Node_Subtype = utf8_name;
-            status = true;
+        status = characterstring_ansi_from_characterstring_strdup(
+            &pObject->Node_Subtype, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
         }
     } else {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -1818,9 +1803,9 @@ uint32_t Structured_View_Create(uint32_t object_instance)
         if (!pObject) {
             return BACNET_MAX_INSTANCE;
         }
-        pObject->Object_Name = NULL;
-        pObject->Description = NULL;
-        pObject->Node_Subtype = NULL;
+        characterstring_ansi_const_init(&pObject->Object_Name, NULL);
+        characterstring_ansi_const_init(&pObject->Description, NULL);
+        characterstring_ansi_const_init(&pObject->Node_Subtype, NULL);
         pObject->Subordinate_List = Keylist_Create();
         pObject->Default_Subordinate_Relationship = BACNET_RELATIONSHIP_DEFAULT;
         pObject->Represents.deviceIdentifier.type = OBJECT_NONE;
@@ -1846,9 +1831,9 @@ uint32_t Structured_View_Create(uint32_t object_instance)
 static void Structured_View_Object_Free(struct object_data *pObject)
 {
     if (pObject) {
-        free(pObject->Description);
-        free(pObject->Node_Subtype);
-        free(pObject->Object_Name);
+        characterstring_ansi_free(&pObject->Description);
+        characterstring_ansi_free(&pObject->Node_Subtype);
+        characterstring_ansi_free(&pObject->Object_Name);
         Subordinate_List_Purge(pObject);
         Keylist_Delete(pObject->Subordinate_List);
         free(pObject);

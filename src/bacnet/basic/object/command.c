@@ -42,8 +42,8 @@ struct object_data {
     bool In_Process;
     bool All_Writes_Successful;
     bool Action_Failed;
-    char *Description;
-    char *Object_Name;
+    BACNET_CHARACTER_STRING_ANSI Description;
+    BACNET_CHARACTER_STRING_ANSI Object_Name;
     /* present-value action, or NULL */
     BACNET_ACTION_LIST *Action;
     uint32_t Action_Delay_Milliseconds;
@@ -304,8 +304,8 @@ static void Action_Array_Free(OS_Keylist array)
 static void Object_Data_Free(struct object_data *pObject)
 {
     if (pObject) {
-        free(pObject->Description);
-        free(pObject->Object_Name);
+        characterstring_ansi_free(&pObject->Description);
+        characterstring_ansi_free(&pObject->Object_Name);
         Action_Array_Free(pObject->Action_Array);
         free(pObject);
     }
@@ -334,8 +334,8 @@ static bool Command_Object_Instance_Add(uint32_t object_instance)
         if (!pObject) {
             return false;
         }
-        pObject->Description = NULL;
-        pObject->Object_Name = NULL;
+        characterstring_ansi_const_init(&pObject->Description, NULL);
+        characterstring_ansi_const_init(&pObject->Object_Name, NULL);
         pObject->Action = NULL;
         pObject->Action_Delay_Milliseconds = 0;
         pObject->Action_Failed = false;
@@ -667,20 +667,20 @@ bool Command_All_Writes_Successful_Set(uint32_t object_instance, bool value)
 bool Command_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    char text[32] = "";
     struct object_data *pObject;
     bool status = false;
+    int len = 0;
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        if (pObject->Object_Name) {
-            status =
-                characterstring_init_ansi(object_name, pObject->Object_Name);
-        } else {
-            snprintf(
-                text, sizeof(text), "COMMAND %lu",
-                (unsigned long)object_instance);
-            status = characterstring_init_ansi(object_name, text);
+        status = characterstring_ansi_to_characterstring(
+            object_name, &pObject->Object_Name);
+        if (!status) {
+            len = characterstring_utf8_snprintf(
+                object_name, "COMMAND-%lu", (unsigned long)object_instance);
+            if (len > 0) {
+                status = true;
+            }
         }
     }
 
@@ -700,14 +700,8 @@ bool Command_Name_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        free(pObject->Object_Name);
-        if (new_name) {
-            pObject->Object_Name = bacnet_strdup(new_name);
-            status = (pObject->Object_Name != NULL);
-        } else {
-            pObject->Object_Name = NULL;
-            status = true;
-        }
+        status =
+            characterstring_ansi_const_init(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -724,11 +718,7 @@ const char *Command_Description(uint32_t instance)
 
     pObject = Object_Data(instance);
     if (pObject) {
-        if (pObject->Description) {
-            return pObject->Description;
-        }
-
-        return "";
+        return characterstring_ansi_value_default(&pObject->Description, "");
     }
 
     return NULL;
@@ -745,16 +735,14 @@ static bool Command_Object_Name_Write(
 {
     bool status = false;
     struct object_data *pObject;
-    char *utf8_name = NULL;
 
     pObject = Object_Data(wp_data->object_instance);
     if (pObject) {
-        utf8_name =
-            write_property_characterstring_utf8_strdup(wp_data, cstring);
-        if (utf8_name) {
-            free(pObject->Object_Name);
-            pObject->Object_Name = utf8_name;
-            status = true;
+        status = characterstring_ansi_from_characterstring_strdup(
+            &pObject->Object_Name, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
         }
     } else {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -775,16 +763,14 @@ static bool Command_Description_Write(
 {
     bool status = false;
     struct object_data *pObject;
-    char *utf8_name = NULL;
 
     pObject = Object_Data(wp_data->object_instance);
     if (pObject) {
-        utf8_name =
-            write_property_characterstring_utf8_strdup(wp_data, cstring);
-        if (utf8_name) {
-            free(pObject->Description);
-            pObject->Description = utf8_name;
-            status = true;
+        status = characterstring_ansi_from_characterstring_strdup(
+            &pObject->Description, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
         }
     } else {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -807,14 +793,8 @@ bool Command_Description_Set(uint32_t instance, const char *new_name)
 
     pObject = Object_Data(instance);
     if (pObject) {
-        free(pObject->Description);
-        if (new_name) {
-            pObject->Description = bacnet_strdup(new_name);
-            status = (pObject->Description != NULL);
-        } else {
-            pObject->Description = NULL;
-            status = true;
-        }
+        status =
+            characterstring_ansi_const_init(&pObject->Description, new_name);
     }
 
     return status;
