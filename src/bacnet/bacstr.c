@@ -1069,6 +1069,47 @@ char *characterstring_utf8_strdup(const BACNET_CHARACTER_STRING *char_string)
 }
 
 /**
+ * @brief Format a UTF-8 BACnet character string using printf-style formatting.
+ * @details always null terminates the string, and truncates if the formatted
+ *  string exceeds MAX_CHARACTER_STRING_BYTES - 1. The char_string->length
+ *  is set to the number of bytes written to char_string->value excluding
+ *  the terminating null byte. The char_string->encoding is set to
+ *  CHARACTER_UTF8.
+ * @param char_string Pointer to the BACnet character string to format.
+ * @param format printf-style format string.
+ * @return the number of bytes that would be written to char_string->value had
+ *  it been sufficiently large excluding the terminating null byte.
+ *  If an error was encountered, the function shall return a negative value.
+ */
+int characterstring_utf8_snprintf(
+    BACNET_CHARACTER_STRING *char_string, const char *format, ...)
+{
+    int length = 0;
+    va_list args;
+
+    if (!char_string || !format) {
+        return -1;
+    }
+    va_start(args, format);
+    length =
+        vsnprintf(char_string->value, sizeof(char_string->value), format, args);
+    va_end(args);
+    /* note: always null terminate the string */
+    if (length < 0) {
+        char_string->length = 0;
+        char_string->value[0] = '\0';
+    } else if ((size_t)length >= sizeof(char_string->value)) {
+        char_string->length = sizeof(char_string->value) - 1;
+        char_string->value[sizeof(char_string->value) - 1] = '\0';
+    } else {
+        char_string->length = (size_t)length;
+    }
+    char_string->encoding = CHARACTER_UTF8;
+
+    return length;
+}
+
+/**
  * @brief Initialize a BACnet character string buffer from an ANSI C string.
  * UTF-8 is used as the default encoding for this initializer.
  * @param char_string Pointer to destination buffer structure.
@@ -1602,6 +1643,55 @@ const char *characterstring_ansi_value_const(
     const BACNET_CHARACTER_STRING_ANSI *char_string)
 {
     return characterstring_ansi_value_default(char_string, NULL);
+}
+
+/**
+ * @brief Construct a formatted string into a BACNET_CHARACTER_STRING_ANSI.
+ * @param char_string Pointer to BACNET_CHARACTER_STRING_ANSI structure.
+ * @param format Format string, like printf().
+ * @param ... Additional arguments for the format string.
+ * @return The number of characters written, or -1 on error.
+ */
+int characterstring_ansi_asprintf(
+    BACNET_CHARACTER_STRING_ANSI *char_string, const char *format, ...)
+{
+    int len = 0;
+    char *buffer = NULL;
+    size_t size = 0;
+    va_list args;
+
+    if (!char_string || !format) {
+        return -1;
+    }
+    /* measure the string size */
+    va_start(args, format);
+    len = vsnprintf(NULL, 0, format, args);
+    va_end(args);
+    /* check for encoding errors */
+    if (len < 0) {
+        return -1;
+    }
+    /* allocate the memory */
+    size = (size_t)len + 1;
+    buffer = (char *)malloc(size);
+    if (!buffer) {
+        return -1;
+    }
+    /* construct the formatted buffer */
+    va_start(args, format);
+    len = vsnprintf(buffer, size, format, args);
+    va_end(args);
+    if (len < 0) {
+        free(buffer);
+        return -1;
+    }
+    /* attach the formatted buffer to the character string
+       after freeing the old buffer */
+    characterstring_ansi_free(char_string);
+    char_string->buffer = buffer;
+    char_string->buffer_allocated = true;
+
+    return len;
 }
 
 #if BACNET_USE_OCTETSTRING

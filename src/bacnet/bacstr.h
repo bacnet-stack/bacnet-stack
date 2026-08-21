@@ -163,6 +163,9 @@ BACNET_STACK_EXPORT
 bool characterstring_utf8_valid(const BACNET_CHARACTER_STRING *char_string);
 BACNET_STACK_EXPORT
 char *characterstring_utf8_strdup(const BACNET_CHARACTER_STRING *char_string);
+BACNET_STACK_EXPORT
+int characterstring_utf8_snprintf(
+    BACNET_CHARACTER_STRING *char_string, const char *format, ...);
 
 BACNET_STACK_EXPORT
 bool characterstring_buffer_ansi_length_init(
@@ -240,6 +243,9 @@ const char *characterstring_ansi_value_default(
 BACNET_STACK_EXPORT
 const char *characterstring_ansi_value_const(
     const BACNET_CHARACTER_STRING_ANSI *char_string);
+BACNET_STACK_EXPORT
+int characterstring_ansi_asprintf(
+    BACNET_CHARACTER_STRING_ANSI *char_string, const char *format, ...);
 
 /* returns false if the string exceeds capacity
    initialize by using length=0 */

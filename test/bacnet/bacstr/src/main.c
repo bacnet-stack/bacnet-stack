@@ -634,6 +634,95 @@ static void testCharacterStringUtf8Strdup(void)
 }
 
 /**
+ * @brief Validate UTF-8 BACnet formatting helper.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacstr_tests, testCharacterStringUtf8Snprintf)
+#else
+static void testCharacterStringUtf8Snprintf(void)
+#endif
+{
+    BACNET_CHARACTER_STRING value = { 0 };
+    const char *expected = "Hello BACnet 42";
+    int ret = 0;
+
+    ret = characterstring_utf8_snprintf(NULL, "%s", expected);
+    zassert_equal(ret, -1, "NULL destination should fail");
+
+    ret = characterstring_utf8_snprintf(&value, "%s %d", "Hello BACnet", 42);
+    zassert_equal(
+        ret, (int)strlen(expected), "Return length should match bytes");
+    zassert_equal(characterstring_encoding(&value), CHARACTER_UTF8, NULL);
+    zassert_equal(characterstring_length(&value), strlen(expected), NULL);
+    zassert_equal(
+        strcmp(characterstring_value_const(&value), expected), 0,
+        "UTF-8 formatted string should match expected output");
+
+    ret = characterstring_utf8_snprintf(
+        &value, "%s", "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    zassert_true(ret > 0, "Formatting should succeed");
+    zassert_equal(characterstring_encoding(&value), CHARACTER_UTF8, NULL);
+    zassert_equal(
+        characterstring_length(&value),
+        strlen(characterstring_value_const(&value)), NULL);
+
+    char oversized[MAX_CHARACTER_STRING_BYTES + 16];
+    memset(oversized, 'A', sizeof(oversized) - 1);
+    oversized[sizeof(oversized) - 1] = '\0';
+    ret = characterstring_utf8_snprintf(&value, "%s", oversized);
+    zassert_true(
+        ret > 0, "Formatting an oversized UTF-8 string should truncate");
+    zassert_equal(
+        characterstring_length(&value), MAX_CHARACTER_STRING_BYTES - 1,
+        "Truncated string length should be capped at the final usable byte");
+    zassert_equal(
+        strlen(characterstring_value_const(&value)),
+        MAX_CHARACTER_STRING_BYTES - 1,
+        "Truncated content should retain the final usable NUL terminator");
+    zassert_equal(
+        value.value[MAX_CHARACTER_STRING_BYTES - 1], '\0',
+        "The terminator should be placed at the last valid index");
+}
+
+/**
+ * @brief Validate ANSI BACnet formatting helper.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacstr_tests, testCharacterStringAnsiSprintf)
+#else
+static void testCharacterStringAnsiSprintf(void)
+#endif
+{
+    BACNET_CHARACTER_STRING_ANSI value = { 0 };
+    const char *expected = "Hello BACnet 42";
+    int ret = 0;
+
+    ret = characterstring_ansi_asprintf(NULL, "%s", expected);
+    zassert_equal(ret, -1, "NULL destination should fail");
+    ret = characterstring_ansi_asprintf(&value, NULL);
+    zassert_equal(ret, -1, "NULL format should fail");
+
+    ret = characterstring_ansi_asprintf(&value, "%s %d", "Hello BACnet", 42);
+    zassert_equal(
+        ret, (int)strlen(expected), "Return length should match bytes");
+    zassert_true(value.buffer_allocated, NULL);
+    zassert_equal(characterstring_ansi_length(&value), strlen(expected), NULL);
+    zassert_equal(
+        strcmp(characterstring_ansi_value_const(&value), expected), 0,
+        "ANSI formatted string should match expected output");
+    zassert_equal(characterstring_ansi_encoding(&value), CHARACTER_UTF8, NULL);
+
+    ret = characterstring_ansi_asprintf(&value, "%.4s", "ABCDEFGH");
+    zassert_equal(ret, 4, "Formatted length should be exact for precision");
+    zassert_equal(
+        strcmp(characterstring_ansi_value_const(&value), "ABCD"), 0,
+        "Precision should truncate correctly");
+
+    characterstring_ansi_free(&value);
+    zassert_is_null(value.buffer, NULL);
+}
+
+/**
  * @brief Test dynamic/const BACNET_CHARACTER_STRING_BUFFER APIs
  */
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -1943,6 +2032,8 @@ void test_main(void)
         ztest_unit_test(testUtf8IsValid),
         ztest_unit_test(testCharacterStringUtf8Valid),
         ztest_unit_test(testCharacterStringUtf8Strdup),
+        ztest_unit_test(testCharacterStringUtf8Snprintf),
+        ztest_unit_test(testCharacterStringAnsiSprintf),
         ztest_unit_test(testCharacterStringBufferApi_strdups),
         ztest_unit_test(testCharacterStringBufferApi_static),
         ztest_unit_test(testCharacterStringBufferApi_mixed),
