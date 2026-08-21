@@ -37,7 +37,9 @@ static void testLifeSafetyPoint(void)
     bool status = false;
     unsigned index;
     const char *test_name = NULL;
+    const char *test_description = NULL;
     char *sample_name = "sample";
+    char *sample_description = "description";
 
     Life_Safety_Point_Init();
     Life_Safety_Point_Create(instance);
@@ -141,6 +143,14 @@ static void testLifeSafetyPoint(void)
     zassert_true(status, NULL);
     test_name = Life_Safety_Point_Name_ASCII(instance);
     zassert_equal(test_name, NULL, NULL);
+    status = Life_Safety_Point_Description_Set(instance, sample_description);
+    zassert_true(status, NULL);
+    test_description = Life_Safety_Point_Description(instance);
+    zassert_equal(test_description, sample_description, NULL);
+    status = Life_Safety_Point_Description_Set(instance, NULL);
+    zassert_true(status, NULL);
+    zassert_true(
+        strcmp(Life_Safety_Point_Description(instance), "") == 0, NULL);
     /* cleanup */
     status = Life_Safety_Point_Delete(instance);
     zassert_true(status, NULL);
