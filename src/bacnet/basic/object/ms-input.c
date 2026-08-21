@@ -33,9 +33,9 @@ struct object_data {
     bool Write_Enabled : 1;
     uint8_t Present_Value;
     uint8_t Reliability;
-    const char *Object_Name;
+    BACNET_CHARACTER_STRING_ANSI Object_Name;
     OS_Keylist State_List;
-    const char *Description;
+    BACNET_CHARACTER_STRING_ANSI Description;
     void *Context;
 };
 /* Key List for storing the object data sorted by instance number  */
@@ -78,7 +78,7 @@ static const int32_t Writable_Properties[] = {
     /* first property is present-value so it can be skipped if not writable */
     PROP_PRESENT_VALUE,
     /* unordered list of always writable properties */
-    PROP_OUT_OF_SERVICE, PROP_STATE_TEXT, -1
+    PROP_OUT_OF_SERVICE, PROP_STATE_TEXT, PROP_OBJECT_NAME, PROP_DESCRIPTION, -1
 };
 
 /**
@@ -514,18 +514,19 @@ bool Multistate_Input_Object_Name(
 {
     bool status = false;
     struct object_data *pObject;
-    char name_text[32];
+    int len = 0;
 
     pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
-        if (pObject->Object_Name) {
-            status =
-                characterstring_init_ansi(object_name, pObject->Object_Name);
-        } else {
-            snprintf(
-                name_text, sizeof(name_text), "MULTI-STATE INPUT %lu",
+        status = characterstring_ansi_to_characterstring(
+            object_name, &pObject->Object_Name);
+        if (!status) {
+            len = characterstring_utf8_snprintf(
+                object_name, "MULTI-STATE-INPUT-%lu",
                 (unsigned long)object_instance);
-            status = characterstring_init_ansi(object_name, name_text);
+            if (len > 0) {
+                status = true;
+            }
         }
     }
 
@@ -546,8 +547,8 @@ bool Multistate_Input_Name_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
-        status = true;
-        pObject->Object_Name = new_name;
+        status =
+            characterstring_ansi_const_init(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -565,7 +566,7 @@ const char *Multistate_Input_Name_ASCII(uint32_t object_instance)
 
     pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
-        name = pObject->Object_Name;
+        name = characterstring_ansi_value_const(&pObject->Object_Name);
     }
 
     return name;
@@ -659,7 +660,7 @@ const char *Multistate_Input_Description(uint32_t object_instance)
 
     pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
-        name = pObject->Description;
+        name = characterstring_ansi_value_default(&pObject->Description, "");
     }
 
     return name;
@@ -679,8 +680,8 @@ bool Multistate_Input_Description_Set(
 
     pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
-        status = true;
-        pObject->Description = new_name;
+        status =
+            characterstring_ansi_const_init(&pObject->Description, new_name);
     }
 
     return status;
@@ -908,6 +909,50 @@ static BACNET_ERROR_CODE State_Text_Element_Write_Resizable(
  * requested data and space for the reply, or error response.
  * @return false if an error is loaded, true if no errors
  */
+static bool Multistate_Input_Object_Name_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Multistate_Input_Object(wp_data->object_instance);
+    if (pObject) {
+        status = characterstring_ansi_from_characterstring_strdup(
+            &pObject->Object_Name, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+static bool Multistate_Input_Description_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Multistate_Input_Object(wp_data->object_instance);
+    if (pObject) {
+        status = characterstring_ansi_from_characterstring_strdup(
+            &pObject->Description, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
 bool Multistate_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
@@ -937,6 +982,22 @@ bool Multistate_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 status = Multistate_Input_Present_Value_Write(
                     wp_data->object_instance, value.type.Enumerated,
                     &wp_data->error_class, &wp_data->error_code);
+            }
+            break;
+        case PROP_OBJECT_NAME:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Multistate_Input_Object_Name_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+        case PROP_DESCRIPTION:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Multistate_Input_Description_Write(
+                    wp_data, &value.type.Character_String);
             }
             break;
         case PROP_OUT_OF_SERVICE:
@@ -1089,7 +1150,6 @@ uint32_t Multistate_Input_Create(uint32_t object_instance)
     if (!pObject) {
         pObject = calloc(1, sizeof(struct object_data));
         if (pObject) {
-            pObject->Object_Name = NULL;
             pObject->Out_Of_Service = false;
             pObject->Reliability = RELIABILITY_NO_FAULT_DETECTED;
             pObject->Change_Of_Value = false;
@@ -1125,6 +1185,8 @@ bool Multistate_Input_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
+        characterstring_ansi_free(&pObject->Description);
+        characterstring_ansi_free(&pObject->Object_Name);
         (void)state_name_list_init(pObject->State_List, NULL);
         Keylist_Delete(pObject->State_List);
         free(pObject);
@@ -1153,6 +1215,8 @@ void Multistate_Input_Cleanup(void)
             do {
                 pObject = Keylist_Data_Pop(Object_List);
                 if (pObject) {
+                    characterstring_ansi_free(&pObject->Description);
+                    characterstring_ansi_free(&pObject->Object_Name);
                     (void)state_name_list_init(pObject->State_List, NULL);
                     Keylist_Delete(pObject->State_List);
                     free(pObject);
