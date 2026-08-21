@@ -70,7 +70,18 @@ static void testBinary_Value_Writable_Properties(void)
     count = property_list_count(properties);
     zassert_true(count > 0, NULL);
     zassert_equal(properties[0], PROP_PRESENT_VALUE, NULL);
-
+    bool has_object_name = false;
+    bool has_description = false;
+    for (uint32_t i = 0; properties[i] != -1; ++i) {
+        if (properties[i] == PROP_OBJECT_NAME) {
+            has_object_name = true;
+        }
+        if (properties[i] == PROP_DESCRIPTION) {
+            has_description = true;
+        }
+    }
+    zassert_true(has_object_name, NULL);
+    zassert_true(has_description, NULL);
     /* write-disabled: list skips PROP_PRESENT_VALUE */
     Binary_Value_Write_Disable(instance);
     zassert_false(Binary_Value_Write_Enabled(instance), NULL);
