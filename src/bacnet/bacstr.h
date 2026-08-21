@@ -244,6 +244,11 @@ BACNET_STACK_EXPORT
 const char *characterstring_ansi_value_const(
     const BACNET_CHARACTER_STRING_ANSI *char_string);
 BACNET_STACK_EXPORT
+bool characterstring_ansi_to_characterstring_default(
+    BACNET_CHARACTER_STRING *dest,
+    const BACNET_CHARACTER_STRING_ANSI *src,
+    const char *default_value);
+BACNET_STACK_EXPORT
 int characterstring_ansi_asprintf(
     BACNET_CHARACTER_STRING_ANSI *char_string, const char *format, ...);
 

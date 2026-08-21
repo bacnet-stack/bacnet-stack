@@ -1530,7 +1530,7 @@ bool characterstring_ansi_from_characterstring_strdup(
 bool characterstring_ansi_to_characterstring(
     BACNET_CHARACTER_STRING *dest, const BACNET_CHARACTER_STRING_ANSI *src)
 {
-    if (!dest || !src) {
+    if (!dest || !src || !characterstring_ansi_value_const(src)) {
         return false;
     }
     return characterstring_init(
@@ -1643,6 +1643,30 @@ const char *characterstring_ansi_value_const(
     const BACNET_CHARACTER_STRING_ANSI *char_string)
 {
     return characterstring_ansi_value_default(char_string, NULL);
+}
+
+/**
+ * @brief Convert a BACNET_CHARACTER_STRING_ANSI to a BACNET_CHARACTER_STRING,
+ *  or initialize with a default value if the source is NULL or empty.
+ * @param dest Pointer to destination BACNET_CHARACTER_STRING structure.
+ * @param src Pointer to source BACNET_CHARACTER_STRING_ANSI structure.
+ * @param default_value Pointer to default C-string value to use if src is NULL
+ *  or empty.
+ * @return true on success, false on argument failure.
+ */
+bool characterstring_ansi_to_characterstring_default(
+    BACNET_CHARACTER_STRING *dest,
+    const BACNET_CHARACTER_STRING_ANSI *src,
+    const char *default_value)
+{
+    if (!dest) {
+        return false;
+    }
+    if (!src || !characterstring_ansi_value_const(src)) {
+        return characterstring_init_ansi(dest, default_value);
+    }
+    return characterstring_init_ansi(
+        dest, characterstring_ansi_value_const(src));
 }
 
 /**
