@@ -343,6 +343,42 @@ bool Trend_Log_Object_Name(
 }
 
 /**
+ * @brief Set the object-name for a given object instance number.
+ * @param object_instance - object-instance number of the object.
+ * @param new_name - holds the object-name to be set.
+ * @return true if object-name was set.
+ */
+bool Trend_Log_Name_Set(uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    TL_LOG_INFO *CurrentLog;
+
+    if (object_instance < MAX_TREND_LOGS) {
+        CurrentLog = &LogInfo[object_instance];
+        status =
+            characterstring_ansi_const_init(&CurrentLog->Object_Name, new_name);
+    }
+
+    return status;
+}
+
+/**
+ * @brief Return the object name C string.
+ * @param object_instance - BACnet object instance number.
+ * @return object name or NULL if not found.
+ */
+const char *Trend_Log_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    if (object_instance < MAX_TREND_LOGS) {
+        TL_LOG_INFO *CurrentLog = &LogInfo[object_instance];
+        name = characterstring_ansi_value_const(&CurrentLog->Object_Name);
+    }
+
+    return name;
+}
+
+/**
  * @brief Set the object-name property value using write-property context.
  * @param wp_data [in,out] Write property request/response context.
  * @param cstring [in] New object-name value.
@@ -392,6 +428,26 @@ const char *Trend_Log_Description(uint32_t object_instance)
     }
 
     return value;
+}
+
+/**
+ * @brief Set the description for a given object instance number.
+ * @param object_instance - object-instance number of the object.
+ * @param new_name - holds the description to be set.
+ * @return true if description was set.
+ */
+bool Trend_Log_Description_Set(uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    TL_LOG_INFO *CurrentLog;
+
+    if (object_instance < MAX_TREND_LOGS) {
+        CurrentLog = &LogInfo[object_instance];
+        status =
+            characterstring_ansi_const_init(&CurrentLog->Description, new_name);
+    }
+
+    return status;
 }
 
 /**
