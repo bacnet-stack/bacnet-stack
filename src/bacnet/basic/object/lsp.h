@@ -45,6 +45,11 @@ BACNET_STACK_EXPORT
 bool Life_Safety_Point_Name_Set(uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
 const char *Life_Safety_Point_Name_ASCII(uint32_t object_instance);
+BACNET_STACK_EXPORT
+const char *Life_Safety_Point_Description(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Life_Safety_Point_Description_Set(
+    uint32_t object_instance, const char *new_name);
 
 BACNET_STACK_EXPORT
 BACNET_LIFE_SAFETY_STATE

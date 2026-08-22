@@ -13,6 +13,7 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
+#include "bacnet/bacstr.h"
 #include "bacnet/cov.h"
 #include "bacnet/proplist.h"
 #include "bacnet/rp.h"
@@ -37,8 +38,8 @@ struct object_data {
     BACNET_UNSIGNED_INTEGER Present_Value;
     BACNET_UNSIGNED_INTEGER Prior_Value;
     BACNET_UNSIGNED_INTEGER Max_Pres_Value;
-    BACNET_CHARACTER_STRING Object_Name;
-    const char *Description;
+    BACNET_CHARACTER_STRING_ANSI Object_Name;
+    BACNET_CHARACTER_STRING_ANSI Description;
     BACNET_ENGINEERING_UNITS Units;
     int32_t Scale;
     bool Out_Of_Service : 1;
@@ -72,13 +73,8 @@ static const int32_t Properties_Proprietary[] = { -1 };
    that is always writable.  */
 static const int32_t Writable_Properties[] = {
     /* unordered list of writable properties */
-    PROP_OBJECT_NAME,
-    PROP_PRESENT_VALUE,
-    PROP_OUT_OF_SERVICE,
-    PROP_SCALE,
-    PROP_UNITS,
-    PROP_MAX_PRES_VALUE,
-    -1
+    PROP_OBJECT_NAME, PROP_PRESENT_VALUE,  PROP_OUT_OF_SERVICE, PROP_SCALE,
+    PROP_UNITS,       PROP_MAX_PRES_VALUE, PROP_DESCRIPTION,    -1
 };
 
 /**
@@ -196,13 +192,13 @@ unsigned Accumulator_Instance_To_Index(uint32_t object_instance)
  *
  * @return object-name C string, or NULL if not found.
  */
-char *Accumulator_Name(uint32_t object_instance)
+const char *Accumulator_Name(uint32_t object_instance)
 {
-    char *name = NULL;
+    const char *name = NULL;
     struct object_data *pObject = Object_Data(object_instance);
 
     if (pObject) {
-        name = characterstring_value(&pObject->Object_Name);
+        name = characterstring_ansi_value_const(&pObject->Object_Name);
     }
 
     return name;
@@ -216,13 +212,14 @@ char *Accumulator_Name(uint32_t object_instance)
  *
  * @return  true if object-name was set
  */
-bool Accumulator_Name_Set(uint32_t object_instance, char *new_name)
+bool Accumulator_Name_Set(uint32_t object_instance, const char *new_name)
 {
     bool status = false;
     struct object_data *pObject = Object_Data(object_instance);
 
     if (pObject) {
-        status = characterstring_init_ansi(&pObject->Object_Name, new_name);
+        status =
+            characterstring_ansi_const_init(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -243,9 +240,18 @@ bool Accumulator_Object_Name(
 {
     bool status = false;
     struct object_data *pObject = Object_Data(object_instance);
+    int len = 0;
 
     if (pObject) {
-        status = characterstring_copy(object_name, &pObject->Object_Name);
+        status = characterstring_ansi_to_characterstring(
+            object_name, &pObject->Object_Name);
+        if (!status) {
+            len = characterstring_utf8_snprintf(
+                object_name, "ACCUMULATOR-%lu", (unsigned long)object_instance);
+            if (len > 0) {
+                status = true;
+            }
+        }
     }
 
     return status;
@@ -268,7 +274,8 @@ bool Accumulator_Object_Name_Set(
     struct object_data *pObject = Object_Data(object_instance);
 
     if (pObject) {
-        status = characterstring_copy(&pObject->Object_Name, object_name);
+        status = characterstring_ansi_from_characterstring_strdup(
+            &pObject->Object_Name, object_name);
     }
 
     return status;
@@ -535,7 +542,7 @@ const char *Accumulator_Description(uint32_t instance)
     struct object_data *pObject = Object_Data(instance);
 
     if (pObject) {
-        name = pObject->Description;
+        name = characterstring_ansi_value_default(&pObject->Description, "");
     }
 
     return name;
@@ -553,8 +560,8 @@ bool Accumulator_Description_Set(uint32_t instance, const char *new_name)
     struct object_data *pObject = Object_Data(instance);
 
     if (pObject) {
-        pObject->Description = new_name;
-        status = true;
+        status =
+            characterstring_ansi_const_init(&pObject->Description, new_name);
     }
 
     return status;
@@ -690,6 +697,64 @@ int Accumulator_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 }
 
 /**
+ * For a given object instance-number, sets the object-name
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  cstring - holds the object-name to be set
+ *
+ * @return  true if object-name was set
+ */
+static bool Accumulator_Object_Name_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct object_data *pObject = Object_Data(wp_data->object_instance);
+
+    if (pObject) {
+        status = characterstring_ansi_from_characterstring_strdup(
+            &pObject->Object_Name, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the description property value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  cstring - holds the description to be set
+ *
+ * @return  true if description was set
+ */
+static bool Accumulator_Description_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct object_data *pObject = Object_Data(wp_data->object_instance);
+
+    if (pObject) {
+        status = characterstring_ansi_from_characterstring_strdup(
+            &pObject->Description, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
  * WriteProperty handler for this object.  For the given WriteProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -739,8 +804,16 @@ bool Accumulator_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
             if (status) {
-                Accumulator_Object_Name_Set(
-                    wp_data->object_instance, &value.type.Character_String);
+                status = Accumulator_Object_Name_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+        case PROP_DESCRIPTION:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Accumulator_Description_Write(
+                    wp_data, &value.type.Character_String);
             }
             break;
         case PROP_SCALE:
@@ -845,7 +918,6 @@ void Accumulator_Context_Set(uint32_t object_instance, void *context)
 uint32_t Accumulator_Create(uint32_t object_instance)
 {
     struct object_data *pObject = NULL;
-    char text[32] = "";
     int index;
 
     if (!Object_List) {
@@ -865,18 +937,14 @@ uint32_t Accumulator_Create(uint32_t object_instance)
     if (!pObject) {
         pObject = calloc(1, sizeof(struct object_data));
         if (pObject) {
+            characterstring_ansi_const_init(&pObject->Object_Name, NULL);
+            characterstring_ansi_const_init(&pObject->Description, NULL);
             /* add to list */
             index = Keylist_Data_Add(Object_List, object_instance, pObject);
             if (index < 0) {
                 free(pObject);
                 return BACNET_MAX_INSTANCE;
             }
-            characterstring_init_ansi(
-                &pObject->Object_Name,
-                bacnet_snprintf_to_ascii(
-                    text, sizeof(text), "ACCUMULATOR-%lu",
-                    (unsigned long)object_instance));
-            pObject->Description = "";
             pObject->Present_Value = 0;
             pObject->Prior_Value = 0;
             pObject->Changed = false;
@@ -906,6 +974,8 @@ bool Accumulator_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
+        characterstring_ansi_free(&pObject->Description);
+        characterstring_ansi_free(&pObject->Object_Name);
         free(pObject);
         status = true;
     }

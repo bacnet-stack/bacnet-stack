@@ -50,9 +50,9 @@ BACNET_STACK_EXPORT
 bool Accumulator_Object_Instance_Add(uint32_t instance);
 
 BACNET_STACK_EXPORT
-char *Accumulator_Name(uint32_t object_instance);
+const char *Accumulator_Name(uint32_t object_instance);
 BACNET_STACK_EXPORT
-bool Accumulator_Name_Set(uint32_t object_instance, char *new_name);
+bool Accumulator_Name_Set(uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
 bool Accumulator_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name);

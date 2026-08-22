@@ -342,6 +342,24 @@ static void testCharacterStringAnsiHelpers(void)
     characterstring_ansi_free(&duplicated);
     zassert_is_null(duplicated.buffer, NULL);
 
+    status = characterstring_ansi_const_length_init(&ansi_string, NULL, 5);
+    zassert_true(status, NULL);
+    zassert_is_null(characterstring_ansi_value_const(&ansi_string), NULL);
+
+    status = characterstring_ansi_const_length_init(&ansi_string, NULL, 0);
+    zassert_true(status, NULL);
+    zassert_is_null(characterstring_ansi_value_const(&ansi_string), NULL);
+
+    status = characterstring_ansi_const_length_init(&ansi_string, value, 0);
+    zassert_true(status, NULL);
+    zassert_equal(
+        strcmp(characterstring_ansi_value_const(&ansi_string), value), 0, NULL);
+
+    status = characterstring_ansi_const_length_init(&ansi_string, value, 5);
+    zassert_true(status, NULL);
+    zassert_true(ansi_string.buffer_allocated, NULL);
+    zassert_equal(strncmp(ansi_string.buffer, expected, 5), 0, NULL);
+
     status = characterstring_init_ansi(&bacnet_string, value);
     zassert_true(status, NULL);
     status = characterstring_ansi_from_characterstring_strdup(
@@ -365,9 +383,33 @@ static void testCharacterStringAnsiHelpers(void)
             characterstring_ansi_value_const(&ansi_string)),
         0, NULL);
 
+    status = characterstring_ansi_to_characterstring_default(
+        &bacnet_string, &ansi_string, "default-value");
+    zassert_true(status, NULL);
+    zassert_equal(
+        strcmp(characterstring_value_const(&bacnet_string), value), 0, NULL);
+
     characterstring_ansi_const_init(&ansi_string, NULL);
     zassert_is_null(characterstring_ansi_value_const(&ansi_string), NULL);
     zassert_equal(characterstring_ansi_length(&ansi_string), 0, NULL);
+    zassert_is_null(
+        characterstring_ansi_value_default(&ansi_string, NULL), NULL);
+    zassert_equal(
+        strcmp(
+            characterstring_ansi_value_default(&ansi_string, "default-value"),
+            "default-value"),
+        0, NULL);
+    status = characterstring_ansi_to_characterstring_default(
+        &bacnet_string, &ansi_string, "default-value");
+    zassert_true(status, NULL);
+    zassert_equal(
+        strcmp(characterstring_value_const(&bacnet_string), "default-value"), 0,
+        NULL);
+
+    status = characterstring_ansi_to_characterstring_default(
+        NULL, &ansi_string, "default-value");
+    zassert_false(status, NULL);
+
     characterstring_ansi_free(&ansi_string);
     zassert_is_null(ansi_string.buffer, NULL);
 
@@ -613,6 +655,95 @@ static void testCharacterStringUtf8Strdup(void)
     zassert_equal(dup_string[length], 0, "String should be NUL-terminated");
     free(dup_string);
     dup_string = NULL;
+}
+
+/**
+ * @brief Validate UTF-8 BACnet formatting helper.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacstr_tests, testCharacterStringUtf8Snprintf)
+#else
+static void testCharacterStringUtf8Snprintf(void)
+#endif
+{
+    BACNET_CHARACTER_STRING value = { 0 };
+    const char *expected = "Hello BACnet 42";
+    int ret = 0;
+
+    ret = characterstring_utf8_snprintf(NULL, "%s", expected);
+    zassert_equal(ret, -1, "NULL destination should fail");
+
+    ret = characterstring_utf8_snprintf(&value, "%s %d", "Hello BACnet", 42);
+    zassert_equal(
+        ret, (int)strlen(expected), "Return length should match bytes");
+    zassert_equal(characterstring_encoding(&value), CHARACTER_UTF8, NULL);
+    zassert_equal(characterstring_length(&value), strlen(expected), NULL);
+    zassert_equal(
+        strcmp(characterstring_value_const(&value), expected), 0,
+        "UTF-8 formatted string should match expected output");
+
+    ret = characterstring_utf8_snprintf(
+        &value, "%s", "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    zassert_true(ret > 0, "Formatting should succeed");
+    zassert_equal(characterstring_encoding(&value), CHARACTER_UTF8, NULL);
+    zassert_equal(
+        characterstring_length(&value),
+        strlen(characterstring_value_const(&value)), NULL);
+
+    char oversized[MAX_CHARACTER_STRING_BYTES + 16];
+    memset(oversized, 'A', sizeof(oversized) - 1);
+    oversized[sizeof(oversized) - 1] = '\0';
+    ret = characterstring_utf8_snprintf(&value, "%s", oversized);
+    zassert_true(
+        ret > 0, "Formatting an oversized UTF-8 string should truncate");
+    zassert_equal(
+        characterstring_length(&value), MAX_CHARACTER_STRING_BYTES - 1,
+        "Truncated string length should be capped at the final usable byte");
+    zassert_equal(
+        strlen(characterstring_value_const(&value)),
+        MAX_CHARACTER_STRING_BYTES - 1,
+        "Truncated content should retain the final usable NUL terminator");
+    zassert_equal(
+        value.value[MAX_CHARACTER_STRING_BYTES - 1], '\0',
+        "The terminator should be placed at the last valid index");
+}
+
+/**
+ * @brief Validate ANSI BACnet formatting helper.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacstr_tests, testCharacterStringAnsiSprintf)
+#else
+static void testCharacterStringAnsiSprintf(void)
+#endif
+{
+    BACNET_CHARACTER_STRING_ANSI value = { 0 };
+    const char *expected = "Hello BACnet 42";
+    int ret = 0;
+
+    ret = characterstring_ansi_asprintf(NULL, "%s", expected);
+    zassert_equal(ret, -1, "NULL destination should fail");
+    ret = characterstring_ansi_asprintf(&value, NULL);
+    zassert_equal(ret, -1, "NULL format should fail");
+
+    ret = characterstring_ansi_asprintf(&value, "%s %d", "Hello BACnet", 42);
+    zassert_equal(
+        ret, (int)strlen(expected), "Return length should match bytes");
+    zassert_true(value.buffer_allocated, NULL);
+    zassert_equal(characterstring_ansi_length(&value), strlen(expected), NULL);
+    zassert_equal(
+        strcmp(characterstring_ansi_value_const(&value), expected), 0,
+        "ANSI formatted string should match expected output");
+    zassert_equal(characterstring_ansi_encoding(&value), CHARACTER_UTF8, NULL);
+
+    ret = characterstring_ansi_asprintf(&value, "%.4s", "ABCDEFGH");
+    zassert_equal(ret, 4, "Formatted length should be exact for precision");
+    zassert_equal(
+        strcmp(characterstring_ansi_value_const(&value), "ABCD"), 0,
+        "Precision should truncate correctly");
+
+    characterstring_ansi_free(&value);
+    zassert_is_null(value.buffer, NULL);
 }
 
 /**
@@ -1925,6 +2056,8 @@ void test_main(void)
         ztest_unit_test(testUtf8IsValid),
         ztest_unit_test(testCharacterStringUtf8Valid),
         ztest_unit_test(testCharacterStringUtf8Strdup),
+        ztest_unit_test(testCharacterStringUtf8Snprintf),
+        ztest_unit_test(testCharacterStringAnsiSprintf),
         ztest_unit_test(testCharacterStringBufferApi_strdups),
         ztest_unit_test(testCharacterStringBufferApi_static),
         ztest_unit_test(testCharacterStringBufferApi_mixed),

@@ -163,6 +163,9 @@ BACNET_STACK_EXPORT
 bool characterstring_utf8_valid(const BACNET_CHARACTER_STRING *char_string);
 BACNET_STACK_EXPORT
 char *characterstring_utf8_strdup(const BACNET_CHARACTER_STRING *char_string);
+BACNET_STACK_EXPORT
+int characterstring_utf8_snprintf(
+    BACNET_CHARACTER_STRING *char_string, const char *format, ...);
 
 BACNET_STACK_EXPORT
 bool characterstring_buffer_ansi_length_init(
@@ -209,14 +212,17 @@ uint8_t characterstring_buffer_encoding(
 
 /* lightweight BACnetCharacterString for ANSI C strings */
 BACNET_STACK_EXPORT
-void characterstring_ansi_const_init(
+bool characterstring_ansi_const_init(
     BACNET_CHARACTER_STRING_ANSI *char_string, const char *value);
 BACNET_STACK_EXPORT
 bool characterstring_ansi_strndup(
     BACNET_CHARACTER_STRING_ANSI *char_string, const char *value, size_t tmax);
 BACNET_STACK_EXPORT
+bool characterstring_ansi_const_length_init(
+    BACNET_CHARACTER_STRING_ANSI *char_string, const char *value, size_t tmax);
+BACNET_STACK_EXPORT
 bool characterstring_ansi_from_characterstring_strdup(
-    BACNET_CHARACTER_STRING_ANSI *dest, BACNET_CHARACTER_STRING *src);
+    BACNET_CHARACTER_STRING_ANSI *dest, const BACNET_CHARACTER_STRING *src);
 BACNET_STACK_EXPORT
 bool characterstring_ansi_to_characterstring(
     BACNET_CHARACTER_STRING *dest, const BACNET_CHARACTER_STRING_ANSI *src);
@@ -232,8 +238,19 @@ BACNET_STACK_EXPORT
 uint8_t
 characterstring_ansi_encoding(const BACNET_CHARACTER_STRING_ANSI *char_string);
 BACNET_STACK_EXPORT
+const char *characterstring_ansi_value_default(
+    const BACNET_CHARACTER_STRING_ANSI *char_string, const char *default_value);
+BACNET_STACK_EXPORT
 const char *characterstring_ansi_value_const(
     const BACNET_CHARACTER_STRING_ANSI *char_string);
+BACNET_STACK_EXPORT
+bool characterstring_ansi_to_characterstring_default(
+    BACNET_CHARACTER_STRING *dest,
+    const BACNET_CHARACTER_STRING_ANSI *src,
+    const char *default_value);
+BACNET_STACK_EXPORT
+int characterstring_ansi_asprintf(
+    BACNET_CHARACTER_STRING_ANSI *char_string, const char *format, ...);
 
 /* returns false if the string exceeds capacity
    initialize by using length=0 */

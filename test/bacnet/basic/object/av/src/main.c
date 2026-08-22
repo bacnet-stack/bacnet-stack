@@ -83,7 +83,7 @@ static void testAnalog_Value_APIs(void)
         NULL);
     zassert_true(Analog_Value_Min_Pres_Value(instance) < -3.0e38f, NULL);
     zassert_true(Analog_Value_Max_Pres_Value(instance) > 3.0e38f, NULL);
-    zassert_is_null(Analog_Value_Description(instance), NULL);
+    zassert_equal(strcmp(Analog_Value_Description(instance), ""), 0, NULL);
     zassert_is_null(Analog_Value_Context_Get(instance), NULL);
 
     status = Analog_Value_Description_Set(instance, sample_description);

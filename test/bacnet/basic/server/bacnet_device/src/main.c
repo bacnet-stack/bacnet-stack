@@ -505,6 +505,87 @@ static void testDevice(void)
     }
 }
 /**
+ * @brief Test CharacterString-backed device property accessors and setters.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Device_CharacterString_Property_Values)
+#else
+static void test_Device_CharacterString_Property_Values(void)
+#endif
+{
+    bool status = false;
+    BACNET_CHARACTER_STRING object_name = { 0 };
+    const char *name_string = NULL;
+    const char *vendor_name = "Widget Co";
+    const char *model_name = "Model-42";
+    const char *firmware_revision = "1.2.3";
+    const char *software_version = "BACnet Stack 1.2.3";
+    const char *description = "Test Device Description";
+    const char *location = "Test Location";
+    const char *serial_number = "SN-12345";
+
+    Device_Init(NULL);
+
+    status = Device_Set_Object_Name(NULL);
+    zassert_false(status, NULL);
+    characterstring_init_ansi(&object_name, "Teddy");
+    status = Device_Set_Object_Name(&object_name);
+    zassert_true(status, NULL);
+    status = Device_Object_Name(Device_Object_Instance_Number(), &object_name);
+    zassert_true(status, NULL);
+    zassert_true(characterstring_ansi_same(&object_name, "Teddy"), NULL);
+
+    Device_Object_Name_ANSI_Init("Tuxedo");
+    name_string = Device_Object_Name_ANSI();
+    zassert_not_null(name_string, NULL);
+    zassert_equal(strcmp(name_string, "Tuxedo"), 0, NULL);
+
+    status = Device_Set_Vendor_Name(vendor_name, strlen(vendor_name));
+    zassert_true(status, NULL);
+    name_string = Device_Vendor_Name();
+    zassert_not_null(name_string, NULL);
+    zassert_equal(strcmp(name_string, vendor_name), 0, NULL);
+
+    status = Device_Set_Model_Name(model_name, strlen(model_name));
+    zassert_true(status, NULL);
+    name_string = Device_Model_Name();
+    zassert_not_null(name_string, NULL);
+    zassert_equal(strcmp(name_string, model_name), 0, NULL);
+
+    status = Device_Set_Firmware_Revision(
+        firmware_revision, strlen(firmware_revision));
+    zassert_true(status, NULL);
+    name_string = Device_Firmware_Revision();
+    zassert_not_null(name_string, NULL);
+    zassert_equal(strcmp(name_string, firmware_revision), 0, NULL);
+
+    status = Device_Set_Application_Software_Version(
+        software_version, strlen(software_version));
+    zassert_true(status, NULL);
+    name_string = Device_Application_Software_Version();
+    zassert_not_null(name_string, NULL);
+    zassert_equal(strcmp(name_string, software_version), 0, NULL);
+
+    status = Device_Set_Description(description, strlen(description));
+    zassert_true(status, NULL);
+    name_string = Device_Description();
+    zassert_not_null(name_string, NULL);
+    zassert_equal(strcmp(name_string, description), 0, NULL);
+
+    status = Device_Set_Location(location, strlen(location));
+    zassert_true(status, NULL);
+    name_string = Device_Location();
+    zassert_not_null(name_string, NULL);
+    zassert_equal(strcmp(name_string, location), 0, NULL);
+
+    status = Device_Serial_Number_Set(serial_number, strlen(serial_number));
+    zassert_true(status, NULL);
+    name_string = Device_Serial_Number();
+    zassert_not_null(name_string, NULL);
+    zassert_equal(strcmp(name_string, serial_number), 0, NULL);
+}
+
+/**
  * @brief Test Device_Last_Restart_Reason_Set() and Device_Last_Restart_Reason()
  */
 static void test_Device_Last_Restart_Reason(void)
@@ -637,6 +718,7 @@ void test_main(void)
     ztest_test_suite(
         device_tests, ztest_unit_test(testDevice),
         ztest_unit_test(test_Device_Data_Sharing),
+        ztest_unit_test(test_Device_CharacterString_Property_Values),
         ztest_unit_test(test_Device_Last_Restart_Reason),
         ztest_unit_test(test_Device_Object_Functions_APIs),
         ztest_unit_test(test_Device_Write_Property_Empty_Payload));
