@@ -669,6 +669,7 @@ static void testCharacterStringUtf8Snprintf(void)
     BACNET_CHARACTER_STRING value = { 0 };
     const char *expected = "Hello BACnet 42";
     int ret = 0;
+    char oversized[MAX_CHARACTER_STRING_BYTES + 16];
 
     ret = characterstring_utf8_snprintf(NULL, "%s", expected);
     zassert_equal(ret, -1, "NULL destination should fail");
@@ -690,7 +691,6 @@ static void testCharacterStringUtf8Snprintf(void)
         characterstring_length(&value),
         strlen(characterstring_value_const(&value)), NULL);
 
-    char oversized[MAX_CHARACTER_STRING_BYTES + 16];
     memset(oversized, 'A', sizeof(oversized) - 1);
     oversized[sizeof(oversized) - 1] = '\0';
     ret = characterstring_utf8_snprintf(&value, "%s", oversized);

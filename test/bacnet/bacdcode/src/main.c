@@ -2608,6 +2608,18 @@ static void test_bacnet_character_string_ansi(void)
     uint8_t encoding = 0;
     int len = 0, null_len = 0;
     size_t value_len = 0;
+    struct {
+        char buffer[8];
+        char guard[4];
+    } overflow = {
+        .buffer = { 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X' },
+        .guard = { 'G', 'H', 'I', 'J' },
+    };
+    char overflow_string[] = "Hello BACnet!";
+    BACNET_CHARACTER_STRING_ANSI overflow_value = { 0 };
+
+    overflow_value.buffer = overflow_string;
+    overflow_value.buffer_allocated = false;
 
     strcpy(buffer, "Hello BACnet");
     bacnet_character_string_ansi_init(&value, buffer, false);
@@ -2624,19 +2636,6 @@ static void test_bacnet_character_string_ansi(void)
     zassert_equal(value_len, strlen(buffer), NULL);
     zassert_equal(encoding, CHARACTER_ANSI_X34, NULL);
     zassert_equal(memcmp(unpack_buffer, buffer, value_len), 0, NULL);
-
-    struct {
-        char buffer[8];
-        char guard[4];
-    } overflow = {
-        .buffer = { 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X' },
-        .guard = { 'G', 'H', 'I', 'J' },
-    };
-    char overflow_string[] = "Hello BACnet!";
-    BACNET_CHARACTER_STRING_ANSI overflow_value = {
-        .buffer = overflow_string,
-        .buffer_allocated = false,
-    };
 
     value_len = bacnet_character_string_ansi_strncpy(
         &overflow_value, &encoding, overflow.buffer, sizeof(overflow.buffer));
