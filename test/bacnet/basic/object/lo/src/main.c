@@ -111,6 +111,12 @@ static void testLightingOutputWritablePropertyList(void)
         property_list_contains(properties, PROP_LIGHTING_COMMAND),
         "missing PROP_LIGHTING_COMMAND");
     zassert_true(
+        property_list_contains(properties, PROP_OBJECT_NAME),
+        "missing PROP_OBJECT_NAME");
+    zassert_true(
+        property_list_contains(properties, PROP_DESCRIPTION),
+        "missing PROP_DESCRIPTION");
+    zassert_true(
         property_list_contains(properties, PROP_EGRESS_TIME),
         "missing PROP_EGRESS_TIME");
     zassert_true(
@@ -120,6 +126,11 @@ static void testLightingOutputWritablePropertyList(void)
         property_list_contains(
             properties, PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY),
         "missing PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY");
+    Lighting_Output_Init();
+    Lighting_Output_Create(1);
+    zassert_equal(strcmp(Lighting_Output_Description(1), ""), 0, NULL);
+    Lighting_Output_Delete(1);
+    Lighting_Output_Cleanup();
 }
 
 /**
