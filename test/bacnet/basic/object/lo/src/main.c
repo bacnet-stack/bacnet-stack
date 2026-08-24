@@ -27,28 +27,6 @@ static bool is_float_equal(float x1, float x2)
     return fabsf(x1 - x2) < 0.001f;
 }
 
-/**
- * @brief Search for a property identifier in a terminated property list
- * @param list pointer to list terminated by -1
- * @param property property identifier to find
- * @return true when found in list
- */
-static bool property_list_contains(const int32_t *list, int32_t property)
-{
-    unsigned i;
-
-    if (!list) {
-        return false;
-    }
-    for (i = 0; list[i] != -1; i++) {
-        if (list[i] == property) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 static float Test_Tracking_Value;
 static uint32_t Test_Lighting_Command_Instance;
 static BACNET_LIGHTING_OPERATION Test_Lighting_Command_Operation;
@@ -105,25 +83,25 @@ static void testLightingOutputWritablePropertyList(void)
     Lighting_Output_Writable_Property_List(1, &properties);
     zassert_not_null(properties, NULL);
     zassert_true(
-        property_list_contains(properties, PROP_PRESENT_VALUE),
+        property_list_member(properties, PROP_PRESENT_VALUE),
         "missing PROP_PRESENT_VALUE");
     zassert_true(
-        property_list_contains(properties, PROP_LIGHTING_COMMAND),
+        property_list_member(properties, PROP_LIGHTING_COMMAND),
         "missing PROP_LIGHTING_COMMAND");
     zassert_true(
-        property_list_contains(properties, PROP_OBJECT_NAME),
+        property_list_member(properties, PROP_OBJECT_NAME),
         "missing PROP_OBJECT_NAME");
     zassert_true(
-        property_list_contains(properties, PROP_DESCRIPTION),
+        property_list_member(properties, PROP_DESCRIPTION),
         "missing PROP_DESCRIPTION");
     zassert_true(
-        property_list_contains(properties, PROP_EGRESS_TIME),
+        property_list_member(properties, PROP_EGRESS_TIME),
         "missing PROP_EGRESS_TIME");
     zassert_true(
-        property_list_contains(properties, PROP_TRIM_FADE_TIME),
+        property_list_member(properties, PROP_TRIM_FADE_TIME),
         "missing PROP_TRIM_FADE_TIME");
     zassert_true(
-        property_list_contains(
+        property_list_member(
             properties, PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY),
         "missing PROP_LIGHTING_COMMAND_DEFAULT_PRIORITY");
     Lighting_Output_Init();
