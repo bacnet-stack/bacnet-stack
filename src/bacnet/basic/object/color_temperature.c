@@ -1011,7 +1011,8 @@ bool Color_Temperature_Name_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        status = characterstring_ansi_const_init(&pObject->Object_Name, new_name);
+        status =
+            characterstring_ansi_const_init(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -1071,7 +1072,8 @@ bool Color_Temperature_Description_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        status = characterstring_ansi_const_init(&pObject->Description, new_name);
+        status =
+            characterstring_ansi_const_init(&pObject->Description, new_name);
     }
 
     return status;
