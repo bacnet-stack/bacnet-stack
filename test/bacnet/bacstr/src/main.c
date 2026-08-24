@@ -323,7 +323,33 @@ static void testCharacterStringAnsiHelpers(void)
     BACNET_CHARACTER_STRING_ANSI duplicated = { 0 };
     const char *value = "Hello BACnet";
     const char *expected = "Hello";
+    char max_value[MAX_CHARACTER_STRING_BYTES + 1] = { 0 };
+    char too_long_value[MAX_CHARACTER_STRING_BYTES + 2] = { 0 };
     bool status = false;
+
+    memset(max_value, 'A', sizeof(max_value) - 1);
+    max_value[sizeof(max_value) - 1] = '\0';
+    status = characterstring_ansi_const_init(&ansi_string, max_value);
+    zassert_true(
+        status,
+        "ANSI strings at the MAX_CHARACTER_STRING_BYTES limit should be "
+        "accepted");
+    zassert_equal(
+        characterstring_ansi_length(&ansi_string), strlen(max_value), NULL);
+
+    memset(too_long_value, 'A', sizeof(too_long_value) - 1);
+    too_long_value[sizeof(too_long_value) - 1] = '\0';
+    status = characterstring_ansi_const_init(&ansi_string, too_long_value);
+    zassert_false(
+        status,
+        "ANSI strings longer than MAX_CHARACTER_STRING_BYTES should be "
+        "rejected");
+    status = characterstring_ansi_strndup(
+        &duplicated, too_long_value, sizeof(too_long_value) - 1);
+    zassert_false(
+        status,
+        "Duplicated ANSI strings longer than MAX_CHARACTER_STRING_BYTES should "
+        "be rejected");
 
     characterstring_ansi_const_init(&ansi_string, value);
     zassert_not_null(characterstring_ansi_value_const(&ansi_string), NULL);

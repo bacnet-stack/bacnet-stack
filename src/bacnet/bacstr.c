@@ -1413,19 +1413,27 @@ void characterstring_buffer_free(BACNET_CHARACTER_STRING_BUFFER *char_string)
  * @brief Initialize a BACnet character string by referencing an ANSI C string.
  * @param char_string Pointer to destination structure.
  * @param value Pointer to source ANSI C string, or NULL for empty.
- * @return true on success, false on argument failure.
+ * @return true on success, false on argument failure or if the string exceeds
+ * maximum length.
  */
 bool characterstring_ansi_const_init(
     BACNET_CHARACTER_STRING_ANSI *char_string, const char *value)
 {
+    size_t length = 0;
+
     if (!char_string) {
         return false;
     }
-    characterstring_ansi_free(char_string);
     if (value) {
+        length = strlen(value);
+        if (length > MAX_CHARACTER_STRING_BYTES) {
+            return false;
+        }
+        characterstring_ansi_free(char_string);
         char_string->buffer = (char *)(uintptr_t)value;
         char_string->buffer_allocated = false;
     } else {
+        characterstring_ansi_free(char_string);
         char_string->buffer = NULL;
         char_string->buffer_allocated = false;
     }
@@ -1452,6 +1460,9 @@ bool characterstring_ansi_strndup(
     }
     if (value) {
         length = bacnet_strnlen(value, tmax);
+        if (length > MAX_CHARACTER_STRING_BYTES) {
+            return false;
+        }
         buffer = bacnet_strndup(value, length);
         if (buffer) {
             characterstring_ansi_free(char_string);
