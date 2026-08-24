@@ -784,7 +784,10 @@ bool Network_Port_Routing_Table_Delete_All(uint32_t object_instance)
         return false;
     }
 
-    Keylist_Delete(params->Routing_Table);
+    if (params->Routing_Table) {
+        Keylist_Data_Free(params->Routing_Table);
+        Keylist_Delete(params->Routing_Table);
+    }
     params->Routing_Table = Keylist_Create();
 
     return true;
