@@ -588,6 +588,12 @@ clean: ports-clean
 	$(MAKE) -s -C ports/linux -f dlmstp.mak clean
 	rm -rf ./build
 
+# run a unit test using a regex filter TEST_FILTER to limit the number of test
+# "make TEST_FILTER=test_device test-filter" will match test_device test cases
+.PHONY: test-filter
+test-filter:
+	$(MAKE) -s -j -C test test-filter
+
 .PHONY: test
 test:
 	$(MAKE) -s -C test clean
