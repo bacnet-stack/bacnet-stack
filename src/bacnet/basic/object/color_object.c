@@ -17,6 +17,7 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacerror.h"
 #include "bacnet/bacapp.h"
+#include "bacnet/bacstr.h"
 #include "bacnet/bactext.h"
 #include "bacnet/cov.h"
 #include "bacnet/apdu.h"
@@ -53,8 +54,8 @@ struct object_data {
     uint32_t Default_Fade_Time;
     /* The transition may be NONE or FADE. */
     BACNET_COLOR_TRANSITION Transition;
-    const char *Object_Name;
-    const char *Description;
+    BACNET_CHARACTER_STRING_ANSI Object_Name;
+    BACNET_CHARACTER_STRING_ANSI Description;
     void *Context;
 };
 /* Key List for storing the object data sorted by instance number  */
@@ -87,8 +88,10 @@ static const int32_t Color_Properties_Proprietary[] = { -1 };
    that is always writable.  */
 static const int32_t Writable_Properties[] = {
     /* unordered list of always writable properties */
-    PROP_PRESENT_VALUE,     PROP_COLOR_COMMAND, PROP_DEFAULT_COLOR,
-    PROP_DEFAULT_FADE_TIME, PROP_TRANSITION,    -1
+    PROP_PRESENT_VALUE, PROP_COLOR_COMMAND,
+    PROP_DEFAULT_COLOR, PROP_DEFAULT_FADE_TIME,
+    PROP_TRANSITION,    PROP_OBJECT_NAME,
+    PROP_DESCRIPTION,   -1
 };
 
 /**
@@ -728,18 +731,14 @@ bool Color_Object_Name(
 {
     bool status = false;
     struct object_data *pObject;
-    char name_text[32] = "COLOR-4194303";
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (pObject->Object_Name) {
-            status =
-                characterstring_init_ansi(object_name, pObject->Object_Name);
-        } else {
-            snprintf(
-                name_text, sizeof(name_text), "COLOR-%lu",
-                (unsigned long)object_instance);
-            status = characterstring_init_ansi(object_name, name_text);
+        status = characterstring_ansi_to_characterstring(
+            object_name, &pObject->Object_Name);
+        if (!status) {
+            (void)characterstring_utf8_snprintf(
+                object_name, "COLOR-%lu", (unsigned long)object_instance);
         }
     }
 
@@ -761,8 +760,8 @@ bool Color_Name_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pObject->Object_Name = new_name;
-        status = true;
+        status =
+            characterstring_ansi_const_init(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -780,7 +779,7 @@ const char *Color_Name_ASCII(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        name = pObject->Object_Name;
+        name = characterstring_ansi_value_const(&pObject->Object_Name);
     }
 
     return name;
@@ -800,11 +799,7 @@ const char *Color_Description(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (pObject->Description) {
-            name = pObject->Description;
-        } else {
-            name = "";
-        }
+        name = characterstring_ansi_value_default(&pObject->Description, "");
     }
 
     return name;
@@ -825,8 +820,64 @@ bool Color_Description_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        status = true;
-        pObject->Description = new_name;
+        status =
+            characterstring_ansi_const_init(&pObject->Description, new_name);
+    }
+
+    return status;
+}
+
+/**
+ * @brief Set the object-name property value using write-property context.
+ * @param wp_data [in,out] Write property request/response context.
+ * @param cstring [in] New object-name value.
+ * @return true if object-name was set.
+ */
+static bool Color_Object_Name_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, wp_data->object_instance);
+    if (pObject) {
+        status = characterstring_ansi_from_characterstring_strdup(
+            &pObject->Object_Name, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Set the description property value using write-property context.
+ * @param wp_data [in,out] Write property request/response context.
+ * @param cstring [in] New description value.
+ * @return true if description was set.
+ */
+static bool Color_Description_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, wp_data->object_instance);
+    if (pObject) {
+        status = characterstring_ansi_from_characterstring_strdup(
+            &pObject->Description, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
     }
 
     return status;
@@ -1044,6 +1095,22 @@ bool Color_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     switch (wp_data->object_property) {
+        case PROP_OBJECT_NAME:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Color_Object_Name_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+        case PROP_DESCRIPTION:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Color_Description_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
         case PROP_PRESENT_VALUE:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_XY_COLOR);
@@ -1096,8 +1163,6 @@ bool Color_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
         case PROP_OBJECT_IDENTIFIER:
         case PROP_OBJECT_TYPE:
-        case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
         case PROP_TRACKING_VALUE:
         case PROP_IN_PROGRESS:
             wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -1227,7 +1292,6 @@ uint32_t Color_Create(uint32_t object_instance)
     if (!pObject) {
         pObject = calloc(1, sizeof(struct object_data));
         if (pObject) {
-            pObject->Object_Name = NULL;
             /* color defaults */
             xy_color_set(&pObject->Present_Value, 0.0, 0.0);
             xy_color_set(&pObject->Tracking_Value, 0.0, 0.0);
@@ -1271,6 +1335,8 @@ bool Color_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
+        characterstring_ansi_free(&pObject->Description);
+        characterstring_ansi_free(&pObject->Object_Name);
         free(pObject);
         status = true;
     }
@@ -1297,6 +1363,8 @@ void Color_Cleanup(void)
             do {
                 pObject = Keylist_Data_Pop(Object_List);
                 if (pObject) {
+                    characterstring_ansi_free(&pObject->Description);
+                    characterstring_ansi_free(&pObject->Object_Name);
                     free(pObject);
                 }
             } while (pObject);
