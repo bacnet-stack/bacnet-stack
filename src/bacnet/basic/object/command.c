@@ -334,8 +334,6 @@ static bool Command_Object_Instance_Add(uint32_t object_instance)
         if (!pObject) {
             return false;
         }
-        characterstring_ansi_const_init(&pObject->Description, NULL);
-        characterstring_ansi_const_init(&pObject->Object_Name, NULL);
         pObject->Action = NULL;
         pObject->Action_Delay_Milliseconds = 0;
         pObject->Action_Failed = false;

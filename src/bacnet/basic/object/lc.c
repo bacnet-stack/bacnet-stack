@@ -2292,8 +2292,6 @@ uint32_t Load_Control_Create(uint32_t object_instance)
     if (!pObject) {
         pObject = calloc(1, sizeof(struct object_data));
         if (pObject) {
-            characterstring_ansi_const_init(&pObject->Object_Name, NULL);
-            characterstring_ansi_const_init(&pObject->Description, NULL);
             /* defaults */
             pObject->Present_Value = BACNET_SHED_INACTIVE;
             pObject->Requested_Shed_Level.type = BACNET_SHED_TYPE_LEVEL;
