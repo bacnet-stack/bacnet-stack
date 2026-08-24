@@ -1406,8 +1406,6 @@ uint32_t Binary_Output_Create(uint32_t object_instance)
     if (!pObject) {
         pObject = calloc(1, sizeof(struct object_data));
         if (pObject) {
-            characterstring_ansi_const_init(&pObject->Object_Name, NULL);
-            characterstring_ansi_const_init(&pObject->Description, NULL);
             pObject->Reliability = RELIABILITY_NO_FAULT_DETECTED;
             pObject->Out_Of_Service = false;
             pObject->Active_Text = Default_Active_Text;

@@ -875,6 +875,7 @@ void Integer_Value_Context_Set(uint32_t object_instance, void *context)
 uint32_t Integer_Value_Create(uint32_t object_instance)
 {
     struct integer_object *pObject = NULL;
+    int index = 0;
 
     if (!Object_List) {
         Object_List = Keylist_Create();
@@ -893,15 +894,11 @@ uint32_t Integer_Value_Create(uint32_t object_instance)
     if (!pObject) {
         pObject = calloc(1, sizeof(struct integer_object));
         if (pObject) {
-            int index = Keylist_Data_Add(Object_List, object_instance, pObject);
-
+            index = Keylist_Data_Add(Object_List, object_instance, pObject);
             if (index < 0) {
                 free(pObject);
                 return BACNET_MAX_INSTANCE;
             }
-
-            characterstring_ansi_const_init(&pObject->Object_Name, NULL);
-            characterstring_ansi_const_init(&pObject->Description, NULL);
             pObject->COV_Increment = 1;
             pObject->Present_Value = 0;
             pObject->Prior_Value = 0;

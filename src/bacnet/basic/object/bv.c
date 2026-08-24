@@ -1313,8 +1313,6 @@ uint32_t Binary_Value_Create(uint32_t object_instance)
 #if defined(INTRINSIC_REPORTING) && (BINARY_VALUE_INTRINSIC_REPORTING)
             unsigned j;
 #endif
-            characterstring_ansi_const_init(&pObject->Object_Name, NULL);
-            characterstring_ansi_const_init(&pObject->Description, NULL);
             pObject->Reliability = RELIABILITY_NO_FAULT_DETECTED;
             pObject->Present_Value = false;
             pObject->Out_Of_Service = false;

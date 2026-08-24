@@ -2494,8 +2494,6 @@ uint32_t Analog_Value_Create(uint32_t object_instance)
     if (!pObject) {
         pObject = calloc(1, sizeof(struct object_data));
         if (pObject) {
-            characterstring_ansi_const_init(&pObject->Object_Name, NULL);
-            characterstring_ansi_const_init(&pObject->Description, NULL);
             pObject->Reliability = RELIABILITY_NO_FAULT_DETECTED;
             pObject->COV_Increment = 1.0f;
             pObject->Present_Value = 0.0f;

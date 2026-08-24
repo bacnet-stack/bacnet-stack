@@ -177,8 +177,6 @@ uint32_t CharacterString_Value_Create(uint32_t object_instance)
                 free(pObject);
                 return BACNET_MAX_INSTANCE;
             }
-            characterstring_ansi_const_init(&pObject->Object_Name, NULL);
-            characterstring_ansi_const_init(&pObject->Description, NULL);
             characterstring_init_ansi(&pObject->Present_Value, "");
             characterstring_init_ansi(&pObject->Present_Value_Backup, "");
             pObject->Out_Of_Service = false;

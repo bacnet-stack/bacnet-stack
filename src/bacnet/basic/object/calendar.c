@@ -839,8 +839,6 @@ uint32_t Calendar_Create(uint32_t object_instance)
         if (!pObject) {
             return BACNET_MAX_INSTANCE;
         }
-        characterstring_ansi_const_init(&pObject->Object_Name, NULL);
-        characterstring_ansi_const_init(&pObject->Description, NULL);
         pObject->Present_Value = false;
         pObject->Date_List = Keylist_Create();
         pObject->Changed = false;

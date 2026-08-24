@@ -148,8 +148,6 @@ uint32_t PositiveInteger_Value_Create(uint32_t object_instance)
         pObject->Out_Of_Service = false;
         pObject->Present_Value = 0;
         pObject->Units = UNITS_NO_UNITS;
-        characterstring_ansi_const_init(&pObject->Object_Name, NULL);
-        characterstring_ansi_const_init(&pObject->Description, NULL);
     }
 
     return object_instance;

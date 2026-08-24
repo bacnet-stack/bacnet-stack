@@ -1803,9 +1803,6 @@ uint32_t Structured_View_Create(uint32_t object_instance)
         if (!pObject) {
             return BACNET_MAX_INSTANCE;
         }
-        characterstring_ansi_const_init(&pObject->Object_Name, NULL);
-        characterstring_ansi_const_init(&pObject->Description, NULL);
-        characterstring_ansi_const_init(&pObject->Node_Subtype, NULL);
         pObject->Subordinate_List = Keylist_Create();
         pObject->Default_Subordinate_Relationship = BACNET_RELATIONSHIP_DEFAULT;
         pObject->Represents.deviceIdentifier.type = OBJECT_NONE;

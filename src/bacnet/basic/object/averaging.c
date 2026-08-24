@@ -1181,8 +1181,6 @@ uint32_t Averaging_Create(uint32_t object_instance)
         if (!pObject) {
             return BACNET_MAX_INSTANCE;
         }
-        characterstring_ansi_const_init(&pObject->Object_Name, NULL);
-        characterstring_ansi_const_init(&pObject->Description, NULL);
         pObject->Window_Interval = 60;
         pObject->Window_Samples = 15;
         pObject->Object_Property_Reference.objectIdentifier.type =
