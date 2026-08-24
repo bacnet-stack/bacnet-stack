@@ -4926,6 +4926,18 @@ void Network_Port_Changes_Discard(void)
 }
 
 /**
+ * @brief Free any heap-backed ANSI strings owned by one network port object.
+ * @param object Pointer to the object state to clean up.
+ */
+static void Network_Port_Free_ANSI_Strings(struct object_data *object)
+{
+    if (object) {
+        characterstring_ansi_free(&object->Object_Name);
+        characterstring_ansi_free(&object->Description);
+    }
+}
+
+/**
  * @brief Cleanup - useful if network port object are allocated on the heap
  */
 void Network_Port_Cleanup(void)
@@ -4942,6 +4954,7 @@ void Network_Port_Cleanup(void)
         Set_Routed_Device_Object_Index(dev_id);
 #endif
         for (index = 0; index < BACNET_NETWORK_PORTS_MAX; index++) {
+            Network_Port_Free_ANSI_Strings(&Object_List[index]);
             BACNET_SC_PARAMS *sc = &Object_List[index].Network.BSC.Parameters;
             if (sc->Routing_Table) {
                 Keylist_Data_Free(sc->Routing_Table);
@@ -5010,6 +5023,7 @@ void Network_Port_Init(void)
         Set_Routed_Device_Object_Index(dev_id);
 #endif
         for (index = 0; index < BACNET_NETWORK_PORTS_MAX; index++) {
+            Network_Port_Free_ANSI_Strings(&Object_List[index]);
             memset(&Object_List[index], 0, sizeof(Object_List[index]));
 #ifdef BACDL_BSC
             Object_List[index].Network_Type = PORT_TYPE_BSC;

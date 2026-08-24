@@ -1528,20 +1528,6 @@ void Audit_Log_Context_Set(uint32_t object_instance, void *context)
 }
 
 /**
- * @brief Deletes all the Audit Logs and their data
- */
-static void Audit_Log_Records_Cleanup(OS_Keylist list)
-{
-    BACNET_AUDIT_LOG_RECORD *entry;
-
-    while (Keylist_Count(list) > 0) {
-        entry = Keylist_Data_Pop(list);
-        free(entry);
-    }
-    Keylist_Delete(list);
-}
-
-/**
  * @brief Creates a Audit Log object
  * @param object_instance - object-instance number of the object
  * @return object_instance if the object is created, else BACNET_MAX_INSTANCE
@@ -1604,6 +1590,9 @@ bool Audit_Log_Delete(uint32_t object_instance)
     if (pObject) {
         characterstring_ansi_free(&pObject->Object_Name);
         characterstring_ansi_free(&pObject->Description);
+        Keylist_Data_Free(pObject->Records);
+        Keylist_Delete(pObject->Records);
+        free(pObject);
         status = true;
     }
 
@@ -1631,7 +1620,8 @@ void Audit_Log_Cleanup(void)
                 if (pObject) {
                     characterstring_ansi_free(&pObject->Object_Name);
                     characterstring_ansi_free(&pObject->Description);
-                    Audit_Log_Records_Cleanup(pObject->Records);
+                    Keylist_Data_Free(pObject->Records);
+                    Keylist_Delete(pObject->Records);
                     free(pObject);
                 }
             } while (pObject);
