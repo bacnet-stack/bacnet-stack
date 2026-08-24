@@ -322,6 +322,7 @@ static const int32_t BIP6_Port_Writable_Properties[] = {
 };
 
 static const int32_t BSC_Port_Properties_Optional[] = {
+    PROP_DESCRIPTION,
     PROP_NETWORK_NUMBER,
     PROP_NETWORK_NUMBER_QUALITY,
     PROP_APDU_LENGTH,
