@@ -1178,9 +1178,15 @@ uint32_t Life_Safety_Zone_Create(uint32_t object_instance)
             pObject->Maintenance_Required = false;
             pObject->Out_Of_Service = false;
             pObject->Zone_Members = Keylist_Create();
+            if (!pObject->Zone_Members) {
+                free(pObject);
+                return BACNET_MAX_INSTANCE;
+            }
             /* add to list */
             index = Keylist_Data_Add(Object_List, object_instance, pObject);
             if (index < 0) {
+                Keylist_Data_Free(pObject->Zone_Members);
+                Keylist_Delete(pObject->Zone_Members);
                 free(pObject);
                 return BACNET_MAX_INSTANCE;
             }

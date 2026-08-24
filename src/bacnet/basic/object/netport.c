@@ -4944,6 +4944,7 @@ void Network_Port_Cleanup(void)
         for (index = 0; index < BACNET_NETWORK_PORTS_MAX; index++) {
             BACNET_SC_PARAMS *sc = &Object_List[index].Network.BSC.Parameters;
             if (sc->Routing_Table) {
+                Keylist_Data_Free(sc->Routing_Table);
                 Keylist_Delete(sc->Routing_Table);
                 sc->Routing_Table = NULL;
             }

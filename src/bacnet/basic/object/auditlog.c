@@ -290,9 +290,9 @@ Audit_Log_Record_Entry(uint32_t object_instance, uint32_t index)
 }
 
 /**
- * @brief Delete a record entry from the log buffer
- * @param  object_instance - object-instance number of the object
- * @param  index - record index of entity
+ * @brief Delete a record entry from the log buffer.
+ * @param object_instance [in] BACnet object instance number.
+ * @param index [in] Record index to delete.
  */
 void Audit_Log_Record_Entry_Delete(uint32_t object_instance, uint32_t index)
 {
@@ -307,15 +307,14 @@ void Audit_Log_Record_Entry_Delete(uint32_t object_instance, uint32_t index)
 }
 
 /**
- * For a given object instance-number, adds a Audit Log entity to entities list.
+ * @brief Add an audit log record to the log buffer for an object instance.
  *
  * @note If the log buffer becomes full, the least recent log records are
- *  overwritten when new log records are added.
+ * overwritten when new records are added.
  *
- * @param  object_instance - object-instance number of the object
- * @param  entity - Audit Log entity
- *
- * @return  true if the entity is add successfully.
+ * @param object_instance [in] BACnet object instance number.
+ * @param value [in] Audit log record to append.
+ * @return true if the record was added successfully.
  */
 bool Audit_Log_Record_Entry_Add(
     uint32_t object_instance, const BACNET_AUDIT_LOG_RECORD *value)
@@ -496,12 +495,10 @@ const char *Audit_Log_Description(uint32_t object_instance)
 }
 
 /**
- * For a given object instance-number, sets the description
- *
- * @param  object_instance - object-instance number of the object
- * @param  new_name - holds the description to be set
- *
- * @return  true if object-name was set
+ * @brief Set the description for an Audit Log object instance.
+ * @param object_instance [in] BACnet object instance number.
+ * @param new_name [in] Description text to set, or NULL to clear it.
+ * @return true if the description was updated.
  */
 bool Audit_Log_Description_Set(uint32_t object_instance, const char *new_name)
 {
@@ -541,10 +538,10 @@ bool Audit_Log_Enable(uint32_t object_instance)
 }
 
 /**
- * @brief Apply the log enabled algormithm
- * @param pObject - object data
- * @param enable log enable flag
- * @return true if the log enable flag is applied
+ * @brief Set the enabled state for an Audit Log object instance.
+ * @param object_instance [in] BACnet object instance number.
+ * @param enable [in] New enabled state.
+ * @return true if the enabled state was updated.
  */
 bool Audit_Log_Enable_Set(uint32_t object_instance, bool enable)
 {
@@ -1531,6 +1528,20 @@ void Audit_Log_Context_Set(uint32_t object_instance, void *context)
 }
 
 /**
+ * @brief Deletes all the Audit Logs and their data
+ */
+static void Audit_Log_Records_Cleanup(OS_Keylist list)
+{
+    BACNET_AUDIT_LOG_RECORD *entry;
+
+    while (Keylist_Count(list) > 0) {
+        entry = Keylist_Data_Pop(list);
+        free(entry);
+    }
+    Keylist_Delete(list);
+}
+
+/**
  * @brief Creates a Audit Log object
  * @param object_instance - object-instance number of the object
  * @return object_instance if the object is created, else BACNET_MAX_INSTANCE
@@ -1560,32 +1571,23 @@ uint32_t Audit_Log_Create(uint32_t object_instance)
             return BACNET_MAX_INSTANCE;
         }
         pObject->Records = Keylist_Create();
+        if (!pObject->Records) {
+            free(pObject);
+            return BACNET_MAX_INSTANCE;
+        }
         pObject->Buffer_Size = BACNET_AUDIT_LOG_RECORDS_MAX;
         pObject->Enable = false;
         pObject->Out_Of_Service = false;
         /* add to list */
         index = Keylist_Data_Add(Object_List, object_instance, pObject);
         if (index < 0) {
+            Keylist_Delete(pObject->Records);
             free(pObject);
             return BACNET_MAX_INSTANCE;
         }
     }
 
     return object_instance;
-}
-
-/**
- * @brief Deletes all the Audit Logs and their data
- */
-static void Audit_Log_Records_Cleanup(OS_Keylist list)
-{
-    BACNET_AUDIT_LOG_RECORD *entry;
-
-    while (Keylist_Count(list) > 0) {
-        entry = Keylist_Data_Pop(list);
-        free(entry);
-    }
-    Keylist_Delete(list);
 }
 
 /**
