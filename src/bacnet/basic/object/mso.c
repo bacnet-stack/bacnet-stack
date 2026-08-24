@@ -1427,14 +1427,14 @@ uint32_t Multistate_Output_Create(uint32_t object_instance)
             if (!state_name_list_init(
                     pObject->State_List, Default_State_Text)) {
                 Keylist_Data_Free(pObject->State_List);
-                Keylist_Delete(pObject->State_List)
+                Keylist_Delete(pObject->State_List);
                 free(pObject);
                 return BACNET_MAX_INSTANCE;
             }
             /* add to list */
             index = Keylist_Data_Add(Object_List, object_instance, pObject);
             if (index < 0) {
-                (void)state_name_list_init(pObject->State_List, NULL);
+                Keylist_Data_Free(pObject->State_List);
                 Keylist_Delete(pObject->State_List);
                 free(pObject);
                 return BACNET_MAX_INSTANCE;
