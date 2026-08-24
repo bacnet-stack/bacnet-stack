@@ -54,7 +54,8 @@ static const int32_t Properties_Proprietary[] = { -1 };
    that is always writable.  */
 static const int32_t Writable_Properties[] = {
     /* unordered list of always writable properties */
-    PROP_PRESENT_VALUE, PROP_OUT_OF_SERVICE, -1
+    PROP_PRESENT_VALUE, PROP_OUT_OF_SERVICE, PROP_OBJECT_NAME, PROP_DESCRIPTION,
+    -1
 };
 
 typedef struct characterstring_object {
@@ -65,8 +66,8 @@ typedef struct characterstring_object {
     /* Here is our Present Value */
     BACNET_CHARACTER_STRING Present_Value_Backup;
     BACNET_CHARACTER_STRING Present_Value;
-    const char *Object_Name;
-    const char *Description;
+    BACNET_CHARACTER_STRING_ANSI Object_Name;
+    BACNET_CHARACTER_STRING_ANSI Description;
     void *Context;
 } CHARACTERSTRING_VALUE_DESCR;
 
@@ -176,8 +177,8 @@ uint32_t CharacterString_Value_Create(uint32_t object_instance)
                 free(pObject);
                 return BACNET_MAX_INSTANCE;
             }
-            pObject->Object_Name = NULL;
-            pObject->Description = NULL;
+            characterstring_ansi_const_init(&pObject->Object_Name, NULL);
+            characterstring_ansi_const_init(&pObject->Description, NULL);
             characterstring_init_ansi(&pObject->Present_Value, "");
             characterstring_init_ansi(&pObject->Present_Value_Backup, "");
             pObject->Out_Of_Service = false;
@@ -198,10 +199,12 @@ uint32_t CharacterString_Value_Create(uint32_t object_instance)
 bool CharacterString_Value_Delete(uint32_t object_instance)
 {
     bool status = false;
-    struct object_data *pObject = NULL;
+    struct characterstring_object *pObject = NULL;
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
+        characterstring_ansi_free(&pObject->Description);
+        characterstring_ansi_free(&pObject->Object_Name);
         free(pObject);
         status = true;
     }
@@ -214,7 +217,7 @@ bool CharacterString_Value_Delete(uint32_t object_instance)
  */
 void CharacterString_Value_Cleanup(void)
 {
-    struct object_data *pObject;
+    struct characterstring_object *pObject;
     uint16_t dev_id;
 #ifdef BAC_ROUTING
     uint16_t current_dev_id = Routed_Device_Object_Index();
@@ -531,11 +534,7 @@ const char *CharacterString_Value_Description(uint32_t object_instance)
 
     pObject = CharacterString_Value_Object(object_instance);
     if (pObject) {
-        if (pObject->Description == NULL) {
-            name = "";
-        } else {
-            name = pObject->Description;
-        }
+        name = characterstring_ansi_value_default(&pObject->Description, "");
     }
 
     return name;
@@ -555,8 +554,8 @@ bool CharacterString_Value_Description_Set(
 
     pObject = CharacterString_Value_Object(object_instance);
     if (pObject) {
-        status = true;
-        pObject->Description = new_name;
+        status =
+            characterstring_ansi_const_init(&pObject->Description, new_name);
     }
 
     return status;
@@ -571,20 +570,21 @@ bool CharacterString_Value_Description_Set(
 bool CharacterString_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    char text[64] = "";
     bool status = false;
     struct characterstring_object *pObject;
+    int len = 0;
 
     pObject = CharacterString_Value_Object(object_instance);
     if (pObject) {
-        if (pObject->Object_Name == NULL) {
-            snprintf(
-                text, sizeof(text), "CHARACTER STRING VALUE %lu",
+        status = characterstring_ansi_to_characterstring(
+            object_name, &pObject->Object_Name);
+        if (!status) {
+            len = characterstring_utf8_snprintf(
+                object_name, "CHARACTER-STRING-VALUE-%lu",
                 (unsigned long)object_instance);
-            status = characterstring_init_ansi(object_name, text);
-        } else {
-            status =
-                characterstring_init_ansi(object_name, pObject->Object_Name);
+            if (len > 0) {
+                status = true;
+            }
         }
     }
 
@@ -605,8 +605,8 @@ bool CharacterString_Value_Name_Set(
 
     pObject = CharacterString_Value_Object(object_instance);
     if (pObject) {
-        status = true;
-        pObject->Object_Name = new_name;
+        status =
+            characterstring_ansi_const_init(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -624,7 +624,7 @@ const char *CharacterString_Value_Name_ASCII(uint32_t object_instance)
 
     pObject = CharacterString_Value_Object(object_instance);
     if (pObject) {
-        name = pObject->Object_Name;
+        name = characterstring_ansi_value_const(&pObject->Object_Name);
     }
 
     return name;
@@ -728,6 +728,62 @@ int CharacterString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 }
 
 /**
+ * @brief Set the object-name property value using write-property context.
+ * @param wp_data [in,out] Write property request/response context.
+ * @param cstring [in] New object-name value.
+ * @return true if object-name was set.
+ */
+static bool CharacterString_Value_Object_Name_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct characterstring_object *pObject;
+
+    pObject = CharacterString_Value_Object(wp_data->object_instance);
+    if (pObject) {
+        status = characterstring_ansi_from_characterstring_strdup(
+            &pObject->Object_Name, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Set the description property value using write-property context.
+ * @param wp_data [in,out] Write property request/response context.
+ * @param cstring [in] New description value.
+ * @return true if description was set.
+ */
+static bool CharacterString_Value_Description_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct characterstring_object *pObject;
+
+    pObject = CharacterString_Value_Object(wp_data->object_instance);
+    if (pObject) {
+        status = characterstring_ansi_from_characterstring_strdup(
+            &pObject->Description, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
  * Set the requested property of the character string value.
  *
  * @param wp_data  Property requested, see for BACNET_WRITE_PROPERTY_DATA
@@ -777,6 +833,22 @@ bool CharacterString_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
+            }
+            break;
+        case PROP_OBJECT_NAME:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = CharacterString_Value_Object_Name_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+        case PROP_DESCRIPTION:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = CharacterString_Value_Description_Write(
+                    wp_data, &value.type.Character_String);
             }
             break;
         case PROP_OUT_OF_SERVICE:
