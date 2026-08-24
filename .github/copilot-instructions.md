@@ -30,16 +30,24 @@
 - CMake build (alternative path, also used in workflow):
   - `cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo`
   - `cmake --build build`
+- CMake build from root folder for ALL tests:
+  - `mkdir -p test/build && cmake -S ./test -B test/build`
+  - `cmake --build test/build`
 
 ### Test
 - Standard top-level test target:
   - `make test`
 - If already configured under `test/build`:
   - `cd test/build && ctest --quiet --output-on-failure`
+- For single module test build and run from the root folder (e.g., `bacstr.c` => `test_bacstr` or `_bacstr`):
+  - `mkdir -p test/build && cmake -S ./test -B test/build`
+  - `ctest --clean-first --test-dir test/build --output-on-failure -R '_bacstr$'`
 
 ### Lint/format/static checks
 - Pre-commit hooks (format + quality gates used by CI):
   - `pre-commit run --all-files`
+- Pre-commit hooks for only the files changed in the current branch:
+  - `pre-commit run --from-ref origin/master --to-ref HEAD`
 - Additional Make targets used in CI:
   - `make scan-build`
   - `make cppcheck`
