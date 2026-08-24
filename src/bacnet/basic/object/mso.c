@@ -1426,7 +1426,8 @@ uint32_t Multistate_Output_Create(uint32_t object_instance)
             }
             if (!state_name_list_init(
                     pObject->State_List, Default_State_Text)) {
-                Keylist_Delete(pObject->State_List);
+                Keylist_Data_Free(pObject->State_List);
+                Keylist_Delete(pObject->State_List)
                 free(pObject);
                 return BACNET_MAX_INSTANCE;
             }
