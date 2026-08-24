@@ -15,6 +15,7 @@
 /* BACnet Stack API */
 #include "bacnet/bacapp.h"
 #include "bacnet/bacdcode.h"
+#include "bacnet/bacstr.h"
 #include "bacnet/datetime.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
@@ -33,9 +34,9 @@
 #include "bacnet/basic/object/device.h"
 
 struct object_data {
-    char *Object_Name;
-    char *Pathname;
-    char *File_Type;
+    BACNET_CHARACTER_STRING_ANSI Object_Name;
+    BACNET_CHARACTER_STRING_ANSI Pathname;
+    BACNET_CHARACTER_STRING_ANSI File_Type;
     void *Context;
     BACNET_DATE_TIME Modification_Date;
     bool File_Access_Stream : 1;
@@ -78,8 +79,10 @@ static const int32_t Properties_Proprietary[] = { -1 };
    one property identifier for each property within this object
    that is always writable.  */
 static const int32_t Writable_Properties[] = {
-    /* unordered list of writable properties */
-    PROP_ARCHIVE, PROP_FILE_SIZE, -1
+    /* writable when read-only = false */
+    PROP_DESCRIPTION, PROP_FILE_TYPE,
+    /* unordered list of always writable properties */
+    PROP_ARCHIVE, PROP_FILE_SIZE, PROP_OBJECT_NAME, -1
 };
 
 /**
@@ -118,9 +121,14 @@ void BACfile_Property_Lists(
 void BACfile_Writable_Property_List(
     uint32_t object_instance, const int32_t **properties)
 {
-    (void)object_instance;
+    struct object_data *pObject;
+
     if (properties) {
         *properties = Writable_Properties;
+        pObject = Keylist_Data(Object_List, object_instance);
+        if (pObject && pObject->Read_Only) {
+            *properties = &Writable_Properties[2];
+        }
     }
 }
 
@@ -136,7 +144,7 @@ const char *bacfile_pathname(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        pathname = pObject->Pathname;
+        pathname = characterstring_ansi_value_const(&pObject->Pathname);
     }
 
     return pathname;
@@ -153,8 +161,7 @@ void bacfile_pathname_set(uint32_t object_instance, const char *pathname)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        free(pObject->Pathname);
-        pObject->Pathname = bacnet_strdup(pathname);
+        (void)characterstring_ansi_const_init(&pObject->Pathname, pathname);
     }
 }
 
@@ -174,8 +181,11 @@ uint32_t bacfile_pathname_instance(const char *pathname)
     count = Keylist_Count(Object_List);
     while (count) {
         pObject = Keylist_Data_Index(Object_List, index);
-        if (pObject->Pathname) {
-            if (strcmp(pathname, pObject->Pathname) == 0) {
+        if (characterstring_ansi_value_const(&pObject->Pathname)) {
+            if (strcmp(
+                    pathname,
+                    characterstring_ansi_value_const(&pObject->Pathname)) ==
+                0) {
                 Keylist_Index_Key(Object_List, index, &key);
                 break;
             }
@@ -202,18 +212,18 @@ bool bacfile_object_name(
 {
     bool status = false;
     struct object_data *pObject;
-    char name_text[32];
+    int len = 0;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (pObject->Object_Name) {
-            status =
-                characterstring_init_ansi(object_name, pObject->Object_Name);
-        } else {
-            snprintf(
-                name_text, sizeof(name_text), "FILE %lu",
-                (unsigned long)object_instance);
-            status = characterstring_init_ansi(object_name, name_text);
+        status = characterstring_ansi_to_characterstring(
+            object_name, &pObject->Object_Name);
+        if (!status) {
+            len = characterstring_utf8_snprintf(
+                object_name, "FILE-%lu", (unsigned long)object_instance);
+            if (len > 0) {
+                status = true;
+            }
         }
     }
 
@@ -236,9 +246,8 @@ bool bacfile_object_name_set(uint32_t object_instance, const char *new_name)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        status = true;
-        free(pObject->Object_Name);
-        pObject->Object_Name = bacnet_strdup(new_name);
+        status =
+            characterstring_ansi_const_init(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -256,7 +265,7 @@ const char *bacfile_name_ansi(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        name = pObject->Object_Name;
+        name = characterstring_ansi_value_const(&pObject->Object_Name);
     }
 
     return name;
@@ -637,6 +646,100 @@ BACNET_UNSIGNED_INTEGER bacfile_file_size(uint32_t object_instance)
 }
 
 /**
+ * @brief Set the Object_Name property value using write-property context.
+ * @param wp_data [in,out] Write property request/response context.
+ * @param cstring [in] New object-name value.
+ * @return true if object-name was set.
+ */
+static bool bacfile_object_name_write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, wp_data->object_instance);
+    if (pObject) {
+        status = characterstring_ansi_from_characterstring_strdup(
+            &pObject->Object_Name, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Set the Description property value using write-property context.
+ * @param wp_data [in,out] Write property request/response context.
+ * @param cstring [in] New description value.
+ * @return true if description was set.
+ */
+static bool bacfile_description_write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, wp_data->object_instance);
+    if (pObject) {
+        if (pObject->Read_Only) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        } else {
+            status = characterstring_ansi_from_characterstring_strdup(
+                &pObject->Pathname, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Set the File_Type property value using write-property context.
+ * @param wp_data [in,out] Write property request/response context.
+ * @param cstring [in] New file-type value.
+ * @return true if file type was set.
+ */
+static bool bacfile_file_type_write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, wp_data->object_instance);
+    if (pObject) {
+        if (pObject->Read_Only) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        } else {
+            status = characterstring_ansi_from_characterstring_strdup(
+                &pObject->File_Type, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
  * @brief Sets the file size property value
  * @param object_instance - object-instance number of the object
  * @param file_size - value of the file size property
@@ -653,7 +756,8 @@ bool bacfile_file_size_set(
         if (!pObject->Read_Only) {
             if (pObject->File_Access_Stream) {
                 status = bacfile_file_size_set_callback(
-                    pObject->Pathname, file_size);
+                    characterstring_ansi_value_const(&pObject->Pathname),
+                    file_size);
             }
         }
     }
@@ -673,9 +777,8 @@ const char *bacfile_file_type(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (pObject->File_Type) {
-            mime_type = pObject->File_Type;
-        }
+        mime_type =
+            characterstring_ansi_value_default(&pObject->File_Type, mime_type);
     }
 
     return mime_type;
@@ -692,8 +795,7 @@ void bacfile_file_type_set(uint32_t object_instance, const char *mime_type)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        free(pObject->File_Type);
-        pObject->File_Type = bacnet_strdup(mime_type);
+        (void)characterstring_ansi_const_init(&pObject->File_Type, mime_type);
     }
 }
 
@@ -968,6 +1070,30 @@ bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 }
+            }
+            break;
+        case PROP_OBJECT_NAME:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = bacfile_object_name_write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+        case PROP_DESCRIPTION:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = bacfile_description_write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+        case PROP_FILE_TYPE:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = bacfile_file_type_write(
+                    wp_data, &value.type.Character_String);
             }
             break;
         default:
@@ -1335,9 +1461,6 @@ uint32_t bacfile_create(uint32_t object_instance)
     if (!pObject) {
         pObject = calloc(1, sizeof(struct object_data));
         if (pObject) {
-            pObject->Object_Name = NULL;
-            pObject->Pathname = NULL;
-            pObject->File_Type = NULL;
             /* April Fool's Day */
             datetime_set_values(
                 &pObject->Modification_Date, 2006, 4, 1, 7, 0, 3, 1);
@@ -1370,9 +1493,9 @@ bool bacfile_delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
-        free(pObject->Pathname);
-        free(pObject->File_Type);
-        free(pObject->Object_Name);
+        characterstring_ansi_free(&pObject->Pathname);
+        characterstring_ansi_free(&pObject->File_Type);
+        characterstring_ansi_free(&pObject->Object_Name);
         free(pObject);
         status = true;
     }
@@ -1399,9 +1522,9 @@ void bacfile_cleanup(void)
             do {
                 pObject = Keylist_Data_Pop(Object_List);
                 if (pObject) {
-                    free(pObject->Pathname);
-                    free(pObject->File_Type);
-                    free(pObject->Object_Name);
+                    characterstring_ansi_free(&pObject->Pathname);
+                    characterstring_ansi_free(&pObject->File_Type);
+                    characterstring_ansi_free(&pObject->Object_Name);
                     free(pObject);
                 }
             } while (pObject);
