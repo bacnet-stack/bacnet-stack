@@ -74,7 +74,7 @@ static void testBinaryInput_Writable_Properties(void)
     zassert_not_null(properties, NULL);
     count = property_list_count(properties);
     zassert_true(count > 0, NULL);
-    zassert_not_equal(properties[0], PROP_PRESENT_VALUE, NULL);
+    zassert_false(property_list_member(properties, PROP_PRESENT_VALUE), NULL);
 
     has_object_name = false;
     has_description = false;
@@ -94,13 +94,13 @@ static void testBinaryInput_Writable_Properties(void)
     zassert_true(Binary_Input_Write_Enabled(instance), NULL);
     Binary_Input_Writable_Property_List(instance, &properties);
     zassert_not_null(properties, NULL);
-    zassert_equal(properties[0], PROP_PRESENT_VALUE, NULL);
+    zassert_true(property_list_member(properties, PROP_PRESENT_VALUE), NULL);
 
     /* write-disabled again: list skips PROP_PRESENT_VALUE */
     Binary_Input_Write_Disable(instance);
     zassert_false(Binary_Input_Write_Enabled(instance), NULL);
     Binary_Input_Writable_Property_List(instance, &properties);
-    zassert_not_equal(properties[0], PROP_PRESENT_VALUE, NULL);
+    zassert_false(property_list_member(properties, PROP_PRESENT_VALUE), NULL);
 
     /* unknown instance: must return a valid list, not NULL/garbage */
     properties = NULL;

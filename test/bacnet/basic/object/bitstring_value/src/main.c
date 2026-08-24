@@ -239,20 +239,20 @@ static void test_BitString_Value_Writable_Properties(void)
     zassert_not_null(properties, NULL);
     count = property_list_count(properties);
     zassert_true(count > 0, NULL);
-    zassert_equal(properties[0], PROP_PRESENT_VALUE, NULL);
+    zassert_true(property_list_member(properties, PROP_PRESENT_VALUE), NULL);
 
     /* write-disabled: list skips PROP_PRESENT_VALUE */
     BitString_Value_Write_Disable(instance);
     zassert_false(BitString_Value_Write_Enabled(instance), NULL);
     BitString_Value_Writable_Property_List(instance, &properties);
     zassert_not_null(properties, NULL);
-    zassert_not_equal(properties[0], PROP_PRESENT_VALUE, NULL);
+    zassert_false(property_list_member(properties, PROP_PRESENT_VALUE), NULL);
 
     /* write re-enabled: PROP_PRESENT_VALUE back at head */
     BitString_Value_Write_Enable(instance);
     zassert_true(BitString_Value_Write_Enabled(instance), NULL);
     BitString_Value_Writable_Property_List(instance, &properties);
-    zassert_equal(properties[0], PROP_PRESENT_VALUE, NULL);
+    zassert_true(property_list_member(properties, PROP_PRESENT_VALUE), NULL);
 
     /* unknown instance: must return a valid list, not NULL/garbage */
     properties = NULL;

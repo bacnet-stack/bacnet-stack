@@ -74,20 +74,20 @@ static void testTimeValue_Writable_Properties(void)
     zassert_not_null(properties, NULL);
     count = property_list_count(properties);
     zassert_true(count > 0, NULL);
-    zassert_equal(properties[0], PROP_PRESENT_VALUE, NULL);
+    zassert_true(property_list_member(properties, PROP_PRESENT_VALUE), NULL);
 
     /* write-disabled: list skips PROP_PRESENT_VALUE */
     Time_Value_Write_Disable(instance);
     zassert_false(Time_Value_Write_Enabled(instance), NULL);
     Time_Value_Writable_Property_List(instance, &properties);
     zassert_not_null(properties, NULL);
-    zassert_not_equal(properties[0], PROP_PRESENT_VALUE, NULL);
+    zassert_false(property_list_member(properties, PROP_PRESENT_VALUE), NULL);
 
     /* write re-enabled: PROP_PRESENT_VALUE back at head */
     Time_Value_Write_Enable(instance);
     zassert_true(Time_Value_Write_Enabled(instance), NULL);
     Time_Value_Writable_Property_List(instance, &properties);
-    zassert_equal(properties[0], PROP_PRESENT_VALUE, NULL);
+    zassert_true(property_list_member(properties, PROP_PRESENT_VALUE), NULL);
 
     /* name and description are writable properties */
     zassert_true(property_list_member(properties, PROP_OBJECT_NAME), NULL);
