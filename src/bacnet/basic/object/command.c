@@ -341,7 +341,7 @@ static bool Command_Object_Instance_Add(uint32_t object_instance)
         pObject->Action_Failed = false;
         pObject->All_Writes_Successful = true;
         if (!Action_Array_Init(pObject)) {
-            free(pObject);
+            Object_Data_Free(pObject);
             return false;
         }
         index = Keylist_Data_Add(Object_List, object_instance, pObject);
@@ -841,6 +841,7 @@ unsigned Command_Action_Array_Count(uint32_t instance)
  * @brief Return the number of action commands in one array slot.
  * @param instance [in] BACnet object instance number.
  * @param array_index [in] 0-based array slot index.
+ * @return Number of action entries in the selected slot, or 0 if absent.
  */
 unsigned
 Command_Action_List_Count(uint32_t instance, BACNET_ARRAY_INDEX array_index)
@@ -864,6 +865,7 @@ Command_Action_List_Count(uint32_t instance, BACNET_ARRAY_INDEX array_index)
  * @param instance [in] BACnet object instance number.
  * @param array_index [in] 0-based array slot index.
  * @param list_index [in] 0-based position within the inner list.
+ * @return Action entry at the requested position, or NULL if not found.
  */
 BACNET_ACTION_LIST *Command_Action_List_Member(
     uint32_t instance, BACNET_ARRAY_INDEX array_index, unsigned list_index)
@@ -1056,7 +1058,12 @@ static int Command_Action_List_Encode(
 }
 
 /**
- * @brief Decode one BACnetARRAY element (a list) to determine its byte length.
+ * @brief Decode a single BACnet action command to determine its byte length.
+ * @param object_instance [in] BACnet object instance number.
+ * @param apdu [in] Encoded action command bytes.
+ * @param apdu_size [in] Remaining buffer size.
+ * @return Encoded byte length for the command, or BACNET_STATUS_ERROR if
+ * invalid.
  */
 static int Command_Action_List_Member_Decode(
     uint32_t object_instance, uint8_t *apdu, size_t apdu_size)

@@ -200,6 +200,38 @@ static struct object_data *Object_Instance_Data(uint32_t object_instance)
 }
 
 /**
+ * @brief Add a shed-level entry to a keylist.
+ * @param list [in,out] Keylist to hold shed-level entries.
+ * @param key [in] Key to assign to the new entry.
+ * @param value [in] Shed-level data to copy.
+ * @return true if the entry was added successfully.
+ */
+static bool Load_Control_Shed_Level_List_Add(
+    OS_Keylist list, KEY key, const struct shed_level_data *value)
+{
+    struct shed_level_data *entry = NULL;
+    int index = 0;
+
+    if (!list || !value) {
+        return false;
+    }
+
+    entry = calloc(1, sizeof(*entry));
+    if (!entry) {
+        return false;
+    }
+    *entry = *value;
+
+    index = Keylist_Data_Add(list, key, entry);
+    if (index < 0) {
+        free(entry);
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * @brief Determines if a given object instance is valid
  * @param  object_instance - object-instance number of the object
  * @return  true if the instance is valid, and false if not
@@ -249,10 +281,9 @@ unsigned Load_Control_Instance_To_Index(uint32_t object_instance)
 }
 
 /**
- * @brief For a given object instance-number, read the present-value.
- * @param  object_instance - object-instance number of the object
- * @param  value - Pointer to the new value
- * @return  true if value is within range and copied
+ * @brief Return the present-value for a Load Control object instance.
+ * @param object_instance [in] BACnet object instance number.
+ * @return Current shed state for the object instance.
  */
 BACNET_SHED_STATE Load_Control_Present_Value(uint32_t object_instance)
 {
@@ -802,9 +833,9 @@ bool Load_Control_Update_Interval_Set(uint32_t object_instance, uint32_t value)
 }
 
 /**
- * @brief Load Control State Machine Handler
- * @param object_instance - object-instance number of the object
- * @param milliseconds - elapsed time in milliseconds from last call
+ * @brief Advance one Load Control object's timer-driven state machine.
+ * @param object_instance [in] BACnet object instance number.
+ * @param milliseconds [in] Elapsed milliseconds since the last update.
  */
 void Load_Control_Timer(uint32_t object_instance, uint16_t milliseconds)
 {
@@ -2154,7 +2185,6 @@ uint32_t Load_Control_Create(uint32_t object_instance)
     struct shed_level_data shed_levels[] = { { 90.0f, "Special" },
                                              { 80.0f, "Medium" },
                                              { 70.0f, "High" } };
-    struct shed_level_data *entry;
     unsigned i = 0;
 
     if (!Object_List) {
@@ -2193,15 +2223,12 @@ uint32_t Load_Control_Create(uint32_t object_instance)
             pObject->Start_Time_Property_Written = false;
             pObject->Shed_Level_List = Keylist_Create();
             for (i = 0; i < ARRAY_SIZE(shed_levels); i++) {
-                entry = calloc(1, sizeof(struct shed_level_data));
-                if (entry) {
-                    entry->Value = shed_levels[i].Value;
-                    entry->Description = shed_levels[i].Description;
-                    index = Keylist_Data_Add(
-                        pObject->Shed_Level_List, 1 + i, entry);
-                    if (index < 0) {
-                        free(entry);
-                    }
+                if (!Load_Control_Shed_Level_List_Add(
+                        pObject->Shed_Level_List, 1 + i, &shed_levels[i])) {
+                    Keylist_Data_Free(pObject->Shed_Level_List);
+                    Keylist_Delete(pObject->Shed_Level_List);
+                    free(pObject);
+                    return BACNET_MAX_INSTANCE;
                 }
             }
             pObject->Priority_For_Writing = 4;
@@ -2218,6 +2245,10 @@ uint32_t Load_Control_Create(uint32_t object_instance)
             /* add to list */
             index = Keylist_Data_Add(Object_List, object_instance, pObject);
             if (index < 0) {
+                if (pObject->Shed_Level_List) {
+                    Keylist_Data_Free(pObject->Shed_Level_List);
+                    Keylist_Delete(pObject->Shed_Level_List);
+                }
                 free(pObject);
                 return BACNET_MAX_INSTANCE;
             }
@@ -2241,6 +2272,10 @@ bool Load_Control_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
+        if (pObject->Shed_Level_List) {
+            Keylist_Data_Free(pObject->Shed_Level_List);
+            Keylist_Delete(pObject->Shed_Level_List);
+        }
         free(pObject);
         status = true;
     }
@@ -2267,6 +2302,10 @@ void Load_Control_Cleanup(void)
             do {
                 pObject = Keylist_Data_Pop(Object_List);
                 if (pObject) {
+                    if (pObject->Shed_Level_List) {
+                        Keylist_Data_Free(pObject->Shed_Level_List);
+                        Keylist_Delete(pObject->Shed_Level_List);
+                    }
                     free(pObject);
                 }
             } while (pObject);

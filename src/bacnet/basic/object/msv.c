@@ -1095,13 +1095,25 @@ uint32_t Multistate_Value_Create(uint32_t object_instance)
             pObject->Change_Of_Value = false;
             pObject->Present_Value = 1;
             pObject->Write_Enabled = true;
+            pObject->State_List = Keylist_Create();
             if (!pObject->State_List) {
-                pObject->State_List = Keylist_Create();
+                free(pObject);
+                return BACNET_MAX_INSTANCE;
             }
-            (void)state_name_list_init(pObject->State_List, Default_State_Text);
+            if (!state_name_list_init(
+                    pObject->State_List, Default_State_Text)) {
+                Keylist_Data_Free(pObject->State_List);
+                Keylist_Delete(pObject->State_List);
+                free(pObject);
+                return BACNET_MAX_INSTANCE;
+            }
             /* add to list */
             index = Keylist_Data_Add(Object_List, object_instance, pObject);
             if (index < 0) {
+                if (pObject->State_List) {
+                    Keylist_Data_Free(pObject->State_List);
+                    Keylist_Delete(pObject->State_List);
+                }
                 free(pObject);
                 return BACNET_MAX_INSTANCE;
             }
