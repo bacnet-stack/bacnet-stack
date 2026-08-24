@@ -1485,7 +1485,7 @@ bool characterstring_ansi_const_length_init(
     if (!char_string) {
         return false;
     }
-    if (value && (bacnet_strnlen(value, tmax) == tmax)) {
+    if (value && (tmax > 0) && (bacnet_strnlen(value, tmax) == tmax)) {
         /* missing a null terminator within the expected length */
         return characterstring_ansi_strndup(char_string, value, tmax);
     }
