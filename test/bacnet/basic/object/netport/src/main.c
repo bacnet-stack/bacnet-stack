@@ -1143,7 +1143,8 @@ void test_main(void)
         ztest_unit_test(test_network_port_pending_param),
         ztest_unit_test(test_network_port_sc_direct_connect_accept_uri),
         ztest_unit_test(test_network_port_sc_certificates),
-        ztest_unit_test(test_network_port_sc_status_encode_decode));
+        ztest_unit_test(test_network_port_sc_status_encode_decode),
+        ztest_unit_test(test_network_port_name_description_write));
 
     ztest_run_test_suite(netport_tests);
 }
