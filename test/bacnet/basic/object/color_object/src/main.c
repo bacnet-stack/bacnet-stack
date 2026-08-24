@@ -228,14 +228,7 @@ static void testColorObject_name_description_write(void)
  */
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST_SUITE(
-    color_object_tests,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    ztest_unit_test(testColorObject),
-    ztest_unit_test(testColorObject_name_description_write));
+ZTEST_SUITE(color_object_tests, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {

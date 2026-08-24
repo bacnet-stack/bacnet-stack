@@ -275,11 +275,16 @@ static bool Schedule_Object_Name_Write(
 
     pObject = Schedule_Object(wp_data->object_instance);
     if (pObject) {
-        status = characterstring_ansi_from_characterstring_strdup(
-            &pObject->Object_Name, cstring);
-        if (!status) {
+        if (characterstring_utf8_valid(cstring)) {
+            status = characterstring_ansi_from_characterstring_strdup(
+                &pObject->Object_Name, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        } else {
             wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         }
     } else {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -304,13 +309,16 @@ bool Schedule_Object_Name(
 
     pObject = Schedule_Object(object_instance);
     if (pObject) {
-        status = characterstring_ansi_to_characterstring(
-            object_name, &pObject->Object_Name);
-        if (!status) {
-            len = characterstring_utf8_snprintf(
-                object_name, "SCHEDULE-%lu", (unsigned long)object_instance);
-            if (len > 0) {
-                status = true;
+        if (characterstring_utf8_valid(object_name)) {
+            status = characterstring_ansi_to_characterstring(
+                object_name, &pObject->Object_Name);
+            if (!status) {
+                len = characterstring_utf8_snprintf(
+                    object_name, "SCHEDULE-%lu",
+                    (unsigned long)object_instance);
+                if (len > 0) {
+                    status = true;
+                }
             }
         }
     }

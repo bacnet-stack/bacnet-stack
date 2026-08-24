@@ -393,19 +393,22 @@ static bool Trend_Log_Object_Name_Write(
     if (wp_data == NULL || cstring == NULL) {
         return false;
     }
-
     if (wp_data->object_instance >= MAX_TREND_LOGS) {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return false;
     }
-
-    CurrentLog = &LogInfo[wp_data->object_instance];
-    status = characterstring_ansi_from_characterstring_strdup(
-        &CurrentLog->Object_Name, cstring);
-    if (!status) {
+    if (characterstring_utf8_valid(cstring)) {
+        CurrentLog = &LogInfo[wp_data->object_instance];
+        status = characterstring_ansi_from_characterstring_strdup(
+            &CurrentLog->Object_Name, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    } else {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
     }
 
     return status;
@@ -471,13 +474,17 @@ static bool Trend_Log_Description_Write(
         wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return false;
     }
-
-    CurrentLog = &LogInfo[wp_data->object_instance];
-    status = characterstring_ansi_from_characterstring_strdup(
-        &CurrentLog->Description, cstring);
-    if (!status) {
+    if (characterstring_utf8_valid(cstring)) {
+        CurrentLog = &LogInfo[wp_data->object_instance];
+        status = characterstring_ansi_from_characterstring_strdup(
+            &CurrentLog->Description, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    } else {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
     }
 
     return status;

@@ -89,15 +89,7 @@ static void testBinaryOutput_Writable_Properties(void)
  */
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST_SUITE(
-    bo_tests,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    ztest_unit_test(testBinaryOutput),
-    ztest_unit_test(testBinaryOutput_Writable_Properties));
+ZTEST_SUITE(bo_tests, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {

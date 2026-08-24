@@ -1485,8 +1485,8 @@ bool characterstring_ansi_const_length_init(
     if (!char_string) {
         return false;
     }
-    if ((tmax > 0) && value && (value[tmax - 1] != '\0')) {
-        /* missing a null terminator at the expected place */
+    if (value && (bacnet_strnlen(value, tmax) == tmax)) {
+        /* missing a null terminator within the expected length */
         return characterstring_ansi_strndup(char_string, value, tmax);
     }
     /* otherwise, just use the constant string as-is */

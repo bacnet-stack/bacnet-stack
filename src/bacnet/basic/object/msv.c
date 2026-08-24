@@ -918,11 +918,16 @@ static bool Multistate_Value_Object_Name_Write(
 
     pObject = Multistate_Value_Object(wp_data->object_instance);
     if (pObject) {
-        status = characterstring_ansi_from_characterstring_strdup(
-            &pObject->Object_Name, cstring);
-        if (!status) {
+        if (characterstring_utf8_valid(cstring)) {
+            status = characterstring_ansi_from_characterstring_strdup(
+                &pObject->Object_Name, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        } else {
             wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         }
     } else {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -932,6 +937,14 @@ static bool Multistate_Value_Object_Name_Write(
     return status;
 }
 
+/**
+ * @brief WriteProperty handler for this object.  For the given WriteProperty
+ *  data, the application_data is loaded or the error flags are set.
+ * @param  wp_data - BACNET_WRITE_PROPERTY_DATA data, including
+ * requested data and space for the reply, or error response.
+ * @param  cstring - BACnet character string to write
+ * @return false if an error is loaded, true if no errors
+ */
 static bool Multistate_Value_Description_Write(
     BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
 {
@@ -940,11 +953,16 @@ static bool Multistate_Value_Description_Write(
 
     pObject = Multistate_Value_Object(wp_data->object_instance);
     if (pObject) {
-        status = characterstring_ansi_from_characterstring_strdup(
-            &pObject->Description, cstring);
-        if (!status) {
+        if (characterstring_utf8_valid(cstring)) {
+            status = characterstring_ansi_from_characterstring_strdup(
+                &pObject->Description, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        } else {
             wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         }
     } else {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -954,6 +972,13 @@ static bool Multistate_Value_Description_Write(
     return status;
 }
 
+/**
+ * @brief WriteProperty handler for this object.  For the given WriteProperty
+ *  data, the application_data is loaded or the error flags are set.
+ * @param  wp_data - BACNET_WRITE_PROPERTY_DATA data, including
+ * requested data and space for the reply, or error response.
+ * @return false if an error is loaded, true if no errors
+ */
 bool Multistate_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */

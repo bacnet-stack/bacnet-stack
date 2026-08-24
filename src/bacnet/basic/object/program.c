@@ -655,11 +655,16 @@ static bool Program_Object_Name_Write(
 
     pObject = Object_Data(wp_data->object_instance);
     if (pObject) {
-        status = characterstring_ansi_from_characterstring_strdup(
-            &pObject->Object_Name, cstring);
-        if (!status) {
+        if (characterstring_utf8_valid(cstring)) {
+            status = characterstring_ansi_from_characterstring_strdup(
+                &pObject->Object_Name, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        } else {
             wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         }
     } else {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -683,11 +688,16 @@ static bool Program_Description_Write(
 
     pObject = Object_Data(wp_data->object_instance);
     if (pObject) {
-        status = characterstring_ansi_from_characterstring_strdup(
-            &pObject->Description, cstring);
-        if (!status) {
+        if (characterstring_utf8_valid(cstring)) {
+            status = characterstring_ansi_from_characterstring_strdup(
+                &pObject->Description, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        } else {
             wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         }
     } else {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -711,11 +721,16 @@ static bool Program_Instance_Of_Write(
 
     pObject = Object_Data(wp_data->object_instance);
     if (pObject) {
-        status = characterstring_ansi_from_characterstring_strdup(
-            &pObject->Instance_Of, cstring);
-        if (!status) {
+        if (characterstring_utf8_valid(cstring)) {
+            status = characterstring_ansi_from_characterstring_strdup(
+                &pObject->Instance_Of, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        } else {
             wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         }
     } else {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -725,6 +740,14 @@ static bool Program_Instance_Of_Write(
     return status;
 }
 
+/**
+ * @brief Writes a Program object program-change property value.
+ * @param object_instance BACnet object instance number.
+ * @param program_change BACnet program change value to write.
+ * @param error_class Pointer to BACnet error class to set on failure.
+ * @param error_code Pointer to BACnet error code to set on failure.
+ * @return true if the write succeeded.
+ */
 static bool Program_Change_Write(
     uint32_t object_instance,
     BACNET_PROGRAM_REQUEST program_change,

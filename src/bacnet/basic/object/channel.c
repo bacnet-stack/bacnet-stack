@@ -1383,11 +1383,16 @@ static bool Channel_Object_Name_Write(
 
     pObject = Object_Data(wp_data->object_instance);
     if (pObject) {
-        status = characterstring_ansi_from_characterstring_strdup(
-            &pObject->Object_Name, cstring);
-        if (!status) {
+        if (characterstring_utf8_valid(cstring)) {
+            status = characterstring_ansi_from_characterstring_strdup(
+                &pObject->Object_Name, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        } else {
             wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         }
     } else {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -1413,11 +1418,16 @@ static bool Channel_Description_Write(
 
     pObject = Object_Data(wp_data->object_instance);
     if (pObject) {
-        status = characterstring_ansi_from_characterstring_strdup(
-            &pObject->Description, cstring);
-        if (!status) {
+        if (characterstring_utf8_valid(cstring)) {
+            status = characterstring_ansi_from_characterstring_strdup(
+                &pObject->Description, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        } else {
             wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         }
     } else {
         wp_data->error_class = ERROR_CLASS_PROPERTY;

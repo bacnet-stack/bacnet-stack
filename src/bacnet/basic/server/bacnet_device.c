@@ -1780,6 +1780,12 @@ bool Device_Valid_Object_Instance_Number(uint32_t object_id)
     return (Object_Instance_Number == object_id);
 }
 
+/**
+ * @brief Get the Device Object Name
+ * @param object_instance [in] The object instance number to check
+ * @param object_name [out] The object name to be filled in
+ * @return true on success, else false
+ */
 bool Device_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
@@ -1793,6 +1799,11 @@ bool Device_Object_Name(
     return status;
 }
 
+/**
+ * @brief Set the Device Object Name
+ * @param object_name [in] The new object name to set
+ * @return true on success, else false
+ */
 bool Device_Set_Object_Name(const BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false; /*return value */
@@ -1800,10 +1811,12 @@ bool Device_Set_Object_Name(const BACNET_CHARACTER_STRING *object_name)
     if (!characterstring_ansi_same_characterstring(
             &Object_Name_String, object_name)) {
         /* Make the change and update the database revision */
-        status = characterstring_ansi_from_characterstring_strdup(
-            &Object_Name_String, object_name);
-        if (status) {
-            Device_Inc_Database_Revision();
+        if (characterstring_utf8_valid(object_name)) {
+            status = characterstring_ansi_from_characterstring_strdup(
+                &Object_Name_String, object_name);
+            if (status) {
+                Device_Inc_Database_Revision();
+            }
         }
     }
 
@@ -3204,7 +3217,8 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
                         wp_data->error_code = ERROR_CODE_DUPLICATE_NAME;
                     }
-                } else {
+                } else if (characterstring_utf8_valid(
+                               &value.type.Character_String)) {
                     status = characterstring_ansi_from_characterstring_strdup(
                         &Object_Name_String, &value.type.Character_String);
                     if (!status) {
@@ -3212,6 +3226,9 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                         wp_data->error_code =
                             ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
                     }
+                } else {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             }
             break;
@@ -3220,11 +3237,17 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data, &value,
                 characterstring_capacity(&value.type.Character_String));
             if (status) {
-                status = characterstring_ansi_from_characterstring_strdup(
-                    &Location_String, &value.type.Character_String);
-                if (!status) {
+                if (characterstring_utf8_valid(&value.type.Character_String)) {
+                    status = characterstring_ansi_from_characterstring_strdup(
+                        &Location_String, &value.type.Character_String);
+                    if (!status) {
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code =
+                            ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                    }
+                } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             }
             break;
@@ -3234,11 +3257,17 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data, &value,
                 characterstring_capacity(&value.type.Character_String));
             if (status) {
-                status = characterstring_ansi_from_characterstring_strdup(
-                    &Description_String, &value.type.Character_String);
-                if (!status) {
+                if (characterstring_utf8_valid(&value.type.Character_String)) {
+                    status = characterstring_ansi_from_characterstring_strdup(
+                        &Description_String, &value.type.Character_String);
+                    if (!status) {
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code =
+                            ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                    }
+                } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             }
             break;
@@ -3247,11 +3276,17 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data, &value,
                 characterstring_capacity(&value.type.Character_String));
             if (status) {
-                status = characterstring_ansi_from_characterstring_strdup(
-                    &Model_Name_String, &value.type.Character_String);
-                if (!status) {
+                if (characterstring_utf8_valid(&value.type.Character_String)) {
+                    status = characterstring_ansi_from_characterstring_strdup(
+                        &Model_Name_String, &value.type.Character_String);
+                    if (!status) {
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code =
+                            ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                    }
+                } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             }
             break;
