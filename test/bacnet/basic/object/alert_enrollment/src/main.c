@@ -85,7 +85,7 @@ static void testAlert_Enrollment_APIs(void)
     zassert_equal(value.instance, 42, NULL);
 
     /* description get/set */
-    zassert_is_null(Alert_Enrollment_Description(instance), NULL);
+    zassert_equal(strcmp(Alert_Enrollment_Description(instance), ""), 0, NULL);
     status = Alert_Enrollment_Description_Set(instance, sample_description);
     zassert_true(status, NULL);
     zassert_equal(
@@ -290,6 +290,87 @@ static void testAlert_Enrollment_Notification_Reporting(void)
 }
 
 /**
+ * @brief Test writable PROP_OBJECT_NAME and PROP_DESCRIPTION.
+ */
+static void testAlert_Enrollment_Name_Description_Write(void)
+{
+    uint32_t object_instance = BACNET_MAX_INSTANCE;
+    bool status = false;
+    int len = 0;
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    BACNET_READ_PROPERTY_DATA rp_data = { 0 };
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_CHARACTER_STRING cstring = { 0 };
+    BACNET_CHARACTER_STRING object_name = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    const char *test_name = "AE-NAME-WP";
+    const char *test_description =
+        "Alert enrollment description written via WP";
+
+    Alert_Enrollment_Cleanup();
+    object_instance = Alert_Enrollment_Create(BACNET_MAX_INSTANCE);
+    zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
+
+    wp_data.object_type = OBJECT_ALERT_ENROLLMENT;
+    wp_data.object_instance = object_instance;
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    wp_data.priority = BACNET_NO_PRIORITY;
+
+    status = characterstring_init_ansi(&cstring, test_name);
+    zassert_true(status, NULL);
+    wp_data.object_property = PROP_OBJECT_NAME;
+    wp_data.application_data_len =
+        encode_application_character_string(wp_data.application_data, &cstring);
+    status = Alert_Enrollment_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+
+    status = Alert_Enrollment_Object_Name(object_instance, &object_name);
+    zassert_true(status, NULL);
+    status = characterstring_ansi_same(&object_name, test_name);
+    zassert_true(status, NULL);
+
+    rp_data.object_type = OBJECT_ALERT_ENROLLMENT;
+    rp_data.object_instance = object_instance;
+    rp_data.object_property = PROP_OBJECT_NAME;
+    rp_data.array_index = BACNET_ARRAY_ALL;
+    rp_data.application_data = apdu;
+    rp_data.application_data_len = sizeof(apdu);
+    len = Alert_Enrollment_Read_Property(&rp_data);
+    zassert_true(len > 0, NULL);
+    len = bacapp_decode_application_data(apdu, len, &value);
+    zassert_true(len > 0, NULL);
+    zassert_equal(value.tag, BACNET_APPLICATION_TAG_CHARACTER_STRING, NULL);
+    status = characterstring_ansi_same(&value.type.Character_String, test_name);
+    zassert_true(status, NULL);
+
+    status = characterstring_init_ansi(&cstring, test_description);
+    zassert_true(status, NULL);
+    wp_data.object_property = PROP_DESCRIPTION;
+    wp_data.application_data_len =
+        encode_application_character_string(wp_data.application_data, &cstring);
+    status = Alert_Enrollment_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_not_null(Alert_Enrollment_Description(object_instance), NULL);
+    zassert_equal(
+        strcmp(Alert_Enrollment_Description(object_instance), test_description),
+        0, NULL);
+
+    rp_data.object_property = PROP_DESCRIPTION;
+    len = Alert_Enrollment_Read_Property(&rp_data);
+    zassert_true(len > 0, NULL);
+    len = bacapp_decode_application_data(apdu, len, &value);
+    zassert_true(len > 0, NULL);
+    zassert_equal(value.tag, BACNET_APPLICATION_TAG_CHARACTER_STRING, NULL);
+    status = characterstring_ansi_same(
+        &value.type.Character_String, test_description);
+    zassert_true(status, NULL);
+
+    status = Alert_Enrollment_Delete(object_instance);
+    zassert_true(status, NULL);
+    Alert_Enrollment_Cleanup();
+}
+
+/**
  * @brief Test the Alert Enrollment Writable_Property_List API
  */
 static void testAlert_Enrollment_Writable_Properties(void)
@@ -302,16 +383,18 @@ static void testAlert_Enrollment_Writable_Properties(void)
     zassert_not_equal(
         Alert_Enrollment_Create(instance), BACNET_MAX_INSTANCE, NULL);
 
-    /* Alert Enrollment has no always-writable properties */
+    /* Object name and description are writable properties */
     Alert_Enrollment_Writable_Property_List(instance, &properties);
     zassert_not_null(properties, NULL);
-    zassert_equal(properties[0], -1, NULL);
+    zassert_true(property_list_member(properties, PROP_OBJECT_NAME), NULL);
+    zassert_true(property_list_member(properties, PROP_DESCRIPTION), NULL);
 
     /* unknown instance: must still return a valid (empty) list */
     properties = NULL;
     Alert_Enrollment_Writable_Property_List(invalid_instance, &properties);
     zassert_not_null(properties, NULL);
-    zassert_equal(properties[0], -1, NULL);
+    zassert_true(property_list_member(properties, PROP_OBJECT_NAME), NULL);
+    zassert_true(property_list_member(properties, PROP_DESCRIPTION), NULL);
 
     /* NULL properties pointer: must not crash */
     Alert_Enrollment_Writable_Property_List(instance, NULL);
@@ -329,6 +412,7 @@ void test_main(void)
         alert_enrollment_tests, ztest_unit_test(testAlert_Enrollment),
         ztest_unit_test(testAlert_Enrollment_APIs),
         ztest_unit_test(testAlert_Enrollment_Notification_Reporting),
+        ztest_unit_test(testAlert_Enrollment_Name_Description_Write),
         ztest_unit_test(testAlert_Enrollment_Writable_Properties));
 
     ztest_run_test_suite(alert_enrollment_tests);
