@@ -3602,8 +3602,8 @@ bool bacnet_character_string_buffer_unpack(
  * @param buffer - pointer to the buffer to hold the string value
  * @param buffer_allocated - indicates if the buffer was allocated
  */
-void bacnet_character_string_ansi_init(
-    BACNET_CHARACTER_STRING_ANSI *value, char *buffer, bool buffer_allocated)
+void bacnet_character_cstring_init(
+    BACNET_CHARACTER_CSTRING *value, char *buffer, bool buffer_allocated)
 {
     if (value) {
         value->buffer = buffer;
@@ -3621,13 +3621,13 @@ void bacnet_character_string_ansi_init(
  *  If there is no null byte in the first buffer_size bytes of the array
  *  pointed to by buffer, the result is forced to be null-terminated.
  *
- * @param value - the BACNET_CHARACTER_STRING_ANSI value to be copied
+ * @param value - the BACNET_CHARACTER_CSTRING value to be copied
  * @param encoding - pointer to the BACnet Character String encoding value
  * @param buffer - pointer to the buffer to hold the string value
  * @return number of bytes copied
  */
-size_t bacnet_character_string_ansi_strncpy(
-    const BACNET_CHARACTER_STRING_ANSI *value,
+size_t bacnet_character_cstring_strncpy(
+    const BACNET_CHARACTER_CSTRING *value,
     uint8_t *encoding,
     char *buffer,
     size_t buffer_size)
@@ -3661,12 +3661,12 @@ size_t bacnet_character_string_ansi_strncpy(
  *  and 20.2.1 General Rules for Encoding BACnet Tags
  *
  * @param apdu - buffer to hold the bytes
- * @param value - the BACNET_CHARACTER_STRING_ANSI value to be encoded
+ * @param value - the BACNET_CHARACTER_CSTRING value to be encoded
  *
  * @return returns the number of apdu bytes consumed, or 0 if too large
  */
-uint32_t encode_bacnet_character_string_ansi(
-    uint8_t *apdu, const BACNET_CHARACTER_STRING_ANSI *value)
+uint32_t encode_bacnet_character_cstring(
+    uint8_t *apdu, const BACNET_CHARACTER_CSTRING *value)
 {
     uint32_t apdu_len = 1 /*encoding */;
     size_t len = 0;
@@ -3695,20 +3695,20 @@ uint32_t encode_bacnet_character_string_ansi(
  *
  * @param apdu - buffer to hold the bytes, or NULL for length
  * @param tag_number - context tag number to encode
- * @param char_string - the BACNET_CHARACTER_STRING_ANSI to be encoded
+ * @param char_string - the BACNET_CHARACTER_CSTRING to be encoded
  *
  * @return returns the number of apdu bytes consumed, or 0 if too large
  */
-int encode_context_character_string_ansi(
+int encode_context_character_cstring(
     uint8_t *apdu,
     uint8_t tag_number,
-    const BACNET_CHARACTER_STRING_ANSI *char_string)
+    const BACNET_CHARACTER_CSTRING *char_string)
 {
     int apdu_len = 0;
     int len = 0;
     uint32_t tag_len;
 
-    tag_len = encode_bacnet_character_string_ansi(NULL, char_string);
+    tag_len = encode_bacnet_character_cstring(NULL, char_string);
     if (tag_len == 0) {
         /* malformed, cannot be zero */
         return 0;
@@ -3718,7 +3718,7 @@ int encode_context_character_string_ansi(
     if (apdu) {
         apdu += len;
     }
-    len = encode_bacnet_character_string_ansi(apdu, char_string);
+    len = encode_bacnet_character_cstring(apdu, char_string);
     apdu_len += len;
 
     return apdu_len;
@@ -3730,25 +3730,25 @@ int encode_context_character_string_ansi(
  *  and 20.2.1 General Rules for Encoding BACnet Tags
  *
  * @param apdu - buffer to hold the bytes, or NULL for length
- * @param char_string - the BACNET_CHARACTER_STRING_ANSI to be encoded
+ * @param char_string - the BACNET_CHARACTER_CSTRING to be encoded
  *
  * @return returns the number of apdu bytes consumed
  */
-int encode_application_character_string_ansi(
-    uint8_t *apdu, const BACNET_CHARACTER_STRING_ANSI *char_string)
+int encode_application_character_cstring(
+    uint8_t *apdu, const BACNET_CHARACTER_CSTRING *char_string)
 {
     int apdu_len = 0;
     int len = 0;
     uint32_t tag_len;
 
-    tag_len = encode_bacnet_character_string_ansi(NULL, char_string);
+    tag_len = encode_bacnet_character_cstring(NULL, char_string);
     len = encode_tag(
         apdu, BACNET_APPLICATION_TAG_CHARACTER_STRING, false, tag_len);
     apdu_len += len;
     if (apdu) {
         apdu += len;
     }
-    len = encode_bacnet_character_string_ansi(apdu, char_string);
+    len = encode_bacnet_character_cstring(apdu, char_string);
     apdu_len += len;
 
     return apdu_len;
@@ -3762,23 +3762,21 @@ int encode_application_character_string_ansi(
  *
  * @param apdu - buffer to hold the data to be encoded, or NULL for length
  * @param apdu_size - number of bytes in the buffer
- * @param value - the BACNET_CHARACTER_STRING_ANSI to be encoded
+ * @param value - the BACNET_CHARACTER_CSTRING to be encoded
  *
  * @return returns the number of apdu bytes encoded
  *  or 0 if apdu_size is too small to fit the data
  */
-int bacnet_character_string_ansi_application_encode(
-    uint8_t *apdu,
-    uint32_t apdu_size,
-    const BACNET_CHARACTER_STRING_ANSI *value)
+int bacnet_character_cstring_application_encode(
+    uint8_t *apdu, uint32_t apdu_size, const BACNET_CHARACTER_CSTRING *value)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
 
-    apdu_len = encode_application_character_string_ansi(NULL, value);
+    apdu_len = encode_application_character_cstring(NULL, value);
     if (apdu_len > apdu_size) {
         apdu_len = 0;
     } else {
-        apdu_len = encode_application_character_string_ansi(apdu, value);
+        apdu_len = encode_application_character_cstring(apdu, value);
     }
 
     return apdu_len;
@@ -3792,25 +3790,24 @@ int bacnet_character_string_ansi_application_encode(
  * @param apdu - buffer to hold the data to be encoded, or NULL for length
  * @param apdu_size - number of bytes in the buffer
  * @param tag_number - context tag number to be encoded
- * @param value - the BACNET_CHARACTER_STRING_ANSI to be encoded
+ * @param value - the BACNET_CHARACTER_CSTRING to be encoded
  *
  * @return returns the number of apdu bytes encoded
  *  or 0 if apdu_size is too small to fit the data
  */
-int bacnet_character_string_ansi_context_encode(
+int bacnet_character_cstring_context_encode(
     uint8_t *apdu,
     uint32_t apdu_size,
     uint8_t tag_number,
-    const BACNET_CHARACTER_STRING_ANSI *value)
+    const BACNET_CHARACTER_CSTRING *value)
 {
     int apdu_len = 0; /* total length of the apdu, return value */
 
-    apdu_len = encode_context_character_string_ansi(NULL, tag_number, value);
+    apdu_len = encode_context_character_cstring(NULL, tag_number, value);
     if (apdu_len > apdu_size) {
         apdu_len = 0;
     } else {
-        apdu_len =
-            encode_context_character_string_ansi(apdu, tag_number, value);
+        apdu_len = encode_context_character_cstring(apdu, tag_number, value);
     }
 
     return apdu_len;

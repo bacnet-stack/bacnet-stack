@@ -263,8 +263,8 @@ void Trend_Log_Init(void)
                     tClock += 900;
                 }
 
-                characterstring_ansi_free(&LogInfo[iLog].Object_Name);
-                characterstring_ansi_free(&LogInfo[iLog].Description);
+                characterstring_cstring_free(&LogInfo[iLog].Object_Name);
+                characterstring_cstring_free(&LogInfo[iLog].Description);
                 LogInfo[iLog].tLastDataTime = tClock - 900;
                 LogInfo[iLog].bAlignIntervals = true;
                 LogInfo[iLog].bEnable = true;
@@ -329,7 +329,7 @@ bool Trend_Log_Object_Name(
     }
 
     CurrentLog = &LogInfo[object_instance];
-    status = characterstring_ansi_to_characterstring(
+    status = characterstring_cstring_to_characterstring(
         object_name, &CurrentLog->Object_Name);
     if (!status) {
         len = characterstring_utf8_snprintf(
@@ -359,7 +359,7 @@ bool Trend_Log_Name_Set(uint32_t object_instance, const char *new_name)
     if (object_instance < MAX_TREND_LOGS) {
         CurrentLog = &LogInfo[object_instance];
         status =
-            characterstring_ansi_const_init(&CurrentLog->Object_Name, new_name);
+            characterstring_cstring_init(&CurrentLog->Object_Name, new_name);
     }
 
     return status;
@@ -375,7 +375,7 @@ const char *Trend_Log_Name_ASCII(uint32_t object_instance)
     const char *name = NULL;
     if (object_instance < MAX_TREND_LOGS) {
         TL_LOG_INFO *CurrentLog = &LogInfo[object_instance];
-        name = characterstring_ansi_value_const(&CurrentLog->Object_Name);
+        name = characterstring_cstring_value_const(&CurrentLog->Object_Name);
     }
 
     return name;
@@ -403,7 +403,7 @@ static bool Trend_Log_Object_Name_Write(
     }
     if (characterstring_utf8_valid(cstring)) {
         CurrentLog = &LogInfo[wp_data->object_instance];
-        status = characterstring_ansi_from_characterstring_strdup(
+        status = characterstring_cstring_from_characterstring_strdup(
             &CurrentLog->Object_Name, cstring);
         if (!status) {
             wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -430,7 +430,7 @@ const char *Trend_Log_Description(uint32_t object_instance)
     if (object_instance < MAX_TREND_LOGS) {
         CurrentLog = &LogInfo[object_instance];
         value =
-            characterstring_ansi_value_default(&CurrentLog->Description, "");
+            characterstring_cstring_value_default(&CurrentLog->Description, "");
     }
 
     return value;
@@ -452,7 +452,7 @@ bool Trend_Log_Description_Set(uint32_t object_instance, const char *new_name)
     if (object_instance < MAX_TREND_LOGS) {
         CurrentLog = &LogInfo[object_instance];
         status =
-            characterstring_ansi_const_init(&CurrentLog->Description, new_name);
+            characterstring_cstring_init(&CurrentLog->Description, new_name);
     }
 
     return status;
@@ -481,7 +481,7 @@ static bool Trend_Log_Description_Write(
     }
     if (characterstring_utf8_valid(cstring)) {
         CurrentLog = &LogInfo[wp_data->object_instance];
-        status = characterstring_ansi_from_characterstring_strdup(
+        status = characterstring_cstring_from_characterstring_strdup(
             &CurrentLog->Description, cstring);
         if (!status) {
             wp_data->error_class = ERROR_CLASS_PROPERTY;

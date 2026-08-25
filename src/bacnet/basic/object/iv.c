@@ -50,8 +50,8 @@ struct integer_object {
     uint32_t COV_Increment;
     BACNET_ENGINEERING_UNITS Units;
     uint32_t Instance;
-    BACNET_CHARACTER_STRING_ANSI Object_Name;
-    BACNET_CHARACTER_STRING_ANSI Description;
+    BACNET_CHARACTER_CSTRING Object_Name;
+    BACNET_CHARACTER_CSTRING Description;
     void *Context;
 } INTERGER_VALUE_DESCR;
 
@@ -283,7 +283,7 @@ bool Integer_Value_Object_Name(
 
     pObject = Integer_Value_Object(object_instance);
     if (pObject) {
-        status = characterstring_ansi_to_characterstring(
+        status = characterstring_cstring_to_characterstring(
             object_name, &pObject->Object_Name);
         if (!status) {
             len = characterstring_utf8_snprintf(
@@ -314,8 +314,7 @@ bool Integer_Value_Name_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Integer_Value_Object(object_instance);
     if (pObject) {
-        status =
-            characterstring_ansi_const_init(&pObject->Object_Name, new_name);
+        status = characterstring_cstring_init(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -333,7 +332,7 @@ const char *Integer_Value_Name_ASCII(uint32_t object_instance)
 
     pObject = Integer_Value_Object(object_instance);
     if (pObject) {
-        name = characterstring_ansi_value_const(&pObject->Object_Name);
+        name = characterstring_cstring_value_const(&pObject->Object_Name);
     }
 
     return name;
@@ -357,7 +356,7 @@ bool Integer_Value_Description(
 
     pObject = Integer_Value_Object(object_instance);
     if (pObject) {
-        status = characterstring_ansi_to_characterstring_default(
+        status = characterstring_cstring_to_characterstring_default(
             description, &pObject->Description, "");
     }
 
@@ -380,8 +379,7 @@ bool Integer_Value_Description_Set(
 
     pObject = Integer_Value_Object(object_instance);
     if (pObject) {
-        status =
-            characterstring_ansi_const_init(&pObject->Description, new_name);
+        status = characterstring_cstring_init(&pObject->Description, new_name);
     }
 
     return status;
@@ -399,7 +397,7 @@ const char *Integer_Value_Description_ANSI(uint32_t object_instance)
 
     pObject = Integer_Value_Object(object_instance);
     if (pObject) {
-        name = characterstring_ansi_value_default(&pObject->Description, "");
+        name = characterstring_cstring_value_default(&pObject->Description, "");
     }
 
     return name;
@@ -501,7 +499,7 @@ static bool Integer_Value_Object_Name_Write(
     pObject = Integer_Value_Object(wp_data->object_instance);
     if (pObject) {
         if (characterstring_utf8_valid(cstring)) {
-            status = characterstring_ansi_from_characterstring_strdup(
+            status = characterstring_cstring_from_characterstring_strdup(
                 &pObject->Object_Name, cstring);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -537,7 +535,7 @@ static bool Integer_Value_Description_Write(
     pObject = Integer_Value_Object(wp_data->object_instance);
     if (pObject) {
         if (characterstring_utf8_valid(cstring)) {
-            status = characterstring_ansi_from_characterstring_strdup(
+            status = characterstring_cstring_from_characterstring_strdup(
                 &pObject->Description, cstring);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -942,8 +940,8 @@ bool Integer_Value_Delete(uint32_t object_instance)
         Keylist_Data_Delete(Object_List, object_instance);
 
     if (pObject) {
-        characterstring_ansi_free(&pObject->Object_Name);
-        characterstring_ansi_free(&pObject->Description);
+        characterstring_cstring_free(&pObject->Object_Name);
+        characterstring_cstring_free(&pObject->Description);
         free(pObject);
         status = true;
     }
@@ -970,8 +968,8 @@ void Integer_Value_Cleanup(void)
             do {
                 pObject = Keylist_Data_Pop(Object_List);
                 if (pObject) {
-                    characterstring_ansi_free(&pObject->Object_Name);
-                    characterstring_ansi_free(&pObject->Description);
+                    characterstring_cstring_free(&pObject->Object_Name);
+                    characterstring_cstring_free(&pObject->Description);
                     free(pObject);
                 }
             } while (pObject);

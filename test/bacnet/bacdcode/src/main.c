@@ -2594,13 +2594,13 @@ static void test_bacnet_character_string_buffer(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(bacdcode_tests, test_bacnet_character_string_ansi)
+ZTEST(bacdcode_tests, test_bacnet_character_cstring)
 #else
-static void test_bacnet_character_string_ansi(void)
+static void test_bacnet_character_cstring(void)
 #endif
 {
     uint8_t apdu[64] = { 0 };
-    BACNET_CHARACTER_STRING_ANSI value = { 0 };
+    BACNET_CHARACTER_CSTRING value = { 0 };
     char buffer[32] = { 0 };
     char unpack_buffer[32] = { 0 };
     BACNET_TAG tag = { 0 };
@@ -2616,28 +2616,28 @@ static void test_bacnet_character_string_ansi(void)
         .guard = { 'G', 'H', 'I', 'J' },
     };
     char overflow_string[] = "Hello BACnet!";
-    BACNET_CHARACTER_STRING_ANSI overflow_value = { 0 };
+    BACNET_CHARACTER_CSTRING overflow_value = { 0 };
 
     overflow_value.buffer = overflow_string;
     overflow_value.buffer_allocated = false;
 
     strcpy(buffer, "Hello BACnet");
-    bacnet_character_string_ansi_init(&value, buffer, false);
+    bacnet_character_cstring_init(&value, buffer, false);
 
-    len = encode_bacnet_character_string_ansi(apdu, &value);
-    null_len = encode_bacnet_character_string_ansi(NULL, &value);
+    len = encode_bacnet_character_cstring(apdu, &value);
+    null_len = encode_bacnet_character_cstring(NULL, &value);
     zassert_equal(len, null_len, NULL);
     zassert_equal(len, 1 + strlen(buffer), NULL);
     zassert_equal(apdu[0], CHARACTER_UTF8, NULL);
     zassert_equal(memcmp(&apdu[1], buffer, strlen(buffer)), 0, NULL);
 
-    value_len = bacnet_character_string_ansi_strncpy(
+    value_len = bacnet_character_cstring_strncpy(
         &value, &encoding, unpack_buffer, sizeof(unpack_buffer));
     zassert_equal(value_len, strlen(buffer), NULL);
     zassert_equal(encoding, CHARACTER_UTF8, NULL);
     zassert_equal(memcmp(unpack_buffer, buffer, value_len), 0, NULL);
 
-    value_len = bacnet_character_string_ansi_strncpy(
+    value_len = bacnet_character_cstring_strncpy(
         &overflow_value, &encoding, overflow.buffer, sizeof(overflow.buffer));
     zassert_equal(value_len, sizeof(overflow.buffer) - 1, NULL);
     zassert_equal(encoding, CHARACTER_UTF8, NULL);
@@ -2648,19 +2648,19 @@ static void test_bacnet_character_string_ansi(void)
     zassert_equal(overflow.guard[2], 'I', NULL);
     zassert_equal(overflow.guard[3], 'J', NULL);
 
-    len = bacnet_character_string_ansi_application_encode(
-        apdu, sizeof(apdu), &value);
-    null_len = bacnet_character_string_ansi_application_encode(
-        NULL, sizeof(apdu), &value);
+    len =
+        bacnet_character_cstring_application_encode(apdu, sizeof(apdu), &value);
+    null_len =
+        bacnet_character_cstring_application_encode(NULL, sizeof(apdu), &value);
     zassert_equal(len, null_len, NULL);
     zassert_true(len > 0, NULL);
     zassert_true(bacnet_tag_decode(apdu, len, &tag) > 0, NULL);
     zassert_equal(tag.number, BACNET_APPLICATION_TAG_CHARACTER_STRING, NULL);
     zassert_true(tag.application, NULL);
 
-    len = bacnet_character_string_ansi_context_encode(
+    len = bacnet_character_cstring_context_encode(
         apdu, sizeof(apdu), tag_number, &value);
-    null_len = bacnet_character_string_ansi_context_encode(
+    null_len = bacnet_character_cstring_context_encode(
         NULL, sizeof(apdu), tag_number, &value);
     zassert_equal(len, null_len, NULL);
     zassert_true(len > 0, NULL);
@@ -2763,7 +2763,7 @@ void test_main(void)
         ztest_unit_test(test_bacnet_enclosed_data_length),
         ztest_unit_test(test_octet_string_buffer),
         ztest_unit_test(test_bacnet_character_string_buffer),
-        ztest_unit_test(test_bacnet_character_string_ansi),
+        ztest_unit_test(test_bacnet_character_cstring),
         ztest_unit_test(test_bacnet_constructed_value),
         ztest_unit_test(test_simple_ack));
 

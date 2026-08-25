@@ -96,8 +96,8 @@ struct object_data {
     uint32_t Update_Interval;
     uint32_t Task_Milliseconds;
     void *Context;
-    BACNET_CHARACTER_STRING_ANSI Object_Name;
-    BACNET_CHARACTER_STRING_ANSI Description;
+    BACNET_CHARACTER_CSTRING Object_Name;
+    BACNET_CHARACTER_CSTRING Description;
 };
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist Object_Lists[MAX_NUM_DEVICES];
@@ -314,7 +314,7 @@ bool Load_Control_Object_Name(
 
     pObject = Object_Instance_Data(object_instance);
     if (pObject) {
-        status = characterstring_ansi_to_characterstring(
+        status = characterstring_cstring_to_characterstring(
             object_name, &pObject->Object_Name);
         if (!status) {
             len = characterstring_utf8_snprintf(
@@ -345,8 +345,7 @@ bool Load_Control_Name_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Object_Instance_Data(object_instance);
     if (pObject) {
-        status =
-            characterstring_ansi_const_init(&pObject->Object_Name, new_name);
+        status = characterstring_cstring_init(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -364,7 +363,7 @@ const char *Load_Control_Name_ASCII(uint32_t object_instance)
 
     pObject = Object_Instance_Data(object_instance);
     if (pObject) {
-        name = characterstring_ansi_value_const(&pObject->Object_Name);
+        name = characterstring_cstring_value_const(&pObject->Object_Name);
     }
 
     return name;
@@ -383,7 +382,7 @@ const char *Load_Control_Description(uint32_t object_instance)
     pObject = Object_Instance_Data(object_instance);
     if (pObject) {
         description =
-            characterstring_ansi_value_default(&pObject->Description, "");
+            characterstring_cstring_value_default(&pObject->Description, "");
     }
 
     return description;
@@ -405,8 +404,7 @@ bool Load_Control_Description_Set(
 
     pObject = Object_Instance_Data(object_instance);
     if (pObject) {
-        status =
-            characterstring_ansi_const_init(&pObject->Description, new_name);
+        status = characterstring_cstring_init(&pObject->Description, new_name);
     }
 
     return status;
@@ -1626,7 +1624,7 @@ static bool Load_Control_Object_Name_Write(
     pObject = Object_Instance_Data(wp_data->object_instance);
     if (pObject) {
         if (characterstring_utf8_valid(cstring)) {
-            status = characterstring_ansi_from_characterstring_strdup(
+            status = characterstring_cstring_from_characterstring_strdup(
                 &pObject->Object_Name, cstring);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -1660,7 +1658,7 @@ static bool Load_Control_Description_Write(
     pObject = Object_Instance_Data(wp_data->object_instance);
     if (pObject) {
         if (characterstring_utf8_valid(cstring)) {
-            status = characterstring_ansi_from_characterstring_strdup(
+            status = characterstring_cstring_from_characterstring_strdup(
                 &pObject->Description, cstring);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -2404,8 +2402,8 @@ bool Load_Control_Delete(uint32_t object_instance)
     if (pObject) {
         Keylist_Data_Free(pObject->Shed_Level_List);
         Keylist_Delete(pObject->Shed_Level_List);
-        characterstring_ansi_free(&pObject->Description);
-        characterstring_ansi_free(&pObject->Object_Name);
+        characterstring_cstring_free(&pObject->Description);
+        characterstring_cstring_free(&pObject->Object_Name);
         free(pObject);
         status = true;
     }
@@ -2434,8 +2432,8 @@ void Load_Control_Cleanup(void)
                 if (pObject) {
                     Keylist_Data_Free(pObject->Shed_Level_List);
                     Keylist_Delete(pObject->Shed_Level_List);
-                    characterstring_ansi_free(&pObject->Description);
-                    characterstring_ansi_free(&pObject->Object_Name);
+                    characterstring_cstring_free(&pObject->Description);
+                    characterstring_cstring_free(&pObject->Object_Name);
                     free(pObject);
                 }
             } while (pObject);

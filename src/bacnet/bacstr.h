@@ -47,7 +47,7 @@ typedef struct BACnetCharacterStringBuffer {
 typedef struct BACnetCharacterStringANSI {
     char *buffer;
     bool buffer_allocated : 1;
-} BACNET_CHARACTER_STRING_ANSI;
+} BACNET_CHARACTER_CSTRING;
 
 /* buffer pointer version of Octet String */
 typedef struct BACnetOctetStringBuffer {
@@ -212,45 +212,45 @@ uint8_t characterstring_buffer_encoding(
 
 /* lightweight BACnetCharacterString for ANSI C strings */
 BACNET_STACK_EXPORT
-bool characterstring_ansi_const_init(
-    BACNET_CHARACTER_STRING_ANSI *char_string, const char *value);
+bool characterstring_cstring_init(
+    BACNET_CHARACTER_CSTRING *char_string, const char *value);
 BACNET_STACK_EXPORT
-bool characterstring_ansi_strndup(
-    BACNET_CHARACTER_STRING_ANSI *char_string, const char *value, size_t tmax);
+bool characterstring_cstring_strndup(
+    BACNET_CHARACTER_CSTRING *char_string, const char *value, size_t tmax);
 BACNET_STACK_EXPORT
-bool characterstring_ansi_const_length_init(
-    BACNET_CHARACTER_STRING_ANSI *char_string, const char *value, size_t tmax);
+bool characterstring_cstring_length_init(
+    BACNET_CHARACTER_CSTRING *char_string, const char *value, size_t tmax);
 BACNET_STACK_EXPORT
-bool characterstring_ansi_from_characterstring_strdup(
-    BACNET_CHARACTER_STRING_ANSI *dest, const BACNET_CHARACTER_STRING *src);
+bool characterstring_cstring_from_characterstring_strdup(
+    BACNET_CHARACTER_CSTRING *dest, const BACNET_CHARACTER_STRING *src);
 BACNET_STACK_EXPORT
-bool characterstring_ansi_to_characterstring(
-    BACNET_CHARACTER_STRING *dest, const BACNET_CHARACTER_STRING_ANSI *src);
+bool characterstring_cstring_to_characterstring(
+    BACNET_CHARACTER_STRING *dest, const BACNET_CHARACTER_CSTRING *src);
 BACNET_STACK_EXPORT
-void characterstring_ansi_free(BACNET_CHARACTER_STRING_ANSI *char_string);
+void characterstring_cstring_free(BACNET_CHARACTER_CSTRING *char_string);
 BACNET_STACK_EXPORT
 size_t
-characterstring_ansi_length(const BACNET_CHARACTER_STRING_ANSI *char_string);
+characterstring_cstring_length(const BACNET_CHARACTER_CSTRING *char_string);
 BACNET_STACK_EXPORT
-bool characterstring_ansi_same_characterstring(
-    const BACNET_CHARACTER_STRING_ANSI *s1, const BACNET_CHARACTER_STRING *s2);
+bool characterstring_cstring_same_characterstring(
+    const BACNET_CHARACTER_CSTRING *s1, const BACNET_CHARACTER_STRING *s2);
 BACNET_STACK_EXPORT
 uint8_t
-characterstring_ansi_encoding(const BACNET_CHARACTER_STRING_ANSI *char_string);
+characterstring_cstring_encoding(const BACNET_CHARACTER_CSTRING *char_string);
 BACNET_STACK_EXPORT
-const char *characterstring_ansi_value_default(
-    const BACNET_CHARACTER_STRING_ANSI *char_string, const char *default_value);
+const char *characterstring_cstring_value_default(
+    const BACNET_CHARACTER_CSTRING *char_string, const char *default_value);
 BACNET_STACK_EXPORT
-const char *characterstring_ansi_value_const(
-    const BACNET_CHARACTER_STRING_ANSI *char_string);
+const char *characterstring_cstring_value_const(
+    const BACNET_CHARACTER_CSTRING *char_string);
 BACNET_STACK_EXPORT
-bool characterstring_ansi_to_characterstring_default(
+bool characterstring_cstring_to_characterstring_default(
     BACNET_CHARACTER_STRING *dest,
-    const BACNET_CHARACTER_STRING_ANSI *src,
+    const BACNET_CHARACTER_CSTRING *src,
     const char *default_value);
 BACNET_STACK_EXPORT
-int characterstring_ansi_asprintf(
-    BACNET_CHARACTER_STRING_ANSI *char_string, const char *format, ...);
+int characterstring_cstring_asprintf(
+    BACNET_CHARACTER_CSTRING *char_string, const char *format, ...);
 
 /* returns false if the string exceeds capacity
    initialize by using length=0 */

@@ -36,8 +36,8 @@ typedef struct bacnet_alert {
 
 typedef struct alert_enrollment_descr {
     BACNET_OBJECT_ID Present_Value;
-    BACNET_CHARACTER_STRING_ANSI Object_Name;
-    BACNET_CHARACTER_STRING_ANSI Description;
+    BACNET_CHARACTER_CSTRING Object_Name;
+    BACNET_CHARACTER_CSTRING Description;
     void *Context;
     uint32_t Notification_Class;
     BACNET_ALERT Alert_Buffer[ALERT_ENROLLMENT_ALERT_COUNT];

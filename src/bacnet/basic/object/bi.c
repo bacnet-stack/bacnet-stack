@@ -43,10 +43,10 @@ struct object_data {
     bool Write_Enabled : 1;
     unsigned Event_State : 3;
     uint8_t Reliability;
-    BACNET_CHARACTER_STRING_ANSI Object_Name;
+    BACNET_CHARACTER_CSTRING Object_Name;
     const char *Active_Text;
     const char *Inactive_Text;
-    BACNET_CHARACTER_STRING_ANSI Description;
+    BACNET_CHARACTER_CSTRING Description;
     void *Context;
 #if defined(INTRINSIC_REPORTING) && (BINARY_INPUT_INTRINSIC_REPORTING)
     uint32_t Time_Delay;
@@ -644,7 +644,7 @@ bool Binary_Input_Object_Name(
 
     pObject = Binary_Input_Object(object_instance);
     if (pObject) {
-        status = characterstring_ansi_to_characterstring(
+        status = characterstring_cstring_to_characterstring(
             object_name, &pObject->Object_Name);
         if (!status) {
             len = characterstring_utf8_snprintf(
@@ -675,8 +675,7 @@ bool Binary_Input_Name_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Binary_Input_Object(object_instance);
     if (pObject) {
-        status =
-            characterstring_ansi_const_init(&pObject->Object_Name, new_name);
+        status = characterstring_cstring_init(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -694,7 +693,7 @@ const char *Binary_Input_Name_ASCII(uint32_t object_instance)
 
     pObject = Binary_Input_Object(object_instance);
     if (pObject) {
-        name = characterstring_ansi_value_const(&pObject->Object_Name);
+        name = characterstring_cstring_value_const(&pObject->Object_Name);
     }
 
     return name;
@@ -750,7 +749,7 @@ const char *Binary_Input_Description(uint32_t object_instance)
 
     pObject = Binary_Input_Object(object_instance);
     if (pObject) {
-        name = characterstring_ansi_value_default(&pObject->Description, "");
+        name = characterstring_cstring_value_default(&pObject->Description, "");
     }
 
     return name;
@@ -772,8 +771,7 @@ bool Binary_Input_Description_Set(
 
     pObject = Binary_Input_Object(object_instance);
     if (pObject) {
-        status =
-            characterstring_ansi_const_init(&pObject->Description, new_name);
+        status = characterstring_cstring_init(&pObject->Description, new_name);
     }
 
     return status;
@@ -794,7 +792,7 @@ static bool Binary_Input_Object_Name_Write(
     pObject = Binary_Input_Object(wp_data->object_instance);
     if (pObject) {
         if (characterstring_utf8_valid(cstring)) {
-            status = characterstring_ansi_from_characterstring_strdup(
+            status = characterstring_cstring_from_characterstring_strdup(
                 &pObject->Object_Name, cstring);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -828,7 +826,7 @@ static bool Binary_Input_Description_Write(
     pObject = Binary_Input_Object(wp_data->object_instance);
     if (pObject) {
         if (characterstring_utf8_valid(cstring)) {
-            status = characterstring_ansi_from_characterstring_strdup(
+            status = characterstring_cstring_from_characterstring_strdup(
                 &pObject->Description, cstring);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -1512,8 +1510,8 @@ void Binary_Input_Cleanup(void)
             do {
                 pObject = Keylist_Data_Pop(Object_List);
                 if (pObject) {
-                    characterstring_ansi_free(&pObject->Description);
-                    characterstring_ansi_free(&pObject->Object_Name);
+                    characterstring_cstring_free(&pObject->Description);
+                    characterstring_cstring_free(&pObject->Object_Name);
                     free(pObject);
                 }
             } while (pObject);
@@ -1539,8 +1537,8 @@ bool Binary_Input_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
-        characterstring_ansi_free(&pObject->Description);
-        characterstring_ansi_free(&pObject->Object_Name);
+        characterstring_cstring_free(&pObject->Description);
+        characterstring_cstring_free(&pObject->Object_Name);
         free(pObject);
         status = true;
     }

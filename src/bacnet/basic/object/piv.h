@@ -24,8 +24,8 @@ typedef struct positiveinteger_value_descr {
     bool Out_Of_Service : 1;
     BACNET_UNSIGNED_INTEGER Present_Value;
     BACNET_ENGINEERING_UNITS Units;
-    BACNET_CHARACTER_STRING_ANSI Object_Name;
-    BACNET_CHARACTER_STRING_ANSI Description;
+    BACNET_CHARACTER_CSTRING Object_Name;
+    BACNET_CHARACTER_CSTRING Description;
 } POSITIVEINTEGER_VALUE_DESCR;
 
 BACNET_STACK_EXPORT

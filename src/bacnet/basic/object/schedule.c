@@ -182,8 +182,8 @@ void Schedule_Init(void)
                 21.0f; /* 21 C, room temperature */
             psched->obj_prop_ref_cnt = 0; /* no references, add as needed */
             psched->Priority_For_Writing = 16; /* lowest priority */
-            characterstring_ansi_free(&psched->Object_Name);
-            characterstring_ansi_free(&psched->Description);
+            characterstring_cstring_free(&psched->Object_Name);
+            characterstring_cstring_free(&psched->Description);
             psched->Out_Of_Service = false;
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
             for (e = 0; e < BACNET_EXCEPTION_SCHEDULE_SIZE; e++) {
@@ -276,7 +276,7 @@ static bool Schedule_Object_Name_Write(
     pObject = Schedule_Object(wp_data->object_instance);
     if (pObject) {
         if (characterstring_utf8_valid(cstring)) {
-            status = characterstring_ansi_from_characterstring_strdup(
+            status = characterstring_cstring_from_characterstring_strdup(
                 &pObject->Object_Name, cstring);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -310,7 +310,7 @@ bool Schedule_Object_Name(
     pObject = Schedule_Object(object_instance);
     if (pObject) {
         if (characterstring_utf8_valid(object_name)) {
-            status = characterstring_ansi_to_characterstring(
+            status = characterstring_cstring_to_characterstring(
                 object_name, &pObject->Object_Name);
             if (!status) {
                 len = characterstring_utf8_snprintf(
@@ -342,8 +342,7 @@ bool Schedule_Name_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Schedule_Object(object_instance);
     if (pObject) {
-        status =
-            characterstring_ansi_const_init(&pObject->Object_Name, new_name);
+        status = characterstring_cstring_init(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -361,7 +360,7 @@ const char *Schedule_Name_ASCII(uint32_t object_instance)
 
     pObject = Schedule_Object(object_instance);
     if (pObject) {
-        name = characterstring_ansi_value_const(&pObject->Object_Name);
+        name = characterstring_cstring_value_const(&pObject->Object_Name);
     }
 
     return name;
@@ -381,7 +380,7 @@ static bool Schedule_Description_Write(
 
     pObject = Schedule_Object(wp_data->object_instance);
     if (pObject) {
-        status = characterstring_ansi_from_characterstring_strdup(
+        status = characterstring_cstring_from_characterstring_strdup(
             &pObject->Description, cstring);
         if (!status) {
             wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -407,7 +406,7 @@ const char *Schedule_Description(uint32_t object_instance)
 
     pObject = Schedule_Object(object_instance);
     if (pObject) {
-        name = characterstring_ansi_value_default(&pObject->Description, "");
+        name = characterstring_cstring_value_default(&pObject->Description, "");
     }
 
     return name;
@@ -428,8 +427,7 @@ bool Schedule_Description_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Schedule_Object(object_instance);
     if (pObject) {
-        status =
-            characterstring_ansi_const_init(&pObject->Description, new_name);
+        status = characterstring_cstring_init(&pObject->Description, new_name);
     }
 
     return status;

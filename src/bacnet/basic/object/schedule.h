@@ -38,8 +38,8 @@ extern "C" {
 #endif /* __cplusplus */
 
 typedef struct schedule {
-    BACNET_CHARACTER_STRING_ANSI Object_Name;
-    BACNET_CHARACTER_STRING_ANSI Description;
+    BACNET_CHARACTER_CSTRING Object_Name;
+    BACNET_CHARACTER_CSTRING Description;
     /* Effective Period: Start and End Date */
     BACNET_DATE Start_Date;
     BACNET_DATE End_Date;

@@ -103,8 +103,8 @@ struct bsc_port {
 
 struct object_data {
     uint32_t Instance_Number;
-    BACNET_CHARACTER_STRING_ANSI Object_Name;
-    BACNET_CHARACTER_STRING_ANSI Description;
+    BACNET_CHARACTER_CSTRING Object_Name;
+    BACNET_CHARACTER_CSTRING Description;
     BACNET_RELIABILITY Reliability;
     bool Out_Of_Service : 1;
     bool Changes_Pending : 1;
@@ -545,7 +545,7 @@ bool Network_Port_Object_Name(
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         pObject = &Object_List[index];
-        status = characterstring_ansi_to_characterstring(
+        status = characterstring_cstring_to_characterstring(
             object_name, &pObject->Object_Name);
         if (!status) {
             len = characterstring_utf8_snprintf(
@@ -576,7 +576,7 @@ bool Network_Port_Name_Set(uint32_t object_instance, const char *new_name)
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        status = characterstring_ansi_const_init(
+        status = characterstring_cstring_init(
             &Object_List[index].Object_Name, new_name);
     }
 
@@ -595,8 +595,8 @@ const char *Network_Port_Object_Name_ASCII(uint32_t object_instance)
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        name =
-            characterstring_ansi_value_const(&Object_List[index].Object_Name);
+        name = characterstring_cstring_value_const(
+            &Object_List[index].Object_Name);
     }
 
     return name;
@@ -614,7 +614,7 @@ const char *Network_Port_Description(uint32_t instance)
 
     index = Network_Port_Instance_To_Index(instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        name = characterstring_ansi_value_default(
+        name = characterstring_cstring_value_default(
             &Object_List[index].Description, "");
     }
 
@@ -636,7 +636,7 @@ bool Network_Port_Description_Set(uint32_t instance, const char *new_name)
 
     index = Network_Port_Instance_To_Index(instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        status = characterstring_ansi_const_init(
+        status = characterstring_cstring_init(
             &Object_List[index].Description, new_name);
     }
 
@@ -4578,7 +4578,7 @@ static bool Network_Port_Object_Name_Write(
 
     index = Network_Port_Instance_To_Index(wp_data->object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        status = characterstring_ansi_from_characterstring_strdup(
+        status = characterstring_cstring_from_characterstring_strdup(
             &Object_List[index].Object_Name, cstring);
         if (!status) {
             wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -4600,7 +4600,7 @@ static bool Network_Port_Description_Write(
 
     index = Network_Port_Instance_To_Index(wp_data->object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        status = characterstring_ansi_from_characterstring_strdup(
+        status = characterstring_cstring_from_characterstring_strdup(
             &Object_List[index].Description, cstring);
         if (!status) {
             wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -4929,8 +4929,8 @@ void Network_Port_Changes_Discard(void)
 static void Network_Port_Free_ANSI_Strings(struct object_data *object)
 {
     if (object) {
-        characterstring_ansi_free(&object->Object_Name);
-        characterstring_ansi_free(&object->Description);
+        characterstring_cstring_free(&object->Object_Name);
+        characterstring_cstring_free(&object->Description);
     }
 }
 

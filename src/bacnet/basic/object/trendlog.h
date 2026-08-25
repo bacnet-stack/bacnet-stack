@@ -73,8 +73,8 @@ typedef struct tl_data_record {
 /* Structure containing config and status info for a Trend Log */
 
 typedef struct tl_log_info {
-    BACNET_CHARACTER_STRING_ANSI Object_Name;
-    BACNET_CHARACTER_STRING_ANSI Description;
+    BACNET_CHARACTER_CSTRING Object_Name;
+    BACNET_CHARACTER_CSTRING Description;
     bool bEnable; /* Trend log is active when this is true */
     BACNET_DATE_TIME StartTime; /* BACnet format start time */
     bacnet_time_t tStartTime; /* Local time working copy of start time */
