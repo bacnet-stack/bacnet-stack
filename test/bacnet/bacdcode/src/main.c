@@ -1228,7 +1228,7 @@ static void testBACDCodeCharacterString(void)
     bool status = false;
     BACNET_TAG tag = { 0 };
 
-    status = characterstring_init(&value, CHARACTER_ANSI_X34, NULL, 0);
+    status = characterstring_init(&value, CHARACTER_UTF8, NULL, 0);
     zassert_true(status, NULL);
     apdu_len = encode_application_character_string(&apdu[0], &value);
     null_len = encode_application_character_string(NULL, &value);
@@ -1243,7 +1243,7 @@ static void testBACDCodeCharacterString(void)
         characterstring_length(&value));
     zassert_equal(diff, 0, NULL);
     len = encode_bacnet_character_string_safe(
-        &apdu[0], sizeof(apdu), CHARACTER_ANSI_X34, &test_name[0],
+        &apdu[0], sizeof(apdu), CHARACTER_UTF8, &test_name[0],
         characterstring_length(&value) + 1);
     zassert_equal(apdu_len, len, "len=%d apdu_len=%d", len, apdu_len);
 #endif
@@ -1303,7 +1303,7 @@ static void testBACDCodeCharacterString(void)
         uint8_t buf[MAX_CHARACTER_STRING_BYTES + 8] = { 0 };
         BACNET_CHARACTER_STRING decoded_value = { 0 };
 
-        buf[0] = CHARACTER_ANSI_X34;
+        buf[0] = CHARACTER_UTF8;
         for (i = 1; i < 8; i++) {
             buf[i] = 'A' + i;
         }
@@ -2532,9 +2532,9 @@ static void test_bacnet_character_string_buffer(void)
     int diff = 0; /* for memcmp */
 
     bacnet_character_string_buffer_init(
-        &value, CHARACTER_ANSI_X34, buffer, sizeof(buffer));
+        &value, CHARACTER_UTF8, buffer, sizeof(buffer));
     bacnet_character_string_buffer_init(
-        &test_value, CHARACTER_ANSI_X34, test_buffer, sizeof(test_buffer));
+        &test_value, CHARACTER_UTF8, test_buffer, sizeof(test_buffer));
     apdu_len = encode_application_character_string_buffer(apdu, &value);
     null_len = encode_application_character_string_buffer(NULL, &value);
     zassert_equal(apdu_len, null_len, NULL);
@@ -2628,19 +2628,19 @@ static void test_bacnet_character_string_ansi(void)
     null_len = encode_bacnet_character_string_ansi(NULL, &value);
     zassert_equal(len, null_len, NULL);
     zassert_equal(len, 1 + strlen(buffer), NULL);
-    zassert_equal(apdu[0], CHARACTER_ANSI_X34, NULL);
+    zassert_equal(apdu[0], CHARACTER_UTF8, NULL);
     zassert_equal(memcmp(&apdu[1], buffer, strlen(buffer)), 0, NULL);
 
     value_len = bacnet_character_string_ansi_strncpy(
         &value, &encoding, unpack_buffer, sizeof(unpack_buffer));
     zassert_equal(value_len, strlen(buffer), NULL);
-    zassert_equal(encoding, CHARACTER_ANSI_X34, NULL);
+    zassert_equal(encoding, CHARACTER_UTF8, NULL);
     zassert_equal(memcmp(unpack_buffer, buffer, value_len), 0, NULL);
 
     value_len = bacnet_character_string_ansi_strncpy(
         &overflow_value, &encoding, overflow.buffer, sizeof(overflow.buffer));
     zassert_equal(value_len, sizeof(overflow.buffer) - 1, NULL);
-    zassert_equal(encoding, CHARACTER_ANSI_X34, NULL);
+    zassert_equal(encoding, CHARACTER_UTF8, NULL);
     zassert_equal(overflow.buffer[sizeof(overflow.buffer) - 1], '\0', NULL);
     zassert_equal(memcmp(overflow.buffer, overflow_string, value_len), 0, NULL);
     zassert_equal(overflow.guard[0], 'G', NULL);

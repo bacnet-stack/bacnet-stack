@@ -434,7 +434,7 @@ bool characterstring_init_ansi_safe(
     BACNET_CHARACTER_STRING *char_string, const char *value, size_t tmax)
 {
     return characterstring_init(
-        char_string, CHARACTER_ANSI_X34, value,
+        char_string, CHARACTER_UTF8, value,
         value ? bacnet_strnlen(value, tmax) : 0);
 }
 
@@ -452,7 +452,7 @@ bool characterstring_init_ansi(
     BACNET_CHARACTER_STRING *char_string, const char *value)
 {
     return characterstring_init(
-        char_string, CHARACTER_ANSI_X34, value, value ? strlen(value) : 0);
+        char_string, CHARACTER_UTF8, value, value ? strlen(value) : 0);
 }
 
 /**
@@ -490,8 +490,7 @@ bool characterstring_ansi_copy(
     size_t i; /* counter */
 
     if (dest && src) {
-        if ((src->encoding == CHARACTER_ANSI_X34) &&
-            (src->length < dest_max_len)) {
+        if ((src->encoding == CHARACTER_UTF8) && (src->length < dest_max_len)) {
             for (i = 0; i < dest_max_len; i++) {
                 if (i < src->length) {
                     dest[i] = src->value[i];
@@ -591,7 +590,7 @@ bool characterstring_ansi_same(
     bool same_status = false;
 
     if (src1 && src2) {
-        if ((src1->encoding == CHARACTER_ANSI_X34) &&
+        if ((src1->encoding == CHARACTER_UTF8) &&
             (src1->length == strlen(src2)) &&
             (src1->length <= MAX_CHARACTER_STRING_BYTES)) {
             same_status = true;
@@ -778,7 +777,7 @@ size_t characterstring_capacity(const BACNET_CHARACTER_STRING *char_string)
  *
  * @param char_string  Pointer to the character string.
  *
- * @return Encoding, like CHARACTER_ANSI_X34
+ * @return Encoding, like CHARACTER_UTF8
  */
 uint8_t characterstring_encoding(const BACNET_CHARACTER_STRING *char_string)
 {
@@ -795,7 +794,7 @@ uint8_t characterstring_encoding(const BACNET_CHARACTER_STRING *char_string)
  * @brief Set the character encoding for the given BACnet string.
  *
  * @param char_string  Pointer to the character string.
- * @param Encoding, like CHARACTER_ANSI_X34
+ * @param Encoding, like CHARACTER_UTF8
  *
  * @return true/false on error
  */
@@ -839,7 +838,7 @@ bool characterstring_printable(const BACNET_CHARACTER_STRING *char_string)
     char chr;
 
     if (char_string) {
-        if (char_string->encoding == CHARACTER_ANSI_X34) {
+        if (char_string->encoding == CHARACTER_UTF8) {
             status = true;
             imax = char_string->length;
             if (imax > CHARACTER_STRING_CAPACITY) {

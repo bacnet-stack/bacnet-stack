@@ -291,7 +291,7 @@ BACNET_ERROR_CODE state_name_list_write_resizable(
         len = bacnet_character_string_buffer_application_decode(
             application_data, application_data_len, &value);
         if (len > 0) {
-            if (value.encoding == CHARACTER_ANSI_X34) {
+            if (value.encoding == CHARACTER_UTF8) {
                 if (array_index > array_size) {
                     /* For resizable arrays, the array is expanded
                     automatically to accommodate the array_index.

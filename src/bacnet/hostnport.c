@@ -539,7 +539,7 @@ int host_n_port_minimal_address_decode(
         if (address) {
             address->tag = BACNET_HOST_ADDRESS_TAG_NAME;
             bacnet_character_string_buffer_init(
-                &char_string, CHARACTER_ANSI_X34, address->host.name.fqdn,
+                &char_string, CHARACTER_UTF8, address->host.name.fqdn,
                 sizeof(address->host.name.fqdn));
         }
         len = bacnet_character_string_buffer_decode(
@@ -842,7 +842,7 @@ bool host_n_port_from_minimal(
                 dst->host_ip_address = false;
                 dst->host_name = true;
                 characterstring_init(
-                    &dst->host.name, CHARACTER_ANSI_X34, src->host.name.fqdn,
+                    &dst->host.name, CHARACTER_UTF8, src->host.name.fqdn,
                     src->host.name.length);
                 status = true;
                 break;
@@ -1352,8 +1352,7 @@ bool bacnet_bdt_entry_from_ascii(BACNET_BDT_ENTRY *value, const char *argv)
             value->bbmd_address.host_ip_address = false;
             value->bbmd_address.host_name = true;
             characterstring_init(
-                &value->bbmd_address.host.name, CHARACTER_ANSI_X34, name,
-                name_len);
+                &value->bbmd_address.host.name, CHARACTER_UTF8, name, name_len);
         } else {
             value->bbmd_address.host_ip_address = false;
             value->bbmd_address.host_name = false;

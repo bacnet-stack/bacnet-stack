@@ -197,11 +197,11 @@ static void testCharacterString(void)
     zassert_equal(
         characterstring_encoding(&bacnet_string), CHARACTER_UTF8, NULL);
     /* verify ANSI initialization */
-    status = characterstring_init(&bacnet_string, CHARACTER_ANSI_X34, NULL, 0);
+    status = characterstring_init(&bacnet_string, CHARACTER_UTF8, NULL, 0);
     zassert_true(status, NULL);
     zassert_equal(characterstring_length(&bacnet_string), 0, NULL);
     zassert_equal(
-        characterstring_encoding(&bacnet_string), CHARACTER_ANSI_X34, NULL);
+        characterstring_encoding(&bacnet_string), CHARACTER_UTF8, NULL);
 
     /* empty string is the same as NULL */
     status = characterstring_same(&bacnet_string, NULL);
@@ -210,7 +210,7 @@ static void testCharacterString(void)
     zassert_true(status, NULL);
     /* bounds check */
     status = characterstring_init(
-        &bacnet_string, CHARACTER_ANSI_X34, NULL,
+        &bacnet_string, CHARACTER_UTF8, NULL,
         characterstring_capacity(&bacnet_string) + 1);
     zassert_false(status, NULL);
     status = characterstring_truncate(
@@ -222,7 +222,7 @@ static void testCharacterString(void)
 
     test_length = strlen(test_value);
     status = characterstring_init(
-        &bacnet_string, CHARACTER_ANSI_X34, &test_value[0], test_length);
+        &bacnet_string, CHARACTER_UTF8, &test_value[0], test_length);
     zassert_true(status, NULL);
     result = characterstring_value(&bacnet_string);
     length = characterstring_length(&bacnet_string);
@@ -262,7 +262,7 @@ static void testCharacterString(void)
     zassert_true(status, NULL);
 
     /* set the encoding */
-    status = characterstring_set_encoding(&bacnet_string, CHARACTER_ANSI_X34);
+    status = characterstring_set_encoding(&bacnet_string, CHARACTER_UTF8);
     zassert_true(status, NULL);
     /* validate that string is printable */
     status = characterstring_printable(&bacnet_string);

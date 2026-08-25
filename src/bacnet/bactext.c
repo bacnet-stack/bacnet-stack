@@ -280,12 +280,12 @@ bool bactext_reinitialized_state_strtol(
 }
 
 INDTEXT_DATA bacnet_character_string_encoding_names[] = {
-    { CHARACTER_ANSI_X34, "ANSI X3.4" },
+    { CHARACTER_UTF8, "ISO 10646 (UTF-8)" },
     { CHARACTER_MS_DBCS, "IBM/Microsoft DBCS" },
-    { CHARACTER_JISC_6226, "JIS C 6226" },
+    { CHARACTER_JIS, "JIS X 0208" },
     { CHARACTER_UCS4, "ISO 10646 (UCS-4)" },
     { CHARACTER_UCS2, "ISO 10646 (UCS-2)" },
-    { CHARACTER_ISO8859, "ISO 8859" },
+    { CHARACTER_ISO8859, "ISO 8859-1" },
     { 0, NULL }
 };
 

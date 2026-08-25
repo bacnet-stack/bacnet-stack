@@ -415,7 +415,7 @@ bool write_property_string_valid(
 
     if (value && (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
         if (characterstring_encoding(&value->type.Character_String) ==
-            CHARACTER_ANSI_X34) {
+            CHARACTER_UTF8) {
             if (characterstring_length(&value->type.Character_String) == 0) {
                 if (wp_data) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -474,7 +474,7 @@ bool write_property_empty_string_valid(
 
     if (value && (value->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING)) {
         if (characterstring_encoding(&value->type.Character_String) ==
-            CHARACTER_ANSI_X34) {
+            CHARACTER_UTF8) {
             if ((len_max > 0) &&
                 (characterstring_length(&value->type.Character_String) >
                  len_max)) {
