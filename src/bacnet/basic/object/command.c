@@ -686,10 +686,13 @@ bool Command_Object_Name(
 }
 
 /**
- * @brief Set the Command object-name for an instance.
- * @param object_instance [in] BACnet object instance number.
- * @param new_name [in] New object-name as a C string.
- * @return true if the name was set.
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @note The object name must be unique within this device.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if object-name was set
  */
 bool Command_Name_Set(uint32_t object_instance, const char *new_name)
 {
@@ -789,10 +792,12 @@ static bool Command_Description_Write(
 }
 
 /**
- * @brief Set the Command description for an instance.
- * @param instance [in] BACnet object instance number.
- * @param new_name [in] New description as a C string.
- * @return true if the description was set.
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if description was set
  */
 bool Command_Description_Set(uint32_t instance, const char *new_name)
 {

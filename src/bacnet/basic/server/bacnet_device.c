@@ -1824,9 +1824,12 @@ bool Device_Set_Object_Name(const BACNET_CHARACTER_STRING *object_name)
 }
 
 /**
- * @brief Initialize the Device Object Name with an ANSI C string
- * @param value [in] The object name as a null-terminated string
- * @return True on success, else False
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @note The object name must be unique within this device.
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if object-name was set
  */
 bool Device_Object_Name_ANSI_Init(const char *value)
 {

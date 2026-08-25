@@ -375,11 +375,13 @@ bool OctetString_Value_Object_Name(
 }
 
 /**
- * @brief For a given object instance-number, sets the object-name
- *  Note that the object name must be unique within this device.
- * @param  object_instance - object-instance number of the object
- * @param  new_name - holds the object-name to be set
- * @return  true if object-name was set
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @note The object name must be unique within this device.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if object-name was set
  */
 bool OctetString_Value_Name_Set(uint32_t object_instance, const char *new_name)
 {
@@ -433,12 +435,12 @@ const char *OctetString_Value_Description(uint32_t object_instance)
 }
 
 /**
- * For a given object instance-number, sets the description
- *
- * @param  object_instance - object-instance number of the object
- * @param  new_name - holds the description to be set
- *
- * @return  true if description was set
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if description was set
  */
 bool OctetString_Value_Description_Set(
     uint32_t object_instance, const char *new_name)
@@ -584,7 +586,7 @@ int OctetString_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
  * @param  object_instance - object-instance number of the object
  * @param  cstring - holds the object-name to be set
  *
- * @return  true if object-name was set
+ * @return true if object-name was set
  */
 static bool OctetString_Value_Object_Name_Write(
     BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
@@ -619,7 +621,7 @@ static bool OctetString_Value_Object_Name_Write(
  * @param  object_instance - object-instance number of the object
  * @param  cstring - holds the description to be set
  *
- * @return  true if description was set
+ * @return true if description was set
  */
 static bool OctetString_Value_Description_Write(
     BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)

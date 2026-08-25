@@ -339,10 +339,12 @@ bool Averaging_Object_Name(
 }
 
 /**
- * @brief Set object name pointer.
- * @param object_instance BACnet object instance.
- * @param new_name New ASCII object name pointer.
- * @return True if updated.
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if object-name was set
  */
 bool Averaging_Name_Set(uint32_t object_instance, const char *new_name)
 {
@@ -652,10 +654,12 @@ const char *Averaging_Description(uint32_t object_instance)
 }
 
 /**
- * @brief Set description pointer.
- * @param object_instance BACnet object instance.
- * @param new_description Description pointer.
- * @return True if updated.
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if description was set
  */
 bool Averaging_Description_Set(
     uint32_t object_instance, const char *new_description)

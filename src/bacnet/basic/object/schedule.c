@@ -327,10 +327,13 @@ bool Schedule_Object_Name(
 }
 
 /**
- * @brief Set the object-name for a given object instance number.
- * @param object_instance - object-instance number of the object.
- * @param new_name - holds the object-name to be set.
- * @return true if object-name was set.
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @note The object name must be unique within this device.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if object-name was set
  */
 bool Schedule_Name_Set(uint32_t object_instance, const char *new_name)
 {
@@ -411,10 +414,12 @@ const char *Schedule_Description(uint32_t object_instance)
 }
 
 /**
- * @brief Set the description for a given object instance number.
- * @param object_instance - object-instance number of the object.
- * @param new_name - holds the description to be set.
- * @return true if description was set.
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if description was set
  */
 bool Schedule_Description_Set(uint32_t object_instance, const char *new_name)
 {

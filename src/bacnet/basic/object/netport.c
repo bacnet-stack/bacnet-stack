@@ -561,14 +561,13 @@ bool Network_Port_Object_Name(
 }
 
 /**
- * For a given object instance-number, sets the object-name
- * Note that the object name must be unique within this device.
- *
- * @param  object_instance - object-instance number of the object
- * @param  new_name - holds the object-name to be written
- *         Expecting a pointer to a static ANSI C string for zero copy.
- *
- * @return  true if object-name was set
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @note The object name must be unique within this device.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if object-name was set
  */
 bool Network_Port_Name_Set(uint32_t object_instance, const char *new_name)
 {
@@ -623,14 +622,12 @@ const char *Network_Port_Description(uint32_t instance)
 }
 
 /**
- * For a given object instance-number, sets the object-name
- * Note that the object name must be unique within this device.
- *
- * @param  object_instance - object-instance number of the object
- * @param  new_name - holds the object-name to be written
- *         Expecting a pointer to a static ANSI C string for zero copy.
- *
- * @return  true if object-name was set
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if description was set
  */
 bool Network_Port_Description_Set(uint32_t instance, const char *new_name)
 {
@@ -1071,7 +1068,7 @@ bool Network_Port_MAC_Address(
  * @param  new_name - holds the object-name to be written
  *         Expecting a pointer to a static ANSI C string for zero copy.
  *
- * @return  true if object-name was set
+ * @return true if object-name was set
  */
 bool Network_Port_MAC_Address_Set(
     uint32_t object_instance, const uint8_t *mac_src, uint8_t mac_len)

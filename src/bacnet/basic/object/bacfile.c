@@ -151,18 +151,24 @@ const char *bacfile_pathname(uint32_t object_instance)
 }
 
 /**
- * @brief For a given object instance-number, sets the pathname
- * @param  object_instance - object-instance number of the object
- * @param  pathname - internal file system path and name
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param pathname Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if pathname was set
  */
-void bacfile_pathname_set(uint32_t object_instance, const char *pathname)
+bool bacfile_pathname_set(uint32_t object_instance, const char *pathname)
 {
     struct object_data *pObject;
+    bool status = false; /* return value */
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        (void)characterstring_ansi_const_init(&pObject->Pathname, pathname);
+        status = characterstring_ansi_const_init(&pObject->Pathname, pathname);
     }
+
+    return status;
 }
 
 /**
@@ -231,13 +237,13 @@ bool bacfile_object_name(
 }
 
 /**
- * For a given object instance-number, sets the object-name
- * Note that the object name must be unique within this device.
- *
- * @param  object_instance - object-instance number of the object
- * @param  new_name - holds the object-name to be set
- *
- * @return  true if object-name was set
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @note The object name must be unique within this device.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if object-name was set
  */
 bool bacfile_object_name_set(uint32_t object_instance, const char *new_name)
 {
@@ -796,18 +802,26 @@ const char *bacfile_file_type(uint32_t object_instance)
 }
 
 /**
- * @brief Sets the file type (MIME) property value
- * @param object_instance - object-instance number of the object
- * @param mime_type - value of the file type property
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @note The object name must be unique within this device.
+ * @param object_instance object-instance number of the object
+ * @param mime_type Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if file type (MIME) property value was set
  */
-void bacfile_file_type_set(uint32_t object_instance, const char *mime_type)
+bool bacfile_file_type_set(uint32_t object_instance, const char *mime_type)
 {
     struct object_data *pObject;
+    bool status = false; /* return value */
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        (void)characterstring_ansi_const_init(&pObject->File_Type, mime_type);
+        status =
+            characterstring_ansi_const_init(&pObject->File_Type, mime_type);
     }
+
+    return status;
 }
 
 /**
