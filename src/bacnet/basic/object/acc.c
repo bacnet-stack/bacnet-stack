@@ -198,7 +198,7 @@ const char *Accumulator_Name(uint32_t object_instance)
     struct object_data *pObject = Object_Data(object_instance);
 
     if (pObject) {
-        name = characterstring_cstring_value_const(&pObject->Object_Name);
+        name = bacnet_character_cstring_value_const(&pObject->Object_Name);
     }
 
     return name;
@@ -218,7 +218,7 @@ bool Accumulator_Name_Set(uint32_t object_instance, const char *new_name)
     struct object_data *pObject = Object_Data(object_instance);
 
     if (pObject) {
-        status = characterstring_cstring_init(&pObject->Object_Name, new_name);
+        status = bacnet_character_cstring_set(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -242,7 +242,7 @@ bool Accumulator_Object_Name(
     int len = 0;
 
     if (pObject) {
-        status = characterstring_cstring_to_characterstring(
+        status = bacnet_character_cstring_to_characterstring(
             object_name, &pObject->Object_Name);
         if (!status) {
             len = characterstring_utf8_snprintf(
@@ -274,7 +274,7 @@ bool Accumulator_Object_Name_Set(
 
     if (pObject) {
         if (characterstring_utf8_valid(cstring)) {
-            status = characterstring_cstring_from_characterstring_strdup(
+            status = bacnet_character_cstring_from_characterstring_strdup(
                 &pObject->Object_Name, cstring);
         }
     }
@@ -543,7 +543,8 @@ const char *Accumulator_Description(uint32_t instance)
     struct object_data *pObject = Object_Data(instance);
 
     if (pObject) {
-        name = characterstring_cstring_value_default(&pObject->Description, "");
+        name =
+            bacnet_character_cstring_value_default(&pObject->Description, "");
     }
 
     return name;
@@ -563,7 +564,7 @@ bool Accumulator_Description_Set(uint32_t instance, const char *new_name)
     struct object_data *pObject = Object_Data(instance);
 
     if (pObject) {
-        status = characterstring_cstring_init(&pObject->Description, new_name);
+        status = bacnet_character_cstring_set(&pObject->Description, new_name);
     }
 
     return status;
@@ -714,7 +715,7 @@ static bool Accumulator_Object_Name_Write(
 
     if (pObject) {
         if (characterstring_utf8_valid(cstring)) {
-            status = characterstring_cstring_from_characterstring_strdup(
+            status = bacnet_character_cstring_from_characterstring_strdup(
                 &pObject->Object_Name, cstring);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -748,7 +749,7 @@ static bool Accumulator_Description_Write(
 
     if (pObject) {
         if (characterstring_utf8_valid(cstring)) {
-            status = characterstring_cstring_from_characterstring_strdup(
+            status = bacnet_character_cstring_from_characterstring_strdup(
                 &pObject->Description, cstring);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -984,8 +985,8 @@ bool Accumulator_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
-        characterstring_cstring_free(&pObject->Description);
-        characterstring_cstring_free(&pObject->Object_Name);
+        bacnet_character_cstring_free(&pObject->Description);
+        bacnet_character_cstring_free(&pObject->Object_Name);
         free(pObject);
         status = true;
     }

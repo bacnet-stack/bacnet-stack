@@ -735,7 +735,7 @@ bool Color_Object_Name(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        status = characterstring_cstring_to_characterstring(
+        status = bacnet_character_cstring_to_characterstring(
             object_name, &pObject->Object_Name);
         if (!status) {
             length = characterstring_utf8_snprintf(
@@ -765,7 +765,7 @@ bool Color_Name_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        status = characterstring_cstring_init(&pObject->Object_Name, new_name);
+        status = bacnet_character_cstring_set(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -783,7 +783,7 @@ const char *Color_Name_ASCII(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        name = characterstring_cstring_value_const(&pObject->Object_Name);
+        name = bacnet_character_cstring_value_const(&pObject->Object_Name);
     }
 
     return name;
@@ -803,7 +803,8 @@ const char *Color_Description(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        name = characterstring_cstring_value_default(&pObject->Description, "");
+        name =
+            bacnet_character_cstring_value_default(&pObject->Description, "");
     }
 
     return name;
@@ -824,7 +825,7 @@ bool Color_Description_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        status = characterstring_cstring_init(&pObject->Description, new_name);
+        status = bacnet_character_cstring_set(&pObject->Description, new_name);
     }
 
     return status;
@@ -845,7 +846,7 @@ static bool Color_Object_Name_Write(
     pObject = Keylist_Data(Object_List, wp_data->object_instance);
     if (pObject) {
         if (characterstring_utf8_valid(cstring)) {
-            status = characterstring_cstring_from_characterstring_strdup(
+            status = bacnet_character_cstring_from_characterstring_strdup(
                 &pObject->Object_Name, cstring);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -878,7 +879,7 @@ static bool Color_Description_Write(
     pObject = Keylist_Data(Object_List, wp_data->object_instance);
     if (pObject) {
         if (characterstring_utf8_valid(cstring)) {
-            status = characterstring_cstring_from_characterstring_strdup(
+            status = bacnet_character_cstring_from_characterstring_strdup(
                 &pObject->Description, cstring);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -1348,8 +1349,8 @@ bool Color_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
-        characterstring_cstring_free(&pObject->Description);
-        characterstring_cstring_free(&pObject->Object_Name);
+        bacnet_character_cstring_free(&pObject->Description);
+        bacnet_character_cstring_free(&pObject->Object_Name);
         free(pObject);
         status = true;
     }
@@ -1376,8 +1377,8 @@ void Color_Cleanup(void)
             do {
                 pObject = Keylist_Data_Pop(Object_List);
                 if (pObject) {
-                    characterstring_cstring_free(&pObject->Description);
-                    characterstring_cstring_free(&pObject->Object_Name);
+                    bacnet_character_cstring_free(&pObject->Description);
+                    bacnet_character_cstring_free(&pObject->Object_Name);
                     free(pObject);
                 }
             } while (pObject);

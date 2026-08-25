@@ -182,7 +182,7 @@ bool Alert_Enrollment_Object_Name(
 
     pObject = Alert_Enrollment_Object(object_instance);
     if (pObject) {
-        status = characterstring_cstring_to_characterstring(
+        status = bacnet_character_cstring_to_characterstring(
             object_name, &pObject->Object_Name);
         if (!status) {
             len = characterstring_utf8_snprintf(
@@ -212,7 +212,7 @@ bool Alert_Enrollment_Name_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Alert_Enrollment_Object(object_instance);
     if (pObject) {
-        status = characterstring_cstring_init(&pObject->Object_Name, new_name);
+        status = bacnet_character_cstring_set(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -230,7 +230,7 @@ const char *Alert_Enrollment_Name_ASCII(uint32_t object_instance)
 
     pObject = Alert_Enrollment_Object(object_instance);
     if (pObject) {
-        name = characterstring_cstring_value_const(&pObject->Object_Name);
+        name = bacnet_character_cstring_value_const(&pObject->Object_Name);
     }
 
     return name;
@@ -248,7 +248,8 @@ const char *Alert_Enrollment_Description(uint32_t object_instance)
 
     pObject = Alert_Enrollment_Object(object_instance);
     if (pObject) {
-        return characterstring_cstring_value_default(&pObject->Description, "");
+        return bacnet_character_cstring_value_default(
+            &pObject->Description, "");
     }
 
     return name;
@@ -270,7 +271,7 @@ bool Alert_Enrollment_Description_Set(
 
     pObject = Alert_Enrollment_Object(object_instance);
     if (pObject) {
-        status = characterstring_cstring_init(&pObject->Description, new_name);
+        status = bacnet_character_cstring_set(&pObject->Description, new_name);
     }
 
     return status;
@@ -520,7 +521,7 @@ static bool Alert_Enrollment_Object_Name_Write(
     pObject = Alert_Enrollment_Object(wp_data->object_instance);
     if (pObject) {
         if (characterstring_utf8_valid(cstring)) {
-            status = characterstring_cstring_from_characterstring_strdup(
+            status = bacnet_character_cstring_from_characterstring_strdup(
                 &pObject->Object_Name, cstring);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -553,7 +554,7 @@ static bool Alert_Enrollment_Description_Write(
     pObject = Alert_Enrollment_Object(wp_data->object_instance);
     if (pObject) {
         if (characterstring_utf8_valid(cstring)) {
-            status = characterstring_cstring_from_characterstring_strdup(
+            status = bacnet_character_cstring_from_characterstring_strdup(
                 &pObject->Description, cstring);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -812,8 +813,8 @@ bool Alert_Enrollment_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
-        characterstring_cstring_free(&pObject->Object_Name);
-        characterstring_cstring_free(&pObject->Description);
+        bacnet_character_cstring_free(&pObject->Object_Name);
+        bacnet_character_cstring_free(&pObject->Description);
         free(pObject);
         status = true;
     }
@@ -840,8 +841,8 @@ void Alert_Enrollment_Cleanup(void)
             do {
                 pObject = Keylist_Data_Pop(Object_List);
                 if (pObject) {
-                    characterstring_cstring_free(&pObject->Object_Name);
-                    characterstring_cstring_free(&pObject->Description);
+                    bacnet_character_cstring_free(&pObject->Object_Name);
+                    bacnet_character_cstring_free(&pObject->Description);
                     free(pObject);
                 }
             } while (pObject);

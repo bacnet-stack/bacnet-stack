@@ -304,8 +304,8 @@ static void Action_Array_Free(OS_Keylist array)
 static void Object_Data_Free(struct object_data *pObject)
 {
     if (pObject) {
-        characterstring_cstring_free(&pObject->Description);
-        characterstring_cstring_free(&pObject->Object_Name);
+        bacnet_character_cstring_free(&pObject->Description);
+        bacnet_character_cstring_free(&pObject->Object_Name);
         Action_Array_Free(pObject->Action_Array);
         free(pObject);
     }
@@ -671,7 +671,7 @@ bool Command_Object_Name(
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        status = characterstring_cstring_to_characterstring(
+        status = bacnet_character_cstring_to_characterstring(
             object_name, &pObject->Object_Name);
         if (!status) {
             len = characterstring_utf8_snprintf(
@@ -701,7 +701,7 @@ bool Command_Name_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        status = characterstring_cstring_init(&pObject->Object_Name, new_name);
+        status = bacnet_character_cstring_set(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -718,7 +718,8 @@ const char *Command_Description(uint32_t instance)
 
     pObject = Object_Data(instance);
     if (pObject) {
-        return characterstring_cstring_value_default(&pObject->Description, "");
+        return bacnet_character_cstring_value_default(
+            &pObject->Description, "");
     }
 
     return NULL;
@@ -739,7 +740,7 @@ static bool Command_Object_Name_Write(
     pObject = Object_Data(wp_data->object_instance);
     if (pObject) {
         if (characterstring_utf8_valid(cstring)) {
-            status = characterstring_cstring_from_characterstring_strdup(
+            status = bacnet_character_cstring_from_characterstring_strdup(
                 &pObject->Object_Name, cstring);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -772,7 +773,7 @@ static bool Command_Description_Write(
     pObject = Object_Data(wp_data->object_instance);
     if (pObject) {
         if (characterstring_utf8_valid(cstring)) {
-            status = characterstring_cstring_from_characterstring_strdup(
+            status = bacnet_character_cstring_from_characterstring_strdup(
                 &pObject->Description, cstring);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -805,7 +806,7 @@ bool Command_Description_Set(uint32_t instance, const char *new_name)
 
     pObject = Object_Data(instance);
     if (pObject) {
-        status = characterstring_cstring_init(&pObject->Description, new_name);
+        status = bacnet_character_cstring_set(&pObject->Description, new_name);
     }
 
     return status;

@@ -329,138 +329,141 @@ static void testCharacterStringAnsiHelpers(void)
 
     memset(max_value, 'A', sizeof(max_value) - 1);
     max_value[sizeof(max_value) - 1] = '\0';
-    status = characterstring_cstring_init(&ansi_string, max_value);
+    status = bacnet_character_cstring_set(&ansi_string, max_value);
     zassert_true(
         status,
         "ANSI strings at the MAX_CHARACTER_STRING_BYTES limit should be "
         "accepted");
     zassert_equal(
-        characterstring_cstring_length(&ansi_string), strlen(max_value), NULL);
+        bacnet_character_cstring_length(&ansi_string), strlen(max_value), NULL);
 
     memset(too_long_value, 'A', sizeof(too_long_value) - 1);
     too_long_value[sizeof(too_long_value) - 1] = '\0';
-    status = characterstring_cstring_init(&ansi_string, too_long_value);
+    status = bacnet_character_cstring_set(&ansi_string, too_long_value);
     zassert_false(
         status,
         "ANSI strings longer than MAX_CHARACTER_STRING_BYTES should be "
         "rejected");
-    status = characterstring_cstring_strndup(
+    status = bacnet_character_cstring_strndup(
         &duplicated, too_long_value, sizeof(too_long_value) - 1);
     zassert_false(
         status,
         "Duplicated ANSI strings longer than MAX_CHARACTER_STRING_BYTES should "
         "be rejected");
 
-    characterstring_cstring_init(&ansi_string, value);
-    zassert_not_null(characterstring_cstring_value_const(&ansi_string), NULL);
+    bacnet_character_cstring_set(&ansi_string, value);
+    zassert_not_null(bacnet_character_cstring_value_const(&ansi_string), NULL);
     zassert_equal(
-        strcmp(characterstring_cstring_value_const(&ansi_string), value), 0,
+        strcmp(bacnet_character_cstring_value_const(&ansi_string), value), 0,
         NULL);
     zassert_equal(
-        characterstring_cstring_length(&ansi_string), strlen(value), NULL);
+        bacnet_character_cstring_length(&ansi_string), strlen(value), NULL);
     zassert_equal(
-        characterstring_cstring_encoding(&ansi_string), CHARACTER_UTF8, NULL);
+        bacnet_character_cstring_encoding(&ansi_string), CHARACTER_UTF8, NULL);
 
-    status = characterstring_cstring_strndup(&duplicated, value, 5);
+    status = bacnet_character_cstring_strndup(&duplicated, value, 5);
     zassert_true(status, NULL);
     zassert_true(duplicated.buffer_allocated, NULL);
     zassert_equal(strncmp(duplicated.buffer, expected, 5), 0, NULL);
-    zassert_equal(characterstring_cstring_length(&duplicated), 5, NULL);
-    characterstring_cstring_free(&duplicated);
+    zassert_equal(bacnet_character_cstring_length(&duplicated), 5, NULL);
+    bacnet_character_cstring_free(&duplicated);
     zassert_is_null(duplicated.buffer, NULL);
 
-    status = characterstring_cstring_length_init(&ansi_string, NULL, 5);
+    status = bacnet_character_cstring_length_init(&ansi_string, NULL, 5);
     zassert_true(status, NULL);
-    zassert_is_null(characterstring_cstring_value_const(&ansi_string), NULL);
+    zassert_is_null(bacnet_character_cstring_value_const(&ansi_string), NULL);
 
-    status = characterstring_cstring_length_init(&ansi_string, NULL, 0);
+    status = bacnet_character_cstring_length_init(&ansi_string, NULL, 0);
     zassert_true(status, NULL);
-    zassert_is_null(characterstring_cstring_value_const(&ansi_string), NULL);
+    zassert_is_null(bacnet_character_cstring_value_const(&ansi_string), NULL);
 
-    status = characterstring_cstring_length_init(&ansi_string, value, 0);
+    status = bacnet_character_cstring_length_init(&ansi_string, value, 0);
     zassert_true(status, NULL);
     zassert_equal(
-        strcmp(characterstring_cstring_value_const(&ansi_string), value), 0,
+        strcmp(bacnet_character_cstring_value_const(&ansi_string), value), 0,
         NULL);
 
-    status = characterstring_cstring_length_init(&ansi_string, value, 5);
+    status = bacnet_character_cstring_length_init(&ansi_string, value, 5);
     zassert_true(status, NULL);
     zassert_true(ansi_string.buffer_allocated, NULL);
     zassert_equal(strncmp(ansi_string.buffer, expected, 5), 0, NULL);
 
     status = characterstring_init_ansi(&bacnet_string, value);
     zassert_true(status, NULL);
-    status = characterstring_cstring_from_characterstring_strdup(
+    status = bacnet_character_cstring_from_characterstring_strdup(
         &ansi_string, &bacnet_string);
     zassert_true(status, NULL);
     zassert_true(ansi_string.buffer_allocated, NULL);
     zassert_equal(strcmp(ansi_string.buffer, value), 0, NULL);
     zassert_true(
-        characterstring_cstring_same_characterstring(
+        bacnet_character_cstring_same_characterstring(
             &ansi_string, &bacnet_string),
         NULL);
 
-    status = characterstring_cstring_to_characterstring(
+    status = bacnet_character_cstring_to_characterstring(
         &bacnet_string, &ansi_string);
     zassert_true(status, NULL);
     zassert_equal(
         characterstring_length(&bacnet_string),
-        characterstring_cstring_length(&ansi_string), NULL);
+        bacnet_character_cstring_length(&ansi_string), NULL);
     zassert_equal(
         strcmp(
             characterstring_value_const(&bacnet_string),
-            characterstring_cstring_value_const(&ansi_string)),
+            bacnet_character_cstring_value_const(&ansi_string)),
         0, NULL);
 
-    status = characterstring_cstring_to_characterstring_default(
+    status = bacnet_character_cstring_to_characterstring_default(
         &bacnet_string, &ansi_string, "default-value");
     zassert_true(status, NULL);
     zassert_equal(
         strcmp(characterstring_value_const(&bacnet_string), value), 0, NULL);
 
-    characterstring_cstring_init(&ansi_string, NULL);
-    zassert_is_null(characterstring_cstring_value_const(&ansi_string), NULL);
-    zassert_equal(characterstring_cstring_length(&ansi_string), 0, NULL);
+    bacnet_character_cstring_set(&ansi_string, NULL);
+    zassert_is_null(bacnet_character_cstring_value_const(&ansi_string), NULL);
+    zassert_equal(bacnet_character_cstring_length(&ansi_string), 0, NULL);
     zassert_is_null(
-        characterstring_cstring_value_default(&ansi_string, NULL), NULL);
+        bacnet_character_cstring_value_default(&ansi_string, NULL), NULL);
     zassert_equal(
         strcmp(
-            characterstring_cstring_value_default(
+            bacnet_character_cstring_value_default(
                 &ansi_string, "default-value"),
             "default-value"),
         0, NULL);
-    status = characterstring_cstring_to_characterstring_default(
+    status = bacnet_character_cstring_to_characterstring_default(
         &bacnet_string, &ansi_string, "default-value");
     zassert_true(status, NULL);
     zassert_equal(
         strcmp(characterstring_value_const(&bacnet_string), "default-value"), 0,
         NULL);
 
-    status = characterstring_cstring_to_characterstring_default(
+    status = bacnet_character_cstring_to_characterstring_default(
         NULL, &ansi_string, "default-value");
     zassert_false(status, NULL);
 
-    characterstring_cstring_free(&ansi_string);
+    bacnet_character_cstring_free(&ansi_string);
     zassert_is_null(ansi_string.buffer, NULL);
 
-    zassert_equal(characterstring_cstring_length(NULL), 0, NULL);
-    zassert_is_null(characterstring_cstring_value_const(NULL), NULL);
+    zassert_equal(bacnet_character_cstring_length(NULL), 0, NULL);
+    zassert_is_null(bacnet_character_cstring_value_const(NULL), NULL);
     zassert_false(
-        characterstring_cstring_same_characterstring(NULL, &bacnet_string),
+        bacnet_character_cstring_same_characterstring(NULL, &bacnet_string),
         NULL);
     zassert_false(
-        characterstring_cstring_same_characterstring(&ansi_string, NULL), NULL);
+        bacnet_character_cstring_same_characterstring(&ansi_string, NULL),
+        NULL);
     zassert_false(
-        characterstring_cstring_from_characterstring_strdup(
+        bacnet_character_cstring_from_characterstring_strdup(
             NULL, &bacnet_string),
         NULL);
     zassert_false(
-        characterstring_cstring_from_characterstring_strdup(&ansi_string, NULL),
+        bacnet_character_cstring_from_characterstring_strdup(
+            &ansi_string, NULL),
         NULL);
     zassert_false(
-        characterstring_cstring_to_characterstring(NULL, &ansi_string), NULL);
+        bacnet_character_cstring_to_characterstring(NULL, &ansi_string), NULL);
     zassert_false(
-        characterstring_cstring_to_characterstring(&bacnet_string, NULL), NULL);
+        bacnet_character_cstring_to_characterstring(&bacnet_string, NULL),
+        NULL);
 }
 
 /**
@@ -753,30 +756,31 @@ static void testCharacterStringAnsiSprintf(void)
     const char *expected = "Hello BACnet 42";
     int ret = 0;
 
-    ret = characterstring_cstring_asprintf(NULL, "%s", expected);
+    ret = bacnet_character_cstring_asprintf(NULL, "%s", expected);
     zassert_equal(ret, -1, "NULL destination should fail");
-    ret = characterstring_cstring_asprintf(&value, NULL);
+    ret = bacnet_character_cstring_asprintf(&value, NULL);
     zassert_equal(ret, -1, "NULL format should fail");
 
-    ret = characterstring_cstring_asprintf(&value, "%s %d", "Hello BACnet", 42);
+    ret =
+        bacnet_character_cstring_asprintf(&value, "%s %d", "Hello BACnet", 42);
     zassert_equal(
         ret, (int)strlen(expected), "Return length should match bytes");
     zassert_true(value.buffer_allocated, NULL);
     zassert_equal(
-        characterstring_cstring_length(&value), strlen(expected), NULL);
+        bacnet_character_cstring_length(&value), strlen(expected), NULL);
     zassert_equal(
-        strcmp(characterstring_cstring_value_const(&value), expected), 0,
+        strcmp(bacnet_character_cstring_value_const(&value), expected), 0,
         "ANSI formatted string should match expected output");
     zassert_equal(
-        characterstring_cstring_encoding(&value), CHARACTER_UTF8, NULL);
+        bacnet_character_cstring_encoding(&value), CHARACTER_UTF8, NULL);
 
-    ret = characterstring_cstring_asprintf(&value, "%.4s", "ABCDEFGH");
+    ret = bacnet_character_cstring_asprintf(&value, "%.4s", "ABCDEFGH");
     zassert_equal(ret, 4, "Formatted length should be exact for precision");
     zassert_equal(
-        strcmp(characterstring_cstring_value_const(&value), "ABCD"), 0,
+        strcmp(bacnet_character_cstring_value_const(&value), "ABCD"), 0,
         "Precision should truncate correctly");
 
-    characterstring_cstring_free(&value);
+    bacnet_character_cstring_free(&value);
     zassert_is_null(value.buffer, NULL);
 }
 

@@ -224,7 +224,7 @@ bool Structured_View_Object_Name(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        status = characterstring_cstring_to_characterstring(
+        status = bacnet_character_cstring_to_characterstring(
             object_name, &pObject->Object_Name);
         if (!status) {
             len = characterstring_utf8_snprintf(
@@ -255,7 +255,7 @@ bool Structured_View_Name_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        status = characterstring_cstring_init(&pObject->Object_Name, new_name);
+        status = bacnet_character_cstring_set(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -273,7 +273,7 @@ const char *Structured_View_Name_ASCII(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        name = characterstring_cstring_value_const(&pObject->Object_Name);
+        name = bacnet_character_cstring_value_const(&pObject->Object_Name);
     }
 
     return name;
@@ -293,7 +293,8 @@ const char *Structured_View_Description(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        return characterstring_cstring_value_default(&pObject->Description, "");
+        return bacnet_character_cstring_value_default(
+            &pObject->Description, "");
     }
 
     return name;
@@ -315,7 +316,7 @@ bool Structured_View_Description_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        status = characterstring_cstring_init(&pObject->Description, new_name);
+        status = bacnet_character_cstring_set(&pObject->Description, new_name);
     }
 
     return status;
@@ -373,7 +374,7 @@ const char *Structured_View_Node_Subtype(uint32_t object_instance)
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         name =
-            characterstring_cstring_value_default(&pObject->Node_Subtype, "");
+            bacnet_character_cstring_value_default(&pObject->Node_Subtype, "");
     }
 
     return name;
@@ -395,7 +396,7 @@ bool Structured_View_Node_Subtype_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        status = characterstring_cstring_init(&pObject->Node_Subtype, new_name);
+        status = bacnet_character_cstring_set(&pObject->Node_Subtype, new_name);
     }
 
     return status;
@@ -1507,7 +1508,7 @@ static bool Structured_View_Object_Name_Write(
     pObject = Keylist_Data(Object_List, wp_data->object_instance);
     if (pObject) {
         if (characterstring_utf8_valid(cstring)) {
-            status = characterstring_cstring_from_characterstring_strdup(
+            status = bacnet_character_cstring_from_characterstring_strdup(
                 &pObject->Object_Name, cstring);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -1542,7 +1543,7 @@ static bool Structured_View_Description_Write(
     pObject = Keylist_Data(Object_List, wp_data->object_instance);
     if (pObject) {
         if (characterstring_utf8_valid(cstring)) {
-            status = characterstring_cstring_from_characterstring_strdup(
+            status = bacnet_character_cstring_from_characterstring_strdup(
                 &pObject->Description, cstring);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -1577,7 +1578,7 @@ static bool Structured_View_Node_Subtype_Write(
     pObject = Keylist_Data(Object_List, wp_data->object_instance);
     if (pObject) {
         if (characterstring_utf8_valid(cstring)) {
-            status = characterstring_cstring_from_characterstring_strdup(
+            status = bacnet_character_cstring_from_characterstring_strdup(
                 &pObject->Node_Subtype, cstring);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -1848,9 +1849,9 @@ uint32_t Structured_View_Create(uint32_t object_instance)
 static void Structured_View_Object_Free(struct object_data *pObject)
 {
     if (pObject) {
-        characterstring_cstring_free(&pObject->Description);
-        characterstring_cstring_free(&pObject->Node_Subtype);
-        characterstring_cstring_free(&pObject->Object_Name);
+        bacnet_character_cstring_free(&pObject->Description);
+        bacnet_character_cstring_free(&pObject->Node_Subtype);
+        bacnet_character_cstring_free(&pObject->Object_Name);
         Subordinate_List_Purge(pObject);
         Keylist_Delete(pObject->Subordinate_List);
         free(pObject);

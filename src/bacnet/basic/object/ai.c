@@ -299,7 +299,7 @@ bool Analog_Input_Object_Name(
 
     pObject = Analog_Input_Object(object_instance);
     if (pObject) {
-        status = characterstring_cstring_to_characterstring(
+        status = bacnet_character_cstring_to_characterstring(
             object_name, &pObject->Object_Name);
         if (!status) {
             length = characterstring_utf8_snprintf(
@@ -329,7 +329,7 @@ bool Analog_Input_Name_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Analog_Input_Object(object_instance);
     if (pObject) {
-        status = characterstring_cstring_init(&pObject->Object_Name, new_name);
+        status = bacnet_character_cstring_set(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -347,7 +347,7 @@ const char *Analog_Input_Name_ASCII(uint32_t object_instance)
 
     pObject = Analog_Input_Object(object_instance);
     if (pObject) {
-        name = characterstring_cstring_value_const(&pObject->Object_Name);
+        name = bacnet_character_cstring_value_const(&pObject->Object_Name);
     }
 
     return name;
@@ -785,7 +785,8 @@ const char *Analog_Input_Description(uint32_t object_instance)
 
     pObject = Analog_Input_Object(object_instance);
     if (pObject) {
-        name = characterstring_cstring_value_default(&pObject->Description, "");
+        name =
+            bacnet_character_cstring_value_default(&pObject->Description, "");
     }
 
     return name;
@@ -807,7 +808,7 @@ bool Analog_Input_Description_Set(
 
     pObject = Analog_Input_Object(object_instance);
     if (pObject) {
-        status = characterstring_cstring_init(&pObject->Description, new_name);
+        status = bacnet_character_cstring_set(&pObject->Description, new_name);
     }
 
     return status;
@@ -828,7 +829,7 @@ static bool Analog_Input_Object_Name_Write(
     pObject = Analog_Input_Object(wp_data->object_instance);
     if (pObject) {
         if (characterstring_utf8_valid(cstring)) {
-            status = characterstring_cstring_from_characterstring_strdup(
+            status = bacnet_character_cstring_from_characterstring_strdup(
                 &pObject->Object_Name, cstring);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -861,7 +862,7 @@ static bool Analog_Input_Description_Write(
     pObject = Analog_Input_Object(wp_data->object_instance);
     if (pObject) {
         if (characterstring_utf8_valid(cstring)) {
-            status = characterstring_cstring_from_characterstring_strdup(
+            status = bacnet_character_cstring_from_characterstring_strdup(
                 &pObject->Description, cstring);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -2428,8 +2429,8 @@ bool Analog_Input_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
-        characterstring_cstring_free(&pObject->Description);
-        characterstring_cstring_free(&pObject->Object_Name);
+        bacnet_character_cstring_free(&pObject->Description);
+        bacnet_character_cstring_free(&pObject->Object_Name);
         free(pObject);
         status = true;
     }
@@ -2456,8 +2457,8 @@ void Analog_Input_Cleanup(void)
             do {
                 pObject = Keylist_Data_Pop(Object_List);
                 if (pObject) {
-                    characterstring_cstring_free(&pObject->Description);
-                    characterstring_cstring_free(&pObject->Object_Name);
+                    bacnet_character_cstring_free(&pObject->Description);
+                    bacnet_character_cstring_free(&pObject->Object_Name);
                     free(pObject);
                 }
             } while (pObject);

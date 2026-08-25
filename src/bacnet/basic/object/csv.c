@@ -201,8 +201,8 @@ bool CharacterString_Value_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
-        characterstring_cstring_free(&pObject->Description);
-        characterstring_cstring_free(&pObject->Object_Name);
+        bacnet_character_cstring_free(&pObject->Description);
+        bacnet_character_cstring_free(&pObject->Object_Name);
         free(pObject);
         status = true;
     }
@@ -532,7 +532,8 @@ const char *CharacterString_Value_Description(uint32_t object_instance)
 
     pObject = CharacterString_Value_Object(object_instance);
     if (pObject) {
-        name = characterstring_cstring_value_default(&pObject->Description, "");
+        name =
+            bacnet_character_cstring_value_default(&pObject->Description, "");
     }
 
     return name;
@@ -555,7 +556,7 @@ bool CharacterString_Value_Description_Set(
 
     pObject = CharacterString_Value_Object(object_instance);
     if (pObject) {
-        status = characterstring_cstring_init(&pObject->Description, new_name);
+        status = bacnet_character_cstring_set(&pObject->Description, new_name);
     }
 
     return status;
@@ -576,7 +577,7 @@ bool CharacterString_Value_Object_Name(
 
     pObject = CharacterString_Value_Object(object_instance);
     if (pObject) {
-        status = characterstring_cstring_to_characterstring(
+        status = bacnet_character_cstring_to_characterstring(
             object_name, &pObject->Object_Name);
         if (!status) {
             len = characterstring_utf8_snprintf(
@@ -607,7 +608,7 @@ bool CharacterString_Value_Name_Set(
 
     pObject = CharacterString_Value_Object(object_instance);
     if (pObject) {
-        status = characterstring_cstring_init(&pObject->Object_Name, new_name);
+        status = bacnet_character_cstring_set(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -625,7 +626,7 @@ const char *CharacterString_Value_Name_ASCII(uint32_t object_instance)
 
     pObject = CharacterString_Value_Object(object_instance);
     if (pObject) {
-        name = characterstring_cstring_value_const(&pObject->Object_Name);
+        name = bacnet_character_cstring_value_const(&pObject->Object_Name);
     }
 
     return name;
@@ -743,7 +744,7 @@ static bool CharacterString_Value_Object_Name_Write(
     pObject = CharacterString_Value_Object(wp_data->object_instance);
     if (pObject) {
         if (characterstring_utf8_valid(cstring)) {
-            status = characterstring_cstring_from_characterstring_strdup(
+            status = bacnet_character_cstring_from_characterstring_strdup(
                 &pObject->Object_Name, cstring);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -776,7 +777,7 @@ static bool CharacterString_Value_Description_Write(
     pObject = CharacterString_Value_Object(wp_data->object_instance);
     if (pObject) {
         if (characterstring_utf8_valid(cstring)) {
-            status = characterstring_cstring_from_characterstring_strdup(
+            status = bacnet_character_cstring_from_characterstring_strdup(
                 &pObject->Description, cstring);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
