@@ -32,8 +32,8 @@ typedef struct analog_input_descr {
     float Prior_Value;
     float COV_Increment;
     bool Changed;
-    const char *Object_Name;
-    const char *Description;
+    BACNET_CHARACTER_CSTRING Object_Name;
+    BACNET_CHARACTER_CSTRING Description;
     void *Context;
 #if defined(INTRINSIC_REPORTING)
     uint32_t Time_Delay;

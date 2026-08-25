@@ -16,6 +16,7 @@
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
+#include "bacnet/bacstr.h"
 #include "bacnet/wp.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/proplist.h"
@@ -47,8 +48,8 @@ struct object_data {
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE Members[CHANNEL_MEMBERS_MAX];
     uint16_t Channel_Number;
     uint32_t Control_Groups[CONTROL_GROUPS_MAX];
-    const char *Object_Name;
-    const char *Description;
+    BACNET_CHARACTER_CSTRING Object_Name;
+    BACNET_CHARACTER_CSTRING Description;
     void *Context;
 };
 
@@ -82,7 +83,7 @@ static const int32_t Channel_Properties_Required[] = {
     -1
 };
 
-static const int32_t Channel_Properties_Optional[] = { -1 };
+static const int32_t Channel_Properties_Optional[] = { PROP_DESCRIPTION, -1 };
 
 static const int32_t Channel_Properties_Proprietary[] = { -1 };
 
@@ -97,6 +98,8 @@ static const int32_t Writable_Properties[] = {
     PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES,
     PROP_CHANNEL_NUMBER,
     PROP_CONTROL_GROUPS,
+    PROP_OBJECT_NAME,
+    PROP_DESCRIPTION,
     -1
 };
 
@@ -930,19 +933,19 @@ bool Channel_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     bool status = false;
-    char name_text[32] = "CHANNEL-4194303";
     struct object_data *pObject;
+    int len = 0;
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        if (pObject->Object_Name) {
-            status =
-                characterstring_init_ansi(object_name, pObject->Object_Name);
-        } else {
-            snprintf(
-                name_text, sizeof(name_text), "CHANNEL-%lu",
-                (unsigned long)object_instance);
-            status = characterstring_init_ansi(object_name, name_text);
+        status = bacnet_character_cstring_to_characterstring(
+            object_name, &pObject->Object_Name);
+        if (!status) {
+            len = characterstring_utf8_snprintf(
+                object_name, "CHANNEL-%lu", (unsigned long)object_instance);
+            if (len > 0) {
+                status = true;
+            }
         }
     }
 
@@ -950,12 +953,13 @@ bool Channel_Object_Name(
 }
 
 /**
- * For a given object instance-number, sets the object-name
- *
- * @param  object_instance - object-instance number of the object
- * @param  new_name - holds the object-name to be set
- *
- * @return  true if object-name was set
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @note The object name must be unique within this device.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if object-name was set
  */
 bool Channel_Name_Set(uint32_t object_instance, const char *new_name)
 {
@@ -964,8 +968,7 @@ bool Channel_Name_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        status = true;
-        pObject->Object_Name = new_name;
+        status = bacnet_character_cstring_set(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -983,10 +986,50 @@ const char *Channel_Name_ASCII(uint32_t object_instance)
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        name = pObject->Object_Name;
+        name = bacnet_character_cstring_value_const(&pObject->Object_Name);
     }
 
     return name;
+}
+
+/**
+ * @brief For a given object instance-number, returns the description
+ * @param  object_instance - object-instance number of the object
+ * @return description text or NULL if not found
+ */
+const char *Channel_Description(uint32_t object_instance)
+{
+    const char *name = NULL;
+    const struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        name =
+            bacnet_character_cstring_value_default(&pObject->Description, "");
+    }
+
+    return name;
+}
+
+/**
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if description was set
+ */
+bool Channel_Description_Set(uint32_t object_instance, const char *new_name)
+{
+    bool status = false; /* return value */
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        status = bacnet_character_cstring_set(&pObject->Description, new_name);
+    }
+
+    return status;
 }
 
 /**
@@ -1063,6 +1106,11 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
         case PROP_OBJECT_NAME:
             Channel_Object_Name(rpdata->object_instance, &char_string);
+            apdu_len = encode_application_character_string(apdu, &char_string);
+            break;
+        case PROP_DESCRIPTION:
+            characterstring_init_ansi(
+                &char_string, Channel_Description(rpdata->object_instance));
             apdu_len = encode_application_character_string(apdu, &char_string);
             break;
         case PROP_OBJECT_TYPE:
@@ -1322,6 +1370,76 @@ static BACNET_ERROR_CODE Channel_Control_Groups_Write(
 }
 
 /**
+ * For a given object instance-number, sets the object-name
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  cstring - holds the object-name to be set
+ *
+ * @return true if object-name was set
+ */
+static bool Channel_Object_Name_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Object_Data(wp_data->object_instance);
+    if (pObject) {
+        if (characterstring_utf8_valid(cstring)) {
+            status = bacnet_character_cstring_from_characterstring_strdup(
+                &pObject->Object_Name, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        } else {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the description property value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  cstring - holds the description to be set
+ *
+ * @return true if description was set
+ */
+static bool Channel_Description_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Object_Data(wp_data->object_instance);
+    if (pObject) {
+        if (characterstring_utf8_valid(cstring)) {
+            status = bacnet_character_cstring_from_characterstring_strdup(
+                &pObject->Description, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        } else {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
  * WriteProperty handler for this object.  For the given WriteProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -1351,6 +1469,22 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     switch (wp_data->object_property) {
+        case PROP_OBJECT_NAME:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Channel_Object_Name_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+        case PROP_DESCRIPTION:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Channel_Description_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
         case PROP_PRESENT_VALUE:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_CHANNEL_VALUE);
@@ -1595,7 +1729,6 @@ uint32_t Channel_Create(uint32_t object_instance)
         pObject = calloc(1, sizeof(struct object_data));
         if (pObject) {
             /* channel defaults */
-            pObject->Object_Name = NULL;
             pObject->Present_Value.tag = BACNET_APPLICATION_TAG_EMPTYLIST;
             pObject->Out_Of_Service = false;
             pObject->Last_Priority = BACNET_NO_PRIORITY;
@@ -1610,6 +1743,8 @@ uint32_t Channel_Create(uint32_t object_instance)
             /* add to list */
             index = Keylist_Data_Add(Object_List, object_instance, pObject);
             if (index < 0) {
+                bacnet_character_cstring_free(&pObject->Object_Name);
+                bacnet_character_cstring_free(&pObject->Description);
                 free(pObject);
                 return BACNET_MAX_INSTANCE;
             }
@@ -1633,6 +1768,8 @@ bool Channel_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
+        bacnet_character_cstring_free(&pObject->Object_Name);
+        bacnet_character_cstring_free(&pObject->Description);
         free(pObject);
         status = true;
     }
@@ -1659,6 +1796,8 @@ void Channel_Cleanup(void)
             do {
                 pObject = Keylist_Data_Pop(Object_List);
                 if (pObject) {
+                    bacnet_character_cstring_free(&pObject->Object_Name);
+                    bacnet_character_cstring_free(&pObject->Description);
                     free(pObject);
                 }
             } while (pObject);

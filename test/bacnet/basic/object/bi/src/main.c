@@ -61,6 +61,9 @@ static void testBinaryInput_Writable_Properties(void)
     const uint32_t invalid_instance = instance + 1;
     const int32_t *properties = NULL;
     uint32_t count = 0;
+    uint32_t i = 0;
+    bool has_object_name = false;
+    bool has_description = false;
 
     Binary_Input_Init();
     zassert_not_equal(Binary_Input_Create(instance), BACNET_MAX_INSTANCE, NULL);
@@ -71,20 +74,33 @@ static void testBinaryInput_Writable_Properties(void)
     zassert_not_null(properties, NULL);
     count = property_list_count(properties);
     zassert_true(count > 0, NULL);
-    zassert_not_equal(properties[0], PROP_PRESENT_VALUE, NULL);
+    zassert_false(property_list_member(properties, PROP_PRESENT_VALUE), NULL);
+
+    has_object_name = false;
+    has_description = false;
+    for (i = 0; properties[i] != -1; ++i) {
+        if (properties[i] == PROP_OBJECT_NAME) {
+            has_object_name = true;
+        }
+        if (properties[i] == PROP_DESCRIPTION) {
+            has_description = true;
+        }
+    }
+    zassert_true(has_object_name, NULL);
+    zassert_true(has_description, NULL);
 
     /* write-enabled: list starts with PROP_PRESENT_VALUE */
     Binary_Input_Write_Enable(instance);
     zassert_true(Binary_Input_Write_Enabled(instance), NULL);
     Binary_Input_Writable_Property_List(instance, &properties);
     zassert_not_null(properties, NULL);
-    zassert_equal(properties[0], PROP_PRESENT_VALUE, NULL);
+    zassert_true(property_list_member(properties, PROP_PRESENT_VALUE), NULL);
 
     /* write-disabled again: list skips PROP_PRESENT_VALUE */
     Binary_Input_Write_Disable(instance);
     zassert_false(Binary_Input_Write_Enabled(instance), NULL);
     Binary_Input_Writable_Property_List(instance, &properties);
-    zassert_not_equal(properties[0], PROP_PRESENT_VALUE, NULL);
+    zassert_false(property_list_member(properties, PROP_PRESENT_VALUE), NULL);
 
     /* unknown instance: must return a valid list, not NULL/garbage */
     properties = NULL;

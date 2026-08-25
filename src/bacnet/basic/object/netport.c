@@ -103,8 +103,8 @@ struct bsc_port {
 
 struct object_data {
     uint32_t Instance_Number;
-    const char *Object_Name;
-    const char *Description;
+    BACNET_CHARACTER_CSTRING Object_Name;
+    BACNET_CHARACTER_CSTRING Description;
     BACNET_RELIABILITY Reliability;
     bool Out_Of_Service : 1;
     bool Changes_Pending : 1;
@@ -177,7 +177,7 @@ static const int32_t Ethernet_Port_Properties_Optional[] = {
 };
 static const int32_t Ethernet_Port_Writable_Properties[] = {
     /* unordered list of always writable properties */
-    PROP_MAC_ADDRESS, PROP_LINK_SPEED, -1
+    PROP_MAC_ADDRESS, PROP_LINK_SPEED, PROP_OBJECT_NAME, PROP_DESCRIPTION, -1
 };
 
 static const int32_t Zigbee_Port_Properties_Optional[] = {
@@ -195,7 +195,7 @@ static const int32_t Zigbee_Port_Properties_Optional[] = {
 };
 static const int32_t Zigbee_Port_Writable_Properties[] = {
     /* unordered list of always writable properties */
-    PROP_MAC_ADDRESS, PROP_LINK_SPEED, -1
+    PROP_MAC_ADDRESS, PROP_LINK_SPEED, PROP_OBJECT_NAME, PROP_DESCRIPTION, -1
 };
 
 static const int32_t MSTP_Port_Properties_Optional[] = {
@@ -215,7 +215,13 @@ static const int32_t MSTP_Port_Properties_Optional[] = {
 };
 static const int32_t MSTP_Port_Writable_Properties[] = {
     /* unordered list of always writable properties */
-    PROP_MAC_ADDRESS, PROP_MAX_MASTER, PROP_MAX_INFO_FRAMES, PROP_LINK_SPEED, -1
+    PROP_MAC_ADDRESS,
+    PROP_MAX_MASTER,
+    PROP_MAX_INFO_FRAMES,
+    PROP_LINK_SPEED,
+    PROP_OBJECT_NAME,
+    PROP_DESCRIPTION,
+    -1
 };
 
 static const int32_t BIP_Port_Properties_Optional[] = {
@@ -260,6 +266,8 @@ static const int32_t BIP_Port_Writable_Properties[] = {
     PROP_BBMD_ACCEPT_FD_REGISTRATIONS,
     PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
     PROP_BBMD_FOREIGN_DEVICE_TABLE,
+    PROP_OBJECT_NAME,
+    PROP_DESCRIPTION,
     -1
 };
 
@@ -308,10 +316,13 @@ static const int32_t BIP6_Port_Writable_Properties[] = {
     PROP_BBMD_ACCEPT_FD_REGISTRATIONS,
     PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
     PROP_BBMD_FOREIGN_DEVICE_TABLE,
+    PROP_OBJECT_NAME,
+    PROP_DESCRIPTION,
     -1
 };
 
 static const int32_t BSC_Port_Properties_Optional[] = {
+    PROP_DESCRIPTION,
     PROP_NETWORK_NUMBER,
     PROP_NETWORK_NUMBER_QUALITY,
     PROP_APDU_LENGTH,
@@ -366,6 +377,8 @@ static const int32_t BSC_Port_Writable_Properties[] = {
     PROP_BBMD_ACCEPT_FD_REGISTRATIONS,
     PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
     PROP_BBMD_FOREIGN_DEVICE_TABLE,
+    PROP_OBJECT_NAME,
+    PROP_DESCRIPTION,
     -1
 };
 
@@ -526,25 +539,35 @@ bool Network_Port_Object_Name(
 {
     unsigned index = 0; /* offset from instance lookup */
     bool status = false;
+    struct object_data *pObject = NULL;
+    int len = 0;
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        status = characterstring_init_ansi(
-            object_name, Object_List[index].Object_Name);
+        pObject = &Object_List[index];
+        status = bacnet_character_cstring_to_characterstring(
+            object_name, &pObject->Object_Name);
+        if (!status) {
+            len = characterstring_utf8_snprintf(
+                object_name, "NETWORK-PORT-%lu",
+                (unsigned long)object_instance);
+            if (len > 0) {
+                status = true;
+            }
+        }
     }
 
     return status;
 }
 
 /**
- * For a given object instance-number, sets the object-name
- * Note that the object name must be unique within this device.
- *
- * @param  object_instance - object-instance number of the object
- * @param  new_name - holds the object-name to be written
- *         Expecting a pointer to a static ANSI C string for zero copy.
- *
- * @return  true if object-name was set
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @note The object name must be unique within this device.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if object-name was set
  */
 bool Network_Port_Name_Set(uint32_t object_instance, const char *new_name)
 {
@@ -553,8 +576,8 @@ bool Network_Port_Name_Set(uint32_t object_instance, const char *new_name)
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        Object_List[index].Object_Name = new_name;
-        status = true;
+        status = bacnet_character_cstring_set(
+            &Object_List[index].Object_Name, new_name);
     }
 
     return status;
@@ -568,13 +591,15 @@ bool Network_Port_Name_Set(uint32_t object_instance, const char *new_name)
 const char *Network_Port_Object_Name_ASCII(uint32_t object_instance)
 {
     unsigned index = 0; /* offset from instance lookup */
+    const char *name = NULL;
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        return Object_List[index].Object_Name;
+        name = bacnet_character_cstring_value_const(
+            &Object_List[index].Object_Name);
     }
 
-    return NULL;
+    return name;
 }
 
 /**
@@ -585,24 +610,24 @@ const char *Network_Port_Object_Name_ASCII(uint32_t object_instance)
 const char *Network_Port_Description(uint32_t instance)
 {
     unsigned index = 0; /* offset from instance lookup */
+    const char *name = NULL;
 
     index = Network_Port_Instance_To_Index(instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        return Object_List[index].Description;
+        name = bacnet_character_cstring_value_default(
+            &Object_List[index].Description, "");
     }
 
-    return NULL;
+    return name;
 }
 
 /**
- * For a given object instance-number, sets the object-name
- * Note that the object name must be unique within this device.
- *
- * @param  object_instance - object-instance number of the object
- * @param  new_name - holds the object-name to be written
- *         Expecting a pointer to a static ANSI C string for zero copy.
- *
- * @return  true if object-name was set
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if description was set
  */
 bool Network_Port_Description_Set(uint32_t instance, const char *new_name)
 {
@@ -611,8 +636,8 @@ bool Network_Port_Description_Set(uint32_t instance, const char *new_name)
 
     index = Network_Port_Instance_To_Index(instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        Object_List[index].Description = new_name;
-        status = true;
+        status = bacnet_character_cstring_set(
+            &Object_List[index].Description, new_name);
     }
 
     return status;
@@ -1043,7 +1068,7 @@ bool Network_Port_MAC_Address(
  * @param  new_name - holds the object-name to be written
  *         Expecting a pointer to a static ANSI C string for zero copy.
  *
- * @return  true if object-name was set
+ * @return true if object-name was set
  */
 bool Network_Port_MAC_Address_Set(
     uint32_t object_instance, const uint8_t *mac_src, uint8_t mac_len)
@@ -4545,6 +4570,50 @@ int Network_Port_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
  *
  * @return false if an error is loaded, true if no errors
  */
+static bool Network_Port_Object_Name_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(wp_data->object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        status = bacnet_character_cstring_from_characterstring_strdup(
+            &Object_List[index].Object_Name, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+static bool Network_Port_Description_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(wp_data->object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        status = bacnet_character_cstring_from_characterstring_strdup(
+            &Object_List[index].Description, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
 bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
@@ -4584,6 +4653,22 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     /* FIXME: len < application_data_len: more data? */
     switch (wp_data->object_property) {
+        case PROP_OBJECT_NAME:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Network_Port_Object_Name_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+        case PROP_DESCRIPTION:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Network_Port_Description_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
         case PROP_MAC_ADDRESS:
             if (Network_Port_Type(wp_data->object_instance) == PORT_TYPE_MSTP) {
                 status = write_property_type_valid(
@@ -4838,6 +4923,18 @@ void Network_Port_Changes_Discard(void)
 }
 
 /**
+ * @brief Free any heap-backed ANSI strings owned by one network port object.
+ * @param object Pointer to the object state to clean up.
+ */
+static void Network_Port_Free_ANSI_Strings(struct object_data *object)
+{
+    if (object) {
+        bacnet_character_cstring_free(&object->Object_Name);
+        bacnet_character_cstring_free(&object->Description);
+    }
+}
+
+/**
  * @brief Cleanup - useful if network port object are allocated on the heap
  */
 void Network_Port_Cleanup(void)
@@ -4854,6 +4951,7 @@ void Network_Port_Cleanup(void)
         Set_Routed_Device_Object_Index(dev_id);
 #endif
         for (index = 0; index < BACNET_NETWORK_PORTS_MAX; index++) {
+            Network_Port_Free_ANSI_Strings(&Object_List[index]);
             BACNET_SC_PARAMS *sc = &Object_List[index].Network.BSC.Parameters;
             if (sc->Routing_Table) {
                 Keylist_Data_Free(sc->Routing_Table);
@@ -4922,6 +5020,7 @@ void Network_Port_Init(void)
         Set_Routed_Device_Object_Index(dev_id);
 #endif
         for (index = 0; index < BACNET_NETWORK_PORTS_MAX; index++) {
+            Network_Port_Free_ANSI_Strings(&Object_List[index]);
             memset(&Object_List[index], 0, sizeof(Object_List[index]));
 #ifdef BACDL_BSC
             Object_List[index].Network_Type = PORT_TYPE_BSC;

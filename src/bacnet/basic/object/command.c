@@ -42,8 +42,8 @@ struct object_data {
     bool In_Process;
     bool All_Writes_Successful;
     bool Action_Failed;
-    char *Description;
-    char *Object_Name;
+    BACNET_CHARACTER_CSTRING Description;
+    BACNET_CHARACTER_CSTRING Object_Name;
     /* present-value action, or NULL */
     BACNET_ACTION_LIST *Action;
     uint32_t Action_Delay_Milliseconds;
@@ -304,8 +304,8 @@ static void Action_Array_Free(OS_Keylist array)
 static void Object_Data_Free(struct object_data *pObject)
 {
     if (pObject) {
-        free(pObject->Description);
-        free(pObject->Object_Name);
+        bacnet_character_cstring_free(&pObject->Description);
+        bacnet_character_cstring_free(&pObject->Object_Name);
         Action_Array_Free(pObject->Action_Array);
         free(pObject);
     }
@@ -334,8 +334,6 @@ static bool Command_Object_Instance_Add(uint32_t object_instance)
         if (!pObject) {
             return false;
         }
-        pObject->Description = NULL;
-        pObject->Object_Name = NULL;
         pObject->Action = NULL;
         pObject->Action_Delay_Milliseconds = 0;
         pObject->Action_Failed = false;
@@ -667,20 +665,20 @@ bool Command_All_Writes_Successful_Set(uint32_t object_instance, bool value)
 bool Command_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    char text[32] = "";
     struct object_data *pObject;
     bool status = false;
+    int len = 0;
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        if (pObject->Object_Name) {
-            status =
-                characterstring_init_ansi(object_name, pObject->Object_Name);
-        } else {
-            snprintf(
-                text, sizeof(text), "COMMAND %lu",
-                (unsigned long)object_instance);
-            status = characterstring_init_ansi(object_name, text);
+        status = bacnet_character_cstring_to_characterstring(
+            object_name, &pObject->Object_Name);
+        if (!status) {
+            len = characterstring_utf8_snprintf(
+                object_name, "COMMAND-%lu", (unsigned long)object_instance);
+            if (len > 0) {
+                status = true;
+            }
         }
     }
 
@@ -688,10 +686,13 @@ bool Command_Object_Name(
 }
 
 /**
- * @brief Set the Command object-name for an instance.
- * @param object_instance [in] BACnet object instance number.
- * @param new_name [in] New object-name as a C string.
- * @return true if the name was set.
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @note The object name must be unique within this device.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if object-name was set
  */
 bool Command_Name_Set(uint32_t object_instance, const char *new_name)
 {
@@ -700,14 +701,7 @@ bool Command_Name_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        free(pObject->Object_Name);
-        if (new_name) {
-            pObject->Object_Name = bacnet_strdup(new_name);
-            status = (pObject->Object_Name != NULL);
-        } else {
-            pObject->Object_Name = NULL;
-            status = true;
-        }
+        status = bacnet_character_cstring_set(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -724,11 +718,8 @@ const char *Command_Description(uint32_t instance)
 
     pObject = Object_Data(instance);
     if (pObject) {
-        if (pObject->Description) {
-            return pObject->Description;
-        }
-
-        return "";
+        return bacnet_character_cstring_value_default(
+            &pObject->Description, "");
     }
 
     return NULL;
@@ -745,16 +736,19 @@ static bool Command_Object_Name_Write(
 {
     bool status = false;
     struct object_data *pObject;
-    char *utf8_name = NULL;
 
     pObject = Object_Data(wp_data->object_instance);
     if (pObject) {
-        utf8_name =
-            write_property_characterstring_utf8_strdup(wp_data, cstring);
-        if (utf8_name) {
-            free(pObject->Object_Name);
-            pObject->Object_Name = utf8_name;
-            status = true;
+        if (characterstring_utf8_valid(cstring)) {
+            status = bacnet_character_cstring_from_characterstring_strdup(
+                &pObject->Object_Name, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        } else {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         }
     } else {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -775,16 +769,19 @@ static bool Command_Description_Write(
 {
     bool status = false;
     struct object_data *pObject;
-    char *utf8_name = NULL;
 
     pObject = Object_Data(wp_data->object_instance);
     if (pObject) {
-        utf8_name =
-            write_property_characterstring_utf8_strdup(wp_data, cstring);
-        if (utf8_name) {
-            free(pObject->Description);
-            pObject->Description = utf8_name;
-            status = true;
+        if (characterstring_utf8_valid(cstring)) {
+            status = bacnet_character_cstring_from_characterstring_strdup(
+                &pObject->Description, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        } else {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         }
     } else {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -795,10 +792,12 @@ static bool Command_Description_Write(
 }
 
 /**
- * @brief Set the Command description for an instance.
- * @param instance [in] BACnet object instance number.
- * @param new_name [in] New description as a C string.
- * @return true if the description was set.
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if description was set
  */
 bool Command_Description_Set(uint32_t instance, const char *new_name)
 {
@@ -807,14 +806,7 @@ bool Command_Description_Set(uint32_t instance, const char *new_name)
 
     pObject = Object_Data(instance);
     if (pObject) {
-        free(pObject->Description);
-        if (new_name) {
-            pObject->Description = bacnet_strdup(new_name);
-            status = (pObject->Description != NULL);
-        } else {
-            pObject->Description = NULL;
-            status = true;
-        }
+        status = bacnet_character_cstring_set(&pObject->Description, new_name);
     }
 
     return status;

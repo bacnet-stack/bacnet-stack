@@ -102,7 +102,9 @@ static void testLifeSafetyZone(void)
     uint32_t object_instance = 0, test_object_instance = 0;
     const int32_t skip_fail_property_list[] = { -1 };
     const char *test_name = NULL;
+    const char *test_description = NULL;
     char *sample_name = "sample";
+    char *sample_description = "description";
 
     Life_Safety_Zone_Init();
     object_instance = Life_Safety_Zone_Create(BACNET_MAX_INSTANCE);
@@ -123,6 +125,15 @@ static void testLifeSafetyZone(void)
     zassert_true(status, NULL);
     test_name = Life_Safety_Zone_Name_ASCII(object_instance);
     zassert_equal(test_name, NULL, NULL);
+    status =
+        Life_Safety_Zone_Description_Set(object_instance, sample_description);
+    zassert_true(status, NULL);
+    test_description = Life_Safety_Zone_Description(object_instance);
+    zassert_equal(test_description, sample_description, NULL);
+    status = Life_Safety_Zone_Description_Set(object_instance, NULL);
+    zassert_true(status, NULL);
+    zassert_true(
+        strcmp(Life_Safety_Zone_Description(object_instance), "") == 0, NULL);
     /* cleanup */
     status = Life_Safety_Zone_Delete(object_instance);
 }

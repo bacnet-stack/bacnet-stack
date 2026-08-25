@@ -211,7 +211,7 @@ bool WPValidateString(
 
     if (pValue->tag == BACNET_APPLICATION_TAG_CHARACTER_STRING) {
         if (characterstring_encoding(&pValue->type.Character_String) ==
-            CHARACTER_ANSI_X34) {
+            CHARACTER_UTF8) {
             if ((bEmptyAllowed == false) &&
                 (characterstring_length(&pValue->type.Character_String) == 0)) {
                 *pErrorCode = ERROR_CODE_VALUE_OUT_OF_RANGE;

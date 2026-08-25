@@ -69,6 +69,123 @@ static void test_BACnet_File_Object(void)
 
     return;
 }
+
+/**
+ * @brief Test writable PROP_OBJECT_NAME, PROP_DESCRIPTION, and PROP_FILE_TYPE.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacfile_tests, test_BACnet_File_Object_name_description_file_type_write)
+#else
+static void test_BACnet_File_Object_name_description_file_type_write(void)
+#endif
+{
+    uint32_t object_instance = 1;
+    uint8_t apdu[MAX_APDU] = { 0 };
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    BACNET_READ_PROPERTY_DATA rp_data = { 0 };
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_CHARACTER_STRING char_string = { 0 };
+    BACNET_CHARACTER_STRING object_name = { 0 };
+    bool status = false;
+    int len = 0;
+    const char *test_name = "FILE-NAME-WP";
+    const char *test_description = "/tmp/file-object.txt";
+    const char *test_file_type = "text/plain";
+
+    bacfile_init();
+    object_instance = bacfile_create(object_instance);
+    zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
+
+    rp_data.object_type = OBJECT_FILE;
+    rp_data.object_instance = object_instance;
+    rp_data.array_index = BACNET_ARRAY_ALL;
+    rp_data.application_data = apdu;
+    rp_data.application_data_len = sizeof(apdu);
+    rp_data.object_property = PROP_DESCRIPTION;
+    len = bacfile_read_property(&rp_data);
+    zassert_true(len > 0, NULL);
+    len = bacapp_decode_application_data(apdu, len, &value);
+    zassert_true(len > 0, NULL);
+    zassert_equal(value.tag, BACNET_APPLICATION_TAG_CHARACTER_STRING, NULL);
+    zassert_equal(value.type.Character_String.length, 0U, NULL);
+
+    wp_data.object_type = OBJECT_FILE;
+    wp_data.object_instance = object_instance;
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    wp_data.priority = BACNET_NO_PRIORITY;
+
+    status = characterstring_init_ansi(&char_string, test_name);
+    zassert_true(status, NULL);
+    wp_data.object_property = PROP_OBJECT_NAME;
+    wp_data.application_data_len = encode_application_character_string(
+        wp_data.application_data, &char_string);
+    status = bacfile_write_property(&wp_data);
+    zassert_true(status, NULL);
+
+    status = bacfile_object_name(object_instance, &object_name);
+    zassert_true(status, NULL);
+    status = characterstring_ansi_same(&object_name, test_name);
+    zassert_true(status, NULL);
+
+    rp_data.object_type = OBJECT_FILE;
+    rp_data.object_instance = object_instance;
+    rp_data.object_property = PROP_OBJECT_NAME;
+    rp_data.array_index = BACNET_ARRAY_ALL;
+    rp_data.application_data = apdu;
+    rp_data.application_data_len = sizeof(apdu);
+    len = bacfile_read_property(&rp_data);
+    zassert_true(len > 0, NULL);
+    len = bacapp_decode_application_data(apdu, len, &value);
+    zassert_true(len > 0, NULL);
+    zassert_equal(value.tag, BACNET_APPLICATION_TAG_CHARACTER_STRING, NULL);
+    status = characterstring_ansi_same(&value.type.Character_String, test_name);
+    zassert_true(status, NULL);
+
+    status = characterstring_init_ansi(&char_string, test_description);
+    zassert_true(status, NULL);
+    wp_data.object_property = PROP_DESCRIPTION;
+    wp_data.application_data_len = encode_application_character_string(
+        wp_data.application_data, &char_string);
+    status = bacfile_write_property(&wp_data);
+    zassert_true(status, NULL);
+
+    rp_data.object_property = PROP_DESCRIPTION;
+    rp_data.application_data = apdu;
+    rp_data.application_data_len = sizeof(apdu);
+    len = bacfile_read_property(&rp_data);
+    zassert_true(len > 0, NULL);
+    len = bacapp_decode_application_data(apdu, len, &value);
+    zassert_true(len > 0, NULL);
+    zassert_equal(value.tag, BACNET_APPLICATION_TAG_CHARACTER_STRING, NULL);
+    status = characterstring_ansi_same(
+        &value.type.Character_String, test_description);
+    zassert_true(status, NULL);
+
+    status = characterstring_init_ansi(&char_string, test_file_type);
+    zassert_true(status, NULL);
+    wp_data.object_property = PROP_FILE_TYPE;
+    wp_data.application_data_len = encode_application_character_string(
+        wp_data.application_data, &char_string);
+    status = bacfile_write_property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_not_null(bacfile_file_type(object_instance), NULL);
+    zassert_true(
+        strcmp(bacfile_file_type(object_instance), test_file_type) == 0, NULL);
+
+    rp_data.object_property = PROP_FILE_TYPE;
+    rp_data.application_data = apdu;
+    rp_data.application_data_len = sizeof(apdu);
+    len = bacfile_read_property(&rp_data);
+    zassert_true(len > 0, NULL);
+    len = bacapp_decode_application_data(apdu, len, &value);
+    zassert_true(len > 0, NULL);
+    zassert_equal(value.tag, BACNET_APPLICATION_TAG_CHARACTER_STRING, NULL);
+    status =
+        characterstring_ansi_same(&value.type.Character_String, test_file_type);
+    zassert_true(status, NULL);
+
+    bacfile_cleanup();
+}
 /**
  * @}
  */
@@ -78,7 +195,10 @@ ZTEST_SUITE(bacfile_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(bacfile_tests, ztest_unit_test(test_BACnet_File_Object));
+    ztest_test_suite(
+        bacfile_tests, ztest_unit_test(test_BACnet_File_Object),
+        ztest_unit_test(
+            test_BACnet_File_Object_name_description_file_type_write));
 
     ztest_run_test_suite(bacfile_tests);
 }

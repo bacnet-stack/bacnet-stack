@@ -18,6 +18,7 @@
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
+#include "bacnet/bacstr.h"
 #include "bacnet/bactext.h"
 #include "bacnet/proplist.h"
 /* basic objects and services */
@@ -49,8 +50,8 @@ struct integer_object {
     uint32_t COV_Increment;
     BACNET_ENGINEERING_UNITS Units;
     uint32_t Instance;
-    const char *Object_Name;
-    const char *Description;
+    BACNET_CHARACTER_CSTRING Object_Name;
+    BACNET_CHARACTER_CSTRING Description;
     void *Context;
 } INTERGER_VALUE_DESCR;
 
@@ -77,7 +78,13 @@ static const int32_t Integer_Value_Properties_Proprietary[] = { -1 };
    that is always writable.  */
 static const int32_t Writable_Properties[] = {
     /* unordered list of always writable properties */
-    PROP_PRESENT_VALUE, PROP_COV_INCREMENT, PROP_OUT_OF_SERVICE, PROP_UNITS, -1
+    PROP_PRESENT_VALUE,
+    PROP_COV_INCREMENT,
+    PROP_OUT_OF_SERVICE,
+    PROP_UNITS,
+    PROP_OBJECT_NAME,
+    PROP_DESCRIPTION,
+    -1
 };
 
 /**
@@ -270,20 +277,21 @@ bool Integer_Value_Present_Value_Set(
 bool Integer_Value_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    char text[32] = "";
     bool status = false;
     struct integer_object *pObject;
+    int len = 0;
 
     pObject = Integer_Value_Object(object_instance);
     if (pObject) {
-        if (pObject->Object_Name) {
-            status =
-                characterstring_init_ansi(object_name, pObject->Object_Name);
-        } else {
-            snprintf(
-                text, sizeof(text), "INTEGER-VALUE-%lu",
+        status = bacnet_character_cstring_to_characterstring(
+            object_name, &pObject->Object_Name);
+        if (!status) {
+            len = characterstring_utf8_snprintf(
+                object_name, "INTEGER-VALUE-%lu",
                 (unsigned long)object_instance);
-            status = characterstring_init_ansi(object_name, text);
+            if (len > 0) {
+                status = true;
+            }
         }
     }
 
@@ -291,10 +299,13 @@ bool Integer_Value_Object_Name(
 }
 
 /**
- * @brief For a given object instance-number, sets the object-name
- * @param  object_instance - object-instance number of the object
- * @param  new_name - holds the object-name to be set
- * @return  true if object-name was set
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @note The object name must be unique within this device.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if object-name was set
  */
 bool Integer_Value_Name_Set(uint32_t object_instance, const char *new_name)
 {
@@ -303,8 +314,7 @@ bool Integer_Value_Name_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Integer_Value_Object(object_instance);
     if (pObject) {
-        status = true;
-        pObject->Object_Name = new_name;
+        status = bacnet_character_cstring_set(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -322,7 +332,7 @@ const char *Integer_Value_Name_ASCII(uint32_t object_instance)
 
     pObject = Integer_Value_Object(object_instance);
     if (pObject) {
-        name = pObject->Object_Name;
+        name = bacnet_character_cstring_value_const(&pObject->Object_Name);
     }
 
     return name;
@@ -346,22 +356,20 @@ bool Integer_Value_Description(
 
     pObject = Integer_Value_Object(object_instance);
     if (pObject) {
-        if (pObject->Description) {
-            status =
-                characterstring_init_ansi(description, pObject->Description);
-        } else {
-            status = characterstring_init_ansi(description, "");
-        }
+        status = bacnet_character_cstring_to_characterstring_default(
+            description, &pObject->Description, "");
     }
 
     return status;
 }
 
 /**
- * @brief For a given object instance-number, sets the description
- * @param  object_instance - object-instance number of the object
- * @param  new_name - holds the description to be set
- * @return  true if object-name was set
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if description was set
  */
 bool Integer_Value_Description_Set(
     uint32_t object_instance, const char *new_name)
@@ -371,8 +379,7 @@ bool Integer_Value_Description_Set(
 
     pObject = Integer_Value_Object(object_instance);
     if (pObject) {
-        status = true;
-        pObject->Description = new_name;
+        status = bacnet_character_cstring_set(&pObject->Description, new_name);
     }
 
     return status;
@@ -390,11 +397,8 @@ const char *Integer_Value_Description_ANSI(uint32_t object_instance)
 
     pObject = Integer_Value_Object(object_instance);
     if (pObject) {
-        if (pObject->Description == NULL) {
-            name = "";
-        } else {
-            name = pObject->Description;
-        }
+        name =
+            bacnet_character_cstring_value_default(&pObject->Description, "");
     }
 
     return name;
@@ -476,6 +480,78 @@ void Integer_Value_Out_Of_Service_Set(uint32_t object_instance, bool value)
     if (pObject) {
         pObject->Out_Of_Service = value;
     }
+}
+
+/**
+ * Writes the object-name property value for a given Integer Value object.
+ *
+ * @param wp_data - BACNET write-property request data including the object
+ * instance.
+ * @param cstring - object-name value to write.
+ *
+ * @return true if the object-name was updated successfully.
+ */
+static bool Integer_Value_Object_Name_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct integer_object *pObject;
+
+    pObject = Integer_Value_Object(wp_data->object_instance);
+    if (pObject) {
+        if (characterstring_utf8_valid(cstring)) {
+            status = bacnet_character_cstring_from_characterstring_strdup(
+                &pObject->Object_Name, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        } else {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
+ * Writes the description property value for a given Integer Value object.
+ *
+ * @param wp_data - BACNET write-property request data including the object
+ * instance.
+ * @param cstring - description value to write.
+ *
+ * @return true if the description was updated successfully.
+ */
+static bool Integer_Value_Description_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct integer_object *pObject;
+
+    pObject = Integer_Value_Object(wp_data->object_instance);
+    if (pObject) {
+        if (characterstring_utf8_valid(cstring)) {
+            status = bacnet_character_cstring_from_characterstring_strdup(
+                &pObject->Description, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        } else {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
 }
 
 /**
@@ -592,6 +668,22 @@ bool Integer_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     switch (wp_data->object_property) {
+        case PROP_OBJECT_NAME:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Integer_Value_Object_Name_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+        case PROP_DESCRIPTION:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Integer_Value_Description_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
         case PROP_PRESENT_VALUE:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_SIGNED_INT);
@@ -797,6 +889,7 @@ void Integer_Value_Context_Set(uint32_t object_instance, void *context)
 uint32_t Integer_Value_Create(uint32_t object_instance)
 {
     struct integer_object *pObject = NULL;
+    int index = 0;
 
     if (!Object_List) {
         Object_List = Keylist_Create();
@@ -815,15 +908,11 @@ uint32_t Integer_Value_Create(uint32_t object_instance)
     if (!pObject) {
         pObject = calloc(1, sizeof(struct integer_object));
         if (pObject) {
-            int index = Keylist_Data_Add(Object_List, object_instance, pObject);
-
+            index = Keylist_Data_Add(Object_List, object_instance, pObject);
             if (index < 0) {
                 free(pObject);
                 return BACNET_MAX_INSTANCE;
             }
-
-            pObject->Object_Name = NULL;
-            pObject->Description = NULL;
             pObject->COV_Increment = 1;
             pObject->Present_Value = 0;
             pObject->Prior_Value = 0;
@@ -852,6 +941,8 @@ bool Integer_Value_Delete(uint32_t object_instance)
         Keylist_Data_Delete(Object_List, object_instance);
 
     if (pObject) {
+        bacnet_character_cstring_free(&pObject->Object_Name);
+        bacnet_character_cstring_free(&pObject->Description);
         free(pObject);
         status = true;
     }
@@ -878,6 +969,8 @@ void Integer_Value_Cleanup(void)
             do {
                 pObject = Keylist_Data_Pop(Object_List);
                 if (pObject) {
+                    bacnet_character_cstring_free(&pObject->Object_Name);
+                    bacnet_character_cstring_free(&pObject->Description);
                     free(pObject);
                 }
             } while (pObject);

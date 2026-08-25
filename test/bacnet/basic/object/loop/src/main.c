@@ -118,12 +118,36 @@ static void test_Loop_Read_Write(void)
     zassert_true(status, NULL);
     test_name = Loop_Name_ASCII(instance);
     zassert_equal(test_name, NULL, NULL);
-    /* test specific WriteProperty values - common configuration */
+    /* test WriteProperty with object name and description */
     wp_data.object_type = OBJECT_LOOP;
     wp_data.object_instance = instance;
     wp_data.array_index = BACNET_ARRAY_ALL;
     wp_data.priority = BACNET_MAX_PRIORITY;
+    wp_data.object_property = PROP_OBJECT_NAME;
+    status = characterstring_init_ansi(&cstring, "LOOP-WP");
     zassert_true(status, NULL);
+    wp_data.application_data_len =
+        encode_application_character_string(wp_data.application_data, &cstring);
+    status = Loop_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    status = Loop_Object_Name(instance, &cstring);
+    zassert_true(status, NULL);
+    status = characterstring_ansi_same(&cstring, "LOOP-WP");
+    zassert_true(status, NULL);
+    wp_data.object_property = PROP_DESCRIPTION;
+    status = characterstring_init_ansi(
+        &cstring, "Loop description written via WriteProperty");
+    zassert_true(status, NULL);
+    wp_data.application_data_len =
+        encode_application_character_string(wp_data.application_data, &cstring);
+    status = Loop_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    status = Loop_Description(instance, &cstring);
+    zassert_true(status, NULL);
+    status = characterstring_ansi_same(
+        &cstring, "Loop description written via WriteProperty");
+    zassert_true(status, NULL);
+    /* test specific WriteProperty values - common configuration */
     /* out-of-service */
     wp_data.object_property = PROP_OUT_OF_SERVICE;
     value.tag = BACNET_APPLICATION_TAG_BOOLEAN;

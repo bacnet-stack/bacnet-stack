@@ -185,7 +185,7 @@ static bool Device_Write_Property_Object_Name(
     apdu_size = wp_data->application_data_len;
     len = bacnet_character_string_application_decode(apdu, apdu_size, &value);
     if (len > 0) {
-        if ((characterstring_encoding(&value) != CHARACTER_ANSI_X34) ||
+        if ((characterstring_encoding(&value) != CHARACTER_UTF8) ||
             (characterstring_length(&value) == 0) ||
             (!characterstring_printable(&value))) {
             wp_data->error_class = ERROR_CLASS_PROPERTY;

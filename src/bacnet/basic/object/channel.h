@@ -64,6 +64,10 @@ BACNET_STACK_EXPORT
 bool Channel_Name_Set(uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
 const char *Channel_Name_ASCII(uint32_t object_instance);
+BACNET_STACK_EXPORT
+const char *Channel_Description(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Channel_Description_Set(uint32_t object_instance, const char *new_name);
 
 BACNET_STACK_EXPORT
 int Channel_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);

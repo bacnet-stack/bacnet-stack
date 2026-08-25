@@ -10,6 +10,7 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
+#include "bacnet/bacstr.h"
 #include "bacnet/bactext.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/keylist.h"
@@ -55,7 +56,7 @@ static const int32_t Properties_Proprietary[] = { -1 };
    that is always writable.  */
 static const int32_t Writable_Properties[] = {
     /* unordered list of always writable properties */
-    -1
+    PROP_OBJECT_NAME, PROP_DESCRIPTION, -1
 };
 
 /**
@@ -175,20 +176,21 @@ unsigned Alert_Enrollment_Instance_To_Index(uint32_t object_instance)
 bool Alert_Enrollment_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    char text_string[32] = "";
     bool status = false;
+    int len = 0;
     struct alert_enrollment_descr *pObject;
 
     pObject = Alert_Enrollment_Object(object_instance);
     if (pObject) {
-        if (pObject->Object_Name) {
-            status =
-                characterstring_init_ansi(object_name, pObject->Object_Name);
-        } else {
-            snprintf(
-                text_string, sizeof(text_string), "ALERT ENROLLMENT %lu",
+        status = bacnet_character_cstring_to_characterstring(
+            object_name, &pObject->Object_Name);
+        if (!status) {
+            len = characterstring_utf8_snprintf(
+                object_name, "ALERT-ENROLLMENT-%lu",
                 (unsigned long)object_instance);
-            status = characterstring_init_ansi(object_name, text_string);
+            if (len > 0) {
+                status = true;
+            }
         }
     }
 
@@ -196,12 +198,12 @@ bool Alert_Enrollment_Object_Name(
 }
 
 /**
- * For a given object instance-number, sets the object-name
- *
- * @param  object_instance - object-instance number of the object
- * @param  new_name - holds the object-name to be set
- *
- * @return  true if object-name was set
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if object-name was set
  */
 bool Alert_Enrollment_Name_Set(uint32_t object_instance, const char *new_name)
 {
@@ -210,8 +212,7 @@ bool Alert_Enrollment_Name_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Alert_Enrollment_Object(object_instance);
     if (pObject) {
-        status = true;
-        pObject->Object_Name = new_name;
+        status = bacnet_character_cstring_set(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -229,7 +230,7 @@ const char *Alert_Enrollment_Name_ASCII(uint32_t object_instance)
 
     pObject = Alert_Enrollment_Object(object_instance);
     if (pObject) {
-        name = pObject->Object_Name;
+        name = bacnet_character_cstring_value_const(&pObject->Object_Name);
     }
 
     return name;
@@ -247,17 +248,20 @@ const char *Alert_Enrollment_Description(uint32_t object_instance)
 
     pObject = Alert_Enrollment_Object(object_instance);
     if (pObject) {
-        name = pObject->Description;
+        return bacnet_character_cstring_value_default(
+            &pObject->Description, "");
     }
 
     return name;
 }
 
 /**
- * @brief For a given object instance-number, sets the description
- * @param  object_instance - object-instance number of the object
- * @param  new_name - holds the description to be set
- * @return  true if object-name was set
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if description was set
  */
 bool Alert_Enrollment_Description_Set(
     uint32_t object_instance, const char *new_name)
@@ -267,8 +271,7 @@ bool Alert_Enrollment_Description_Set(
 
     pObject = Alert_Enrollment_Object(object_instance);
     if (pObject) {
-        pObject->Description = new_name;
-        status = true;
+        status = bacnet_character_cstring_set(&pObject->Description, new_name);
     }
 
     return status;
@@ -503,6 +506,72 @@ int Alert_Enrollment_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
  * requested data and space for the reply, or error response.
  * @return false if an error is loaded, true if no errors
  */
+/**
+ * @brief Set the object-name property value using write-property context.
+ * @param wp_data [in,out] Write property request/response context.
+ * @param cstring [in] New object-name value.
+ * @return true if object-name was set.
+ */
+static bool Alert_Enrollment_Object_Name_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct alert_enrollment_descr *pObject;
+
+    pObject = Alert_Enrollment_Object(wp_data->object_instance);
+    if (pObject) {
+        if (characterstring_utf8_valid(cstring)) {
+            status = bacnet_character_cstring_from_characterstring_strdup(
+                &pObject->Object_Name, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        } else {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Set the description property value using write-property context.
+ * @param wp_data [in,out] Write property request/response context.
+ * @param cstring [in] New description value.
+ * @return true if description was set.
+ */
+static bool Alert_Enrollment_Description_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct alert_enrollment_descr *pObject;
+
+    pObject = Alert_Enrollment_Object(wp_data->object_instance);
+    if (pObject) {
+        if (characterstring_utf8_valid(cstring)) {
+            status = bacnet_character_cstring_from_characterstring_strdup(
+                &pObject->Description, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        } else {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
 bool Alert_Enrollment_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
@@ -529,6 +598,22 @@ bool Alert_Enrollment_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     switch (wp_data->object_property) {
+        case PROP_OBJECT_NAME:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Alert_Enrollment_Object_Name_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+        case PROP_DESCRIPTION:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Alert_Enrollment_Description_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
         case PROP_NOTIFICATION_CLASS:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
@@ -696,8 +781,6 @@ uint32_t Alert_Enrollment_Create(uint32_t object_instance)
     if (!pObject) {
         pObject = calloc(1, sizeof(struct alert_enrollment_descr));
         if (pObject) {
-            pObject->Object_Name = NULL;
-            pObject->Description = NULL;
             pObject->Present_Value.type = OBJECT_DEVICE;
             pObject->Present_Value.instance = BACNET_MAX_INSTANCE;
             pObject->Notification_Class = BACNET_MAX_INSTANCE;
@@ -730,6 +813,8 @@ bool Alert_Enrollment_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
+        bacnet_character_cstring_free(&pObject->Object_Name);
+        bacnet_character_cstring_free(&pObject->Description);
         free(pObject);
         status = true;
     }
@@ -756,6 +841,8 @@ void Alert_Enrollment_Cleanup(void)
             do {
                 pObject = Keylist_Data_Pop(Object_List);
                 if (pObject) {
+                    bacnet_character_cstring_free(&pObject->Object_Name);
+                    bacnet_character_cstring_free(&pObject->Description);
                     free(pObject);
                 }
             } while (pObject);
