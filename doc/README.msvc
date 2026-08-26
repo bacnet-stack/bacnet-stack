@@ -37,11 +37,11 @@ unix2dos bacnet.dsp
 
 Q. error LNK2001: unresolved external symbol _WinMain@16
 
-A. The demo ports/win32/main.c was designed as a Win32 Console
-Application.  If you want to change it to a Windows GUI application,
+A. The apps are designed as a Win32 Console Applications.
+If you want to change it to a Windows GUI application,
 you will have to add all the Windows GUI code, including WinMain().
 I recommend that you use a framework, such as WxWidgets/WxWindows,
-but this has not been done yet.
+but there are not examples of that in the BACnet stack.
 
 Q. error C1083: Cannot open include file: 'stdint.h': No such file
 
@@ -128,7 +128,7 @@ with MS/TP datalink enabled (BACDL_MSTP instead of BACDL_BIP):
 4. Select the Category: Code Generation
 5. Select the Multithreaded from the "Use runtime library" box options
 
-Q. error LNK2019: Verweis auf nicht aufgelöstes externes Symbol
+Q. error LNK2019: Verweis auf nicht aufgelÃ¶stes  externes Symbol
    "_GetAdaptersInfo@8" in Funktion "_getIpMaskForIpAddress".
 A. There is the Iphlpapi.lib library missing from the VC++ project
    (for the GetAdaptersInfo error) that you need to add:
