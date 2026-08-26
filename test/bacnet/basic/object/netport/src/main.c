@@ -104,6 +104,83 @@ static void test_network_port_name_description_write(void)
 }
 
 /**
+ * @brief Test WriteProperty of FD_BBMD_ADDRESS using the host choice NONE.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(netport_tests, test_network_port_fd_bbmd_address_write_none)
+#else
+static void test_network_port_fd_bbmd_address_write_none(void)
+#endif
+{
+    uint32_t object_instance = 1234;
+    bool status = false;
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_HOST_N_PORT host_n_port = { 0 };
+    const uint8_t ipv6_address[IP6_ADDRESS_MAX] = {
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
+    };
+    const uint16_t port = 47808;
+
+    for (unsigned i = 0; i < 2; i++) {
+        const uint32_t network_type = (i == 0) ? PORT_TYPE_BIP : PORT_TYPE_BIP6;
+
+        Network_Port_Init();
+        status = Network_Port_Object_Instance_Number_Set(0, object_instance);
+        zassert_true(status, NULL);
+        status = Network_Port_Type_Set(object_instance, network_type);
+        zassert_true(status, NULL);
+
+        if (network_type == PORT_TYPE_BIP) {
+            status = Network_Port_BIP_Mode_Set(
+                object_instance, BACNET_IP_MODE_FOREIGN);
+            zassert_true(status, NULL);
+            status = Network_Port_Remote_BBMD_IP_Address_Set(
+                object_instance, 1, 2, 3, 4);
+            zassert_true(status, NULL);
+            status =
+                Network_Port_Remote_BBMD_BIP_Port_Set(object_instance, port);
+            zassert_true(status, NULL);
+        } else {
+            status = Network_Port_BIP6_Mode_Set(
+                object_instance, BACNET_IP_MODE_FOREIGN);
+            zassert_true(status, NULL);
+            status = Network_Port_Remote_BBMD_IP6_Address_Set(
+                object_instance, ipv6_address);
+            zassert_true(status, NULL);
+            status =
+                Network_Port_Remote_BBMD_BIP6_Port_Set(object_instance, port);
+            zassert_true(status, NULL);
+        }
+
+        wp_data.object_type = OBJECT_NETWORK_PORT;
+        wp_data.object_instance = object_instance;
+        wp_data.array_index = BACNET_ARRAY_ALL;
+        wp_data.priority = BACNET_NO_PRIORITY;
+        wp_data.object_property = PROP_FD_BBMD_ADDRESS;
+        value.tag = BACNET_APPLICATION_TAG_HOST_N_PORT;
+        value.type.Host_Address.host_ip_address = false;
+        value.type.Host_Address.host_name = false;
+        value.type.Host_Address.port = port;
+        wp_data.application_data_len =
+            bacapp_encode_application_data(wp_data.application_data, &value);
+        zassert_true(wp_data.application_data_len > 0, NULL);
+
+        status = Network_Port_Write_Property(&wp_data);
+        zassert_true(status, NULL);
+
+        status =
+            Network_Port_Remote_BBMD_Address(object_instance, &host_n_port);
+        zassert_true(status, NULL);
+        zassert_false(host_n_port.host_ip_address, NULL);
+        zassert_false(host_n_port.host_name, NULL);
+        zassert_equal(host_n_port.port, port, NULL);
+
+        Network_Port_Cleanup();
+    }
+}
+
+/**
  * @brief Test
  */
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -1144,7 +1221,8 @@ void test_main(void)
         ztest_unit_test(test_network_port_sc_direct_connect_accept_uri),
         ztest_unit_test(test_network_port_sc_certificates),
         ztest_unit_test(test_network_port_sc_status_encode_decode),
-        ztest_unit_test(test_network_port_name_description_write));
+        ztest_unit_test(test_network_port_name_description_write),
+        ztest_unit_test(test_network_port_fd_bbmd_address_write_none));
 
     ztest_run_test_suite(netport_tests);
 }
