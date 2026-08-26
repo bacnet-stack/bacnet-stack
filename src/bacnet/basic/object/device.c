@@ -1400,7 +1400,6 @@ static const int32_t Device_Properties_Optional[] = {
     PROP_MAX_MASTER,
     PROP_MAX_INFO_FRAMES,
 #endif
-    PROP_MAX_SEGMENTS_ACCEPTED,
     PROP_DESCRIPTION,
     PROP_LOCAL_TIME,
     PROP_UTC_OFFSET,
@@ -3222,10 +3221,6 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_SEGMENTATION_SUPPORTED:
             apdu_len = encode_application_enumerated(
                 &apdu[0], Device_Segmentation_Supported());
-            break;
-        case PROP_MAX_SEGMENTS_ACCEPTED:
-            apdu_len = encode_application_unsigned(
-                &apdu[0], BACNET_MAX_SEGMENTS_ACCEPTED);
             break;
         case PROP_APDU_TIMEOUT:
             apdu_len = encode_application_unsigned(&apdu[0], apdu_timeout());
