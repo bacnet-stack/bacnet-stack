@@ -13,7 +13,7 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [unreleased] - 2026-08-12
+## [unreleased] - 2026-08-26
 
 ### Security
 
@@ -66,6 +66,9 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added test-filter Makefile target to use TEST_FILTER regular expression
+  to filter and run only the tests with matching names.
+* Added BACnet Character CString support with helper functions (#1474)
 * Added callback handlers for confirmed and unconfirmed private
   transfer services. (#1471)
 * Added Analog Input object limit API functions including:
@@ -108,6 +111,8 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed the basic objects to use character cstrings for object-name
+  and description properties and are writable and able to be restored. (#1477)
 * Changed location of datetime_mstimer module for time management to
   src/bacnet/basic/datetime instead of sys so it isn't included by default
   in core library.(#1463)
@@ -133,6 +138,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed leaky memory management of Keylist based List properties
+  in the basic Audit Log, Command, Load Control, Life Safety Zone,
+  Multistate, Network Port, and Structured View objects (#1479)
 * Fixed compiler warnings by using appropriate types and qualifiers. (#1476)
 * Fixed circular dependency in bacnet_stack_exports.h file.
 * Fixed win32 datetime management with cross-compiler support and
