@@ -44,6 +44,9 @@ static uint8_t Temp_Buf[MAX_APDU] = { 0 };
  * to fetch.
  * @param index The index of the property to fetch.
  * @return The property ID or -1 if not found.
+ * @note For PROP_ALL with protocol revision >= 14, PROP_PROPERTY_LIST is
+ * appended as the last entry, since it is intentionally absent from the
+ * Required/Optional/Proprietary lists.
  */
 static BACNET_PROPERTY_ID RPM_Object_Property(
     struct special_property_list_t *pPropertyList,
@@ -65,6 +68,10 @@ static BACNET_PROPERTY_ID RPM_Object_Property(
         } else if (index < (required + optional + proprietary)) {
             index -= (required + optional);
             property = pPropertyList->Proprietary.pList[index];
+#if (BACNET_PROTOCOL_REVISION >= 14)
+        } else if (index == (required + optional + proprietary)) {
+            property = PROP_PROPERTY_LIST;
+#endif
         }
     } else if (special_property == PROP_REQUIRED) {
         if (index < required) {
@@ -88,6 +95,9 @@ static BACNET_PROPERTY_ID RPM_Object_Property(
  * @param special_property The special property ALL, REQUIRED, or OPTIONAL
  * to fetch.
  * @return The number of properties.
+ * @note For PROP_ALL with protocol revision >= 14, the count includes
+ * PROP_PROPERTY_LIST, which is intentionally absent from the Required/
+ * Optional/Proprietary lists.
  */
 static unsigned RPM_Object_Property_Count(
     struct special_property_list_t *pPropertyList,
@@ -98,6 +108,10 @@ static unsigned RPM_Object_Property_Count(
     if (special_property == PROP_ALL) {
         count = pPropertyList->Required.count + pPropertyList->Optional.count +
             pPropertyList->Proprietary.count;
+#if (BACNET_PROTOCOL_REVISION >= 14)
+        /* account for the implicit PROP_PROPERTY_LIST entry */
+        count += 1;
+#endif
     } else if (special_property == PROP_REQUIRED) {
         count = pPropertyList->Required.count;
     } else if (special_property == PROP_OPTIONAL) {
