@@ -1822,6 +1822,10 @@ uint32_t Structured_View_Create(uint32_t object_instance)
         pObject->Description = NULL;
         pObject->Node_Subtype = NULL;
         pObject->Subordinate_List = Keylist_Create();
+        if (!pObject->Subordinate_List) {
+            free(pObject);
+            return BACNET_MAX_INSTANCE;
+        }
         pObject->Default_Subordinate_Relationship = BACNET_RELATIONSHIP_DEFAULT;
         pObject->Represents.deviceIdentifier.type = OBJECT_NONE;
         pObject->Represents.deviceIdentifier.instance = BACNET_MAX_INSTANCE;
@@ -1831,6 +1835,7 @@ uint32_t Structured_View_Create(uint32_t object_instance)
         /* add to list */
         index = Keylist_Data_Add(Object_List, object_instance, pObject);
         if (index < 0) {
+            Keylist_Delete(pObject->Subordinate_List);
             free(pObject);
             return BACNET_MAX_INSTANCE;
         }

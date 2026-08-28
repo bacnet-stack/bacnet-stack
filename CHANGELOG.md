@@ -60,6 +60,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed leaky memory management of Keylist based List properties
+  in the basic Audit Log, Load Control, Life Safety Zone,
+  Multistate, Network Port, and Structured View objects (#1479)
 * Fixed compiler warnings by using appropriate types and qualifiers. (#1476)
 * Fixed circular dependency in bacnet_stack_exports.h file.
 * Fixed win32 datetime management with cross-compiler support and
