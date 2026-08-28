@@ -55,6 +55,9 @@ The git repositories are hosted at the following sites:
 
 * Fixed basic network port object to allow clearing of previously
   set remote BBMD address in Network_Port_FD_BBMD_Address_Write. (#1482)
+* Fixed leaky memory management of Keylist based List properties
+  in the basic Audit Log, Load Control, Life Safety Zone,
+  Network Port, and Structured View objects (#1479)
 * Fixed wire data length for COBS extended frames in apps/mstpcap by
   skipping CRC in-place modifications in the MSTP receive state machine
   for raw captures. Changed MSTP forced reply-postponed handling
