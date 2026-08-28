@@ -3792,6 +3792,10 @@ static bool Network_Port_FD_BBMD_Address_Write(
                  (bacnet_is_valid_hostname(&value->host.name)))) {
                 status = Network_Port_Remote_BBMD_Address_Set(
                     object_instance, value);
+            } else if ((!value->host_ip_address) && (!value->host_name)) {
+                /* clearing a previously set remote BBMD address */
+                status = Network_Port_Remote_BBMD_Address_Set(
+                    object_instance, value);
             }
             if (!status) {
                 *error_class = ERROR_CLASS_PROPERTY;
@@ -3809,6 +3813,10 @@ static bool Network_Port_FD_BBMD_Address_Write(
                  (value->host.ip_address.length == 16)) ||
                 ((value->host_name) &&
                  (bacnet_is_valid_hostname(&value->host.name)))) {
+                status = Network_Port_Remote_BBMD_Address_Set(
+                    object_instance, value);
+            } else if ((!value->host_ip_address) && (!value->host_name)) {
+                /* clearing a previously set remote BBMD address */
                 status = Network_Port_Remote_BBMD_Address_Set(
                     object_instance, value);
             }

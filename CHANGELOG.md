@@ -49,6 +49,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed Network Port remote BBMD address setting to allow clearing of
+  previously set value in Network_Port_FD_BBMD_Address_Write. (#1482)
 * Fixed BBMD handler to send Delete-Foreign-Device to the BBMD, not a
   zeroed address. (#1457)
 * Fixed wire data length for COBS extended frames in apps/mstpcap by
