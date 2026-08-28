@@ -74,6 +74,14 @@ The git repositories are hosted at the following sites:
   has no such warning and rejects the option outright. (#1450)
 * Fixed BACnet/SC network port object by updating certificate file property
   handling to use object ID encoding. (#1447)
+* Fixed bacnet_action_command_decode() that truncated Post_Delay to
+  8 bits (#1423)
+* Fixed typos in comments and docs (#1418)
+
+### Removed
+
+* Removed deprecated Borland build tools and related files (#1483)
+* Removed unused Network_Port_SC_Direct_Connect_Accept_URIs_Dirty_Set function.
 
 ## [1.6.0] - 2026-07-04
 
