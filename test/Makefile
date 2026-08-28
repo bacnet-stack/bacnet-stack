@@ -50,6 +50,15 @@ ifeq (${JOBS},)
 	endif
 endif
 
+# default test filter to run some tests using regex, e.g. "test_device" or "test_bacnet"
+TEST_FILTER ?= test_device
+
+.PHONY: test-filter
+test-filter:
+	[ -d $(BUILD_DIR) ] || mkdir -p $(BUILD_DIR)
+	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake .. && cd ..
+	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && ctest --clean-first --output-on-failure -R $(TEST_FILTER) && cd ..
+
 .PHONY: test
 test:
 	[ -d $(BUILD_DIR) ] || mkdir -p $(BUILD_DIR)

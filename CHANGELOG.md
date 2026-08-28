@@ -92,6 +92,11 @@ The git repositories are hosted at the following sites:
 * Removed deprecated Borland build tools and related files (#1483)
 * Removed unused Network_Port_SC_Direct_Connect_Accept_URIs_Dirty_Set function.
 
+### Added
+
+* Added test-filter Makefile target to use TEST_FILTER regular expression
+  to filter and run only the tests with matching names.
+
 ## [1.6.0] - 2026-07-04
 
 ### Security
