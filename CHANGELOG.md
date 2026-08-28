@@ -138,6 +138,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed basic network port object to allow clearing of previously
+  set remote BBMD address in Network_Port_FD_BBMD_Address_Write. (#1482)
 * Fixed leaky memory management of Keylist based List properties
   in the basic Audit Log, Command, Load Control, Life Safety Zone,
   Multistate, Network Port, and Structured View objects (#1479)
@@ -175,6 +177,7 @@ The git repositories are hosted at the following sites:
 
 ### Removed
 
+* Removed deprecated Borland build tools and related files (#1483)
 * Removed unused Network_Port_SC_Direct_Connect_Accept_URIs_Dirty_Set function.
 
 ## [1.6.0] - 2026-07-04
