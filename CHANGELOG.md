@@ -60,6 +60,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed compiler warnings by using appropriate types and qualifiers. (#1476)
 * Fixed circular dependency in bacnet_stack_exports.h file.
 * Fixed win32 datetime management with cross-compiler support and
   time offset calculations supporting soft BACnet TimeSync. (#1463)
