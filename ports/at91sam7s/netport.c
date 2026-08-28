@@ -308,6 +308,7 @@ bool Network_Port_MAC_Address(
 bool Network_Port_MAC_Address_Set(
     uint32_t object_instance, const uint8_t *mac_src, uint8_t mac_len)
 {
+    (void)object_instance;
     if (mac_len == 1) {
         Object_List[0].MAC_Address[0] = mac_src[0];
         Object_List[0].Changes_Pending = true;
@@ -354,6 +355,7 @@ float Network_Port_Link_Speed(uint32_t object_instance)
  */
 static unsigned Network_Port_Link_Speeds_Count(uint32_t object_instance)
 {
+    (void)object_instance;
     return ARRAY_SIZE(Link_Speeds);
 }
 

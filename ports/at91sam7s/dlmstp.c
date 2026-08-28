@@ -1134,6 +1134,7 @@ uint16_t dlmstp_receive(BACNET_ADDRESS *src, /* source address */
 { /* milliseconds to wait for a packet */
     uint16_t pdu_len = 0; /* return value */
 
+    (void)timeout; /* unused parameter */
     /* set the input buffer to the same data storage for zero copy */
     if (!InputBuffer) {
         InputBuffer = pdu;
