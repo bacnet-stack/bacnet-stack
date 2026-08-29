@@ -377,8 +377,9 @@ bool CharacterString_Value_Present_Value_Set(
         CharacterString_Value_Object(object_instance);
 
     if (pObject) {
-        pObject->Changed =
-            !characterstring_same(&pObject->Present_Value, present_value);
+        if (!characterstring_same(&pObject->Present_Value, present_value)) {
+            pObject->Changed = true;
+        }
 
         status = characterstring_copy(&pObject->Present_Value, present_value);
     }
