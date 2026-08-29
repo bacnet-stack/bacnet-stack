@@ -17,6 +17,17 @@
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 
+/**
+ * @brief Callback for gateway write present value request
+ * @param  object_instance - object-instance number of the object
+ * @param  old_value - unsigned integer accumulator value prior to write
+ * @param  value - unsigned integer accumulator value of the write
+ */
+typedef void (*accumulator_write_present_value_callback)(
+    uint32_t object_instance,
+    BACNET_UNSIGNED_INTEGER old_value,
+    BACNET_UNSIGNED_INTEGER value);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -73,6 +84,10 @@ BACNET_STACK_EXPORT
 int Accumulator_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);
 BACNET_STACK_EXPORT
 bool Accumulator_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
+
+BACNET_STACK_EXPORT
+void Accumulator_Write_Present_Value_Callback_Set(
+    accumulator_write_present_value_callback cb);
 
 BACNET_STACK_EXPORT
 BACNET_UNSIGNED_INTEGER Accumulator_Present_Value(uint32_t object_instance);

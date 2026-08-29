@@ -33,6 +33,9 @@ static OS_Keylist Object_Lists[MAX_NUM_DEVICES];
 #endif
 /* common object type */
 static const BACNET_OBJECT_TYPE Object_Type = OBJECT_ACCUMULATOR;
+/* callback for present value writes */
+static accumulator_write_present_value_callback
+    Accumulator_Write_Present_Value_Callback;
 
 struct object_data {
     BACNET_UNSIGNED_INTEGER Present_Value;
@@ -768,6 +771,54 @@ static bool Accumulator_Description_Write(
 }
 
 /**
+ * @brief For a given object instance-number, writes the present-value
+ * @param  object_instance - object-instance number of the object
+ * @param  value - BACNET_UNSIGNED_INTEGER value
+ * @param  error_class - the BACnet error class
+ * @param  error_code - BACnet Error code
+ * @return  true if values are within range and present-value is set.
+ */
+static bool Accumulator_Present_Value_Write(
+    uint32_t object_instance,
+    BACNET_UNSIGNED_INTEGER value,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
+{
+    bool status = false;
+    struct object_data *pObject;
+    BACNET_UNSIGNED_INTEGER old_value = 0;
+    BACNET_UNSIGNED_INTEGER new_value = 0;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        if (value <= pObject->Max_Pres_Value) {
+            old_value = Accumulator_Present_Value(object_instance);
+            Accumulator_Present_Value_Set(object_instance, value);
+            if (pObject->Out_Of_Service) {
+                /* The physical point that the object represents
+                    is not in service. This means that changes to the
+                    Present_Value property are decoupled from the
+                    physical point when the value of Out_Of_Service
+                    is true. */
+            } else if (Accumulator_Write_Present_Value_Callback) {
+                new_value = Accumulator_Present_Value(object_instance);
+                Accumulator_Write_Present_Value_Callback(
+                    object_instance, old_value, new_value);
+            }
+            status = true;
+        } else {
+            *error_class = ERROR_CLASS_PROPERTY;
+            *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        }
+    } else {
+        *error_class = ERROR_CLASS_OBJECT;
+        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
  * WriteProperty handler for this object.  For the given WriteProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -802,15 +853,9 @@ bool Accumulator_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
-                if (value.type.Unsigned_Int <=
-                    Accumulator_Max_Pres_Value(wp_data->object_instance)) {
-                    Accumulator_Present_Value_Set(
-                        wp_data->object_instance, value.type.Unsigned_Int);
-                } else {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                    status = false;
-                }
+                status = Accumulator_Present_Value_Write(
+                    wp_data->object_instance, value.type.Unsigned_Int,
+                    &wp_data->error_class, &wp_data->error_code);
             }
             break;
         case PROP_OBJECT_NAME:
@@ -889,6 +934,16 @@ bool Accumulator_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
 
     return status;
+}
+
+/**
+ * @brief Sets a callback used when present-value is written from BACnet
+ * @param cb - callback used to provide indications
+ */
+void Accumulator_Write_Present_Value_Callback_Set(
+    accumulator_write_present_value_callback cb)
+{
+    Accumulator_Write_Present_Value_Callback = cb;
 }
 
 /**
