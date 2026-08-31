@@ -29,6 +29,10 @@ uint16_t npdu_network_number(void);
 BACNET_STACK_EXPORT
 void npdu_network_number_set(uint16_t net);
 BACNET_STACK_EXPORT
+uint8_t npdu_network_number_status(void);
+BACNET_STACK_EXPORT
+void npdu_network_number_status_set(uint8_t status);
+BACNET_STACK_EXPORT
 int npdu_send_network_number_is(
     BACNET_ADDRESS *dst, uint16_t net, uint8_t status);
 BACNET_STACK_EXPORT
