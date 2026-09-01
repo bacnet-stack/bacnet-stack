@@ -70,6 +70,28 @@ void npdu_network_number_set(uint16_t net)
 }
 
 /**
+ * @brief get the local network number status
+ * @return local network number status
+ * @see NETWORK_NUMBER_LEARNED
+ * @see NETWORK_NUMBER_ASSIGNED
+ */
+uint8_t npdu_network_number_status(void)
+{
+    return Local_Network_Number_Status;
+}
+
+/**
+ * @brief set the local network number status
+ * @param status - local network number status
+ * @see NETWORK_NUMBER_LEARNED
+ * @see NETWORK_NUMBER_ASSIGNED
+ */
+void npdu_network_number_status_set(uint8_t status)
+{
+    Local_Network_Number_Status = status;
+}
+
+/**
  * @brief send the local network number is message
  * @param dst - the destination address for the message
  * @param net - local network number

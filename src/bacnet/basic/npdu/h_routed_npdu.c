@@ -18,6 +18,7 @@
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 #include "bacnet/bactext.h"
+#include "bacnet/basic/npdu/h_npdu.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/services.h"
@@ -148,7 +149,21 @@ static void network_control_handler(
             /* Do nothing - don't support PTP half-router control */
             break;
         case NETWORK_MESSAGE_WHAT_IS_NETWORK_NUMBER:
-            /* FIXME: add procedure for this message */
+            if (src->net == 0) {
+                if (npdu_network_number()) {
+                    npdu_send_network_number_is(
+                        src, npdu_network_number(),
+                        npdu_network_number_status());
+                } else {
+                    /*  Upon receipt of a What-Is-Network-Number message,
+                        a device that does not know the local network number
+                        shall discard the message. */
+                }
+            } else {
+                /*  Devices shall ignore What-Is-Network-Number messages
+                    that contain SNET/SADR or DNET/DADR information in
+                    the NPCI. */
+            }
             break;
         case NETWORK_MESSAGE_NETWORK_NUMBER_IS:
             /* FIXME: add procedure for this message */
