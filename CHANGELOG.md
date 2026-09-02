@@ -13,7 +13,7 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [unreleased] - 2026-08-26
+## [Unreleased] - 2026-09-02
 
 ### Security
 
@@ -66,6 +66,10 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added What-Is-Network-Number support to h_routed_npdu(). (#1489)
+* Added write present-value callback to the Accumulator object. The callback
+  is called with the old and new value after a successful Present_Value
+  WriteProperty when Out_Of_Service is not set. (#1485)
 * Added test-filter Makefile target to use TEST_FILTER regular expression
   to filter and run only the tests with matching names.
 * Added BACnet Character CString support with helper functions (#1474)
@@ -111,6 +115,8 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed the github workflow to allow ESP32 port build to continue
+  despite upstream toolchain issues. (#1487)
 * Changed the basic objects to use character cstrings for object-name
   and description properties and are writable and able to be restored. (#1477)
 * Changed location of datetime_mstimer module for time management to
@@ -138,11 +144,19 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed compiler warnings by adding setenv implementation for MinGW/MSVC.
+* Fixed MinGW buggy warnings for isinfinite(), isnan(), and isinf()
+  when used with double arguments.
+* Fixed Network Port object IPv4 to use the actual IPv4 settings
+  instead of 0.0.0.0 due to calling dlenv_network_port_bip_init()
+  before calling datalink_init(). (#1491)
+* Fixed the CharacterString Value object changed flag that was able to
+  be cleared by writing an unchanged value to it. (#1484)
 * Fixed basic network port object to allow clearing of previously
   set remote BBMD address in Network_Port_FD_BBMD_Address_Write. (#1482)
 * Fixed leaky memory management of Keylist based List properties
   in the basic Audit Log, Command, Load Control, Life Safety Zone,
-  Multistate, Network Port, and Structured View objects (#1479)
+  Multistate, Network Port, and Structured View objects. (#1479)
 * Fixed compiler warnings by using appropriate types and qualifiers. (#1476)
 * Fixed circular dependency in bacnet_stack_exports.h file.
 * Fixed win32 datetime management with cross-compiler support and
@@ -177,6 +191,7 @@ The git repositories are hosted at the following sites:
 
 ### Removed
 
+* Removed unnecessary platform include from bacapp.c
 * Removed deprecated Borland build tools and related files (#1483)
 * Removed unused Network_Port_SC_Direct_Connect_Accept_URIs_Dirty_Set function.
 
