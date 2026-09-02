@@ -421,7 +421,8 @@ static bool Multistate_Output_Relinquish_Default_Write(
  * @brief For a given object instance-number, sets the present-value
  * @param  object_instance - object-instance number of the object
  * @param  value - integer multi-state value 1..N
- * @param  priority - priority-array index value 1..16
+ * @param  priority - priority-array index value 1..16, excluding 6
+ *  (reserved for Minimum On/Off)
  * @return  true if values are within range and present-value is set.
  */
 bool Multistate_Output_Present_Value_Set(
@@ -457,7 +458,8 @@ bool Multistate_Output_Present_Value_Set(
  * @brief For a given object instance-number, sets the present-value
  * @param  object_instance - object-instance number of the object
  * @param  state_name - state name to set the present value to
- * @param  priority - priority-array index value 1..16
+ * @param  priority - priority-array index value 1..16, excluding 6
+ *  (reserved for Minimum On/Off)
  * @return  true if value is within range and present-value is set.
  */
 bool Multistate_Output_Present_Value_By_Name_Set(
@@ -531,7 +533,8 @@ uint32_t Multistate_Output_Priority_Array_Value(
 /**
  * @brief For a given object instance-number, relinquishes the present-value
  * @param  object_instance - object-instance number of the object
- * @param  priority - priority-array index value 1..16
+ * @param  priority - priority-array index value 1..16, excluding 6
+ *  (reserved for Minimum On/Off)
  * @return  true if values are within range and present-value is relinquished.
  */
 bool Multistate_Output_Present_Value_Relinquish(
