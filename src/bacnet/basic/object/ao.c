@@ -364,6 +364,7 @@ bool Analog_Output_Present_Value_Set(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY) &&
+            (priority != 6 /* reserved */) &&
             isgreaterequal(value, pObject->Min_Pres_Value) &&
             islessequal(value, pObject->Max_Pres_Value)) {
             pObject->Relinquished[priority - 1] = false;
@@ -391,7 +392,8 @@ bool Analog_Output_Present_Value_Relinquish(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+        if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY) &&
+            (priority != 6 /* reserved */)) {
             pObject->Relinquished[priority - 1] = true;
             pObject->Priority_Array[priority - 1] = 0.0f;
             Analog_Output_Present_Value_COV_Detect(
