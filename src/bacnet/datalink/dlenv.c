@@ -360,12 +360,14 @@ static void bip_network_port_discard_changes(uint32_t instance)
 
 /**
  * Datalink network port object settings
+ *
+ * Don't forget to later call dlenv_network_port_bip_update after datalink
+ * is initialized.
  */
 static void dlenv_network_port_bip_init(uint32_t instance)
 {
 #if defined(BACDL_BIP)
     BACNET_IP_ADDRESS addr = { 0 };
-    uint8_t prefix = 0;
     uint8_t addr0, addr1, addr2, addr3;
     char *pEnv = NULL;
     BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_table = NULL;
@@ -415,29 +417,7 @@ static void dlenv_network_port_bip_init(uint32_t instance)
             bvlc_set_global_address_for_nat(&addr);
         }
     }
-    /* IP Address */
-    bip_get_addr(&addr);
-    prefix = bip_get_subnet_prefix();
-    debug_log_fprintf(
-        DEBUG_LOG_DEBUG, stderr,
-        "BIP: Setting Network Port %lu address %u.%u.%u.%u:%u/%u\n",
-        (unsigned long)instance, (unsigned)addr.address[0],
-        (unsigned)addr.address[1], (unsigned)addr.address[2],
-        (unsigned)addr.address[3], (unsigned)addr.port, (unsigned)prefix);
-    Network_Port_BIP_Port_Set(instance, addr.port);
-    Network_Port_IP_Address_Set(
-        instance, addr.address[0], addr.address[1], addr.address[2],
-        addr.address[3]);
-    Network_Port_IP_Subnet_Prefix_Set(instance, prefix);
     Network_Port_Link_Speed_Set(instance, 0.0);
-    /* IP Gateway */
-    if (bip_get_gateway_addr(&addr)) {
-        Network_Port_IP_Gateway_Set(
-            instance, addr.address[0], addr.address[1], addr.address[2],
-            addr.address[3]);
-    } else {
-        Network_Port_IP_Gateway_Set(instance, 0, 0, 0, 0);
-    }
 #if BBMD_ENABLED
     bdt_table = bvlc_bdt_list();
     fdt_table = bvlc_fdt_list();
@@ -466,6 +446,48 @@ static void dlenv_network_port_bip_init(uint32_t instance)
         instance, bip_network_port_activate_changes);
     Network_Port_Changes_Pending_Discard_Callback_Set(
         instance, bip_network_port_discard_changes);
+}
+
+/**
+ * @brief Refresh Network Port BACnet/IP address, port, subnet and gateway
+ *
+ * Do nothing if BACnet/IP support is not built or is not enabled.
+ *
+ * This function must be called after datalink_init has bound the socket,
+ * since only then is the real interface address known.
+ */
+static void dlenv_network_port_bip_update(uint32_t instance)
+{
+#if defined(BACDL_BIP)
+    BACNET_IP_ADDRESS addr = { 0 };
+    uint8_t prefix = 0;
+
+    /* IP Address */
+    bip_get_addr(&addr);
+    prefix = bip_get_subnet_prefix();
+    debug_log_fprintf(
+        DEBUG_LOG_DEBUG, stderr,
+        "BIP: Setting Network Port %lu address %u.%u.%u.%u:%u/%u\n",
+        (unsigned long)instance, (unsigned)addr.address[0],
+        (unsigned)addr.address[1], (unsigned)addr.address[2],
+        (unsigned)addr.address[3], (unsigned)addr.port, (unsigned)prefix);
+    Network_Port_BIP_Port_Set(instance, addr.port);
+    Network_Port_IP_Address_Set(
+        instance, addr.address[0], addr.address[1], addr.address[2],
+        addr.address[3]);
+    Network_Port_IP_Subnet_Prefix_Set(instance, prefix);
+
+    /* IP Gateway */
+    if (bip_get_gateway_addr(&addr)) {
+        Network_Port_IP_Gateway_Set(
+            instance, addr.address[0], addr.address[1], addr.address[2],
+            addr.address[3]);
+    } else {
+        Network_Port_IP_Gateway_Set(instance, 0, 0, 0, 0);
+    }
+#else
+    (void)instance;
+#endif
 }
 
 /**
@@ -656,6 +678,7 @@ void dlenv_network_port_bsc_init(uint32_t instance)
     char *hub_binding;
     char *direct_connect_initiate;
     char *direct_connect_accept_urls;
+    char *selfsigned_enabled;
     uint32_t file_instance;
     char c;
 
@@ -669,6 +692,12 @@ void dlenv_network_port_bsc_init(uint32_t instance)
     hub_binding = getenv("BACNET_SC_HUB_FUNCTION_BINDING");
     direct_connect_initiate = getenv("BACNET_SC_DIRECT_CONNECT_INITIATE");
     direct_connect_accept_urls = getenv("BACNET_SC_DIRECT_CONNECT_ACCEPT_URLS");
+    selfsigned_enabled = getenv("BACNET_SC_SELFSIGNED_ENABLED");
+    /* Local-only runtime toggle: never exposed as a Network_Port
+       property, since that would allow a remote WriteProperty to
+       weaken TLS certificate validation. */
+    c = selfsigned_enabled ? selfsigned_enabled[0] : '0';
+    bws_cli_set_selfsigned_enabled((c != '0') && (c != 'n') && (c != 'N'));
 #endif
     if (getenv("BACNET_SC_DEBUG")) {
         dlenv_debug_enable();
@@ -1094,6 +1123,9 @@ void dlenv_init_no_device_registration(uint8_t port_type)
         exit(1);
     }
     /* === POST INIT - After the Datalink is Initialized === */
+    if (port_type == PORT_TYPE_BIP) {
+        dlenv_network_port_bip_update(Network_Port_Instance);
+    }
 #if (MAX_TSM_TRANSACTIONS)
     pEnv = getenv("BACNET_INVOKE_ID");
     if (pEnv) {

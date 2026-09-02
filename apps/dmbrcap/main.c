@@ -1,7 +1,9 @@
 /**
  * @file
- * @brief Device Management-Backup and Restore tool that generates
- *  a Wireshark PCAP format file from a CreateObject services encoded file.
+ * @brief Device Management-Backup and Restore tool that converts between
+ *  a Wireshark PCAP format file and a CreateObject services encoded
+ *  backup file. Use --pcap <filename> to convert a PCAP capture back
+ *  into a BACnet binary backup/restore file.
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date February 2026
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
@@ -31,6 +33,9 @@ static FILE *Capture_File_Handle = NULL; /* stream pointer */
 static FILE *Backup_File_Handle = NULL; /* stream pointer */
 static long Backup_File_Start_Position;
 static long Backup_File_Packet_Counter;
+/* reverse mode: PCAP capture file -> BACnet binary backup file */
+static FILE *Pcap_File_Handle = NULL; /* stream pointer */
+static FILE *Restore_File_Handle = NULL; /* stream pointer */
 
 /**
  * @brief Write data to the capture file.
@@ -180,6 +185,138 @@ static bool open_backup_file(const char *filename)
 }
 
 /**
+ * @brief Open a PCAP capture file for reading (reverse mode).
+ * @param filename Path to the PCAP capture file to open
+ * @return true if the file was successfully opened, false otherwise
+ */
+static bool open_pcap_file(const char *filename)
+{
+    Pcap_File_Handle = fopen(filename, "rb");
+    if (Pcap_File_Handle) {
+        fprintf(stdout, "dmbrcap: reading capture from %s\n", filename);
+        return true;
+    }
+    fprintf(
+        stderr, "dmbrcap: failed to open %s: %s\n", filename, strerror(errno));
+
+    return false;
+}
+
+/**
+ * @brief Create/open a BACnet binary backup file for writing (reverse mode).
+ * @param filename Path to the backup file to create
+ * @return true if the file was successfully opened, false otherwise
+ */
+static bool create_restore_file(const char *filename)
+{
+    Restore_File_Handle = fopen(filename, "wb");
+    if (Restore_File_Handle) {
+        fprintf(stdout, "dmbrcap: saving backup to %s\n", filename);
+        return true;
+    }
+    fprintf(
+        stderr, "dmbrcap: failed to open %s: %s\n", filename, strerror(errno));
+
+    return false;
+}
+
+/**
+ * @brief Read and validate the libpcap global header from a capture file.
+ * @param fp Pointer to the open PCAP capture file
+ * @return true if a valid libpcap global header was read, false otherwise
+ */
+static bool pcap_read_global_header(FILE *fp)
+{
+    uint32_t magic_number = 0;
+    uint16_t version_major = 0;
+    uint16_t version_minor = 0;
+    int32_t thiszone = 0;
+    uint32_t sigfigs = 0;
+    uint32_t snaplen = 0;
+    uint32_t network = 0;
+
+    if (!fp) {
+        return false;
+    }
+    if ((fread(&magic_number, sizeof(magic_number), 1, fp) != 1) ||
+        (fread(&version_major, sizeof(version_major), 1, fp) != 1) ||
+        (fread(&version_minor, sizeof(version_minor), 1, fp) != 1) ||
+        (fread(&thiszone, sizeof(thiszone), 1, fp) != 1) ||
+        (fread(&sigfigs, sizeof(sigfigs), 1, fp) != 1) ||
+        (fread(&snaplen, sizeof(snaplen), 1, fp) != 1) ||
+        (fread(&network, sizeof(network), 1, fp) != 1)) {
+        return false;
+    }
+    if (magic_number != 0xa1b2c3d4) {
+        fprintf(stderr, "dmbrcap: unsupported capture file format\n");
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Extract the next CreateObject service request from a PCAP
+ *  capture file and write its encoded bytes to the backup file.
+ *
+ * Reads the next packet record from the PCAP file, skips the Ethernet
+ * and LLC/SNAP framing and BACnet NPDU header, verifies the APDU is a
+ * Confirmed CreateObject service request, then writes the raw encoded
+ * service request bytes to the backup file.
+ * @return Number of bytes written to the backup file, or 0 if no more
+ *  packets are available or the packet is not a CreateObject request
+ */
+static size_t pcap_file_packet(void)
+{
+    uint32_t ts_sec = 0, ts_usec = 0, incl_len = 0, orig_len = 0;
+    uint8_t packet[1550] = { 0 };
+    BACNET_NPDU_DATA npdu_data = { 0 };
+    int npdu_len = 0;
+    size_t apdu_offset = 0, service_len = 0, written = 0;
+
+    if (!Pcap_File_Handle || !Restore_File_Handle) {
+        return 0;
+    }
+    if ((fread(&ts_sec, sizeof(ts_sec), 1, Pcap_File_Handle) != 1) ||
+        (fread(&ts_usec, sizeof(ts_usec), 1, Pcap_File_Handle) != 1) ||
+        (fread(&incl_len, sizeof(incl_len), 1, Pcap_File_Handle) != 1) ||
+        (fread(&orig_len, sizeof(orig_len), 1, Pcap_File_Handle) != 1)) {
+        return 0;
+    }
+    if ((incl_len == 0) || (incl_len > sizeof(packet)) || (incl_len < 17)) {
+        return 0;
+    }
+    if (fread(packet, sizeof(uint8_t), incl_len, Pcap_File_Handle) !=
+        incl_len) {
+        return 0;
+    }
+    /* skip Ethernet header (12 addr + 2 length) and LLC/SNAP (3) */
+    npdu_len = bacnet_npdu_decode(
+        &packet[17], (uint16_t)(incl_len - 17), NULL, NULL, &npdu_data);
+    if (npdu_len <= 0) {
+        return 0;
+    }
+    apdu_offset = 17 + (size_t)npdu_len;
+    /* BACnet APDU header: pdu-type, max-segs/max-apdu, invoke-id, service */
+    if ((apdu_offset + 4) > incl_len) {
+        return 0;
+    }
+    if ((packet[apdu_offset] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST) ||
+        (packet[apdu_offset + 3] != SERVICE_CONFIRMED_CREATE_OBJECT)) {
+        return 0;
+    }
+    service_len = incl_len - (apdu_offset + 4);
+    if (service_len == 0) {
+        return 0;
+    }
+    written = fwrite(
+        &packet[apdu_offset + 4], sizeof(uint8_t), service_len,
+        Restore_File_Handle);
+
+    return written;
+}
+
+/**
  * @brief Extract and convert the next packet from the backup file.
  *
  * Reads the next CreateObject service request from the backup file,
@@ -273,6 +410,15 @@ static void cleanup(void)
         fclose(Backup_File_Handle);
     }
     Backup_File_Handle = NULL;
+    if (Pcap_File_Handle) {
+        fclose(Pcap_File_Handle);
+    }
+    Pcap_File_Handle = NULL;
+    if (Restore_File_Handle) {
+        fflush(Restore_File_Handle);
+        fclose(Restore_File_Handle);
+    }
+    Restore_File_Handle = NULL;
 }
 
 /**
@@ -282,6 +428,7 @@ static void cleanup(void)
 static void print_usage(const char *filename)
 {
     printf("Usage: %s <filename>", filename);
+    printf(" [--pcap <filename>]");
     printf(" [--version][--help]\n");
 }
 
@@ -294,6 +441,13 @@ static void print_help(const char *filename)
     printf(
         "%s <filename>\n"
         "convert a backup file into a capture file.\n",
+        filename);
+    printf("\n");
+    printf(
+        "%s --pcap <filename> <filename>\n"
+        "convert a capture file into a backup file. The first\n"
+        "<filename> is the PCAP capture file to read, and the\n"
+        "second <filename> is the backup file to create.\n",
         filename);
     printf("\n");
 }
@@ -312,6 +466,8 @@ static void print_help(const char *filename)
 int main(int argc, char *argv[])
 {
     const char *filename = NULL;
+    const char *pcap_filename = NULL;
+    const char *output_filename = NULL;
     int argi = 0;
 
     /* decode any command line parameters */
@@ -331,7 +487,45 @@ int main(int argc, char *argv[])
                    "FITNESS FOR A PARTICULAR PURPOSE.\n");
             return 0;
         }
-        if (!open_backup_file(argv[argi])) {
+        if (strcmp(argv[argi], "--pcap") == 0) {
+            argi++;
+            if (argi < argc) {
+                pcap_filename = argv[argi];
+            }
+            continue;
+        }
+        output_filename = argv[argi];
+    }
+    /* reverse mode: PCAP capture file -> BACnet binary backup file */
+    if (pcap_filename) {
+        if (!output_filename) {
+            print_usage(filename);
+            return 1;
+        }
+        if (!open_pcap_file(pcap_filename)) {
+            return 1;
+        }
+        if (!create_restore_file(output_filename)) {
+            return 1;
+        }
+        atexit(cleanup);
+        if (!pcap_read_global_header(Pcap_File_Handle)) {
+            return 1;
+        }
+        while (pcap_file_packet() > 0) {
+            Backup_File_Packet_Counter++;
+        }
+        if (Backup_File_Packet_Counter) {
+            fprintf(
+                stdout, "%s: wrote %u packets\n", filename,
+                (unsigned)Backup_File_Packet_Counter);
+        }
+
+        return 0;
+    }
+    /* forward mode: BACnet binary backup file -> PCAP capture file */
+    if (output_filename) {
+        if (!open_backup_file(output_filename)) {
             return 1;
         }
     }
@@ -348,7 +542,7 @@ int main(int argc, char *argv[])
     }
     if (Backup_File_Packet_Counter) {
         fprintf(
-            stdout, "dmbrcap: wrote %u packets\n",
+            stdout, "%s: wrote %u packets\n", filename,
             (unsigned)Backup_File_Packet_Counter);
     }
 

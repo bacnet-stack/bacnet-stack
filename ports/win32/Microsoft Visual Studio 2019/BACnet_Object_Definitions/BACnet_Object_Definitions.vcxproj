@@ -178,6 +178,7 @@
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\ai.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\ao.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\av.c" />
+    <ClCompile Include="..\..\..\..\src\bacnet\basic\object\averaging.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\auditlog.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bacfile.c" />
     <ClCompile Include="..\..\..\..\src\bacnet\basic\object\bi.c" />

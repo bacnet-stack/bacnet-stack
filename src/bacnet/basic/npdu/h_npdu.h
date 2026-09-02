@@ -29,6 +29,10 @@ uint16_t npdu_network_number(void);
 BACNET_STACK_EXPORT
 void npdu_network_number_set(uint16_t net);
 BACNET_STACK_EXPORT
+uint8_t npdu_network_number_status(void);
+BACNET_STACK_EXPORT
+void npdu_network_number_status_set(uint8_t status);
+BACNET_STACK_EXPORT
 int npdu_send_network_number_is(
     BACNET_ADDRESS *dst, uint16_t net, uint8_t status);
 BACNET_STACK_EXPORT
@@ -60,6 +64,12 @@ typedef void (*i_am_router_to_network_function)(
 BACNET_STACK_EXPORT
 void npdu_set_i_am_router_to_network_handler(
     i_am_router_to_network_function pFunction);
+
+/* Network Number Is function */
+typedef void (*network_number_is_function)(uint16_t network);
+
+BACNET_STACK_EXPORT
+void npdu_set_network_number_is_handler(network_number_is_function pFunction);
 
 #ifdef __cplusplus
 }

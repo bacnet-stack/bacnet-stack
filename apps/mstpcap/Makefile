@@ -30,7 +30,7 @@ SRCS = main.c \
 	${BACNET_SRC_DIR}/bacnet/datalink/mstptext.c \
 	${BACNET_SRC_DIR}/bacnet/datalink/crc.c
 
-# This demo seems to be a little unique
+# This demo is MS/TP datalink only
 DEFINES = $(BACNET_DEFINES) -DBACDL_MSTP
 
 # WARNINGS, DEBUGGING, OPTIMIZATION are defined in common apps Makefile

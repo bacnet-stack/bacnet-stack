@@ -1174,7 +1174,7 @@ bool cov_value_list_encode_enumerated(
  */
 bool cov_value_list_encode_unsigned(
     BACNET_PROPERTY_VALUE *value_list,
-    uint32_t value,
+    BACNET_UNSIGNED_INTEGER value,
     bool in_alarm,
     bool fault,
     bool overridden,

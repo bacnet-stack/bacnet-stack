@@ -18,6 +18,7 @@
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
+#include "bacnet/bacstr.h"
 #include "bacnet/bactext.h"
 #include "bacnet/datetime.h"
 #include "bacnet/proplist.h"
@@ -64,8 +65,8 @@ struct object_data {
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE
     Manipulated_Properties[BACNET_TIMER_MANIPULATED_PROPERTIES_MAX];
     uint8_t Priority_For_Writing;
-    const char *Description;
-    const char *Object_Name;
+    BACNET_CHARACTER_CSTRING Description;
+    BACNET_CHARACTER_CSTRING Object_Name;
     BACNET_RELIABILITY Reliability;
     bool Out_Of_Service : 1;
     bool Changed : 1;
@@ -119,6 +120,8 @@ static const int32_t Writable_Properties[] = {
     PROP_PRIORITY_FOR_WRITING,
     PROP_STATE_CHANGE_VALUES,
     PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES,
+    PROP_OBJECT_NAME,
+    PROP_DESCRIPTION,
     -1
 };
 
@@ -851,20 +854,20 @@ bool Timer_Running_Set(uint32_t object_instance, bool start)
 bool Timer_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    char text[32] = "";
     bool status = false;
     struct object_data *pObject;
+    int len = 0;
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        if (pObject->Object_Name) {
-            status =
-                characterstring_init_ansi(object_name, pObject->Object_Name);
-        } else {
-            snprintf(
-                text, sizeof(text), "TIMER-%lu",
-                (unsigned long)object_instance);
-            status = characterstring_init_ansi(object_name, text);
+        status = bacnet_character_cstring_to_characterstring(
+            object_name, &pObject->Object_Name);
+        if (!status) {
+            len = characterstring_utf8_snprintf(
+                object_name, "TIMER-%lu", (unsigned long)object_instance);
+            if (len > 0) {
+                status = true;
+            }
         }
     }
 
@@ -872,10 +875,13 @@ bool Timer_Object_Name(
 }
 
 /**
- * @brief For a given object instance-number, sets the object-name
- * @param  object_instance - object-instance number of the object
- * @param  new_name - holds the object-name to be set
- * @return  true if object-name was set
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @note The object name must be unique within this device.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if object-name was set
  */
 bool Timer_Name_Set(uint32_t object_instance, const char *new_name)
 {
@@ -884,8 +890,7 @@ bool Timer_Name_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        status = true;
-        pObject->Object_Name = new_name;
+        status = bacnet_character_cstring_set(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -903,7 +908,7 @@ const char *Timer_Name_ASCII(uint32_t object_instance)
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        name = pObject->Object_Name;
+        name = bacnet_character_cstring_value_const(&pObject->Object_Name);
     }
 
     return name;
@@ -923,22 +928,20 @@ bool Timer_Description(
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        if (pObject->Description) {
-            status =
-                characterstring_init_ansi(description, pObject->Description);
-        } else {
-            status = characterstring_init_ansi(description, "");
-        }
+        status = bacnet_character_cstring_to_characterstring_default(
+            description, &pObject->Description, "");
     }
 
     return status;
 }
 
 /**
- * @brief For a given object instance-number, sets the description
- * @param  object_instance - object-instance number of the object
- * @param  new_name - holds the description to be set
- * @return  true if string was set
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if description was set
  */
 bool Timer_Description_Set(uint32_t object_instance, const char *new_name)
 {
@@ -947,8 +950,7 @@ bool Timer_Description_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        status = true;
-        pObject->Description = new_name;
+        status = bacnet_character_cstring_set(&pObject->Description, new_name);
     }
 
     return status;
@@ -966,11 +968,8 @@ const char *Timer_Description_ANSI(uint32_t object_instance)
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        if (pObject->Description == NULL) {
-            name = "";
-        } else {
-            name = pObject->Description;
-        }
+        name =
+            bacnet_character_cstring_value_default(&pObject->Description, "");
     }
 
     return name;
@@ -1545,6 +1544,72 @@ static int Timer_State_Change_Value_Encode(
 }
 
 /**
+ * @brief Set the object-name property value using write-property context.
+ * @param wp_data [in,out] Write property request/response context.
+ * @param cstring [in] New object-name value.
+ * @return true if object-name was set.
+ */
+static bool Timer_Object_Name_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, wp_data->object_instance);
+    if (pObject) {
+        if (characterstring_utf8_valid(cstring)) {
+            status = bacnet_character_cstring_from_characterstring_strdup(
+                &pObject->Object_Name, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        } else {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Set the description property value using write-property context.
+ * @param wp_data [in,out] Write property request/response context.
+ * @param cstring [in] New description value.
+ * @return true if description was set.
+ */
+static bool Timer_Description_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, wp_data->object_instance);
+    if (pObject) {
+        if (characterstring_utf8_valid(cstring)) {
+            status = bacnet_character_cstring_from_characterstring_strdup(
+                &pObject->Description, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        } else {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
  * @brief Get the state-change value array element value
  * @param object_instance - BACnet object instance number
  * @param transition - the state-change enumeration requested
@@ -1996,6 +2061,22 @@ bool Timer_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     switch (wp_data->object_property) {
+        case PROP_OBJECT_NAME:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Timer_Object_Name_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+        case PROP_DESCRIPTION:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Timer_Description_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
         case PROP_PRESENT_VALUE:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
@@ -2397,8 +2478,6 @@ uint32_t Timer_Create(uint32_t object_instance)
     pObject->Max_Pres_Value = UINT32_MAX;
     pObject->Resolution = 1;
     pObject->Priority_For_Writing = BACNET_MAX_PRIORITY;
-    pObject->Description = NULL;
-    pObject->Object_Name = NULL;
     pObject->Reliability = RELIABILITY_NO_FAULT_DETECTED;
     pObject->Out_Of_Service = false;
     pObject->Changed = false;
@@ -2422,6 +2501,8 @@ bool Timer_Delete(uint32_t object_instance)
         Keylist_Data_Delete(Object_List, object_instance);
 
     if (pObject) {
+        bacnet_character_cstring_free(&pObject->Description);
+        bacnet_character_cstring_free(&pObject->Object_Name);
         free(pObject);
         status = true;
     }
@@ -2448,6 +2529,8 @@ void Timer_Cleanup(void)
             do {
                 pObject = Keylist_Data_Pop(Object_List);
                 if (pObject) {
+                    bacnet_character_cstring_free(&pObject->Description);
+                    bacnet_character_cstring_free(&pObject->Object_Name);
                     free(pObject);
                 }
             } while (pObject);

@@ -17,6 +17,7 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/ai.c \
 	$(BACNET_OBJECT_DIR)/ao.c \
 	$(BACNET_OBJECT_DIR)/av.c \
+	$(BACNET_OBJECT_DIR)/averaging.c \
 	$(BACNET_OBJECT_DIR)/bi.c \
 	$(BACNET_OBJECT_DIR)/bo.c \
 	$(BACNET_OBJECT_DIR)/bv.c \

@@ -15,6 +15,7 @@
 /* BACnet Stack API */
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
+#include "bacnet/bacstr.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 #include "bacnet/lighting.h"
@@ -29,8 +30,8 @@
 /* object property values */
 struct object_data {
     void *Context;
-    const char *Object_Name;
-    const char *Description;
+    BACNET_CHARACTER_CSTRING Object_Name;
+    BACNET_CHARACTER_CSTRING Description;
     BACNET_RELIABILITY Reliability;
     uint32_t Egress_Time;
     BACNET_BINARY_LIGHTING_PV Feedback_Value;
@@ -98,7 +99,7 @@ static const int32_t Properties_Proprietary[] = { -1 };
    that is always writable.  */
 static const int32_t Writable_Properties[] = {
     /* unordered list of always writable properties */
-    -1
+    PROP_OBJECT_NAME, PROP_DESCRIPTION, -1
 };
 
 /**
@@ -856,18 +857,19 @@ bool Binary_Lighting_Output_Object_Name(
 {
     bool status = false;
     struct object_data *pObject;
-    char name_text[48] = "BINARY-LIGHTING-OUTPUT-4194303";
+    int len = 0;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (pObject->Object_Name) {
-            status =
-                characterstring_init_ansi(object_name, pObject->Object_Name);
-        } else {
-            snprintf(
-                name_text, sizeof(name_text), "BINARY-LIGHTING-OUTPUT-%lu",
+        status = bacnet_character_cstring_to_characterstring(
+            object_name, &pObject->Object_Name);
+        if (!status) {
+            len = characterstring_utf8_snprintf(
+                object_name, "BINARY-LIGHTING-OUTPUT-%lu",
                 (unsigned long)object_instance);
-            status = characterstring_init_ansi(object_name, name_text);
+            if (len > 0) {
+                status = true;
+            }
         }
     }
 
@@ -875,12 +877,13 @@ bool Binary_Lighting_Output_Object_Name(
 }
 
 /**
- * For a given object instance-number, sets the object-name
- *
- * @param  object_instance - object-instance number of the object
- * @param  new_name - holds the object-name to be set
- *
- * @return  true if object-name was set
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @note The object name must be unique within this device.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if object-name was set
  */
 bool Binary_Lighting_Output_Name_Set(
     uint32_t object_instance, const char *new_name)
@@ -890,8 +893,7 @@ bool Binary_Lighting_Output_Name_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        status = true;
-        pObject->Object_Name = new_name;
+        status = bacnet_character_cstring_set(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -909,7 +911,7 @@ const char *Binary_Lighting_Output_Name_ASCII(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        name = pObject->Object_Name;
+        name = bacnet_character_cstring_value_const(&pObject->Object_Name);
     }
 
     return name;
@@ -929,23 +931,20 @@ const char *Binary_Lighting_Output_Description(uint32_t object_instance)
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if (pObject->Description) {
-            name = pObject->Description;
-        } else {
-            name = "";
-        }
+        name =
+            bacnet_character_cstring_value_default(&pObject->Description, "");
     }
 
     return name;
 }
 
 /**
- * For a given object instance-number, sets the description
- *
- * @param  object_instance - object-instance number of the object
- * @param  new_name - holds the description to be set
- *
- * @return  true if object-name was set
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if description was set
  */
 bool Binary_Lighting_Output_Description_Set(
     uint32_t object_instance, const char *new_name)
@@ -955,8 +954,7 @@ bool Binary_Lighting_Output_Description_Set(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        status = true;
-        pObject->Description = new_name;
+        status = bacnet_character_cstring_set(&pObject->Description, new_name);
     }
 
     return status;
@@ -1470,6 +1468,72 @@ int Binary_Lighting_Output_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
  *
  * @return false if an error is loaded, true if no errors
  */
+/**
+ * @brief Writes the Object_Name property for a Binary Lighting Output object.
+ * @param wp_data - WriteProperty data containing the object instance and value.
+ * @param cstring - holds the object-name to be set.
+ * @return true if the object-name was set.
+ */
+static bool Binary_Lighting_Output_Object_Name_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, wp_data->object_instance);
+    if (pObject) {
+        if (characterstring_utf8_valid(cstring)) {
+            status = bacnet_character_cstring_from_characterstring_strdup(
+                &pObject->Object_Name, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        } else {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Writes the Description property for a Binary Lighting Output object.
+ * @param wp_data - WriteProperty data containing the object instance and value.
+ * @param cstring - holds the description to be set.
+ * @return true if the description was set.
+ */
+static bool Binary_Lighting_Output_Description_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, wp_data->object_instance);
+    if (pObject) {
+        if (characterstring_utf8_valid(cstring)) {
+            status = bacnet_character_cstring_from_characterstring_strdup(
+                &pObject->Description, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        } else {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
 bool Binary_Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
@@ -1508,6 +1572,22 @@ bool Binary_Lighting_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                             wp_data->object_instance, wp_data->priority,
                             &wp_data->error_class, &wp_data->error_code);
                 }
+            }
+            break;
+        case PROP_OBJECT_NAME:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Binary_Lighting_Output_Object_Name_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+        case PROP_DESCRIPTION:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Binary_Lighting_Output_Description_Write(
+                    wp_data, &value.type.Character_String);
             }
             break;
         case PROP_OUT_OF_SERVICE:
@@ -1616,8 +1696,6 @@ uint32_t Binary_Lighting_Output_Create(uint32_t object_instance)
         if (!pObject) {
             return BACNET_MAX_INSTANCE;
         }
-        pObject->Object_Name = NULL;
-        pObject->Description = NULL;
         pObject->Target_Priority = BACNET_MAX_PRIORITY;
         pObject->Out_Of_Service = false;
         pObject->Blink_Warn_Enable = false;
@@ -1631,6 +1709,8 @@ uint32_t Binary_Lighting_Output_Create(uint32_t object_instance)
         }
         pObject->Relinquish_Default = BINARY_LIGHTING_PV_OFF;
         pObject->Power = 0.0;
+        datetime_wildcard_set(&pObject->Time_Of_Active_Time_Reset);
+        datetime_wildcard_set(&pObject->Time_Of_Strike_Count_Reset);
         /* add to list */
         index = Keylist_Data_Add(Object_List, object_instance, pObject);
         if (index < 0) {
@@ -1654,6 +1734,8 @@ bool Binary_Lighting_Output_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
+        bacnet_character_cstring_free(&pObject->Object_Name);
+        bacnet_character_cstring_free(&pObject->Description);
         free(pObject);
         status = true;
     }
@@ -1680,6 +1762,8 @@ void Binary_Lighting_Output_Cleanup(void)
             do {
                 pObject = Keylist_Data_Pop(Object_List);
                 if (pObject) {
+                    bacnet_character_cstring_free(&pObject->Object_Name);
+                    bacnet_character_cstring_free(&pObject->Description);
                     free(pObject);
                 }
             } while (pObject);

@@ -13,9 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout BACnet Stack
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Checkout libwebsockets
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: warmcat/libwebsockets
           ref: v4.3-stable

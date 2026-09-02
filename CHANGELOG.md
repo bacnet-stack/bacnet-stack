@@ -13,10 +13,223 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [Unreleased] - 2026-05-29
+## [Unreleased] - 2026-09-02
 
 ### Security
 
+* Secured the apps/ptransfer demo by moving ConfirmedPrivateTransfer
+  send/handler logic into the core stack’s basic service layer,
+  wiring the server demo to handle confirmed private transfers,
+  updated the command line arguments to be similar to apps/uptransfer while
+  adding addressing and debug options, and updating build targets. (#1470)
+* Secured bacnet_enclosed_data_length() against signed integer overflow while
+  accumulating tag lengths: the guards bounded each length value against
+  INT_MAX but not the running sums, so a tag claiming a length near INT_MAX
+  overflowed len, total_len and apdu_len. (#1468)
+* Secured bvlc_encode_header() by increasing minimum PDU size to prevent
+  buffer overflow. (#1467)
+* Secured bacnet_enclosed_data_length() function to prevent integer overflow
+  resulting in too small length which results in heap overflow. (#1466)
+* Secured the Command Object to prevent WriteProperty to the Action property
+  while in-progress. Fixed the Action property to be an Array of Lists. (#1461)
+* Secured the apps/router by validating BVLC framing and improving error
+  handling in dl_ip_recv function. (#1451)
+* Secured cJSON local library by applying fixes to known vulnerabilities.
+  Added global error pointer string function for use in printing.
+  Enhanced JSON parser to prevent stack exhaustion and handle numeric overflows.
+  Improved JSON error handling and prevented buffer over-read in cJSON parser.
+  Added unit tests for cJSON parser functionality and error handling. (#1444)
+* Secured bacnet_octet_string_decode and bacnet_character_string_decode
+  to handle NULL store and return error when exeeding store capacity.
+  Fixed atomic file service request decoding to return appropriate error
+  for buffer overflow. (#1440)
+* Secured apps/modbus-gateway by fixing use-after-free on JSON parse
+  errors. (#1441)
+* Secured AtomicReadFile and AtomicWriteFile service by forcing errors when
+  file access methods supported are mismatched from requested. (#1439)
+* Secured apps/router by preventing buffer overflow in I-Am-Router-To-Network
+  message handling. (#1438)
+* Secured Command, Life-Safety Zone, and Structured View object resizable
+  arrays and lists to prevent unbounded expansion, adding size limits for
+  remotely writable BACnet array or list elements. (#1437)
+* Secured BACnet/SC websocket to require valid OpenSSL client certificate
+  for websocket server connections. (#1436)
+* Secured BACnet/SC when'More Options Follow' flag is set to handle incomplete
+  option list. (#1435)
+* Secured BACnet/SC by adding optional support for self-signed server
+  certificates in BACnet/SC clients by using a single runtime setter,
+  disabled by default. Added BACNET_SC_SELFSIGNED_ENABLED environment
+  variable for example apps, disabled by default. (#1434)
+* Secured BACnet/SC by adding fragment length validation for websocket. (#1433)
+* Secured an MS/TP implementation COBS frame decoding buffer overflow,
+  and added unit test for tight buffer handling. (#1425)
+
+### Added
+
+* Added What-Is-Network-Number support to h_routed_npdu(). (#1489)
+* Added write present-value callback to the Accumulator object. The callback
+  is called with the old and new value after a successful Present_Value
+  WriteProperty when Out_Of_Service is not set. (#1485)
+* Added test-filter Makefile target to use TEST_FILTER regular expression
+  to filter and run only the tests with matching names.
+* Added BACnet Character CString support with helper functions (#1474)
+* Added callback handlers for confirmed and unconfirmed private
+  transfer services. (#1471)
+* Added Analog Input object limit API functions including:
+  Analog_Input_High_Limit, Analog_Input_High_Limit_Set,
+  Analog_Input_Low_Limit, Analog_Input_Low_Limit_Set,
+  Analog_Input_Deadband, Analog_Input_Deadband_Set,
+  Analog_Input_Limit_Enable, Analog_Input_Limit_Enable_Set,
+  Analog_Input_Time_Delay, and Analog_Input_Time_Delay_Set. (#1473)
+* Added COV support to basic accumulator object without COV increment support
+  since standard does not list COV_Increment property for accumulators. (#1452)
+* Added support for configurable MAX_APDU in Makefile for extended frames in
+  the ports/stm32f4xx example. Changed MCU_FLAGS and SDK_FLAGS for STM32F4xx
+  configuration. Cleaned up generated files in the Makefile and remove unused
+  flags. Update Makefile to use 'build' folder to match CMake and enable
+  debugging with the same CMake setup. Added LED test functionality and set
+  BACnet ISR based timed task to 2ms in main loop for the state machine. (#1459)
+* Added option to set handler for Network Number Is. (#1455)
+* Added apps/timesync target and --now option for current date and time display
+  and fix Makefile build order to enable ports to have precedence. (#1454)
+* Added basic Alert Enrollment object in the BACnet stack. (#1426)
+* Added PCAP to backup file conversion apps/bacdmbr functionality. (#1446)
+* Added a basic Averaging object in the BACnet stack with a comprehensive
+  API for managing averaging functionality. Updated the basic device object
+  to include the Averaging object in the default object table. Added unit
+  tests for the Averaging object, covering read/write operations,
+  sliding window functionality, and reset behavior. (#1429)
+* Added Notification_Class_I_Am_Router_To_Network_Handler API so it can
+  be called from  custom handler (#1428)
+* Added definitions for the Accumulator_Name and Accumulator_Name_Set functions
+  that are declared in acc.h and referenced by ACCUMULATOR_OBJ_FUNCTIONS.
+  Covered the public C string name API in the accumulator object test. (#1419)
+* Added callback hook to the Lighting Output (LO) object so consumers can
+  observe lighting-command write events (operation + parameters).
+  Added a public API in lo.h to register a lighting-command event
+  callback (Lighting_Output_Write_Lighting_Command_Callback_Set).
+  Wired the LO object’s internal lighting-command engine to invoke
+  the registered callback via a wrapper in lo.c.
+  Added a new LO unit test that issues FADE_TO / RAMP_TO / STEP_* commands
+  and asserts the callback parameters. (#1416)
+
+### Changed
+
+* Changed the github workflow to allow ESP32 port build to continue
+  despite upstream toolchain issues. (#1487)
+* Changed the basic objects to use character cstrings for object-name
+  and description properties and are writable and able to be restored. (#1477)
+* Changed location of datetime_mstimer module for time management to
+  src/bacnet/basic/datetime instead of sys so it isn't included by default
+  in core library.(#1463)
+* Changed the basic Analog Value object by encapsulating structure into the
+  C module and added get/set for the members. Added `Min_Pres_Value` and
+  `Max_Pres_Value` properties to Analog Value object. Implemented write
+  enable/disable functionality for the Analog Value object. Updated float
+  initialization to use 'f' suffix for consistency in analog objects.
+  Remove write-enabled for present-value coupling to out-of-service flag
+  in basic value objects. Changed writable properties for basic value objects
+  to conditionally skip Present_Value and allow writing when out-of-service
+  is TRUE. Enabled write by default for basic value objects that support the
+  Write_Enable flag. (#1424)
+* Changed Command object BACnet action property value to support abstract
+  data types with unit tests. Added API to Command object BACnet action list
+  to get/set/link/same/member/exist/add/remove/purge. (#1422)
+* Changed command object and its action list property to support dynamic
+  object and action list management including resize and read/write
+  functionality for Command Action_List. Added support for Command object
+  description and name management. Added Command object timer function
+  to process action writes with time delays and set the appropriate
+  in-process and all-writes-successful flags. (#1421)
+
+### Fixed
+
+* Fixed compiler warnings by adding setenv implementation for MinGW/MSVC.
+* Fixed MinGW buggy warnings for isinfinite(), isnan(), and isinf()
+  when used with double arguments.
+* Fixed Network Port object IPv4 to use the actual IPv4 settings
+  instead of 0.0.0.0 due to calling dlenv_network_port_bip_init()
+  before calling datalink_init(). (#1491)
+* Fixed the CharacterString Value object changed flag that was able to
+  be cleared by writing an unchanged value to it. (#1484)
+* Fixed basic network port object to allow clearing of previously
+  set remote BBMD address in Network_Port_FD_BBMD_Address_Write. (#1482)
+* Fixed leaky memory management of Keylist based List properties
+  in the basic Audit Log, Command, Load Control, Life Safety Zone,
+  Multistate, Network Port, and Structured View objects. (#1479)
+* Fixed compiler warnings by using appropriate types and qualifiers. (#1476)
+* Fixed circular dependency in bacnet_stack_exports.h file.
+* Fixed win32 datetime management with cross-compiler support and
+  time offset calculations supporting soft BACnet TimeSync. (#1463)
+* Fixed wire data length for COBS extended frames in apps/mstpcap and
+  apps/mstpsnap by skipping CRC in-place modifications in the MSTP receive
+  state machine for raw captures. Changed MSTP forced reply-postponed handling
+  logic in MSTP master state machine. Changed ports/stm32f4xx MS/TP example
+  to have strict timing and use extended frames by default. Updated COBS
+  decode tests to ensure guard bytes are preserved and handle tight buffer
+  scenarios. Changed MSTP default MAX_APDU 1476 to ensure apps/mstpcap and
+  other tools built for MS/TP can send or review extended frames. (#1453)
+* Fixed BBMD handler to send Delete-Foreign-Device to the BBMD, not a
+  zeroed address. (#1457)
+* Fixed update cov_value_list_encode_unsigned to use BACNET_UNSIGNED_INTEGER
+  data type to avoid truncation. (#1458)
+* Fixed BACnet/SC build under MSVC by skipping GCC-only -Wno-variadic-macros
+  option when building with MSVC to silence a libwebsockets warning. MSVC
+  has no such warning and rejects the option outright. (#1450)
+* Fixed BACnet/SC network port object by updating certificate file property
+  handling to use object ID encoding. (#1447)
+* Fixed missing bounds check when parsing Weekly_Schedule day entries
+  from ASCII (#1432)
+* Fixed build warnings in BACnet/SC. (#1427)
+* Fixed bacnet_action_command_decode() that truncated Post_Delay to
+  8 bits (#1423)
+* Fixed typos in comments and docs. (#1418)
+* Fixed platform.h min() and max() helpers so that min and max small case names
+  no longer collide with C++ methods and no longer pollute BACnet Stack
+  library users. Renamed min/max to BACNET_MIN and BACNET_MAX and revised all
+  local code to use the new names. (#1415)
+
+### Removed
+
+* Removed unnecessary platform include from bacapp.c
+* Removed deprecated Borland build tools and related files (#1483)
+* Removed unused Network_Port_SC_Direct_Connect_Accept_URIs_Dirty_Set function.
+
+## [1.6.0] - 2026-07-04
+
+### Security
+
+* Secured lighting_command_decode out-of-bounds read, and enforce the
+  FADE_TO and RAMP_TO required levels. (#1412)
+* Secure SCFailedConnectionRequest and SCDirectConnection decoder by
+  adjusting the apdu size calculation. (#1413)
+* Secured RAMFS by checking read-only property for file size setting
+  and zero new memory during realloc to prevent data leaking. (#1411)
+* Secured EPICs app property list management by adding append function. (#1409)
+* Secured Life Safety Zone member handling for write property. (#1410)
+* Secured the basic RAMFS to prevent buffer overrun during consecutive
+  record appends and prevent heap out-of-bounds read during record
+  replacement. (#1408)
+* Secured rpm_ack_decode_service_request buffer overflow by validating data
+  length and remaining bytes. Added unit tests for
+  handler_read_property_multiple_ack decoder paths. (#1395)
+* Secured BACnet/SC short proprietary option headers using BVLC-SC option
+  header validation and rejecting proprietary options with hdr_len < 3
+  (minimum vendor-id + option-type). Made proprietary option decode
+  initialize outputs and only read vendor-id/option-type when hdr_len >= 3.
+  Added a regression test that injects a malformed proprietary option
+  and asserts decode fails with ERROR_CODE_HEADER_ENCODING_ERROR. (#1396)
+* Secured apps/router-mstp and apps/router-ipv6 routing, introducing
+  routed_npdu_apdu_encode() with an explicit oversized-PDU drop check.
+  Fixed protocol-version access (avoid reading pdu[0] when pdu_len == 0).
+  Refactored logging in router applications to use debug_log_fprintf
+  for consistent debug output. Refactored the router apps to use the
+  bactext_debug_severity_strtol() for the BACNET_ROUTER_DEBUG environment
+  variable. (#1392)
+* Secured the network control handler in the router-ipv6 and router-mstp apps
+  to ensure proper offset calculation and prevent buffer overrun. (#1387)
+* Secured xy_color_decode() by adjusting apdu_size calculation to prevent
+  out-of-bounds read. (#1386)
 * Secured the basic device object which had a string use after free.
   Added character string buffer stndup and same/diff functions.
   Changed all the device object character string handling to use
@@ -66,6 +279,16 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added .github/prompts to .gitignore
+* Add debug severity handling with ASCII string conversion functions into
+  bactext module. Changed all the example apps to use the
+  bactext_debug_severity_strtol() function for the "--debug" command
+  line argument. (#1393)
+* Added Lighting_Output_Overridden_Ramp function. (#1389)
+* Added a lighting command override ramp function. Refactored the lighting
+  commands to prevent them from meddling with tracking values and lighting
+  operations while the light is overridden. (#1388)
+* Added BACNET_DEFINES variable to CMake build. (#1384)
 * Added BACnet/SC (BSC) datalink support to the modbus-gateway application.
   Extended GW_CONFIG with sc sub-struct holding all BACNET_SC_* fields, and
   added compile-time fallback: non-BSC binary + "bsc" JSON → warns and falls
@@ -115,6 +338,32 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed the GTK discover app to refresh objects quickly. Fixed object
+  tree view to update a single row in place, preserving the selection.
+  Implemented property value editing with Enter key commit control for
+  WriteProperty. Refactored main window layout and default window size
+  and column spacing constants for better usability. Removed REFRESH
+  button. (#1390)
+* Changed compiler warnings to be stricter and remove unnecessary suppressions.
+  Apply const correctness across multiple files, including datalink interface
+  name parameters across multiple files. Apply const qualifications to the
+  character buffer string functions. Apply const correctness to string
+  parameters in bacapp.c and bacapp.h. Revise parsing of const strings using
+  bacnet_stptok() to tokenize. Add bacnet_strncpy to ensure null-terminated
+  partial string copying. Replace strncpy with bacnet_strncpy for safer string
+  copying in modbus_rtu and point_table modules. Fixed file compile warnings
+  where the "no previous declaration" is being generated. Fixed floating-point
+  arithmetic by adding type casts for clarity, including a changing
+  color_rgb_clamp to use float instead of double to fix compiler float
+  conversion warnings. Refactor hostname validation and encoding functions
+  for const correctness and improved string handling.
+  Renamed routed_get_my_address to Routed_Device_Get_My_Address and
+  update references for consistency with BAC_ROUTING.
+  Refactor Ringbuf functions to remove unnecessary volatile qualifiers
+  and casting to improve type safety. Use cast to uintptr_t for specific
+  casting to const where appropriate. Enable additional compiler warnings
+  in unit tests and treat them as errors to enforce clean builds.
+  Add parse_primitive_value function to handle primitive data parsing. (#1385)
 * Changed debug_print to debug_log_fprintf in ReadRange handler. (#1303)
 * Changed logging in many modules to use debug_log_fprintf for consistent
   error and debug output that can be adjusted during runtime. (#1364)
@@ -150,6 +399,17 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed out-of-bounds write in Read Property ACK closing tag encoding. (#1407)
+* Fixed AV COV change on out-of-service writes by marking them. (#1406)
+* Fixed GetEventInformation service choice in error reply. (#1405)
+* Fixed device object property value codec by  advancing cursor. (#1404)
+* Fixed Recipient_List decode by advancing the cursor for list elements. (#1402)
+* Fixed GetAlarmSummary to accept empty request. (#1401)
+* Fixed Binary_Lighting_Output_Create to initialize Time_Of_Active_Time_Reset
+  and Time_Of_Strike_Count_Reset using datetime_wildcard_set.
+* Fixed access credential object initialization to use datetime_wildcard_set
+  for activation and expiration times.
+* Fixed C89 build warnings from modbus gateway application. (#1383)
 * Fixed ReadRange service request to reject for missing mandatory parameters
   in Read Range request. (#1303)
 * Fixed BACnet/SC primary hub reconnection logic when connected to failover
@@ -204,6 +464,8 @@ The git repositories are hosted at the following sites:
 
 ### Removed
 
+* Remove unnecessary LEGACY=true flag from build commands in Makefile,
+ workflows, and scripts. (#1383)
 * Removed unmaintained ports/uip, ports/arduino_uno, ports/pic18*,
   and ports/rx62n folders and references. (#1324)
 

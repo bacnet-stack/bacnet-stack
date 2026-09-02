@@ -10,6 +10,7 @@
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/ms-input.h>
 #include <bacnet/bactext.h>
+#include <bacnet/proplist.h>
 #include <property_test.h>
 
 /**
@@ -85,6 +86,90 @@ static void testMultistateInputByName(void)
     status = Multistate_Input_Delete(object_instance);
     zassert_true(status, NULL);
 }
+
+/**
+ * @brief Regression test for create/delete cleanup of the state-name list.
+ * The object must be fully torn down when removed from the object list, and the
+ * key list should be empty after cleanup.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ms_input_tests, testMultistateInput_CreateCleanup)
+#else
+static void testMultistateInput_CreateCleanup(void)
+#endif
+{
+    const uint32_t instance = 789;
+    bool status = false;
+
+    Multistate_Input_Init();
+    zassert_not_equal(
+        Multistate_Input_Create(instance), BACNET_MAX_INSTANCE, NULL);
+    zassert_equal(Multistate_Input_Count(), 1, NULL);
+    zassert_true(Multistate_Input_Valid_Instance(instance), NULL);
+
+    status = Multistate_Input_Delete(instance);
+    zassert_true(status, NULL);
+    zassert_equal(Multistate_Input_Count(), 0, NULL);
+
+    Multistate_Input_Cleanup();
+    zassert_equal(Multistate_Input_Count(), 0, NULL);
+}
+/**
+ * @}
+ */
+
+/**
+ * @brief Test Multi-State Input Writable_Property_List and Write_Enabled APIs
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ms_input_tests, testMultistateInput_Writable_Properties)
+#else
+static void testMultistateInput_Writable_Properties(void)
+#endif
+{
+    const uint32_t instance = 456;
+    const uint32_t invalid_instance = instance + 1;
+    const int32_t *properties = NULL;
+    uint32_t count = 0;
+
+    Multistate_Input_Init();
+    zassert_not_equal(
+        Multistate_Input_Create(instance), BACNET_MAX_INSTANCE, NULL);
+
+    /* write-disabled (default for ms-input): list skips PROP_PRESENT_VALUE */
+    zassert_false(Multistate_Input_Write_Enabled(instance), NULL);
+    Multistate_Input_Writable_Property_List(instance, &properties);
+    zassert_not_null(properties, NULL);
+    count = property_list_count(properties);
+    zassert_true(count > 0, NULL);
+    zassert_false(property_list_member(properties, PROP_PRESENT_VALUE), NULL);
+
+    /* write-enabled: list starts with PROP_PRESENT_VALUE */
+    Multistate_Input_Write_Enable(instance);
+    zassert_true(Multistate_Input_Write_Enabled(instance), NULL);
+    Multistate_Input_Writable_Property_List(instance, &properties);
+    zassert_not_null(properties, NULL);
+    zassert_true(property_list_member(properties, PROP_PRESENT_VALUE), NULL);
+
+    /* write-disabled again: list skips PROP_PRESENT_VALUE */
+    Multistate_Input_Write_Disable(instance);
+    zassert_false(Multistate_Input_Write_Enabled(instance), NULL);
+    Multistate_Input_Writable_Property_List(instance, &properties);
+    zassert_false(property_list_member(properties, PROP_PRESENT_VALUE), NULL);
+
+    /* unknown instance: must return a valid list, not NULL/garbage */
+    properties = NULL;
+    Multistate_Input_Writable_Property_List(invalid_instance, &properties);
+    zassert_not_null(properties, NULL);
+    count = property_list_count(properties);
+    zassert_true(count > 0, NULL);
+
+    /* NULL properties pointer: must not crash */
+    Multistate_Input_Writable_Property_List(instance, NULL);
+
+    Multistate_Input_Delete(instance);
+    Multistate_Input_Cleanup();
+}
 /**
  * @}
  */
@@ -96,7 +181,9 @@ void test_main(void)
 {
     ztest_test_suite(
         ms_input_tests, ztest_unit_test(testMultistateInput),
-        ztest_unit_test(testMultistateInputByName));
+        ztest_unit_test(testMultistateInputByName),
+        ztest_unit_test(testMultistateInput_Writable_Properties),
+        ztest_unit_test(testMultistateInput_CreateCleanup));
 
     ztest_run_test_suite(ms_input_tests);
 }

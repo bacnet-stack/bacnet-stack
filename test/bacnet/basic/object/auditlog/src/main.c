@@ -30,6 +30,8 @@ static void testAuditlog(void)
     bool status = false;
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
     uint32_t buffer_size = 0;
+    BACNET_CHARACTER_STRING object_name = { 0 };
+    BACNET_CHARACTER_STRING description = { 0 };
 
     Audit_Log_Init();
     len = Audit_Log_Count();
@@ -94,9 +96,28 @@ static void testAuditlog(void)
     /* test object name */
     bacnet_object_name_ascii_test(
         instance, Audit_Log_Name_Set, Audit_Log_Name_ASCII);
-    bacnet_object_name_ascii_test(
-        instance, Audit_Log_Description_Set, Audit_Log_Description);
-
+    /* test WriteProperty to object name and description */
+    characterstring_init_ansi(&object_name, "audit-log-write-name");
+    wp_data.object_property = PROP_OBJECT_NAME;
+    wp_data.application_data_len = encode_application_character_string(
+        wp_data.application_data, &object_name);
+    status = Audit_Log_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_true(
+        strcmp(Audit_Log_Name_ASCII(instance), "audit-log-write-name") == 0,
+        NULL);
+    characterstring_init_ansi(&description, "audit-log-write-description");
+    wp_data.object_property = PROP_DESCRIPTION;
+    wp_data.application_data_len = encode_application_character_string(
+        wp_data.application_data, &description);
+    status = Audit_Log_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_true(
+        strcmp(
+            Audit_Log_Description(instance), "audit-log-write-description") ==
+            0,
+        NULL);
+    /* cleanup */
     status = Audit_Log_Delete(instance);
     zassert_true(status, NULL);
     Audit_Log_Cleanup();

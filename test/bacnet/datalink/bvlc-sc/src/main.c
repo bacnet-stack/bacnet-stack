@@ -4216,6 +4216,77 @@ static void test_BAD_HEADER_OPTIONS(void)
     len = bvlc_sc_add_option_to_data_options(
         buf, sizeof(buf), buf, 4, optbuf, optlen);
     zassert_equal(len, 0, NULL);
+
+    /* proprietary option with invalid hdr_len < 3 */
+    memset(buf, 0, sizeof(buf));
+    memset(&message, 0, sizeof(message));
+    npdu[0] = 0x01;
+    len = bvlc_sc_encode_encapsulated_npdu(
+        buf, sizeof(buf), message_id, NULL, NULL, npdu, 1);
+    zassert_not_equal(len, 0, NULL);
+
+    /* insert malformed data option before payload */
+    memmove(&buf[9], &buf[4], 1);
+    buf[1] |= BVLC_SC_CONTROL_DATA_OPTIONS;
+    buf[4] = BVLC_SC_OPTION_TYPE_PROPRIETARY | BVLC_SC_HEADER_DATA;
+    npdulen = 2;
+    memcpy(&buf[5], &npdulen, sizeof(npdulen));
+    buf[7] = 0x34;
+    buf[8] = 0x12;
+    len += 5;
+
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
+    zassert_equal(ret, false, NULL);
+    zassert_equal(error_code, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_sc_tests, test_TRAILING_MORE_OPTION)
+#else
+static void test_TRAILING_MORE_OPTION(void)
+#endif
+{
+    /* Regression test for a security issue: an option list whose last
+       (and only) option still has the 'More Options Follow' flag set
+       must be rejected as an incomplete message, instead of being
+       accepted and causing the option decode walk to read/write past
+       the end of the message buffer (and past the fixed-size decoded
+       option array) on subsequent iterations. */
+    uint8_t buf[64];
+    uint8_t optbuf[8];
+    size_t len;
+    size_t optlen;
+    BVLC_SC_DECODED_MESSAGE message;
+    uint16_t error_code;
+    uint16_t error_class;
+    uint16_t message_id = 0x1234;
+    bool ret;
+    const char *err_desc = NULL;
+
+    memset(buf, 0, sizeof(buf));
+    memset(&message, 0, sizeof(message));
+
+    len = bvlc_sc_encode_heartbeat_request(buf, sizeof(buf), message_id);
+    zassert_not_equal(len, 0, NULL);
+
+    optlen = bvlc_sc_encode_secure_path_option(optbuf, sizeof(optbuf), false);
+    zassert_not_equal(optlen, 0, NULL);
+
+    len = bvlc_sc_add_option_to_data_options(
+        buf, sizeof(buf), buf, len, optbuf, optlen);
+    zassert_not_equal(len, 0, NULL);
+
+    /* the message ends right after this single option, but a malicious
+       peer marks it as if more options follow */
+    buf[4] |= BVLC_SC_HEADER_MORE;
+
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
+    zassert_equal(ret, false, NULL);
+    zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -4571,6 +4642,7 @@ void test_main(void)
         ztest_unit_test(test_HEARTBEAT_ACK),
         ztest_unit_test(test_PROPRIETARY_MESSAGE),
         ztest_unit_test(test_BAD_HEADER_OPTIONS),
+        ztest_unit_test(test_TRAILING_MORE_OPTION),
         ztest_unit_test(test_BAD_ENCODE_PARAMS),
         ztest_unit_test(test_BAD_DECODE_PARAMS),
         ztest_unit_test(test_BROADCAST));

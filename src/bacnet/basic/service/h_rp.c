@@ -62,6 +62,7 @@ void handler_read_property(
     int pdu_len = 0;
     int apdu_len = -1;
     int npdu_len = -1;
+    int ack_end_len = 0;
     BACNET_NPDU_DATA npdu_data;
     bool error = true; /* assume that there is an error */
     int bytes_sent = 0;
@@ -120,10 +121,11 @@ void handler_read_property(
                 &Handler_Transmit_Buffer[npdu_len], service_data->invoke_id,
                 &rpdata);
             /* configure our storage */
+            ack_end_len = rp_ack_encode_apdu_object_property_end(NULL);
             rpdata.application_data =
                 &Handler_Transmit_Buffer[npdu_len + apdu_len];
-            rpdata.application_data_len =
-                sizeof(Handler_Transmit_Buffer) - (npdu_len + apdu_len);
+            rpdata.application_data_len = sizeof(Handler_Transmit_Buffer) -
+                (npdu_len + apdu_len + ack_end_len);
             if (!read_property_bacnet_array_valid(&rpdata)) {
                 len = BACNET_STATUS_ERROR;
             } else {

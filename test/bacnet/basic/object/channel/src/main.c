@@ -162,7 +162,7 @@ static void test_Channel_Property_Read_Write(void)
     status = Channel_Name_Set(instance, sample_name);
     zassert_true(status, NULL);
     test_name = Channel_Name_ASCII(instance);
-    zassert_equal(test_name, sample_name, NULL);
+    zassert_equal(strcmp(test_name, sample_name), 0, NULL);
     status = Channel_Name_Set(instance, NULL);
     zassert_true(status, NULL);
     test_name = Channel_Name_ASCII(instance);
@@ -174,6 +174,25 @@ static void test_Channel_Property_Read_Write(void)
     wp_data.array_index = BACNET_ARRAY_ALL;
     wp_data.priority = BACNET_MAX_PRIORITY;
     /* specific WriteProperty value */
+    wp_data.object_property = PROP_OBJECT_NAME;
+    value.tag = BACNET_APPLICATION_TAG_CHARACTER_STRING;
+    characterstring_init_ansi(&value.type.Character_String, "Channel-Name");
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
+    status = Channel_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_equal(
+        strcmp(Channel_Name_ASCII(instance), "Channel-Name"), 0, NULL);
+    wp_data.object_property = PROP_DESCRIPTION;
+    value.tag = BACNET_APPLICATION_TAG_CHARACTER_STRING;
+    characterstring_init_ansi(
+        &value.type.Character_String, "Channel-Description");
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
+    status = Channel_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_equal(
+        strcmp(Channel_Description(instance), "Channel-Description"), 0, NULL);
     wp_data.object_property = PROP_PRESENT_VALUE;
     value.tag = BACNET_APPLICATION_TAG_CHANNEL_VALUE;
     value.type.Channel_Value.tag = BACNET_APPLICATION_TAG_REAL;

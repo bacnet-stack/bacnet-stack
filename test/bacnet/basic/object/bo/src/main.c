@@ -45,6 +45,45 @@ static void testBinaryOutput(void)
     status = Binary_Output_Delete(object_instance);
     zassert_true(status, NULL);
 }
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bo_tests, testBinaryOutput_Writable_Properties)
+#else
+static void testBinaryOutput_Writable_Properties(void)
+#endif
+{
+    const uint32_t instance = 456;
+    const int32_t *properties = NULL;
+    uint32_t count = 0;
+    uint32_t i = 0;
+    bool has_object_name = false;
+    bool has_description = false;
+
+    Binary_Output_Init();
+    zassert_not_equal(
+        Binary_Output_Create(instance), BACNET_MAX_INSTANCE, NULL);
+
+    Binary_Output_Writable_Property_List(instance, &properties);
+    zassert_not_null(properties, NULL);
+    count = property_list_count(properties);
+    zassert_true(count > 0, NULL);
+
+    has_object_name = false;
+    has_description = false;
+    for (i = 0; properties[i] != -1; ++i) {
+        if (properties[i] == PROP_OBJECT_NAME) {
+            has_object_name = true;
+        }
+        if (properties[i] == PROP_DESCRIPTION) {
+            has_description = true;
+        }
+    }
+    zassert_true(has_object_name, NULL);
+    zassert_true(has_description, NULL);
+
+    Binary_Output_Delete(instance);
+    Binary_Output_Cleanup();
+}
 /**
  * @}
  */
@@ -54,7 +93,9 @@ ZTEST_SUITE(bo_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(bo_tests, ztest_unit_test(testBinaryOutput));
+    ztest_test_suite(
+        bo_tests, ztest_unit_test(testBinaryOutput),
+        ztest_unit_test(testBinaryOutput_Writable_Properties));
 
     ztest_run_test_suite(bo_tests);
 }

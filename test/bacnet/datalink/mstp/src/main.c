@@ -646,6 +646,130 @@ static void testMasterNodeFSM(void)
     /* FIXME: write a unit test for the Master Node State Machine */
 }
 
+static void testReceiveNodeFSM_COBS_Decode_TightBuffer(void)
+{
+    struct mstp_port_struct_t mstp_port = { 0 }; /* port data */
+    uint8_t my_mac = 0x05; /* local MAC address */
+    uint8_t frame[MAX_MPDU] = { 0 };
+    uint8_t rx_tight[MAX_MPDU] = { 0 };
+    uint8_t payload[64] = { 0 };
+    unsigned len;
+    unsigned cobs_len;
+    unsigned tight_size;
+    unsigned guard_start;
+    unsigned i;
+
+    for (i = 0; i < sizeof(payload); i++) {
+        payload[i] = (uint8_t)(i + 1);
+    }
+    /* Include zeros to force multiple COBS blocks and real decode writes. */
+    payload[3] = 0;
+    payload[17] = 0;
+
+    len = MSTP_Create_Frame(
+        frame, sizeof(frame), FRAME_TYPE_BACNET_EXTENDED_DATA_EXPECTING_REPLY,
+        my_mac, my_mac, payload, sizeof(payload));
+    zassert_true(len > 0, NULL);
+
+    cobs_len = (((unsigned)frame[5]) << 8) | frame[6];
+    cobs_len += 2;
+    /* tight_size: enough for wire bytes plus almost no decode destination.
+        This should fail decode but must not overwrite guard bytes. */
+    tight_size = cobs_len + 1;
+    zassert_true(tight_size < sizeof(rx_tight), NULL);
+
+    mstp_port.InputBuffer = &rx_tight[0];
+    mstp_port.InputBufferSize = tight_size;
+    mstp_port.OutputBuffer = &TxBuffer[0];
+    mstp_port.OutputBufferSize = sizeof(TxBuffer);
+    mstp_port.SilenceTimer = Timer_Silence;
+    mstp_port.SilenceTimerReset = Timer_Silence_Reset;
+    mstp_port.This_Station = my_mac;
+    mstp_port.Nmax_info_frames = 1;
+    mstp_port.Nmax_master = 127;
+    MSTP_Init(&mstp_port);
+
+    guard_start = tight_size;
+    for (i = guard_start; i < (guard_start + 8); i++) {
+        rx_tight[i] = 0xA5;
+    }
+
+    Load_Input_Buffer(frame, len);
+    for (i = 0; i < len; i++) {
+        RS485_Check_UART_Data(&mstp_port);
+        MSTP_Receive_Frame_FSM(&mstp_port);
+    }
+
+    /* Decode destination space is intentionally too small. */
+    zassert_true(mstp_port.ReceivedValidFrame == false, NULL);
+    zassert_true(mstp_port.ReceivedInvalidFrame == true, NULL);
+    zassert_true(mstp_port.receive_state == MSTP_RECEIVE_STATE_IDLE, NULL);
+    /* guard bytes must be untouched */
+    for (i = guard_start; i < (guard_start + 8); i++) {
+        zassert_true(rx_tight[i] == 0xA5, NULL);
+    }
+}
+
+static void testReceiveNodeFSM_COBS_Large_Frame(void)
+{
+    struct mstp_port_struct_t mstp_port = { 0 };
+    uint8_t my_mac = 0x05;
+    uint8_t frame[MAX_MPDU] = { 0 };
+    /* payload larger than InputBufferSize/2 to exercise the in-place path
+       that previously failed with the off-buffer decode destination */
+    uint8_t payload[Nmin_COBS_length_BACnet] = { 0 };
+    unsigned len;
+    unsigned cobs_len;
+    unsigned i;
+
+    for (i = 0; i < sizeof(payload); i++) {
+        payload[i] = (uint8_t)(i & 0xFF);
+    }
+    /* sprinkle zeros to exercise multi-block COBS */
+    payload[0] = 0;
+    payload[100] = 0;
+    payload[300] = 0;
+
+    len = MSTP_Create_Frame(
+        frame, sizeof(frame),
+        FRAME_TYPE_BACNET_EXTENDED_DATA_NOT_EXPECTING_REPLY, my_mac, my_mac,
+        payload, sizeof(payload));
+    zassert_true(len > 0, NULL);
+    cobs_len = (((unsigned)frame[5]) << 8) | frame[6];
+    cobs_len += 2;
+
+    mstp_port.InputBuffer = &RxBuffer[0];
+    mstp_port.InputBufferSize = sizeof(RxBuffer);
+    mstp_port.OutputBuffer = &TxBuffer[0];
+    mstp_port.OutputBufferSize = sizeof(TxBuffer);
+    mstp_port.SilenceTimer = Timer_Silence;
+    mstp_port.SilenceTimerReset = Timer_Silence_Reset;
+    mstp_port.This_Station = my_mac;
+    mstp_port.Nmax_info_frames = 1;
+    mstp_port.Nmax_master = 127;
+    MSTP_Init(&mstp_port);
+
+    Load_Input_Buffer(frame, len);
+    RS485_Check_UART_Data(&mstp_port);
+    MSTP_Receive_Frame_FSM(&mstp_port);
+    while (mstp_port.receive_state != MSTP_RECEIVE_STATE_IDLE) {
+        RS485_Check_UART_Data(&mstp_port);
+        MSTP_Receive_Frame_FSM(&mstp_port);
+    }
+
+    zassert_true(mstp_port.ReceivedValidFrame == true, NULL);
+    zassert_true(mstp_port.ReceivedInvalidFrame == false, NULL);
+    zassert_true(mstp_port.DataLength == sizeof(payload), NULL);
+    zassert_true(
+        (cobs_len + sizeof(payload)) <= mstp_port.InputBufferSize, NULL);
+    for (i = 0; i < sizeof(payload); i++) {
+        zassert_true(
+            mstp_port.InputBuffer[cobs_len + i] == payload[i],
+            "large frame decoded payload[%u]: got 0x%02X expected 0x%02X", i,
+            mstp_port.InputBuffer[cobs_len + i], payload[i]);
+    }
+}
+
 static void testSlaveNodeFSM(void)
 {
     struct mstp_port_struct_t MSTP_Port = { 0 }; /* port data */
@@ -1367,6 +1491,8 @@ void test_main(void)
 {
     ztest_test_suite(
         crc_tests, ztest_unit_test(testReceiveNodeFSM),
+        ztest_unit_test(testReceiveNodeFSM_COBS_Decode_TightBuffer),
+        ztest_unit_test(testReceiveNodeFSM_COBS_Large_Frame),
         ztest_unit_test(testMasterNodeFSM), ztest_unit_test(testSlaveNodeFSM),
         ztest_unit_test(testZeroConfigNodeFSM),
         ztest_unit_test(testAutoBaudNodeFSM));

@@ -25,37 +25,6 @@
 #include "bacnet/get_alarm_sum.h"
 #endif
 
-typedef struct analog_value_descr {
-    unsigned Event_State : 3;
-    bool Out_Of_Service;
-    BACNET_ENGINEERING_UNITS Units;
-    float Present_Value;
-    float Prior_Value;
-    float COV_Increment;
-    bool Changed;
-    const char *Object_Name;
-    const char *Description;
-    BACNET_RELIABILITY Reliability;
-    void *Context;
-#if defined(INTRINSIC_REPORTING)
-    uint32_t Time_Delay;
-    uint32_t Notification_Class;
-    float High_Limit;
-    float Low_Limit;
-    float Deadband;
-    unsigned Limit_Enable : 2;
-    unsigned Event_Enable : 3;
-    unsigned Event_Detection_Enable : 1;
-    unsigned Notify_Type : 1;
-    ACKED_INFO Acked_Transitions[MAX_BACNET_EVENT_TRANSITION];
-    BACNET_DATE_TIME Event_Time_Stamps[MAX_BACNET_EVENT_TRANSITION];
-    /* time to generate event notification */
-    uint32_t Remaining_Time_Delay;
-    /* AckNotification information */
-    ACK_NOTIFICATION Ack_notify_data;
-#endif
-} ANALOG_VALUE_DESCR;
-
 /**
  * @brief Callback for gateway write present value request
  * @param  object_instance - object-instance number of the object
@@ -139,9 +108,25 @@ bool Analog_Value_Reliability_Set(
     uint32_t object_instance, BACNET_RELIABILITY value);
 
 BACNET_STACK_EXPORT
+float Analog_Value_Min_Pres_Value(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Analog_Value_Min_Pres_Value_Set(uint32_t object_instance, float value);
+BACNET_STACK_EXPORT
+float Analog_Value_Max_Pres_Value(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Analog_Value_Max_Pres_Value_Set(uint32_t object_instance, float value);
+
+BACNET_STACK_EXPORT
 BACNET_ENGINEERING_UNITS Analog_Value_Units(uint32_t instance);
 BACNET_STACK_EXPORT
 bool Analog_Value_Units_Set(uint32_t instance, BACNET_ENGINEERING_UNITS unit);
+
+BACNET_STACK_EXPORT
+bool Analog_Value_Write_Enabled(uint32_t instance);
+BACNET_STACK_EXPORT
+void Analog_Value_Write_Enable(uint32_t instance);
+BACNET_STACK_EXPORT
+void Analog_Value_Write_Disable(uint32_t instance);
 
 BACNET_STACK_EXPORT
 bool Analog_Value_Out_Of_Service(uint32_t instance);

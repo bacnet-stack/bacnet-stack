@@ -37,7 +37,6 @@
 #include "bacnet/special_event.h"
 #include "bacnet/channel_value.h"
 #include "bacnet/timer_value.h"
-#include "bacnet/basic/sys/platform.h"
 
 #if defined(BACAPP_SCALE)
 /**
@@ -3722,10 +3721,46 @@ static int bacapp_snprintf_action_property_value(
             ret_val = bacapp_snprintf_double(str, str_len, value->type.Double);
             break;
 #endif
+#if defined(BACACTION_OCTET_STRING)
+        case BACNET_APPLICATION_TAG_OCTET_STRING:
+            ret_val = bacapp_snprintf_octet_string(
+                str, str_len, &value->type.Octet_String);
+            break;
+#endif
+#if defined(BACACTION_CHARACTER_STRING)
+        case BACNET_APPLICATION_TAG_CHARACTER_STRING:
+            ret_val = bacapp_snprintf_character_string(
+                str, str_len, &value->type.Character_String);
+            break;
+#endif
+#if defined(BACACTION_BIT_STRING)
+        case BACNET_APPLICATION_TAG_BIT_STRING:
+            ret_val = bacapp_snprintf_bit_string(
+                str, str_len, &value->type.Bit_String);
+            break;
+#endif
 #if defined(BACACTION_ENUMERATED)
         case BACNET_APPLICATION_TAG_ENUMERATED:
             ret_val = bacapp_snprintf(
                 str, str_len, "%lu", (unsigned long)value->type.Enumerated);
+            break;
+#endif
+#if defined(BACACTION_DATE)
+        case BACNET_APPLICATION_TAG_DATE:
+            ret_val =
+                bacapp_snprintf_date(str, str_len, &value->type.Date, false);
+            break;
+#endif
+#if defined(BACACTION_TIME)
+        case BACNET_APPLICATION_TAG_TIME:
+            ret_val =
+                bacapp_snprintf_time(str, str_len, &value->type.Time, false);
+            break;
+#endif
+#if defined(BACACTION_OBJECT_ID)
+        case BACNET_APPLICATION_TAG_OBJECT_ID:
+            ret_val =
+                bacapp_snprintf_object_id(str, str_len, &value->type.Object_Id);
             break;
 #endif
         case BACNET_APPLICATION_TAG_EMPTYLIST:
@@ -3751,6 +3786,7 @@ static int bacapp_snprintf_action_command(
 {
     int slen;
     int ret_val = 0;
+    BACNET_ACTION_PROPERTY_VALUE action_value = { 0 };
 
     slen = bacapp_snprintf(str, str_len, "{");
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
@@ -3779,7 +3815,19 @@ static int bacapp_snprintf_action_command(
     }
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     /* propertyValue [4] ABSTRACT-SYNTAX.&Type */
-    slen = bacapp_snprintf_action_property_value(str, str_len, &value->Value);
+    if (value->Property_Value.data_len > 0) {
+        slen = bacnet_action_property_value_decode(
+            value->Property_Value.data, value->Property_Value.data_len,
+            &action_value);
+        if (slen > 0) {
+            slen = bacapp_snprintf_action_property_value(
+                str, str_len, &action_value);
+        } else {
+            slen = bacapp_snprintf(str, str_len, "{invalid-action-value}");
+        }
+    } else {
+        slen = bacapp_snprintf(str, str_len, "NULL");
+    }
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     slen = bacapp_snprintf(str, str_len, ",");
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
@@ -4341,6 +4389,11 @@ parse_weeklyschedule(const char *str, BACNET_APPLICATION_DATA_VALUE *value)
                 }
                 *sp = '\0';
                 v = bacnet_ltrim(sp + 1, " ");
+
+                if (tvnum >= BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE) {
+                    /* too many time-value pairs for one day */
+                    return false;
+                }
 
                 /* Parse time directly into the Time_Value slot */
                 if (!datetime_time_init_ascii(
@@ -6162,6 +6215,9 @@ int bacapp_device_object_property_value_encode(
     if (value->property_array_index != BACNET_ARRAY_ALL) {
         len = encode_context_unsigned(apdu, 3, value->property_array_index);
         apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
     }
     len = encode_opening_tag(apdu, 4);
     apdu_len += len;
@@ -6263,7 +6319,8 @@ int bacapp_device_object_property_value_decode(
             value->property_array_index = BACNET_ARRAY_ALL;
         }
     }
-    if (bacnet_is_opening_tag_number(apdu, apdu_size, 4, &len)) {
+    if (bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, 4, &len)) {
         /* property-value [4] ABSTRACT-SYNTAX.&Type */
         apdu_len += len;
         if (value) {
@@ -6276,11 +6333,14 @@ int bacapp_device_object_property_value_decode(
         } else {
             return BACNET_STATUS_ERROR;
         }
-        if (bacnet_is_closing_tag_number(apdu, apdu_size, 4, &len)) {
+        if (bacnet_is_closing_tag_number(
+                &apdu[apdu_len], apdu_size - apdu_len, 4, &len)) {
             apdu_len += len;
         } else {
             return BACNET_STATUS_ERROR;
         }
+    } else {
+        return BACNET_STATUS_ERROR;
     }
 
     return apdu_len;

@@ -10,6 +10,7 @@
 #include <zephyr/ztest.h>
 #include <bacnet/bactext.h>
 #include <bacnet/basic/object/bi.h>
+#include <bacnet/proplist.h>
 #include <property_test.h>
 
 /**
@@ -46,6 +47,74 @@ static void testBinaryInput(void)
     status = Binary_Input_Delete(object_instance);
     zassert_true(status, NULL);
 }
+
+/**
+ * @brief Test Binary Input Writable_Property_List and Write_Enabled APIs
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bi_tests, testBinaryInput_Writable_Properties)
+#else
+static void testBinaryInput_Writable_Properties(void)
+#endif
+{
+    const uint32_t instance = 456;
+    const uint32_t invalid_instance = instance + 1;
+    const int32_t *properties = NULL;
+    uint32_t count = 0;
+    uint32_t i = 0;
+    bool has_object_name = false;
+    bool has_description = false;
+
+    Binary_Input_Init();
+    zassert_not_equal(Binary_Input_Create(instance), BACNET_MAX_INSTANCE, NULL);
+
+    /* write-disabled (default for bi): list skips PROP_PRESENT_VALUE */
+    zassert_false(Binary_Input_Write_Enabled(instance), NULL);
+    Binary_Input_Writable_Property_List(instance, &properties);
+    zassert_not_null(properties, NULL);
+    count = property_list_count(properties);
+    zassert_true(count > 0, NULL);
+    zassert_false(property_list_member(properties, PROP_PRESENT_VALUE), NULL);
+
+    has_object_name = false;
+    has_description = false;
+    for (i = 0; properties[i] != -1; ++i) {
+        if (properties[i] == PROP_OBJECT_NAME) {
+            has_object_name = true;
+        }
+        if (properties[i] == PROP_DESCRIPTION) {
+            has_description = true;
+        }
+    }
+    zassert_true(has_object_name, NULL);
+    zassert_true(has_description, NULL);
+
+    /* write-enabled: list starts with PROP_PRESENT_VALUE */
+    Binary_Input_Write_Enable(instance);
+    zassert_true(Binary_Input_Write_Enabled(instance), NULL);
+    Binary_Input_Writable_Property_List(instance, &properties);
+    zassert_not_null(properties, NULL);
+    zassert_true(property_list_member(properties, PROP_PRESENT_VALUE), NULL);
+
+    /* write-disabled again: list skips PROP_PRESENT_VALUE */
+    Binary_Input_Write_Disable(instance);
+    zassert_false(Binary_Input_Write_Enabled(instance), NULL);
+    Binary_Input_Writable_Property_List(instance, &properties);
+    zassert_false(property_list_member(properties, PROP_PRESENT_VALUE), NULL);
+
+    /* unknown instance: must return a valid list, not NULL/garbage */
+    properties = NULL;
+    Binary_Input_Writable_Property_List(invalid_instance, &properties);
+    zassert_not_null(properties, NULL);
+    count = property_list_count(properties);
+    zassert_true(count > 0, NULL);
+
+    /* NULL properties pointer: must not crash */
+    Binary_Input_Writable_Property_List(instance, NULL);
+
+    Binary_Input_Delete(instance);
+    Binary_Input_Cleanup();
+}
 /**
  * @}
  */
@@ -55,7 +124,9 @@ ZTEST_SUITE(bi_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(bi_tests, ztest_unit_test(testBinaryInput));
+    ztest_test_suite(
+        bi_tests, ztest_unit_test(testBinaryInput),
+        ztest_unit_test(testBinaryInput_Writable_Properties));
 
     ztest_run_test_suite(bi_tests);
 }

@@ -20,6 +20,7 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
+#include "bacnet/basic/sys/compare.h"
 #include "bacnet/bacstr.h"
 
 #ifndef BACNET_USE_OCTETSTRING /* Do we need any octet strings? */
@@ -246,7 +247,7 @@ bool bitstring_set_bits_used(
 unsigned bitstring_bits_capacity(const BACNET_BIT_STRING *bit_string)
 {
     if (bit_string) {
-        return min((MAX_BITSTRING_BYTES * 8), (UINT8_MAX + 1));
+        return BACNET_MIN((MAX_BITSTRING_BYTES * 8), (UINT8_MAX + 1));
     } else {
         return 0;
     }
@@ -433,7 +434,7 @@ bool characterstring_init_ansi_safe(
     BACNET_CHARACTER_STRING *char_string, const char *value, size_t tmax)
 {
     return characterstring_init(
-        char_string, CHARACTER_ANSI_X34, value,
+        char_string, CHARACTER_UTF8, value,
         value ? bacnet_strnlen(value, tmax) : 0);
 }
 
@@ -451,7 +452,7 @@ bool characterstring_init_ansi(
     BACNET_CHARACTER_STRING *char_string, const char *value)
 {
     return characterstring_init(
-        char_string, CHARACTER_ANSI_X34, value, value ? strlen(value) : 0);
+        char_string, CHARACTER_UTF8, value, value ? strlen(value) : 0);
 }
 
 /**
@@ -489,8 +490,7 @@ bool characterstring_ansi_copy(
     size_t i; /* counter */
 
     if (dest && src) {
-        if ((src->encoding == CHARACTER_ANSI_X34) &&
-            (src->length < dest_max_len)) {
+        if ((src->encoding == CHARACTER_UTF8) && (src->length < dest_max_len)) {
             for (i = 0; i < dest_max_len; i++) {
                 if (i < src->length) {
                     dest[i] = src->value[i];
@@ -590,7 +590,7 @@ bool characterstring_ansi_same(
     bool same_status = false;
 
     if (src1 && src2) {
-        if ((src1->encoding == CHARACTER_ANSI_X34) &&
+        if ((src1->encoding == CHARACTER_UTF8) &&
             (src1->length == strlen(src2)) &&
             (src1->length <= MAX_CHARACTER_STRING_BYTES)) {
             same_status = true;
@@ -777,7 +777,7 @@ size_t characterstring_capacity(const BACNET_CHARACTER_STRING *char_string)
  *
  * @param char_string  Pointer to the character string.
  *
- * @return Encoding, like CHARACTER_ANSI_X34
+ * @return Encoding, like CHARACTER_UTF8
  */
 uint8_t characterstring_encoding(const BACNET_CHARACTER_STRING *char_string)
 {
@@ -794,7 +794,7 @@ uint8_t characterstring_encoding(const BACNET_CHARACTER_STRING *char_string)
  * @brief Set the character encoding for the given BACnet string.
  *
  * @param char_string  Pointer to the character string.
- * @param Encoding, like CHARACTER_ANSI_X34
+ * @param Encoding, like CHARACTER_UTF8
  *
  * @return true/false on error
  */
@@ -838,7 +838,7 @@ bool characterstring_printable(const BACNET_CHARACTER_STRING *char_string)
     char chr;
 
     if (char_string) {
-        if (char_string->encoding == CHARACTER_ANSI_X34) {
+        if (char_string->encoding == CHARACTER_UTF8) {
             status = true;
             imax = char_string->length;
             if (imax > CHARACTER_STRING_CAPACITY) {
@@ -1065,6 +1065,47 @@ char *characterstring_utf8_strdup(const BACNET_CHARACTER_STRING *char_string)
     }
 
     return str;
+}
+
+/**
+ * @brief Format a UTF-8 BACnet character string using printf-style formatting.
+ * @details always null terminates the string, and truncates if the formatted
+ *  string exceeds MAX_CHARACTER_STRING_BYTES - 1. The char_string->length
+ *  is set to the number of bytes written to char_string->value excluding
+ *  the terminating null byte. The char_string->encoding is set to
+ *  CHARACTER_UTF8.
+ * @param char_string Pointer to the BACnet character string to format.
+ * @param format printf-style format string.
+ * @return the number of bytes that would be written to char_string->value had
+ *  it been sufficiently large excluding the terminating null byte.
+ *  If an error was encountered, the function shall return a negative value.
+ */
+int characterstring_utf8_snprintf(
+    BACNET_CHARACTER_STRING *char_string, const char *format, ...)
+{
+    int length = 0;
+    va_list args;
+
+    if (!char_string || !format) {
+        return -1;
+    }
+    va_start(args, format);
+    length =
+        vsnprintf(char_string->value, sizeof(char_string->value), format, args);
+    va_end(args);
+    /* note: always null terminate the string */
+    if (length < 0) {
+        char_string->length = 0;
+        char_string->value[0] = '\0';
+    } else if ((size_t)length >= sizeof(char_string->value)) {
+        char_string->length = sizeof(char_string->value) - 1;
+        char_string->value[sizeof(char_string->value) - 1] = '\0';
+    } else {
+        char_string->length = (size_t)length;
+    }
+    char_string->encoding = CHARACTER_UTF8;
+
+    return length;
 }
 
 /**
@@ -1365,6 +1406,326 @@ void characterstring_buffer_free(BACNET_CHARACTER_STRING_BUFFER *char_string)
             char_string->buffer_allocated = false;
         }
     }
+}
+
+/**
+ * @brief Set a BACnet character string by referencing a C string.
+ * @param char_string Pointer to destination structure.
+ * @param value Pointer to a source C string, or NULL for empty.
+ * @return true on success, false on argument failure or if the string exceeds
+ * maximum length.
+ */
+bool bacnet_character_cstring_set(
+    BACNET_CHARACTER_CSTRING *char_string, const char *value)
+{
+    size_t length = 0;
+
+    if (!char_string) {
+        return false;
+    }
+    if (value) {
+        length = strlen(value);
+        if (length > MAX_CHARACTER_STRING_BYTES) {
+            return false;
+        }
+        bacnet_character_cstring_free(char_string);
+        char_string->buffer = (char *)(uintptr_t)value;
+        char_string->buffer_allocated = false;
+    } else {
+        bacnet_character_cstring_free(char_string);
+        char_string->buffer = NULL;
+        char_string->buffer_allocated = false;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Initialize a BACnet character string by duplicating a C string.
+ * @param char_string Pointer to destination BACNET_CHARACTER_CSTRING.
+ * @param value Pointer to source C string, or NULL to free and set empty.
+ * @param tmax Maximum number of characters to duplicate from the source string.
+ * @return true on success, false on allocation/argument failure.
+ * @note The CharacterString is unchanged if memory allocation fails
+ */
+bool bacnet_character_cstring_strndup(
+    BACNET_CHARACTER_CSTRING *char_string, const char *value, size_t tmax)
+{
+    size_t length = 0;
+    char *buffer = NULL;
+
+    if (!char_string) {
+        return false;
+    }
+    if (value) {
+        length = bacnet_strnlen(value, tmax);
+        if (length > MAX_CHARACTER_STRING_BYTES) {
+            return false;
+        }
+        buffer = bacnet_strndup(value, length);
+        if (buffer) {
+            bacnet_character_cstring_free(char_string);
+            char_string->buffer = buffer;
+            char_string->buffer_allocated = true;
+        } else {
+            return false;
+        }
+    } else {
+        bacnet_character_cstring_free(char_string);
+        char_string->buffer = NULL;
+        char_string->buffer_allocated = false;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Initialize a BACnet character string by referencing a C string.
+ * If the string is not null-terminated at the expected length, it will be
+ * duplicated instead.
+ * @param char_string Pointer to destination structure.
+ * @param value Pointer to source C string, or NULL for empty.
+ * @param tmax Maximum number of characters to reference from the source string.
+ * @return true on success, false on allocation/argument failure.
+ * @note The CharacterString is unchanged if memory allocation fails.
+ */
+bool bacnet_character_cstring_length_init(
+    BACNET_CHARACTER_CSTRING *char_string, const char *value, size_t tmax)
+{
+    if (!char_string) {
+        return false;
+    }
+    if (value && (tmax > 0) && (bacnet_strnlen(value, tmax) == tmax)) {
+        /* missing a null terminator within the expected length */
+        return bacnet_character_cstring_strndup(char_string, value, tmax);
+    }
+    /* otherwise, just use the constant string as-is */
+    return bacnet_character_cstring_set(char_string, value);
+}
+
+/**
+ * @brief Initialize a BACnet character string by duplicating a
+ * BACNET_CHARACTER_STRING value.
+ * @param dest Pointer to BACNET_CHARACTER_CSTRING structure.
+ * @param src Pointer to source BACNET_CHARACTER_STRING.
+ * @return true on success, false on allocation/argument failure.
+ */
+bool bacnet_character_cstring_from_characterstring_strdup(
+    BACNET_CHARACTER_CSTRING *dest, const BACNET_CHARACTER_STRING *src)
+{
+    char *buffer = NULL;
+
+    if (!dest || !src) {
+        return false;
+    }
+    buffer = characterstring_utf8_strdup(src);
+    if (buffer) {
+        bacnet_character_cstring_free(dest);
+        dest->buffer = buffer;
+        dest->buffer_allocated = true;
+    } else {
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Initialize a BACnet character string by converting a
+ * BACNET_CHARACTER_CSTRING value to a BACNET_CHARACTER_STRING.
+ * @param dest Pointer to BACNET_CHARACTER_STRING structure.
+ * @param src Pointer to source BACNET_CHARACTER_CSTRING.
+ * @return true on success, false on allocation/argument failure.
+ */
+bool bacnet_character_cstring_to_characterstring(
+    BACNET_CHARACTER_STRING *dest, const BACNET_CHARACTER_CSTRING *src)
+{
+    if (!dest || !src || !bacnet_character_cstring_value_const(src)) {
+        return false;
+    }
+    return characterstring_init(
+        dest, bacnet_character_cstring_encoding(src),
+        bacnet_character_cstring_value_const(src),
+        bacnet_character_cstring_length(src));
+}
+
+/**
+ * @brief Release dynamic resources in a BACNET_CHARACTER_CSTRING,
+ *  but only if allocated.
+ * @param char_string Pointer to BACNET_CHARACTER_CSTRING structure.
+ */
+void bacnet_character_cstring_free(BACNET_CHARACTER_CSTRING *char_string)
+{
+    if (char_string) {
+        if (char_string->buffer_allocated) {
+            free(char_string->buffer);
+            char_string->buffer = NULL;
+            char_string->buffer_allocated = false;
+        }
+    }
+}
+
+/**
+ * @brief Returns the length of a BACNET_CHARACTER_CSTRING.
+ * @param char_string Pointer to BACNET_CHARACTER_CSTRING structure.
+ * @return Length of the string in bytes, or 0 if char_string is NULL.
+ */
+size_t
+bacnet_character_cstring_length(const BACNET_CHARACTER_CSTRING *char_string)
+{
+    if (char_string && char_string->buffer) {
+        return strlen(char_string->buffer);
+    }
+    return 0;
+}
+
+/**
+ * @brief Returns true if the character encoding and string contents are the
+ * same between a BACNET_CHARACTER_CSTRING and a BACNET_CHARACTER_STRING.
+ * @param s1 Pointer to the BACNET_CHARACTER_CSTRING.
+ * @param s2 Pointer to the BACNET_CHARACTER_STRING.
+ * @return true if the character encoding and string contents are the same,
+ * false otherwise.
+ */
+bool bacnet_character_cstring_same_characterstring(
+    const BACNET_CHARACTER_CSTRING *s1, const BACNET_CHARACTER_STRING *s2)
+{
+    size_t s1_length = 0;
+    size_t s2_length = 0;
+    uint8_t s2_encoding = 0;
+
+    if (!s1 || !s2) {
+        return false;
+    }
+    s1_length = bacnet_character_cstring_length(s1);
+    s2_length = characterstring_length(s2);
+    if (s1_length != s2_length) {
+        return false;
+    }
+    s2_encoding = characterstring_encoding(s2);
+    if (s2_encoding != CHARACTER_UTF8) {
+        return false;
+    }
+    if (s1_length == 0) {
+        return true;
+    }
+    return (
+        memcmp(
+            bacnet_character_cstring_value_const(s1),
+            characterstring_value_const(s2), s1_length) == 0);
+}
+
+/**
+ * @brief Returns the character encoding for a BACNET_CHARACTER_CSTRING.
+ * @param char_string Pointer to BACNET_CHARACTER_CSTRING structure.
+ * @return CHARACTER_UTF8, since ANSI strings are converted to UTF-8.
+ */
+uint8_t
+bacnet_character_cstring_encoding(const BACNET_CHARACTER_CSTRING *char_string)
+{
+    (void)char_string;
+    return CHARACTER_UTF8;
+}
+
+/**
+ * @brief Returns the pointer to the C-string for a
+ * BACNET_CHARACTER_CSTRING, or a default value if the string is NULL.
+ * @param char_string Pointer to BACNET_CHARACTER_CSTRING structure.
+ * @return Pointer to a zero-terminated C-string, or the default value
+ *  if char_string is NULL.
+ */
+const char *bacnet_character_cstring_value_default(
+    const BACNET_CHARACTER_CSTRING *char_string, const char *default_value)
+{
+    if (char_string && char_string->buffer) {
+        return char_string->buffer;
+    }
+    return default_value;
+}
+
+/**
+ * @brief Returns the pointer to the C-string for a
+ * BACNET_CHARACTER_CSTRING.
+ * @param char_string Pointer to BACNET_CHARACTER_CSTRING structure.
+ * @return Pointer to a zero-terminated C-string, or NULL if char_string is NULL
+ */
+const char *bacnet_character_cstring_value_const(
+    const BACNET_CHARACTER_CSTRING *char_string)
+{
+    return bacnet_character_cstring_value_default(char_string, NULL);
+}
+
+/**
+ * @brief Convert a BACNET_CHARACTER_CSTRING to a BACNET_CHARACTER_STRING,
+ *  or initialize with a default value if the source is NULL or empty.
+ * @param dest Pointer to destination BACNET_CHARACTER_STRING structure.
+ * @param src Pointer to source BACNET_CHARACTER_CSTRING structure.
+ * @param default_value Pointer to default C-string value to use if src is NULL
+ *  or empty.
+ * @return true on success, false on argument failure.
+ */
+bool bacnet_character_cstring_to_characterstring_default(
+    BACNET_CHARACTER_STRING *dest,
+    const BACNET_CHARACTER_CSTRING *src,
+    const char *default_value)
+{
+    if (!dest) {
+        return false;
+    }
+    if (!src || !bacnet_character_cstring_value_const(src)) {
+        return characterstring_init_ansi(dest, default_value);
+    }
+    return characterstring_init_ansi(
+        dest, bacnet_character_cstring_value_const(src));
+}
+
+/**
+ * @brief Allocate a formatted string into a BACNET_CHARACTER_CSTRING.
+ * @param char_string Pointer to BACNET_CHARACTER_CSTRING structure.
+ * @param format Format string, like printf().
+ * @param ... Additional arguments for the format string.
+ * @return The number of characters written, or -1 on error.
+ */
+int bacnet_character_cstring_asprintf(
+    BACNET_CHARACTER_CSTRING *char_string, const char *format, ...)
+{
+    int len = 0;
+    char *buffer = NULL;
+    size_t size = 0;
+    va_list args;
+
+    if (!char_string || !format) {
+        return -1;
+    }
+    /* measure the string size */
+    va_start(args, format);
+    len = vsnprintf(NULL, 0, format, args);
+    va_end(args);
+    /* check for encoding errors */
+    if (len < 0) {
+        return -1;
+    }
+    /* allocate the memory */
+    size = (size_t)len + 1;
+    buffer = (char *)malloc(size);
+    if (!buffer) {
+        return -1;
+    }
+    /* construct the formatted buffer */
+    va_start(args, format);
+    len = vsnprintf(buffer, size, format, args);
+    va_end(args);
+    if (len < 0) {
+        free(buffer);
+        return -1;
+    }
+    /* attach the formatted buffer to the character string
+       after freeing the old buffer */
+    bacnet_character_cstring_free(char_string);
+    char_string->buffer = buffer;
+    char_string->buffer_allocated = true;
+
+    return len;
 }
 
 #if BACNET_USE_OCTETSTRING

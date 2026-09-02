@@ -24,17 +24,88 @@
 /* me */
 #include "bacnet.h"
 
+/* buffer for incoming BACnet messages */
+struct mstp_rx_packet {
+    BACNET_ADDRESS src;
+    uint16_t length;
+    uint8_t buffer[MAX_MPDU];
+};
+/* count must be a power of 2 for ringbuf library */
+#ifndef MSTP_RECEIVE_PACKET_COUNT
+#define MSTP_RECEIVE_PACKET_COUNT 2
+#endif
+static struct mstp_rx_packet Receive_Buffer[MSTP_RECEIVE_PACKET_COUNT];
+static RING_BUFFER Receive_Queue;
+/* Device ID to track changes */
+static uint32_t Device_ID = 0xFFFFFFFF;
 /* timer for device communications control */
 static struct mstimer DCC_Timer;
 #define DCC_CYCLE_SECONDS 1
-/* Device ID to track changes */
-static uint32_t Device_ID = 0xFFFFFFFF;
+/* buffer for incoming packets */
+static uint8_t PDUBuffer[MAX_MPDU];
+
+/**
+ * @brief handles recurring strictly timed task
+ * @note called by ISR every 5 milliseconds
+ */
+void bacnet_task_timed(void)
+{
+    struct mstp_rx_packet *pkt = NULL;
+    uint16_t pdu_len = 0;
+    BACNET_ADDRESS src;
+
+    pdu_len = dlmstp_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 5);
+    if (pdu_len) {
+        pkt = (struct mstp_rx_packet *)Ringbuf_Data_Peek(&Receive_Queue);
+        if (pkt) {
+            memcpy(pkt->buffer, PDUBuffer, MAX_MPDU);
+            bacnet_address_copy(&pkt->src, &src);
+            pkt->length = pdu_len;
+            Ringbuf_Data_Put(&Receive_Queue, pkt);
+        }
+    }
+}
+
+/**
+ * @brief non-blocking BACnet task
+ */
+void bacnet_task(void)
+{
+    bool hello_world = false;
+    struct mstp_rx_packet pkt = { 0 };
+    bool pdu_available = false;
+
+    /* hello, World! */
+    if (Device_ID != Device_Object_Instance_Number()) {
+        Device_ID = Device_Object_Instance_Number();
+        hello_world = true;
+    }
+    if (hello_world) {
+        Send_I_Am(&Handler_Transmit_Buffer[0]);
+    }
+    /* handle the communication timer */
+    if (mstimer_expired(&DCC_Timer)) {
+        mstimer_reset(&DCC_Timer);
+        dcc_timer_seconds(DCC_CYCLE_SECONDS);
+    }
+    /* handle the messaging */
+    if ((!dlmstp_send_pdu_queue_full()) && (!Ringbuf_Empty(&Receive_Queue))) {
+        Ringbuf_Pop(&Receive_Queue, (uint8_t *)&pkt);
+        pdu_available = true;
+    }
+    if (pdu_available) {
+        npdu_handler(&pkt.src, &pkt.buffer[0], pkt.length);
+    }
+}
 
 /**
  * @brief Initialize the BACnet device object, the service handlers, and timers
  */
 void bacnet_init(void)
 {
+    Ringbuf_Init(
+        &Receive_Queue, Receive_Buffer, sizeof(struct mstp_rx_packet),
+        MSTP_RECEIVE_PACKET_COUNT);
     /* initialize objects */
     Device_Init(NULL);
     /* set up our confirmed service unrecognized service handler - required! */
@@ -65,36 +136,4 @@ void bacnet_init(void)
         SERVICE_CONFIRMED_ATOMIC_READ_FILE, handler_atomic_read_file);
     /* start the cyclic 1 second timer for DCC */
     mstimer_set(&DCC_Timer, DCC_CYCLE_SECONDS * 1000);
-}
-
-/* local buffer for incoming PDUs to process */
-static uint8_t PDUBuffer[MAX_MPDU];
-
-/**
- * @brief non-blocking BACnet task
- */
-void bacnet_task(void)
-{
-    bool hello_world = false;
-    uint16_t pdu_len = 0;
-    BACNET_ADDRESS src = { 0 };
-
-    /* hello, World! */
-    if (Device_ID != Device_Object_Instance_Number()) {
-        Device_ID = Device_Object_Instance_Number();
-        hello_world = true;
-    }
-    if (hello_world) {
-        Send_I_Am(&Handler_Transmit_Buffer[0]);
-    }
-    /* handle the communication timer */
-    if (mstimer_expired(&DCC_Timer)) {
-        mstimer_reset(&DCC_Timer);
-        dcc_timer_seconds(DCC_CYCLE_SECONDS);
-    }
-    /* handle the messaging */
-    pdu_len = datalink_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 0);
-    if (pdu_len) {
-        npdu_handler(&src, &PDUBuffer[0], pdu_len);
-    }
 }

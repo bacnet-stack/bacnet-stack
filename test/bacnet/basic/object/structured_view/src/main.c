@@ -269,6 +269,7 @@ static void test_object_structured_view(void)
     BACNET_NODE_TYPE test_node_type = BACNET_NODE_UNKNOWN;
     BACNET_RELATIONSHIP test_relationship = BACNET_RELATIONSHIP_DEFAULT;
     BACNET_SUBORDINATE_DATA *test_list_member = NULL;
+    BACNET_CHARACTER_STRING object_name = { 0 };
     BACNET_DEVICE_OBJECT_REFERENCE test_represents = {
         { OBJECT_DEVICE, 1234 }, { OBJECT_DEVICE, 1234 }
     };
@@ -322,16 +323,36 @@ static void test_object_structured_view(void)
     zassert_true(status, NULL);
     diff = strcmp(Structured_View_Name_ASCII(instance), test_name);
     zassert_equal(diff, 0, NULL);
+    status = Structured_View_Object_Name(instance, &object_name);
+    zassert_true(status, NULL);
+    zassert_equal(
+        strcmp(characterstring_value_const(&object_name), test_name), 0, NULL);
+    zassert_equal(
+        characterstring_length(&object_name), strlen(test_name), NULL);
 
     status = Structured_View_Description_Set(instance, test_description);
     zassert_true(status, NULL);
     diff = strcmp(Structured_View_Description(instance), test_description);
     zassert_equal(diff, 0, NULL);
+    zassert_equal(
+        strcmp(Structured_View_Description(instance), test_description), 0,
+        NULL);
 
     status = Structured_View_Node_Subtype_Set(instance, test_node_subtype);
     zassert_true(status, NULL);
     diff = strcmp(Structured_View_Node_Subtype(instance), test_node_subtype);
     zassert_equal(diff, 0, NULL);
+    zassert_equal(
+        strcmp(Structured_View_Node_Subtype(instance), test_node_subtype), 0,
+        NULL);
+
+    status = Structured_View_Description_Set(instance, NULL);
+    zassert_true(status, NULL);
+    zassert_equal(strcmp(Structured_View_Description(instance), ""), 0, NULL);
+
+    status = Structured_View_Name_Set(instance, NULL);
+    zassert_true(status, NULL);
+    zassert_is_null(Structured_View_Name_ASCII(instance), NULL);
 
     status = Structured_View_Node_Type_Set(instance, test_node_type);
     zassert_true(status, NULL);

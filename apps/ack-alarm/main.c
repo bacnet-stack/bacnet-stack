@@ -225,7 +225,7 @@ int main(int argc, char *argv[])
     time_t timeout_seconds = 0;
     bool found = false;
     long dnet = -1;
-    long severity = 0;
+    uint32_t severity = 0;
     unsigned long long_value = 0;
     uint32_t object_type = 0;
     BACNET_MAC_ADDRESS mac = { 0 };
@@ -276,8 +276,10 @@ int main(int argc, char *argv[])
             }
         } else if (strcmp(argv[argi], "--debug") == 0) {
             if (++argi < argc) {
-                if (bacnet_strtol(argv[argi], &severity)) {
+                if (bactext_debug_severity_strtol(argv[argi], &severity)) {
                     debug_log_severity_set(severity);
+                } else {
+                    debug_log_severity_set(DEBUG_LOG_DISABLED);
                 }
             }
         } else {

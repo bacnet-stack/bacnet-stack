@@ -834,6 +834,16 @@ static void test_Load_Control_Read_Write_Property(void)
         skip_fail_property_list);
     bacnet_object_name_ascii_test(
         object_instance, Load_Control_Name_Set, Load_Control_Name_ASCII);
+    status = Load_Control_Description_Set(
+        object_instance, "load-control-description");
+    zassert_true(status, NULL);
+    zassert_true(
+        strcmp(
+            Load_Control_Description(object_instance),
+            "load-control-description") == 0,
+        NULL);
+    status = Load_Control_Description_Set(4194303, "bad-instance");
+    zassert_false(status, NULL);
     /* specific property API validation - shed level */
     status =
         Load_Control_Shed_Level_Array(object_instance, 1, &shed_level_entry);

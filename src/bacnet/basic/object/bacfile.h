@@ -53,7 +53,7 @@ unsigned bacfile_instance_to_index(uint32_t instance);
 BACNET_STACK_EXPORT
 const char *bacfile_file_type(uint32_t object_instance);
 BACNET_STACK_EXPORT
-void bacfile_file_type_set(uint32_t object_instance, const char *mime_type);
+bool bacfile_file_type_set(uint32_t object_instance, const char *mime_type);
 
 BACNET_STACK_EXPORT
 bool bacfile_archive(uint32_t instance);
@@ -111,7 +111,7 @@ bool bacfile_write_property(BACNET_WRITE_PROPERTY_DATA *wp_data);
 BACNET_STACK_EXPORT
 const char *bacfile_pathname(uint32_t instance);
 BACNET_STACK_EXPORT
-void bacfile_pathname_set(uint32_t instance, const char *pathname);
+bool bacfile_pathname_set(uint32_t instance, const char *pathname);
 BACNET_STACK_EXPORT
 uint32_t bacfile_pathname_instance(const char *pathname);
 

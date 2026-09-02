@@ -38,6 +38,8 @@ static void testBinaryLightingOutput(void)
     unsigned index;
     const char *test_name = NULL;
     char *sample_name = "sample";
+    BACNET_CHARACTER_STRING char_string = { 0 };
+    BACNET_CHARACTER_STRING desc_string = { 0 };
 
     Binary_Lighting_Output_Init();
     test_instance = Binary_Lighting_Output_Create(instance);
@@ -131,15 +133,64 @@ static void testBinaryLightingOutput(void)
     zassert_equal(len, BACNET_STATUS_ERROR, NULL);
     status = Binary_Lighting_Output_Write_Property(&wpdata);
     zassert_false(status, NULL);
-    /* test the ASCII name get/set */
+    /* test the ANSI name/description get/set */
     status = Binary_Lighting_Output_Name_Set(instance, sample_name);
     zassert_true(status, NULL);
     test_name = Binary_Lighting_Output_Name_ASCII(instance);
     zassert_equal(test_name, sample_name, NULL);
+    status = Binary_Lighting_Output_Object_Name(instance, &char_string);
+    zassert_true(status, NULL);
+    zassert_equal(
+        strcmp(characterstring_value_const(&char_string), sample_name), 0,
+        NULL);
     status = Binary_Lighting_Output_Name_Set(instance, NULL);
     zassert_true(status, NULL);
+    status = Binary_Lighting_Output_Object_Name(instance, &char_string);
+    zassert_true(status, NULL);
+    zassert_equal(
+        strcmp(
+            characterstring_value_const(&char_string),
+            "BINARY-LIGHTING-OUTPUT-123"),
+        0, NULL);
+    zassert_equal(
+        strcmp(Binary_Lighting_Output_Description(instance), ""), 0, NULL);
+    status = Binary_Lighting_Output_Description_Set(instance, "sample desc");
+    zassert_true(status, NULL);
+    zassert_equal(
+        strcmp(Binary_Lighting_Output_Description(instance), "sample desc"), 0,
+        NULL);
+    status = Binary_Lighting_Output_Description_Set(instance, NULL);
+    zassert_true(status, NULL);
+    zassert_equal(
+        strcmp(Binary_Lighting_Output_Description(instance), ""), 0, NULL);
+    char_string.length = 0;
+    characterstring_init_ansi(&char_string, "written name");
+    wpdata.object_type = OBJECT_BINARY_LIGHTING_OUTPUT;
+    wpdata.object_instance = instance;
+    wpdata.object_property = PROP_OBJECT_NAME;
+    wpdata.array_index = BACNET_ARRAY_ALL;
+    wpdata.application_data_len = encode_application_character_string(
+        wpdata.application_data, &char_string);
+    wpdata.error_class = ERROR_CLASS_PROPERTY;
+    wpdata.error_code = ERROR_CODE_SUCCESS;
+    status = Binary_Lighting_Output_Write_Property(&wpdata);
+    zassert_true(status, NULL);
     test_name = Binary_Lighting_Output_Name_ASCII(instance);
-    zassert_equal(test_name, NULL, NULL);
+    zassert_equal(strcmp(test_name, "written name"), 0, NULL);
+    desc_string.length = 0;
+    characterstring_init_ansi(&desc_string, "written description");
+    wpdata.object_property = PROP_DESCRIPTION;
+    wpdata.application_data_len = encode_application_character_string(
+        wpdata.application_data, &desc_string);
+    wpdata.error_class = ERROR_CLASS_PROPERTY;
+    wpdata.error_code = ERROR_CODE_SUCCESS;
+    status = Binary_Lighting_Output_Write_Property(&wpdata);
+    zassert_true(status, NULL);
+    zassert_equal(
+        strcmp(
+            Binary_Lighting_Output_Description(instance),
+            "written description"),
+        0, NULL);
     /* check the delete function */
     status = Binary_Lighting_Output_Delete(instance);
     zassert_true(status, NULL);

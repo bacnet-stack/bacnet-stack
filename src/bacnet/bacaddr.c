@@ -16,6 +16,7 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacint.h"
 #include "bacnet/bactext.h"
+#include "bacnet/basic/sys/compare.h"
 #include "bacnet/bacaddr.h"
 
 /**
@@ -542,11 +543,12 @@ int encode_bacnet_address(uint8_t *apdu, const BACNET_ADDRESS *destination)
         }
         /* encode mac address as an octet-string */
         if (destination->len > 0) {
-            adr_len = min(destination->len, sizeof(destination->adr));
+            adr_len = BACNET_MIN(destination->len, sizeof(destination->adr));
             len = encode_application_octet_string_buffer(
                 apdu, destination->adr, adr_len);
         } else {
-            mac_len = min(destination->mac_len, sizeof(destination->mac));
+            mac_len =
+                BACNET_MIN(destination->mac_len, sizeof(destination->mac));
             len = encode_application_octet_string_buffer(
                 apdu, destination->mac, mac_len);
         }

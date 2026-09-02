@@ -546,23 +546,33 @@ void MSTP_Receive_Frame_FSM(struct mstp_port_struct_t *mstp_port)
                     /* SKIP_DATA or DATA - no change in state */
                 } else if (mstp_port->Index == (mstp_port->DataLength + 1)) {
                     /* CRC2 */
+                    mstp_port->DataCRC = CRC_Calc_Data(
+                        mstp_port->DataRegister, mstp_port->DataCRC);
+                    mstp_port->DataCRCActualLSB = mstp_port->DataRegister;
                     if (mstp_port->Index < mstp_port->InputBufferSize) {
                         mstp_port->InputBuffer[mstp_port->Index] =
                             mstp_port->DataRegister;
                     }
-                    mstp_port->DataCRC = CRC_Calc_Data(
-                        mstp_port->DataRegister, mstp_port->DataCRC);
-                    mstp_port->DataCRCActualLSB = mstp_port->DataRegister;
+                    mstp_port->Index++;
                     printf_receive_data(
                         "%s",
                         mstptext_frame_type((unsigned)mstp_port->FrameType));
-                    if (((mstp_port->Index + 1) < mstp_port->InputBufferSize) &&
+                    if (mstp_port->SkipCRC == true) {
+                        mstp_port->ReceivedValidFrame = true;
+                    } else if (
                         (mstp_port->FrameType >= Nmin_COBS_type) &&
                         (mstp_port->FrameType <= Nmax_COBS_type)) {
-                        mstp_port->DataLength = cobs_frame_decode(
-                            &mstp_port->InputBuffer[mstp_port->Index + 1],
-                            mstp_port->InputBufferSize, mstp_port->InputBuffer,
-                            mstp_port->Index + 1);
+                        /* decode the data in-place: FrameTooLong check
+                           ensures decoded output fits in InputBuffer */
+                        if (mstp_port->Index < mstp_port->InputBufferSize) {
+                            mstp_port->DataLength = cobs_frame_decode(
+                                &mstp_port->InputBuffer[mstp_port->Index],
+                                mstp_port->InputBufferSize - mstp_port->Index,
+                                mstp_port->InputBuffer, mstp_port->Index);
+                        } else {
+                            /* FrameTooLong */
+                            mstp_port->DataLength = 0;
+                        }
                         if (mstp_port->DataLength > 0) {
                             /* GoodCRC */
                             if (mstp_port->receive_state ==
@@ -1198,8 +1208,10 @@ bool MSTP_Master_Node_FSM(struct mstp_port_struct_t *mstp_port)
             /* FIXME: MSTP_Get_Reply waits for a matching reply, but
                if the next queued message doesn't match, then we
                sit here for Treply_delay doing nothing */
-            length = (unsigned)MSTP_Get_Reply(mstp_port, 0);
-            if (length > 0) {
+            if (mstp_port->Treply_delay > 0) {
+                length = (unsigned)MSTP_Get_Reply(mstp_port, 0);
+            }
+            if ((mstp_port->Treply_delay > 0) && (length > 0)) {
                 /* Reply */
                 /* If a reply is available from the higher layers  */
                 /* within Treply_delay after the reception of the  */
@@ -1867,6 +1879,7 @@ void MSTP_Init(struct mstp_port_struct_t *mstp_port)
         mstp_port->SoleMaster = false;
         mstp_port->SourceAddress = 0;
         mstp_port->TokenCount = 0;
+        mstp_port->SkipCRC = false;
         /* zero config */
         mstp_port->Zero_Config_State = MSTP_ZERO_CONFIG_STATE_INIT;
     }

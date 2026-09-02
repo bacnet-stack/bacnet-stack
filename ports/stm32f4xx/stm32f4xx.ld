@@ -12,7 +12,7 @@ _Min_Heap_Size = 48K;
    adjust _Min_Heap_Size until linker error: sram overflowed by x bytes
    _Min_Heap_Size = _Min_Heap_Size - x
 */
-_Min_Stack_Size = 16K;
+_Min_Stack_Size = 32K;
 
 SECTIONS
 {

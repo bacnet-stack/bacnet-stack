@@ -16,24 +16,9 @@
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
 
-#ifndef MAX_COMMANDS
-#define MAX_COMMANDS 4
-#endif
-
-#ifndef MAX_COMMAND_ACTIONS
-#define MAX_COMMAND_ACTIONS 8
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
-typedef struct command_descr {
-    uint32_t Present_Value;
-    bool In_Process;
-    bool All_Writes_Successful;
-    BACNET_ACTION_LIST Action[MAX_COMMAND_ACTIONS];
-} COMMAND_DESCR;
 
 BACNET_STACK_EXPORT
 void Command_Property_Lists(
@@ -53,16 +38,20 @@ uint32_t Command_Index_To_Instance(unsigned index);
 BACNET_STACK_EXPORT
 unsigned Command_Instance_To_Index(uint32_t instance);
 BACNET_STACK_EXPORT
-bool Command_Object_Instance_Add(uint32_t instance);
+uint32_t Command_Create(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Command_Delete(uint32_t object_instance);
+BACNET_STACK_EXPORT
+void Command_Cleanup(void);
 
 BACNET_STACK_EXPORT
 bool Command_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name);
 BACNET_STACK_EXPORT
-bool Command_Name_Set(uint32_t object_instance, char *new_name);
+bool Command_Name_Set(uint32_t object_instance, const char *new_name);
 
 BACNET_STACK_EXPORT
-char *Command_Description(uint32_t instance);
+const char *Command_Description(uint32_t instance);
 BACNET_STACK_EXPORT
 bool Command_Description_Set(uint32_t instance, const char *new_name);
 
@@ -70,6 +59,9 @@ BACNET_STACK_EXPORT
 int Command_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);
 BACNET_STACK_EXPORT
 bool Command_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
+
+BACNET_STACK_EXPORT
+void Command_Write_Property_Internal_Callback_Set(write_property_function cb);
 
 BACNET_STACK_EXPORT
 uint32_t Command_Present_Value(uint32_t object_instance);
@@ -97,16 +89,39 @@ float Command_COV_Increment(uint32_t instance);
 BACNET_STACK_EXPORT
 void Command_COV_Increment_Set(uint32_t instance, float value);
 
+/* Action_Array: outer array of inner lists (BACnetARRAY of BACnetLIST) */
+BACNET_STACK_EXPORT
+unsigned Command_Action_Array_Count(uint32_t instance);
+BACNET_STACK_EXPORT
+unsigned
+Command_Action_List_Count(uint32_t instance, BACNET_ARRAY_INDEX array_index);
+BACNET_STACK_EXPORT
+BACNET_ACTION_LIST *Command_Action_List_Member(
+    uint32_t instance, BACNET_ARRAY_INDEX array_index, unsigned list_index);
 BACNET_STACK_EXPORT
 BACNET_ACTION_LIST *
-Command_Action_List_Entry(uint32_t instance, unsigned index);
+Command_Action_List(uint32_t instance, BACNET_ARRAY_INDEX array_index);
 BACNET_STACK_EXPORT
-unsigned Command_Action_List_Count(uint32_t instance);
+void Command_Action_List_Set(
+    uint32_t instance,
+    BACNET_ARRAY_INDEX array_index,
+    BACNET_ACTION_LIST *action_list);
+BACNET_STACK_EXPORT
+bool Command_Action_List_Purge(
+    uint32_t instance, BACNET_ARRAY_INDEX array_index);
+BACNET_STACK_EXPORT
+void Command_Action_List_Link_Array(BACNET_ACTION_LIST *array, size_t size);
+BACNET_STACK_EXPORT
+bool Command_Action_List_Element_Same(
+    BACNET_ACTION_LIST *element1, BACNET_ACTION_LIST *element2);
 
 /* note: header of Intrinsic_Reporting function is required
    even when INTRINSIC_REPORTING is not defined */
 BACNET_STACK_EXPORT
 void Command_Intrinsic_Reporting(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+void Command_Timer(uint32_t object_instance, uint16_t milliseconds);
 
 BACNET_STACK_EXPORT
 void Command_Init(void);

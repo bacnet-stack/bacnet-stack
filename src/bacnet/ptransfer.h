@@ -20,6 +20,9 @@ typedef struct BACnet_Private_Transfer_Data {
     int serviceParametersLen;
 } BACNET_PRIVATE_TRANSFER_DATA;
 
+typedef BACNET_ERROR_CODE (*handler_private_transfer_callback_t)(
+    BACNET_PRIVATE_TRANSFER_DATA *data, void *context);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -38,6 +41,9 @@ int ptransfer_decode_service_request(
     unsigned apdu_len,
     BACNET_PRIVATE_TRANSFER_DATA *private_data);
 
+BACNET_STACK_EXPORT
+int ptransfer_service_header_encode(
+    uint8_t *apdu, uint16_t apdu_size, uint8_t invoke_id);
 BACNET_STACK_EXPORT
 int private_transfer_request_encode(
     uint8_t *apdu, const BACNET_PRIVATE_TRANSFER_DATA *private_data);

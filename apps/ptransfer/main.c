@@ -1,398 +1,461 @@
 /**
  * @file
- * @brief command line application for a BACnet ConfirmedPrivateTransfer
- * service.  This application is a test program for the BACnet stack.
- * @author Peter Mc Shane <petermcs@users.sourceforge.net>
- * @date 2005
+ * @brief command line tool that sends a BACnet ConfirmedPrivateTransfer
+ * message with one or more application values.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2026
  * @copyright SPDX-License-Identifier: MIT
  */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h> /* for time */
-#include <ctype.h> /* for tupper */
-#if defined(WIN32) || defined(__BORLANDC__)
-#include <conio.h>
-#endif
+#include <ctype.h>
 #define PRINT_ENABLED 1
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
-#include "bacnet/bactext.h"
-#include "bacnet/bacstr.h"
+#include "bacnet/bacapp.h"
 #include "bacnet/bacerror.h"
+#include "bacnet/bactext.h"
 #include "bacnet/iam.h"
-#include "bacnet/arf.h"
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
+#include "bacnet/ptransfer.h"
+#include "bacnet/version.h"
 #include "bacnet/whois.h"
 /* some demo stuff needed */
-#include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/object/device.h"
+#include "bacnet/basic/service/h_pt.h"
+#include "bacnet/basic/service/h_pt_a.h"
+#include "bacnet/basic/service/s_pt.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/filename.h"
+#include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/services.h"
+#include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacport.h"
 
-#define MY_MAX_STR 32
-#define MY_MAX_BLOCK 8
+#ifndef MAX_PROPERTY_VALUES
+#define MAX_PROPERTY_VALUES 64
+#endif
 
-#define MY_SVC_READ 0
-#define MY_SVC_WRITE 1
-
-#define MY_ERR_OK 0
-#define MY_ERR_BAD_INDEX 1
-
-typedef struct MyData {
-    uint8_t cMyByte1;
-    uint8_t cMyByte2;
-    float fMyReal;
-    int8_t sMyString[MY_MAX_STR + 1]; /* A little extra for the nul */
-} DATABLOCK;
-
-/* buffer used for receive */
 static uint8_t Rx_Buf[MAX_MPDU] = { 0 };
-
-/* global variables used in this file */
 static uint32_t Target_Device_Object_Instance = BACNET_MAX_INSTANCE;
-
-static int Target_Mode = 0;
-
+static uint16_t Target_Vendor_Identifier = 260;
+static uint32_t Target_Service_Number = 0;
+static BACNET_APPLICATION_DATA_VALUE
+    Target_Object_Property_Value[MAX_PROPERTY_VALUES];
 static BACNET_ADDRESS Target_Address;
+static uint8_t Request_Invoke_ID = 0;
 static bool Error_Detected = false;
 
-static void MyErrorHandler(
-    BACNET_ADDRESS *src,
-    uint8_t invoke_id,
-    BACNET_ERROR_CLASS error_class,
-    BACNET_ERROR_CODE error_code)
-{
-    /* FIXME: verify src and invoke id */
-    (void)src;
-    (void)invoke_id;
-    printf(
-        "BACnet Error: %s: %s\r\n", bactext_error_class_name((int)error_class),
-        bactext_error_code_name((int)error_code));
-    /*    Error_Detected = true; */
-}
-
-/* complex error reply function */
-static void MyPrivateTransferErrorHandler(
+/**
+ * @brief Handle a confirmed private-transfer error response.
+ * @param src Source BACnet address of the responder.
+ * @param invoke_id Invoke ID of the matching request.
+ * @param service_choice BACnet service choice for the error response.
+ * @param service_request Buffer containing the encoded error service payload.
+ * @param service_len Length of the service request in bytes.
+ */
+static void My_Private_Transfer_Error_Handler(
     BACNET_ADDRESS *src,
     uint8_t invoke_id,
     uint8_t service_choice,
     uint8_t *service_request,
     uint16_t service_len)
 {
-    (void)src;
-    (void)invoke_id;
+    BACNET_ERROR_CLASS error_class = ERROR_CLASS_DEVICE;
+    BACNET_ERROR_CODE error_code = ERROR_CODE_OTHER;
+    BACNET_PRIVATE_TRANSFER_DATA private_data = { 0 };
+    int len = 0;
+
     (void)service_choice;
-    (void)service_request;
-    (void)service_len;
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
+        len = ptransfer_error_decode_service_request(
+            service_request, service_len, &error_class, &error_code,
+            &private_data);
+        if (len > 0) {
+            printf(
+                "BACnet Error: %s: %s\n",
+                bactext_error_class_name((int)error_class),
+                bactext_error_code_name((int)error_code));
+            printf(
+                "PrivateTransfer: vendorID=%u serviceNumber=%lu\n",
+                (unsigned)private_data.vendorID,
+                (unsigned long)private_data.serviceNumber);
+        }
+        Error_Detected = true;
+    }
 }
 
-static void MyAbortHandler(
+/**
+ * @brief Handle an abort response for the current private-transfer request.
+ * @param src Source BACnet address of the responder.
+ * @param invoke_id Invoke ID of the matching request.
+ * @param abort_reason BACnet abort reason code.
+ * @param server True if the abort was generated by a server.
+ */
+static void My_Abort_Handler(
     BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t abort_reason, bool server)
 {
-    /* FIXME: verify src and invoke id */
-    (void)src;
-    (void)invoke_id;
     (void)server;
-    printf(
-        "BACnet Abort: %s\r\n", bactext_abort_reason_name((int)abort_reason));
-    Error_Detected = true;
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
+        printf(
+            "BACnet Abort: %s\n", bactext_abort_reason_name((int)abort_reason));
+        Error_Detected = true;
+    }
 }
 
+/**
+ * @brief Handle a reject response for the current private-transfer request.
+ * @param src Source BACnet address of the responder.
+ * @param invoke_id Invoke ID of the matching request.
+ * @param reject_reason BACnet reject reason code.
+ */
 static void
-MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
+My_Reject_Handler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 {
-    /* FIXME: verify src and invoke id */
-    (void)src;
-    (void)invoke_id;
-    printf(
-        "BACnet Reject: %s\r\n",
-        bactext_reject_reason_name((int)reject_reason));
-    Error_Detected = true;
+    if (address_match(&Target_Address, src) &&
+        (invoke_id == Request_Invoke_ID)) {
+        printf(
+            "BACnet Reject: %s\n",
+            bactext_reject_reason_name((int)reject_reason));
+        Error_Detected = true;
+    }
 }
 
+/**
+ * @brief Handle a confirmed private-transfer ACK response.
+ * @param service_request Buffer containing the encoded ACK payload.
+ * @param service_len Length of the service request in bytes.
+ * @param src Source BACnet address of the responder.
+ * @param service_data Confirmed service ACK metadata from the APDU header.
+ */
+static void My_Private_Transfer_Ack_Handler(
+    uint8_t *service_request,
+    uint16_t service_len,
+    BACNET_ADDRESS *src,
+    BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
+{
+    int len = 0;
+    BACNET_PRIVATE_TRANSFER_DATA data;
+
+    if (address_match(&Target_Address, src) &&
+        (service_data->invoke_id == Request_Invoke_ID)) {
+        len = ptransfer_decode_service_request(
+            service_request, service_len, &data);
+        if (len < 0) {
+            printf("<decode failed!>\n");
+        } else {
+            private_transfer_print_data(&data);
+        }
+    }
+}
+
+/**
+ * @brief Configure the BACnet service callbacks used by the client.
+ */
 static void Init_Service_Handlers(void)
 {
     Device_Init(NULL);
-    /* we need to handle who-is
-       to support dynamic device binding to us */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_WHO_IS, handler_who_is);
-    /* handle i-am to support binding to other devices */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, handler_i_am_bind);
-    /* set the handler for all the services we don't implement
-       It is required to send the proper reject message... */
     apdu_set_unrecognized_service_handler_handler(handler_unrecognized_service);
-    /* we must implement read property - it's required! */
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
-
-    apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_PRIVATE_TRANSFER, handler_conf_private_trans);
-    /* handle the data coming back from confirmed requests */
+    /* application specific handling */
     apdu_set_confirmed_ack_handler(
-        SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property_ack);
-
-    apdu_set_confirmed_ack_handler(
-        SERVICE_CONFIRMED_PRIVATE_TRANSFER, handler_conf_private_trans_ack);
-
-    /* handle any errors coming back */
-    apdu_set_error_handler(SERVICE_CONFIRMED_READ_PROPERTY, MyErrorHandler);
+        SERVICE_CONFIRMED_PRIVATE_TRANSFER, My_Private_Transfer_Ack_Handler);
     apdu_set_complex_error_handler(
-        SERVICE_CONFIRMED_PRIVATE_TRANSFER, MyPrivateTransferErrorHandler);
-    apdu_set_abort_handler(MyAbortHandler);
-    apdu_set_reject_handler(MyRejectHandler);
+        SERVICE_CONFIRMED_PRIVATE_TRANSFER, My_Private_Transfer_Error_Handler);
+    apdu_set_abort_handler(My_Abort_Handler);
+    apdu_set_reject_handler(My_Reject_Handler);
 }
 
-len += encode_application_unsigned(
-    &pt_req_buffer[len], block_number); /* The block number */
-len += encode_application_unsigned(
-    &pt_req_buffer[len], block->cMyByte1); /* And Then the block contents */
-len += encode_application_unsigned(&pt_req_buffer[len], block->cMyByte2);
-len += encode_application_real(&pt_req_buffer[len], block->fMyReal);
-characterstring_init_ansi(&bsTemp, (char *)block->sMyString);
-len += encode_application_character_string(&pt_req_buffer[len], &bsTemp);
+/**
+ * @brief Print the command-line usage for the ptransfer client.
+ * @param filename Program name to display in the usage text.
+ */
+static void print_usage(const char *filename)
+{
+    printf(
+        "Usage: %s device-instance vendor-id service-number tag value "
+        "[tag value...]\n",
+        filename);
+    printf("       [--dnet][--dadr][--mac][--debug]\n");
+    printf("       [--version][--help]\n");
 }
 
-pt_block.serviceParameters = &pt_req_buffer[0];
-pt_block.serviceParametersLen = len;
+/**
+ * @brief Print the detailed help text for the ptransfer client.
+ * @param filename Program name to display in the examples.
+ */
+static void print_help(const char *filename)
+{
+    printf("Send a BACnet ConfirmedPrivateTransfer with one or more values.\n");
+    printf("--mac A\n"
+           "Optional BACnet mac address."
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf("\n");
+    printf("--dnet N\n"
+           "Optional BACnet network number N for directed requests.\n"
+           "Valid range is from 0 to 65535 where 0 is the local connection\n"
+           "and 65535 is network broadcast.\n");
+    printf("\n");
+    printf("--dadr A\n"
+           "Optional BACnet mac address on the destination BACnet network "
+           "number.\n"
+           "Valid ranges are from 00 to FF (hex) for MS/TP or ARCNET,\n"
+           "or an IP string with optional port number like 10.1.2.3:47808\n"
+           "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
+    printf("\n");
+    printf("--debug S\n"
+           "Optional debug severity level 0=emergency, 1=alert, 2=critical,\n"
+           "3=error, 4=warning, 5=notice, 6=info, 7=debug, -1=disable.\n");
+    printf("\n");
+    printf("device-instance:\n"
+           "BACnet Device Object Instance number that you are\n"
+           "trying to communicate with.\n");
+    printf("vendor-id:\n"
+           "The specific vendor ID for the proprietary service.\n");
+    printf("service-number:\n"
+           "The vendor-defined private service number.\n");
+    printf("tag:\n"
+           "BACNET_APPLICATION_TAG value for the data item.\n");
+    printf("value:\n"
+           "ASCII representation of the payload value to encode.\n");
+    printf(
+        "Example:\n"
+        "%s 99 260 23 4 1.1 2 42\n",
+        filename);
+}
 
+/**
+ * @brief Send a BACnet confirmed private transfer with one or more values.
+ * @param argc Number of command-line arguments.
+ * @param argv Command-line arguments.
+ * @return 0 on success, 1 on error.
+ */
 int main(int argc, char *argv[])
 {
-    BACNET_ADDRESS src = { 0 }; /* address where message came from */
+    BACNET_ADDRESS src = { 0 };
     uint16_t pdu_len = 0;
-    unsigned timeout = 100; /* milliseconds */
+    unsigned timeout = 100;
     unsigned max_apdu = 0;
-    time_t elapsed_seconds = 0;
-    time_t last_seconds = 0;
-    time_t current_seconds = 0;
-    time_t timeout_seconds = 0;
-    uint8_t invoke_id = 0;
+    unsigned binding_timeout_milliseconds = 0;
     bool found = false;
-    DATABLOCK NewData;
-    int iCount = 0;
-    int iType = 0;
-    int iKey;
+    const char *filename = NULL;
+    char *value_string = NULL;
+    struct mstimer binding_timer = { 0 };
+    struct mstimer datalink_timer = { 0 };
+    struct mstimer transaction_timer = { 0 };
+    bool status = false;
+    int argi = 0;
+    long dnet = -1;
+    uint32_t severity = 0;
+    BACNET_MAC_ADDRESS mac = { 0 };
+    BACNET_MAC_ADDRESS adr = { 0 };
+    BACNET_ADDRESS dest = { 0 };
+    bool specific_address = false;
+    unsigned target_args = 0;
+    unsigned property_count = 0;
+    int tag_value_arg = 0;
+    BACNET_APPLICATION_TAG property_tag;
+    uint8_t context_tag = 0;
+    uint8_t tx_buffer[MAX_APDU] = { 0 };
 
-    if (((argc != 2) && (argc != 3)) ||
-        ((argc >= 2) && (strcmp(argv[1], "--help") == 0))) {
-        printf("%s\n", argv[0]);
-        printf(
-            "Usage: %s server local-device-instance\r\n       or\r\n"
-            "       %s remote-device-instance\r\n",
-            filename_remove_path(argv[0]), filename_remove_path(argv[0]));
-        if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
-            printf(
-                "\r\nServer mode:\r\n\r\n"
-                "local-device-instance determins the device id of the "
-                "application\r\n"
-                "when running as the server end of a test set up.\r\n\r\n"
-                "Non server:\r\n\r\n"
-                "remote-device-instance indicates the device id of the "
-                "server\r\n"
-                "instance of the application.\r\n"
-                "The non server application will write a series of blocks to "
-                "the\r\n"
-                "server and then retrieve them for display locally\r\n"
-                "First it writes all 8 blocks plus a 9th which should "
-                "trigger\r\n"
-                "an out of range error response. Then it reads all the "
-                "blocks\r\n"
-                "including the ninth and finally it repeats the read "
-                "operation\r\n"
-                "with some deliberate errors to trigger a nack response\r\n");
+    filename = filename_remove_path(argv[0]);
+    for (argi = 1; argi < argc; argi++) {
+        if (strcmp(argv[argi], "--help") == 0) {
+            print_usage(filename);
+            print_help(filename);
+            return 0;
         }
+        if (strcmp(argv[argi], "--version") == 0) {
+            printf("%s %s\n", filename, BACNET_VERSION_TEXT);
+            printf("Copyright (C) 2026 by Steve Karg and others.\n"
+                   "This is free software; see the source for copying "
+                   "conditions.\n"
+                   "There is NO warranty; not even for MERCHANTABILITY or\n"
+                   "FITNESS FOR A PARTICULAR PURPOSE.\n");
+            return 0;
+        }
+        if (strcmp(argv[argi], "--mac") == 0) {
+            if (++argi < argc) {
+                if (bacnet_address_mac_from_ascii(&mac, argv[argi])) {
+                    specific_address = true;
+                }
+            }
+        } else if (strcmp(argv[argi], "--dnet") == 0) {
+            if (++argi < argc) {
+                if (!bacnet_strtol(argv[argi], &dnet)) {
+                    fprintf(stderr, "dnet=%s invalid\n", argv[argi]);
+                    return 1;
+                }
+                if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
+                    specific_address = true;
+                }
+            }
+        } else if (strcmp(argv[argi], "--dadr") == 0) {
+            if (++argi < argc) {
+                if (bacnet_address_mac_from_ascii(&adr, argv[argi])) {
+                    specific_address = true;
+                }
+            }
+        } else if (strcmp(argv[argi], "--debug") == 0) {
+            if (++argi < argc) {
+                if (bactext_debug_severity_strtol(argv[argi], &severity)) {
+                    debug_log_severity_set(severity);
+                } else {
+                    debug_log_severity_set(DEBUG_LOG_DISABLED);
+                }
+            }
+        } else if (target_args == 0) {
+            Target_Device_Object_Instance = strtol(argv[argi], NULL, 0);
+            target_args++;
+        } else if (target_args == 1) {
+            Target_Vendor_Identifier = strtol(argv[argi], NULL, 0);
+            target_args++;
+        } else if (target_args == 2) {
+            Target_Service_Number = strtol(argv[argi], NULL, 0);
+            target_args++;
+        } else {
+            if (property_count >= MAX_PROPERTY_VALUES) {
+                fprintf(
+                    stderr, "Error: Exceeded %d tag-value pairs.\n",
+                    MAX_PROPERTY_VALUES);
+                return 1;
+            }
+            if (toupper(argv[argi][0]) == 'C') {
+                context_tag = strtol(&argv[argi][1], NULL, 0);
+                tag_value_arg = argi + 1;
+                Target_Object_Property_Value[property_count].context_tag =
+                    context_tag;
+                Target_Object_Property_Value[property_count].context_specific =
+                    true;
+                argi++;
+            } else {
+                tag_value_arg = argi;
+                Target_Object_Property_Value[property_count].context_specific =
+                    false;
+            }
+            property_tag = strtol(argv[tag_value_arg], NULL, 0);
+            if (tag_value_arg + 1 >= argc) {
+                fprintf(stderr, "Error: not enough tag-value pairs\n");
+                return 1;
+            }
+            value_string = argv[tag_value_arg + 1];
+            if (property_tag >= MAX_BACNET_APPLICATION_TAG) {
+                fprintf(
+                    stderr, "Error: tag=%u - it must be less than %u\n",
+                    property_tag, MAX_BACNET_APPLICATION_TAG);
+                return 1;
+            }
+            status = bacapp_parse_application_data(
+                property_tag, value_string,
+                &Target_Object_Property_Value[property_count]);
+            if (!status) {
+                fprintf(stderr, "Error: unable to parse the tag value\n");
+                return 1;
+            }
+            debug_log_fprintf(
+                DEBUG_LOG_INFO, stderr, "Parsed tag=%u->value.tag=%u\n",
+                property_tag, Target_Object_Property_Value[property_count].tag);
+            Target_Object_Property_Value[property_count].next = NULL;
+            if (property_count > 0) {
+                Target_Object_Property_Value[property_count - 1].next =
+                    &Target_Object_Property_Value[property_count];
+            }
+            property_count++;
+            if (tag_value_arg == argi) {
+                argi++;
+            }
+        }
+    }
+    if ((target_args < 3) || (property_count == 0)) {
+        print_usage(filename);
         return 0;
     }
-    /* decode the command line parameters */
-    if (bacnet_stricmp(argv[1], "server") == 0) {
-        Target_Mode = 1;
-    } else {
-        Target_Mode = 0;
-    }
-
-    Target_Device_Object_Instance = strtol(argv[1 + Target_Mode], NULL, 0);
-
     if (Target_Device_Object_Instance > BACNET_MAX_INSTANCE) {
         fprintf(
-            stderr, "device-instance=%u - not greater than %u\r\n",
+            stderr, "device-instance=%u - not greater than %u\n",
             Target_Device_Object_Instance, BACNET_MAX_INSTANCE);
         return 1;
     }
-
-    /* setup my info */
-    if (Target_Mode) {
-        Device_Set_Object_Instance_Number(Target_Device_Object_Instance);
-    } else {
-        Device_Set_Object_Instance_Number
-    }
-    (BACNET_MAX_INSTANCE);
-
+    Device_Set_Object_Instance_Number(BACNET_MAX_INSTANCE);
     address_init();
+    if (specific_address) {
+        if ((dnet < 0) || (dnet > BACNET_BROADCAST_NETWORK)) {
+            dnet = BACNET_BROADCAST_NETWORK;
+        }
+        bacnet_address_init(&dest, &mac, dnet, &adr);
+        address_add(Target_Device_Object_Instance, MAX_APDU, &dest);
+    }
     Init_Service_Handlers();
     dlenv_init();
     atexit(datalink_cleanup);
-    /* configure the timeout values */
-    last_seconds = time(NULL);
-    timeout_seconds = (apdu_timeout() / 1000) * apdu_retries();
+    mstimer_init();
+    binding_timeout_milliseconds = apdu_timeout() * apdu_retries();
+    mstimer_set(&binding_timer, binding_timeout_milliseconds);
+    mstimer_set(&datalink_timer, 1000);
+    mstimer_set(&transaction_timer, 1000);
 
-    if (Target_Mode) {
-        printf("Entering server mode. press q to quit program\r\n\r\n");
+    found = address_bind_request(
+        Target_Device_Object_Instance, &max_apdu, &Target_Address);
+    if (!found) {
+        Send_WhoIs(
+            Target_Device_Object_Instance, Target_Device_Object_Instance);
+    }
 
-        for (;;) {
-            /* increment timer - exit if timed out */
-            current_seconds = time(NULL);
-            if (current_seconds != last_seconds) { }
-
-            /* returns 0 bytes on timeout */
-            pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
-            /* process */
-            if (pdu_len) {
-                npdu_handler(&src, &Rx_Buf[0], pdu_len);
-            }
-            /* at least one second has passed */
-            if (current_seconds != last_seconds) {
-                putchar('.'); /* Just to show that time is passing... */
-                last_seconds = current_seconds;
-                tsm_timer_milliseconds(
-                    ((current_seconds - last_seconds) * 1000));
-                datalink_maintenance_timer(current_seconds - last_seconds);
-            }
-            if (_kbhit()) {
-                iKey = toupper(_getch());
-                if (iKey == 'Q') {
-                    printf("\r\nExiting program now\r\n");
-                    exit(0);
-                }
-            }
+    for (;;) {
+        pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
+        if (pdu_len) {
+            npdu_handler(&src, &Rx_Buf[0], pdu_len);
         }
-    } else {
-        /* try to bind with the device */
-        found = address_bind_request(
-            Target_Device_Object_Instance, &max_apdu, &Target_Address);
+        if (Error_Detected) {
+            break;
+        }
         if (!found) {
-            Send_WhoIs(
-                Target_Device_Object_Instance, Target_Device_Object_Instance);
+            found = address_bind_request(
+                Target_Device_Object_Instance, &max_apdu, &Target_Address);
         }
-        /* loop forever */
-        for (;;) {
-            /* increment timer - exit if timed out */
-            current_seconds = time(NULL);
-
-            /* returns 0 bytes on timeout */
-            pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
-
-            /* process */
-            if (pdu_len) {
-                npdu_handler(&src, &Rx_Buf[0], pdu_len);
-            }
-            /* at least one second has passed */
-            if (current_seconds != last_seconds) {
-                tsm_timer_milliseconds(
-                    ((current_seconds - last_seconds) * 1000));
-                datalink_maintenance_timer(current_seconds - last_seconds);
-            }
-            if (Error_Detected) {
+        if (found) {
+            if (Request_Invoke_ID == 0) {
+                Request_Invoke_ID = Send_Private_Transfer_Request(
+                    &tx_buffer[0], sizeof(tx_buffer),
+                    Target_Device_Object_Instance, Target_Vendor_Identifier,
+                    Target_Service_Number, &Target_Object_Property_Value[0]);
+            } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
+                break;
+            } else if (tsm_invoke_id_failed(Request_Invoke_ID)) {
+                fprintf(stderr, "\rError: TSM Timeout!\n");
+                tsm_free_invoke_id(Request_Invoke_ID);
+                Error_Detected = true;
+                /* try again or abort? */
                 break;
             }
-            /* wait until the device is bound, or timeout and quit */
-            if (!found) {
-                found = address_bind_request(
-                    Target_Device_Object_Instance, &max_apdu, &Target_Address);
-            }
-            if (found) {
-                if (invoke_id == 0) { /* Safe to send a new request */
-                    switch (iType) {
-                        case 0: /* Write blocks to server */
-                            NewData.cMyByte1 = iCount;
-                            NewData.cMyByte2 = 255 - iCount;
-                            NewData.fMyReal = (float)iCount;
-                            strcpy(
-                                (char *)NewData.sMyString, "Test Data - [x]");
-                            NewData.sMyString[13] = 'a' + iCount;
-                            pt_write_block_to_server()
-                                printf("Sending block %d\n", iCount);
-                            invoke_id = Send_Private_Transfer_Request(
-                                Target_Device_Object_Instance, BACNET_VENDOR_ID,
-                                1, iCount, &NewData);
-                            break;
-
-                        case 1: /* Read blocks from server */
-                            printf("Requesting block %d\n", iCount);
-                            invoke_id = Send_Private_Transfer_Request(
-                                Target_Device_Object_Instance, BACNET_VENDOR_ID,
-                                0, iCount, &NewData);
-                            break;
-
-                        case 2: /* Generate some error responses */
-                            switch (iCount) {
-                                case 0: /* Bad service number i.e. 2 */
-                                case 2:
-                                case 4:
-                                case 6:
-                                case 8:
-                                    printf(
-                                        "Requesting block %d with bad service "
-                                        "number\n",
-                                        iCount);
-                                    invoke_id = Send_Private_Transfer_Request(
-                                        Target_Device_Object_Instance,
-                                        BACNET_VENDOR_ID, 2, iCount, &NewData);
-                                    break;
-
-                                case 1: /* Bad vendor ID number */
-                                case 3:
-                                case 5:
-                                case 7:
-                                    printf(
-                                        "Requesting block %d with invalid "
-                                        "Vendor ID\n",
-                                        iCount);
-                                    invoke_id = Send_Private_Transfer_Request(
-                                        Target_Device_Object_Instance,
-                                        BACNET_VENDOR_ID + 1, 0, iCount,
-                                        &NewData);
-                                    break;
-                            }
-
-                            break;
-                    }
-                } else if (tsm_invoke_id_free(invoke_id)) {
-                    if (iCount != MY_MAX_BLOCK) {
-                        iCount++;
-                        invoke_id = 0;
-                    } else {
-                        iType++;
-                        iCount = 0;
-                        invoke_id = 0;
-
-                        if (iType > 2) {
-                            break;
-                        }
-                    }
-                } else if (tsm_invoke_id_failed(invoke_id)) {
-                    fprintf(stderr, "\rError: TSM Timeout!\r\n");
-                    tsm_free_invoke_id(invoke_id);
-                    Error_Detected = true;
-                    /* try again or abort? */
-                    break;
-                }
-            } else {
-                /* increment timer - exit if timed out */
-                elapsed_seconds += (current_seconds - last_seconds);
-                if (elapsed_seconds > timeout_seconds) {
-                    printf("\rError: APDU Timeout!\r\n");
-                    Error_Detected = true;
-                    break;
-                }
-            }
-            /* keep track of time for next check */
-            last_seconds = current_seconds;
+        } else if (mstimer_expired(&binding_timer)) {
+            /* increment timer - exit if timed out */
+            printf("\rError: Binding Timeout!\n");
+            Error_Detected = true;
+            break;
+        }
+        if (mstimer_expired(&datalink_timer)) {
+            datalink_maintenance_timer(
+                mstimer_interval(&datalink_timer) / 1000);
+            mstimer_reset(&datalink_timer);
+        }
+        if (mstimer_expired(&transaction_timer)) {
+            mstimer_reset(&transaction_timer);
+            tsm_timer_milliseconds(mstimer_interval(&transaction_timer));
         }
     }
     if (Error_Detected) {

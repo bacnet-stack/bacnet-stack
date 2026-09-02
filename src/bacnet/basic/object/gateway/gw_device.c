@@ -39,8 +39,9 @@
 #include "bacnet/basic/object/trendlog.h"
 #include "bacnet/basic/object/bacfile.h"
 /* os specific includes */
-#include "bacnet/basic/sys/mstimer.h"
+#include "bacnet/basic/sys/compare.h"
 #include "bacnet/basic/sys/debug.h"
+#include "bacnet/basic/sys/mstimer.h"
 
 /* forward prototypes */
 int Routed_Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata);
@@ -187,7 +188,8 @@ DEVICE_OBJECT_DATA *Get_Routed_Device_Object(int idx)
     if (idx == -1) {
         return &Devices[iCurrent_Device_Idx];
     } else if (
-        (idx >= 0) && (idx < min(MAX_NUM_DEVICES, Num_Managed_Devices))) {
+        (idx >= 0) &&
+        (idx < BACNET_MIN(MAX_NUM_DEVICES, Num_Managed_Devices))) {
         iCurrent_Device_Idx = idx;
         return &Devices[idx];
     } else {
@@ -209,7 +211,8 @@ BACNET_ADDRESS *Get_Routed_Device_Address(int idx)
     if (idx == -1) {
         return &Devices[iCurrent_Device_Idx].bacDevAddr;
     } else if (
-        (idx >= 0) && (idx < min(MAX_NUM_DEVICES, Num_Managed_Devices))) {
+        (idx >= 0) &&
+        (idx < BACNET_MIN(MAX_NUM_DEVICES, Num_Managed_Devices))) {
         iCurrent_Device_Idx = idx;
         return &Devices[idx].bacDevAddr;
     } else {
@@ -256,7 +259,8 @@ bool Routed_Device_Address_Lookup(int idx, uint8_t dlen, const uint8_t *dadr)
     DEVICE_OBJECT_DATA *pDev;
     int i;
 
-    if ((idx >= 0) && (idx < min(MAX_NUM_DEVICES, Num_Managed_Devices))) {
+    if ((idx >= 0) &&
+        (idx < BACNET_MIN(MAX_NUM_DEVICES, Num_Managed_Devices))) {
         pDev = &Devices[idx];
         if (dlen == 0) {
             /* Automatic match */
@@ -310,7 +314,8 @@ bool Routed_Device_GetNext(
     int idx = *cursor;
     bool bSuccess = false;
 
-    if ((idx < 0) || (idx >= min(MAX_NUM_DEVICES, Num_Managed_Devices))) {
+    if ((idx < 0) ||
+        (idx >= BACNET_MIN(MAX_NUM_DEVICES, Num_Managed_Devices))) {
         /* The next index will be out of range.
            Eg, last call to GetNext may have been the last successful one.*/
         idx = -1;
@@ -336,7 +341,7 @@ bool Routed_Device_GetNext(
             /* Step over this case (starting point) */
             idx = 1;
         }
-        while (idx < min(MAX_NUM_DEVICES, Num_Managed_Devices)) {
+        while (idx < BACNET_MIN(MAX_NUM_DEVICES, Num_Managed_Devices)) {
             bSuccess =
                 Routed_Device_Address_Lookup(idx++, dest->len, dest->adr);
             if (bSuccess) {
@@ -347,7 +352,7 @@ bool Routed_Device_GetNext(
     }
     if (!bSuccess) {
         *cursor = -1;
-    } else if (idx == min(MAX_NUM_DEVICES, Num_Managed_Devices)) {
+    } else if (idx == BACNET_MIN(MAX_NUM_DEVICES, Num_Managed_Devices)) {
         /* No more to GetNext */
         *cursor = -1;
     } else {
@@ -408,7 +413,7 @@ static uint32_t Routed_Device_Instance_To_Index(uint32_t Instance_Number)
 {
     int i;
 
-    for (i = 0; i < min(MAX_NUM_DEVICES, Num_Managed_Devices); i++) {
+    for (i = 0; i < BACNET_MIN(MAX_NUM_DEVICES, Num_Managed_Devices); i++) {
         if (Devices[i].bacObj.Object_Instance_Number == Instance_Number) {
             /* Found Instance, so return the Device Index Number */
             return i;

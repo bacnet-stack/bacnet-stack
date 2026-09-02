@@ -176,6 +176,10 @@ piface:
 piface6:
 	$(MAKE) CSTANDARD="-std=gnu11" BACDL=bip6 -s -C apps piface
 
+.PHONY: ptransfer
+ptransfer:
+	$(MAKE) -s -C apps $@
+
 .PHONY: readbdt
 readbdt:
 	$(MAKE) -s -C apps $@
@@ -194,6 +198,10 @@ readpropm:
 
 .PHONY: remove-list-element
 remove-list-element:
+	$(MAKE) -s -C apps $@
+
+.PHONY: uptransfer
+uptransfer:
 	$(MAKE) -s -C apps $@
 
 .PHONY: writebdt
@@ -235,6 +243,10 @@ server-mini:
 .PHONY: server-segmentation
 server-segmentation:
 	$(MAKE) SEGMENT=true -s -C apps server
+
+.PHONY: timesync
+timesync:
+	$(MAKE) -s -C apps $@
 
 .PHONY: sc-hub
 sc-hub:
@@ -404,8 +416,8 @@ xplained-clean: ports/xplained/Makefile
 	$(MAKE) -s -C ports/xplained clean
 
 .PHONY: mstpsnap
-mstpsnap: ports/linux/mstpsnap.mak
-	$(MAKE) -s -C ports/linux -f mstpsnap.mak clean all
+mstpsnap:
+	$(MAKE) -s -C apps $@
 
 .PHONY: gtk-discover
 gtk-discover:
@@ -573,9 +585,14 @@ clean: ports-clean
 	$(MAKE) -s -C apps/fuzz-libfuzzer clean
 	$(MAKE) -s -C ports/lwip clean
 	$(MAKE) -s -C test clean
-	$(MAKE) -s -C ports/linux -f mstpsnap.mak clean
 	$(MAKE) -s -C ports/linux -f dlmstp.mak clean
 	rm -rf ./build
+
+# run a unit test using a regex filter TEST_FILTER to limit the number of test
+# "make TEST_FILTER=test_device test-filter" will match test_device test cases
+.PHONY: test-filter
+test-filter:
+	$(MAKE) -s -j -C test test-filter
 
 .PHONY: test
 test:

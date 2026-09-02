@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(
   bacnet-stack
-  VERSION 1.6.0
+  VERSION 1.7.0
   LANGUAGES C)
 
 #
@@ -258,7 +258,10 @@ if(BACDL_BSC)
   find_package(PkgConfig)
   pkg_check_modules(LIB_WEBSOCKETS REQUIRED libwebsockets)
   #libwebsocket need C99 with variadic-macros
-  add_compile_options(-Wno-variadic-macros)
+  #MSVC has no such warning and rejects the option as an invalid argument
+  if(NOT MSVC)
+    add_compile_options(-Wno-variadic-macros)
+  endif()
   find_package(OpenSSL)
 endif()
 
@@ -399,10 +402,14 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/object/auditlog.h
   src/bacnet/basic/object/ai.c
   src/bacnet/basic/object/ai.h
+  src/bacnet/basic/object/alert_enrollment.c
+  src/bacnet/basic/object/alert_enrollment.h
   src/bacnet/basic/object/ao.c
   src/bacnet/basic/object/ao.h
   src/bacnet/basic/object/av.c
   src/bacnet/basic/object/av.h
+  src/bacnet/basic/object/averaging.c
+  src/bacnet/basic/object/averaging.h
   src/bacnet/basic/object/bacfile.c
   src/bacnet/basic/object/bacfile.h
   src/bacnet/basic/object/bi.c
@@ -513,6 +520,10 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/service/h_list_element.h
   src/bacnet/basic/service/h_noserv.c
   src/bacnet/basic/service/h_noserv.h
+  src/bacnet/basic/service/h_pt.c
+  src/bacnet/basic/service/h_pt.h
+  src/bacnet/basic/service/h_pt_a.c
+  src/bacnet/basic/service/h_pt_a.h
   src/bacnet/basic/service/h_rd.c
   src/bacnet/basic/service/h_rd.h
   src/bacnet/basic/service/h_rp_a.c
@@ -581,6 +592,8 @@ add_library(${PROJECT_NAME}
   src/bacnet/basic/service/s_list_element.h
   src/bacnet/basic/service/s_lso.c
   src/bacnet/basic/service/s_lso.h
+  src/bacnet/basic/service/s_pt.c
+  src/bacnet/basic/service/s_pt.h
   src/bacnet/basic/service/s_rd.c
   src/bacnet/basic/service/s_rd.h
   src/bacnet/basic/service/s_readrange.c
@@ -1272,6 +1285,9 @@ if(BACNET_STACK_BUILD_APPS)
 
   add_executable(uptransfer apps/uptransfer/main.c)
   target_link_libraries(uptransfer PRIVATE ${PROJECT_NAME})
+
+  add_executable(ptransfer apps/ptransfer/main.c)
+  target_link_libraries(ptransfer PRIVATE ${PROJECT_NAME})
 
   add_executable(whoami apps/who-am-i/main.c)
   target_link_libraries(whoami PRIVATE ${PROJECT_NAME})

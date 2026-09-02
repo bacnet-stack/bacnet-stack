@@ -63,7 +63,7 @@ bool bacnet_name_set(uint16_t offset, const BACNET_CHARACTER_STRING *char_string
 
     length = characterstring_length(char_string);
     encoding = characterstring_encoding(char_string);
-    str = characterstring_value(char_string);
+    str = characterstring_value_const(char_string);
     return bacnet_name_save(offset, encoding, str, length);
 }
 

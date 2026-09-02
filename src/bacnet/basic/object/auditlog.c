@@ -103,8 +103,8 @@ struct object_data {
     int Buffer_Size;
     OS_Keylist Records;
     int Record_Count_Total;
-    const char *Object_Name;
-    const char *Description;
+    BACNET_CHARACTER_CSTRING Object_Name;
+    BACNET_CHARACTER_CSTRING Description;
     void *Context;
 };
 /* Key List for storing the object data sorted by instance number  */
@@ -149,7 +149,7 @@ static const int32_t Writable_Properties[] = {
     which is a BACnetARRAY of property identifiers,
     one property identifier for each property within this object
     that is always writable.  */
-    PROP_ENABLE, PROP_BUFFER_SIZE, -1
+    PROP_OBJECT_NAME, PROP_DESCRIPTION, PROP_ENABLE, PROP_BUFFER_SIZE, -1
 };
 
 /**
@@ -290,9 +290,9 @@ Audit_Log_Record_Entry(uint32_t object_instance, uint32_t index)
 }
 
 /**
- * @brief Delete a record entry from the log buffer
- * @param  object_instance - object-instance number of the object
- * @param  index - record index of entity
+ * @brief Delete a record entry from the log buffer.
+ * @param object_instance [in] BACnet object instance number.
+ * @param index [in] Record index to delete.
  */
 void Audit_Log_Record_Entry_Delete(uint32_t object_instance, uint32_t index)
 {
@@ -307,15 +307,14 @@ void Audit_Log_Record_Entry_Delete(uint32_t object_instance, uint32_t index)
 }
 
 /**
- * For a given object instance-number, adds a Audit Log entity to entities list.
+ * @brief Add an audit log record to the log buffer for an object instance.
  *
  * @note If the log buffer becomes full, the least recent log records are
- *  overwritten when new log records are added.
+ * overwritten when new records are added.
  *
- * @param  object_instance - object-instance number of the object
- * @param  entity - Audit Log entity
- *
- * @return  true if the entity is add successfully.
+ * @param object_instance [in] BACnet object instance number.
+ * @param value [in] Audit log record to append.
+ * @return true if the record was added successfully.
  */
 bool Audit_Log_Record_Entry_Add(
     uint32_t object_instance, const BACNET_AUDIT_LOG_RECORD *value)
@@ -416,18 +415,18 @@ bool Audit_Log_Object_Name(
 {
     bool status = false;
     struct object_data *pObject;
-    char name_text[32] = "AUDIT-LOG-4194303";
+    int len = 0;
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        if (pObject->Object_Name) {
-            status =
-                characterstring_init_ansi(object_name, pObject->Object_Name);
-        } else {
-            snprintf(
-                name_text, sizeof(name_text), "AUDIT-LOG-%lu",
-                (unsigned long)object_instance);
-            status = characterstring_init_ansi(object_name, name_text);
+        status = bacnet_character_cstring_to_characterstring(
+            object_name, &pObject->Object_Name);
+        if (!status) {
+            len = characterstring_utf8_snprintf(
+                object_name, "AUDIT-LOG-%lu", (unsigned long)object_instance);
+            if (len > 0) {
+                status = true;
+            }
         }
     }
 
@@ -435,13 +434,12 @@ bool Audit_Log_Object_Name(
 }
 
 /**
- * For a given object instance-number, sets the object-name
- * Note that the object name must be unique within this device.
- *
- * @param  object_instance - object-instance number of the object
- * @param  new_name - holds the object-name to be set
- *
- * @return  true if object-name was set
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if object-name was set
  */
 bool Audit_Log_Name_Set(uint32_t object_instance, const char *new_name)
 {
@@ -450,8 +448,7 @@ bool Audit_Log_Name_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        status = true;
-        pObject->Object_Name = new_name;
+        status = bacnet_character_cstring_set(&pObject->Object_Name, new_name);
     }
 
     return status;
@@ -469,7 +466,7 @@ const char *Audit_Log_Name_ASCII(uint32_t object_instance)
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        name = pObject->Object_Name;
+        name = bacnet_character_cstring_value_const(&pObject->Object_Name);
     }
 
     return name;
@@ -489,21 +486,20 @@ const char *Audit_Log_Description(uint32_t object_instance)
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        if (pObject->Description) {
-            name = pObject->Description;
-        }
+        name =
+            bacnet_character_cstring_value_default(&pObject->Description, "");
     }
 
     return name;
 }
 
 /**
- * For a given object instance-number, sets the description
- *
- * @param  object_instance - object-instance number of the object
- * @param  new_name - holds the description to be set
- *
- * @return  true if object-name was set
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if the description was updated.
  */
 bool Audit_Log_Description_Set(uint32_t object_instance, const char *new_name)
 {
@@ -512,8 +508,7 @@ bool Audit_Log_Description_Set(uint32_t object_instance, const char *new_name)
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        status = true;
-        pObject->Description = new_name;
+        status = bacnet_character_cstring_set(&pObject->Description, new_name);
     }
 
     return status;
@@ -543,10 +538,10 @@ bool Audit_Log_Enable(uint32_t object_instance)
 }
 
 /**
- * @brief Apply the log enabled algormithm
- * @param pObject - object data
- * @param enable log enable flag
- * @return true if the log enable flag is applied
+ * @brief Set the enabled state for an Audit Log object instance.
+ * @param object_instance [in] BACnet object instance number.
+ * @param enable [in] New enabled state.
+ * @return true if the enabled state was updated.
  */
 bool Audit_Log_Enable_Set(uint32_t object_instance, bool enable)
 {
@@ -567,6 +562,78 @@ bool Audit_Log_Enable_Set(uint32_t object_instance, bool enable)
             }
         }
         status = true;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the object-name property value
+ *
+ * @param  wp_data - BACNET_WRITE_PROPERTY_DATA data, including
+ * requested data and space for the reply, or error response.
+ * @param  cstring - holds the object-name to be set
+ *
+ * @return true if object-name was set
+ */
+static bool Audit_Log_Object_Name_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Object_Data(wp_data->object_instance);
+    if (pObject) {
+        if (characterstring_utf8_valid(cstring)) {
+            status = bacnet_character_cstring_from_characterstring_strdup(
+                &pObject->Object_Name, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        } else {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
+/**
+ * For a given object instance-number, sets the description property value
+ *
+ * @param  wp_data - BACNET_WRITE_PROPERTY_DATA data, including
+ * requested data and space for the reply, or error response.
+ * @param  cstring - holds the description to be set
+ *
+ * @return true if description was set
+ */
+static bool Audit_Log_Description_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Object_Data(wp_data->object_instance);
+    if (pObject) {
+        if (characterstring_utf8_valid(cstring)) {
+            status = bacnet_character_cstring_from_characterstring_strdup(
+                &pObject->Description, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        } else {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
     }
 
     return status;
@@ -803,6 +870,22 @@ bool Audit_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     switch (wp_data->object_property) {
+        case PROP_OBJECT_NAME:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Audit_Log_Object_Name_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+        case PROP_DESCRIPTION:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Audit_Log_Description_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
         case PROP_ENABLE:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
@@ -1473,35 +1556,24 @@ uint32_t Audit_Log_Create(uint32_t object_instance)
         if (!pObject) {
             return BACNET_MAX_INSTANCE;
         }
-        pObject->Object_Name = NULL;
-        pObject->Description = NULL;
         pObject->Records = Keylist_Create();
+        if (!pObject->Records) {
+            free(pObject);
+            return BACNET_MAX_INSTANCE;
+        }
         pObject->Buffer_Size = BACNET_AUDIT_LOG_RECORDS_MAX;
         pObject->Enable = false;
         pObject->Out_Of_Service = false;
         /* add to list */
         index = Keylist_Data_Add(Object_List, object_instance, pObject);
         if (index < 0) {
+            Keylist_Delete(pObject->Records);
             free(pObject);
             return BACNET_MAX_INSTANCE;
         }
     }
 
     return object_instance;
-}
-
-/**
- * @brief Deletes all the Audit Logs and their data
- */
-static void Audit_Log_Records_Cleanup(OS_Keylist list)
-{
-    BACNET_AUDIT_LOG_RECORD *entry;
-
-    while (Keylist_Count(list) > 0) {
-        entry = Keylist_Data_Pop(list);
-        free(entry);
-    }
-    Keylist_Delete(list);
 }
 
 /**
@@ -1516,7 +1588,10 @@ bool Audit_Log_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(Object_List, object_instance);
     if (pObject) {
-        Audit_Log_Records_Cleanup(pObject->Records);
+        bacnet_character_cstring_free(&pObject->Object_Name);
+        bacnet_character_cstring_free(&pObject->Description);
+        Keylist_Data_Free(pObject->Records);
+        Keylist_Delete(pObject->Records);
         free(pObject);
         status = true;
     }
@@ -1543,7 +1618,10 @@ void Audit_Log_Cleanup(void)
             do {
                 pObject = Keylist_Data_Pop(Object_List);
                 if (pObject) {
-                    Audit_Log_Records_Cleanup(pObject->Records);
+                    bacnet_character_cstring_free(&pObject->Object_Name);
+                    bacnet_character_cstring_free(&pObject->Description);
+                    Keylist_Data_Free(pObject->Records);
+                    Keylist_Delete(pObject->Records);
                     free(pObject);
                 }
             } while (pObject);

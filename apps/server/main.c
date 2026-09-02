@@ -240,6 +240,13 @@ static void Init_Service_Handlers(void)
     apdu_set_unconfirmed_handler(
         SERVICE_UNCONFIRMED_PRIVATE_TRANSFER,
         handler_unconfirmed_private_transfer);
+    handler_unconfirmed_private_transfer_callback_set(
+        handler_private_transfer_print);
+    apdu_set_confirmed_handler(
+        SERVICE_CONFIRMED_PRIVATE_TRANSFER, handler_confirmed_private_transfer);
+    handler_confirmed_private_transfer_callback_set(
+        handler_private_transfer_print);
+    /* WriteGroup for Channels */
     apdu_set_unconfirmed_handler(
         SERVICE_UNCONFIRMED_WRITE_GROUP, handler_write_group);
     /* add WriteGroup iterator to the Channel objects */

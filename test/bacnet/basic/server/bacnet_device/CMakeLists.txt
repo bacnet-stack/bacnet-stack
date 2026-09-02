@@ -59,6 +59,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/object/ai.c
     ${SRC_DIR}/bacnet/basic/object/ao.c
     ${SRC_DIR}/bacnet/basic/object/av.c
+    ${SRC_DIR}/bacnet/basic/object/averaging.c
     ${SRC_DIR}/bacnet/basic/object/auditlog.c
     ${SRC_DIR}/bacnet/basic/object/bi.c
     ${SRC_DIR}/bacnet/basic/object/bitstring_value.c

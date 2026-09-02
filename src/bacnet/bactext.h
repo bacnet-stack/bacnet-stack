@@ -25,6 +25,13 @@ extern "C" {
 #endif /* __cplusplus */
 
 BACNET_STACK_EXPORT
+const char *
+bactext_debug_severity_name_default(uint32_t index, const char *default_string);
+BACNET_STACK_EXPORT
+bool bactext_debug_severity_strtol(
+    const char *search_name, uint32_t *found_index);
+
+BACNET_STACK_EXPORT
 const char *bactext_confirmed_service_name(uint32_t index);
 BACNET_STACK_EXPORT
 const char *bactext_confirmed_service_name_default(

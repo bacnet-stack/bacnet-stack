@@ -64,6 +64,7 @@ set(TEST_DEVICE_SOURCES
     ${SRC_DIR}/bacnet/basic/object/access_zone.c
     ${SRC_DIR}/bacnet/basic/object/ai.c
     ${SRC_DIR}/bacnet/basic/object/ao.c
+    ${SRC_DIR}/bacnet/basic/object/averaging.c
     ${SRC_DIR}/bacnet/basic/object/auditlog.c
     ${SRC_DIR}/bacnet/basic/object/av.c
     ${SRC_DIR}/bacnet/basic/object/bacfile.c

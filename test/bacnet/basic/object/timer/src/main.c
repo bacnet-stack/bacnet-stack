@@ -523,6 +523,87 @@ static void test_Timer_Read_Write(void)
     Timer_Cleanup();
 }
 
+/**
+ * @brief Test writable PROP_OBJECT_NAME and PROP_DESCRIPTION.
+ */
+static void test_Timer_Name_Description_Write(void)
+{
+    uint32_t object_instance = BACNET_MAX_INSTANCE;
+    bool status = false;
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    BACNET_READ_PROPERTY_DATA rp_data = { 0 };
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_CHARACTER_STRING cstring = { 0 };
+    BACNET_CHARACTER_STRING object_name = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    const char *test_name = "TIMER-NAME-WP";
+    const char *test_description = "Timer description written via WP";
+
+    Timer_Cleanup();
+    object_instance = Timer_Create(BACNET_MAX_INSTANCE);
+    zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
+
+    wp_data.object_type = OBJECT_TIMER;
+    wp_data.object_instance = object_instance;
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    wp_data.priority = BACNET_NO_PRIORITY;
+
+    status = characterstring_init_ansi(&cstring, test_name);
+    zassert_true(status, NULL);
+    wp_data.object_property = PROP_OBJECT_NAME;
+    wp_data.application_data_len =
+        encode_application_character_string(wp_data.application_data, &cstring);
+    status = Timer_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+
+    status = Timer_Object_Name(object_instance, &object_name);
+    zassert_true(status, NULL);
+    status = characterstring_ansi_same(&object_name, test_name);
+    zassert_true(status, NULL);
+
+    rp_data.object_type = OBJECT_TIMER;
+    rp_data.object_instance = object_instance;
+    rp_data.object_property = PROP_OBJECT_NAME;
+    rp_data.array_index = BACNET_ARRAY_ALL;
+    rp_data.application_data = apdu;
+    rp_data.application_data_len = sizeof(apdu);
+    zassert_true(Timer_Read_Property(&rp_data) > 0, NULL);
+    zassert_true(
+        bacapp_decode_application_data(
+            apdu, rp_data.application_data_len, &value) > 0,
+        NULL);
+    zassert_equal(value.tag, BACNET_APPLICATION_TAG_CHARACTER_STRING, NULL);
+    status = characterstring_ansi_same(&value.type.Character_String, test_name);
+    zassert_true(status, NULL);
+
+    status = characterstring_init_ansi(&cstring, test_description);
+    zassert_true(status, NULL);
+    wp_data.object_property = PROP_DESCRIPTION;
+    wp_data.application_data_len =
+        encode_application_character_string(wp_data.application_data, &cstring);
+    status = Timer_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_not_null(Timer_Description_ANSI(object_instance), NULL);
+    zassert_equal(
+        strcmp(Timer_Description_ANSI(object_instance), test_description), 0,
+        NULL);
+
+    rp_data.object_property = PROP_DESCRIPTION;
+    zassert_true(Timer_Read_Property(&rp_data) > 0, NULL);
+    zassert_true(
+        bacapp_decode_application_data(
+            apdu, rp_data.application_data_len, &value) > 0,
+        NULL);
+    zassert_equal(value.tag, BACNET_APPLICATION_TAG_CHARACTER_STRING, NULL);
+    status = characterstring_ansi_same(
+        &value.type.Character_String, test_description);
+    zassert_true(status, NULL);
+
+    status = Timer_Delete(object_instance);
+    zassert_true(status, NULL);
+    Timer_Cleanup();
+}
+
 static void test_Timer_Operation_Transition_Default(
     const uint32_t instance,
     BACNET_TIMER_STATE test_state,
@@ -833,6 +914,7 @@ void test_main(void)
 {
     ztest_test_suite(
         timer_tests, ztest_unit_test(test_Timer_Read_Write),
+        ztest_unit_test(test_Timer_Name_Description_Write),
         ztest_unit_test(test_Timer_Operation),
         ztest_unit_test(test_Timer_Self_Reference_Reentrant_Write));
 

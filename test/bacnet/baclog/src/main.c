@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Unit test for for BACnetAuditNotification and BACnetAuditLogRecord
+ * @brief Unit test for BACnetAuditNotification and BACnetAuditLogRecord
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date November 2024
  * @copyright SPDX-License-Identifier: MIT

@@ -10,6 +10,7 @@
 #ifndef BACNET_SYS_PLATFORM_H
 #define BACNET_SYS_PLATFORM_H
 #include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
 #include <limits.h>
 #include <math.h>
@@ -28,6 +29,30 @@
 
 #ifndef islessequal
 #define islessequal(x, y) ((x) < (y) || !islessgreater((x), (y)))
+#endif
+
+#ifdef __MINGW32__
+/* GCC provides native, type-generic built-ins for these math operations.
+   They operate identically to the standard macros, bypass the broken
+   MinGW header logic entirely, and do not trigger warnings.*/
+#undef isfinite
+#undef isnan
+#undef isinf
+
+#define isfinite(x) __builtin_isfinite(x)
+#define isnan(x) __builtin_isnan(x)
+#define isinf(x) __builtin_isinf(x)
+#endif
+
+#if defined(_WIN32)
+/* MinGW/MSVC lack setenv(); wrap _putenv_s() to match its signature */
+static __inline int setenv(const char *name, const char *value, int overwrite)
+{
+    if (!overwrite && (getenv(name) != NULL)) {
+        return 0;
+    }
+    return (int)_putenv_s(name, value);
+}
 #endif
 
 #ifndef ARRAY_SIZE
@@ -83,16 +108,6 @@ __inline int c99_snprintf(char *outBuf, size_t size, const char *format, ...)
 }
 #endif
 #endif
-
-/* some common min/max as defined in windef.h */
-#ifndef NOMINMAX
-#ifndef max
-#define max(a, b) (((a) > (b)) ? (a) : (b))
-#endif
-#ifndef min
-#define min(a, b) (((a) < (b)) ? (a) : (b))
-#endif
-#endif /* NOMINMAX */
 
 #if defined(__MINGW32__)
 #define BACNET_STACK_FALLTHROUGH() /* fall through */

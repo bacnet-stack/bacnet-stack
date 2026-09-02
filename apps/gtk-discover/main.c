@@ -39,7 +39,14 @@
 /* Used ImageMagick: convert BACnet-Icon.svg bacnet-icon.xpm */
 #include "bacnet-icon.xpm"
 
-/* Global variables */
+/* Default Window Size */
+#define DEFAULT_WINDOW_WIDTH 1200
+#define DEFAULT_WINDOW_HEIGHT 800
+#define DEFAULT_COLUMN_SPACING 5
+#define DEFAULT_COLUMN_WIDTH 160
+
+/* GTK Application variables */
+static const char *Application_Name = "BACnet Device Discovery";
 static GtkWidget *main_window;
 static GtkWidget *device_tree_view;
 static GtkWidget *object_tree_view;
@@ -144,6 +151,8 @@ static GQueue *Pending_Writes;
 static gint64 Progress_Interrupt_Expires_Us;
 static gint64 Object_List_Complete_Expires_Us;
 static uint32_t Object_List_Complete_Device_ID = BACNET_MAX_INSTANCE;
+static gchar *Property_Edit_Original_Value = NULL;
+static bool Property_Edit_Enter_Pressed = false;
 
 #define ABSTRACT_WRITE_POOL_COUNT 8
 #define PROGRESS_INTERRUPT_NOTE_MS 1200
@@ -642,6 +651,61 @@ static char *property_value_to_string(
     bacapp_snprintf_value(str, (size_t)str_len + 1, &object_value);
 
     return str;
+}
+
+/**
+ * @brief Update a single object's name in the object tree view
+ * @param device_id the device ID of the object
+ * @param object_type the type of the object
+ * @param object_instance the instance number of the object
+ */
+static void update_object_name_in_tree_view(
+    uint32_t device_id,
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance)
+{
+    GtkTreeIter iter;
+    GtkTreeModel *model;
+    guint tree_device_id = 0;
+    guint tree_object_type = 0;
+    guint tree_object_instance = 0;
+    DEVICE_ENTRY *device = NULL;
+    OBJECT_ENTRY *object = NULL;
+    gboolean valid;
+
+    device = device_cache_find(device_id);
+    if (!device) {
+        return;
+    }
+    object = device_object_find(device, object_type, object_instance);
+    if (!object) {
+        return;
+    }
+
+    model = gtk_tree_view_get_model(GTK_TREE_VIEW(object_tree_view));
+    if (!model) {
+        return;
+    }
+
+    /* Search for the row matching this device/object */
+    valid = gtk_tree_model_get_iter_first(model, &iter);
+    while (valid) {
+        gtk_tree_model_get(
+            model, &iter, OBJECT_COL_DEVICE_ID, &tree_device_id,
+            OBJECT_COL_TYPE, &tree_object_type, OBJECT_COL_OBJECT_ID,
+            &tree_object_instance, -1);
+
+        if ((tree_device_id == device_id) &&
+            (tree_object_type == object_type) &&
+            (tree_object_instance == object_instance)) {
+            /* Found the matching row; update just the name column */
+            gtk_list_store_set(
+                GTK_LIST_STORE(model), &iter, OBJECT_COL_NAME,
+                object_name_text(object), -1);
+            return;
+        }
+        valid = gtk_tree_model_iter_next(model, &iter);
+    }
 }
 
 static void refresh_device_tree_view(void)
@@ -1336,7 +1400,9 @@ static void bacnet_read_write_value_callback(
     }
     if (Selected_Device_ID == device_instance) {
         if (rp_data->object_property == PROP_OBJECT_NAME) {
-            refresh_object_tree_view(device_instance);
+            update_object_name_in_tree_view(
+                device_instance, rp_data->object_type,
+                rp_data->object_instance);
         }
         if (Selected_Object_Valid &&
             (Selected_Object_Type == rp_data->object_type) &&
@@ -1449,6 +1515,71 @@ static void on_discover_devices_clicked(GtkButton *button, gpointer data)
     Send_WhoIs_Global(0, BACNET_MAX_INSTANCE);
 }
 
+/**
+ * @brief Handle property value cell key press event
+ *  Controls when the edit is committed - only on Enter key, not on focus loss
+ * @param widget the entry widget
+ * @param event the key press event
+ * @param user_data optional data (unused)
+ * @return TRUE to stop propagation, FALSE to allow default handling
+ */
+static gboolean on_property_edit_key_press(
+    GtkWidget *widget, GdkEventKey *event, gpointer user_data)
+{
+    (void)user_data; /* unused parameter */
+
+    /* Only allow Enter to commit the edit */
+    if (event->keyval == GDK_KEY_Return || event->keyval == GDK_KEY_KP_Enter) {
+        /* Mark that Enter was pressed so the edit callback knows to commit */
+        Property_Edit_Enter_Pressed = true;
+        /* Return FALSE to allow the default handling of Enter */
+        return FALSE;
+    }
+
+    /* For Tab and Escape, cancel the edit without committing */
+    if (event->keyval == GDK_KEY_Tab || event->keyval == GDK_KEY_ISO_Left_Tab ||
+        event->keyval == GDK_KEY_Escape) {
+        /* Stop propagation so the cell renderer doesn't commit this edit */
+        gtk_cell_editable_editing_done(GTK_CELL_EDITABLE(widget));
+        gtk_cell_editable_remove_widget(GTK_CELL_EDITABLE(widget));
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+/**
+ * @brief Handle property value cell editing start
+ *  Sets up key press handling to control when edits are committed
+ * @param renderer the cell renderer that started editing
+ * @param editable the GtkEntry widget for editing
+ * @param path the path to the cell being edited
+ * @param user_data optional data (unused)
+ */
+static void on_property_edit_start(
+    GtkCellRenderer *renderer,
+    GtkCellEditable *editable,
+    const gchar *path,
+    gpointer user_data)
+{
+    (void)renderer; /* unused parameter */
+    (void)path; /* unused parameter */
+    (void)user_data; /* unused parameter */
+
+    if (GTK_IS_ENTRY(editable)) {
+        GtkEntry *entry = GTK_ENTRY(editable);
+        /* Reset Enter-pressed flag before editing starts */
+        Property_Edit_Enter_Pressed = false;
+        /* Store the original value before editing */
+        g_free(Property_Edit_Original_Value);
+        Property_Edit_Original_Value = g_strdup(gtk_entry_get_text(entry));
+        /* Connect to key-press-event to control edit commit behavior */
+        g_signal_connect(
+            entry, "key-press-event", G_CALLBACK(on_property_edit_key_press),
+            NULL);
+    }
+}
+
 static void on_property_edited(
     GtkCellRendererText *renderer,
     gchar *path_string,
@@ -1467,9 +1598,26 @@ static void on_property_edited(
     unsigned enumerated_value = 0;
     bool status = false;
     bool null_value = false;
+    bool value_changed = false;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     (void)renderer; /* unused parameter */
+
+    /* Check if value actually changed or if Enter was pressed */
+    value_changed =
+        (Property_Edit_Original_Value == NULL ||
+         strcmp(Property_Edit_Original_Value, new_text) != 0);
+
+    /* Only process if value changed or Enter was explicitly pressed */
+    if (!value_changed && !Property_Edit_Enter_Pressed) {
+        /* Reset the flag for next edit */
+        Property_Edit_Enter_Pressed = false;
+        return;
+    }
+
+    /* Reset the flag for next edit */
+    Property_Edit_Enter_Pressed = false;
+
     if (gtk_tree_model_get_iter_from_string(model, &iter, path_string)) {
         gtk_tree_model_get(
             model, &iter, PROPERTY_COL_DEVICE_ID, &device_id, -1);
@@ -1548,30 +1696,6 @@ static void on_property_edited(
 }
 
 /**
- * @brief Handle refresh button click
- * @param button button that was clicked
- * @param data optional data for the callback
- */
-static void on_refresh_clicked(GtkButton *button, gpointer data)
-{
-    (void)button; /* unused parameter */
-    (void)data; /* unused parameter */
-
-    Selected_Device_ID = BACNET_MAX_INSTANCE;
-    Selected_Object_Valid = false;
-    Object_List_Complete_Expires_Us = 0;
-    Object_List_Complete_Device_ID = BACNET_MAX_INSTANCE;
-    update_object_progress_indicator();
-    update_property_progress_indicator();
-    g_queue_clear_full(Pending_Writes, pending_write_free);
-    g_ptr_array_set_size(Device_Cache, 0);
-    gtk_list_store_clear(device_store);
-    gtk_list_store_clear(object_store);
-    gtk_list_store_clear(property_store);
-    Send_WhoIs_Global(0, BACNET_MAX_INSTANCE);
-}
-
-/**
  * @brief Setup the device tree view object
  */
 static void setup_device_tree_view(void)
@@ -1597,30 +1721,35 @@ static void setup_device_tree_view(void)
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
         "Device ID", renderer, "text", DEVICE_COL_ID, NULL);
+    gtk_tree_view_column_set_spacing(column, DEFAULT_COLUMN_SPACING);
     gtk_tree_view_append_column(GTK_TREE_VIEW(device_tree_view), column);
 
     /* Vendor ID column */
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
         "Vendor ID", renderer, "text", DEVICE_COL_VENDOR_ID, NULL);
+    gtk_tree_view_column_set_spacing(column, DEFAULT_COLUMN_SPACING);
     gtk_tree_view_append_column(GTK_TREE_VIEW(device_tree_view), column);
 
     /* Max APDU column */
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
         "Max APDU", renderer, "text", DEVICE_COL_MAX_APDU, NULL);
+    gtk_tree_view_column_set_spacing(column, DEFAULT_COLUMN_SPACING);
     gtk_tree_view_append_column(GTK_TREE_VIEW(device_tree_view), column);
 
     /* Segmentation column */
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
         "Segmentation", renderer, "text", DEVICE_COL_SEGMENTATION, NULL);
+    gtk_tree_view_column_set_spacing(column, DEFAULT_COLUMN_SPACING);
     gtk_tree_view_append_column(GTK_TREE_VIEW(device_tree_view), column);
 
     /* Address column */
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
-        "Address", renderer, "text", DEVICE_COL_ADDRESS, NULL);
+        "MAC Address", renderer, "text", DEVICE_COL_ADDRESS, NULL);
+    gtk_tree_view_column_set_spacing(column, DEFAULT_COLUMN_SPACING);
     gtk_tree_view_append_column(GTK_TREE_VIEW(device_tree_view), column);
 
     /* Setup selection changed callback */
@@ -1656,18 +1785,21 @@ static void setup_object_tree_view(void)
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
         "Object Type", renderer, "text", OBJECT_COL_TYPE_NAME, NULL);
+    gtk_tree_view_column_set_spacing(column, DEFAULT_COLUMN_SPACING);
     gtk_tree_view_append_column(GTK_TREE_VIEW(object_tree_view), column);
 
     /* Object Instance column */
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
         "Instance", renderer, "text", OBJECT_COL_OBJECT_ID, NULL);
+    gtk_tree_view_column_set_spacing(column, DEFAULT_COLUMN_SPACING);
     gtk_tree_view_append_column(GTK_TREE_VIEW(object_tree_view), column);
 
     /* Object Name column */
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
         "Name", renderer, "text", OBJECT_COL_NAME, NULL);
+    gtk_tree_view_column_set_spacing(column, DEFAULT_COLUMN_SPACING);
     gtk_tree_view_append_column(GTK_TREE_VIEW(object_tree_view), column);
 
     /* Setup selection changed callback */
@@ -1705,20 +1837,26 @@ static void setup_property_tree_view(void)
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
         "Property", renderer, "text", PROPERTY_COL_NAME, NULL);
-    gtk_tree_view_column_set_min_width(column, 160);
+    gtk_tree_view_column_set_min_width(column, DEFAULT_COLUMN_WIDTH);
+    gtk_tree_view_column_set_expand(column, TRUE);
     gtk_tree_view_column_set_resizable(column, TRUE);
+    gtk_tree_view_column_set_spacing(column, DEFAULT_COLUMN_SPACING);
     gtk_tree_view_append_column(GTK_TREE_VIEW(property_tree_view), column);
 
     /* Property Value column */
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes(
         "Value", renderer, "text", PROPERTY_COL_VALUE, NULL);
+    gtk_tree_view_column_set_min_width(column, DEFAULT_COLUMN_WIDTH);
     gtk_tree_view_column_set_expand(column, TRUE);
     gtk_tree_view_column_set_resizable(column, TRUE);
+    gtk_tree_view_column_set_spacing(column, DEFAULT_COLUMN_SPACING);
     g_object_set(renderer, "editable", TRUE, NULL);
     g_signal_connect(
         renderer, "edited", G_CALLBACK(on_property_edited),
         GTK_TREE_MODEL(property_store));
+    g_signal_connect(
+        renderer, "editing-started", G_CALLBACK(on_property_edit_start), NULL);
     gtk_tree_view_append_column(GTK_TREE_VIEW(property_tree_view), column);
 }
 
@@ -1729,16 +1867,17 @@ static void create_main_window(void)
 {
     GtkWidget *vbox;
     GtkWidget *toolbar;
-    GtkWidget *hpaned, *vpaned;
+    GtkWidget *hpaned, *left_vpaned;
     GtkWidget *scrolled_window;
-    GtkWidget *discover_button, *refresh_button;
+    GtkWidget *discover_button;
     GtkToolItem *tool_item;
     GdkPixbuf *icon_pixbuf;
 
     /* Create main window */
     main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_title(GTK_WINDOW(main_window), "BACnet Device Discovery");
-    gtk_window_set_default_size(GTK_WINDOW(main_window), 1200, 800);
+    gtk_window_set_title(GTK_WINDOW(main_window), Application_Name);
+    gtk_window_set_default_size(
+        GTK_WINDOW(main_window), DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
     gtk_container_set_border_width(GTK_CONTAINER(main_window), 5);
 
     /* set the icon */
@@ -1768,14 +1907,6 @@ static void create_main_window(void)
     gtk_container_add(GTK_CONTAINER(tool_item), discover_button);
     gtk_toolbar_insert(GTK_TOOLBAR(toolbar), tool_item, -1);
 
-    /* Add refresh button */
-    refresh_button = gtk_button_new_with_label("Refresh");
-    g_signal_connect(
-        refresh_button, "clicked", G_CALLBACK(on_refresh_clicked), NULL);
-    tool_item = gtk_tool_item_new();
-    gtk_container_add(GTK_CONTAINER(tool_item), refresh_button);
-    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), tool_item, -1);
-
     /* Add object read progress status */
     object_progress_label = gtk_label_new("");
     gtk_widget_set_halign(object_progress_label, GTK_ALIGN_START);
@@ -1800,42 +1931,43 @@ static void create_main_window(void)
     hpaned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
     gtk_box_pack_start(GTK_BOX(vbox), hpaned, TRUE, TRUE, 0);
 
-    /* Create vertical paned widget for right side */
-    vpaned = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
-    gtk_paned_pack2(GTK_PANED(hpaned), vpaned, TRUE, FALSE);
+    /* Create vertical paned widget for the left side */
+    left_vpaned = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
+    gtk_paned_pack1(GTK_PANED(hpaned), left_vpaned, TRUE, FALSE);
 
-    /* Setup device tree view (left side) */
+    /* Setup device tree view (top left) */
     scrolled_window = gtk_scrolled_window_new(NULL, NULL);
     gtk_scrolled_window_set_policy(
         GTK_SCROLLED_WINDOW(scrolled_window), GTK_POLICY_AUTOMATIC,
         GTK_POLICY_AUTOMATIC);
-    gtk_widget_set_size_request(scrolled_window, 500, -1);
+    gtk_widget_set_size_request(
+        scrolled_window, DEFAULT_WINDOW_WIDTH / 2, DEFAULT_WINDOW_HEIGHT / 4);
     setup_device_tree_view();
     gtk_container_add(GTK_CONTAINER(scrolled_window), device_tree_view);
-    gtk_paned_pack1(GTK_PANED(hpaned), scrolled_window, FALSE, FALSE);
+    gtk_paned_pack1(GTK_PANED(left_vpaned), scrolled_window, TRUE, FALSE);
 
-    /* Setup object tree view (top right) */
+    /* Setup object tree view (bottom left) */
     scrolled_window = gtk_scrolled_window_new(NULL, NULL);
     gtk_scrolled_window_set_policy(
         GTK_SCROLLED_WINDOW(scrolled_window), GTK_POLICY_AUTOMATIC,
         GTK_POLICY_AUTOMATIC);
-    gtk_widget_set_size_request(scrolled_window, -1, 200);
+    gtk_widget_set_size_request(scrolled_window, -1, DEFAULT_WINDOW_HEIGHT / 4);
     setup_object_tree_view();
     gtk_container_add(GTK_CONTAINER(scrolled_window), object_tree_view);
-    gtk_paned_pack1(GTK_PANED(vpaned), scrolled_window, TRUE, FALSE);
+    gtk_paned_pack2(GTK_PANED(left_vpaned), scrolled_window, TRUE, FALSE);
 
-    /* Setup property tree view (bottom right) */
+    /* Setup property tree view (right side) */
     scrolled_window = gtk_scrolled_window_new(NULL, NULL);
     gtk_scrolled_window_set_policy(
         GTK_SCROLLED_WINDOW(scrolled_window), GTK_POLICY_AUTOMATIC,
         GTK_POLICY_AUTOMATIC);
     setup_property_tree_view();
     gtk_container_add(GTK_CONTAINER(scrolled_window), property_tree_view);
-    gtk_paned_pack2(GTK_PANED(vpaned), scrolled_window, TRUE, FALSE);
+    gtk_paned_pack2(GTK_PANED(hpaned), scrolled_window, TRUE, FALSE);
 
     /* Set paned positions */
-    gtk_paned_set_position(GTK_PANED(hpaned), 500);
-    gtk_paned_set_position(GTK_PANED(vpaned), 200);
+    gtk_paned_set_position(GTK_PANED(hpaned), DEFAULT_WINDOW_WIDTH / 2);
+    gtk_paned_set_position(GTK_PANED(left_vpaned), DEFAULT_WINDOW_HEIGHT / 4);
 }
 
 /**

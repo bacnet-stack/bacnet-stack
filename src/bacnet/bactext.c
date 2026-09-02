@@ -10,6 +10,7 @@
 #include "bacnet/indtext.h"
 #include "bacnet/bacenum.h"
 #include "bacnet/bacstr.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/bactext.h"
 
 static const char *ASHRAE_Reserved_String = "Reserved for Use by ASHRAE";
@@ -25,6 +26,32 @@ static bool bactext_string_to_uint32_index(
     }
 
     return bacnet_string_to_uint32(search_name, found_index);
+}
+
+INDTEXT_DATA bacnet_debug_severity_names[] = {
+    { DEBUG_LOG_EMERGENCY, "Emergency" },
+    { DEBUG_LOG_ALERT, "Alert" },
+    { DEBUG_LOG_CRITICAL, "Critical" },
+    { DEBUG_LOG_ERROR, "Error" },
+    { DEBUG_LOG_WARNING, "Warning" },
+    { DEBUG_LOG_NOTICE, "Notice" },
+    { DEBUG_LOG_INFO, "Info" },
+    { DEBUG_LOG_DEBUG, "Debug" },
+    { 0, NULL }
+};
+
+const char *
+bactext_debug_severity_name_default(uint32_t index, const char *default_string)
+{
+    return indtext_by_index_default(
+        bacnet_debug_severity_names, index, default_string);
+}
+
+bool bactext_debug_severity_strtol(
+    const char *search_name, uint32_t *found_index)
+{
+    return bactext_string_to_uint32_index(
+        bacnet_debug_severity_names, search_name, found_index);
 }
 
 INDTEXT_DATA bacnet_confirmed_service_names[] = {
@@ -253,12 +280,12 @@ bool bactext_reinitialized_state_strtol(
 }
 
 INDTEXT_DATA bacnet_character_string_encoding_names[] = {
-    { CHARACTER_ANSI_X34, "ANSI X3.4" },
+    { CHARACTER_UTF8, "ISO 10646 (UTF-8)" },
     { CHARACTER_MS_DBCS, "IBM/Microsoft DBCS" },
-    { CHARACTER_JISC_6226, "JIS C 6226" },
+    { CHARACTER_JIS, "JIS X 0208" },
     { CHARACTER_UCS4, "ISO 10646 (UCS-4)" },
     { CHARACTER_UCS2, "ISO 10646 (UCS-2)" },
-    { CHARACTER_ISO8859, "ISO 8859" },
+    { CHARACTER_ISO8859, "ISO 8859-1" },
     { 0, NULL }
 };
 

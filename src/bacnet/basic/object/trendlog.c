@@ -14,6 +14,7 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bacdevobjpropref.h"
+#include "bacnet/bacstr.h"
 #include "bacnet/apdu.h"
 #include "bacnet/datetime.h"
 #include "bacnet/wp.h" /* write property handling */
@@ -90,6 +91,8 @@ static const int32_t Trend_Log_Properties_Proprietary[] = { -1 };
    that is always writable.  */
 static const int32_t Writable_Properties[] = {
     /* unordered list of always writable properties */
+    PROP_OBJECT_NAME,
+    PROP_DESCRIPTION,
     PROP_ENABLE,
     PROP_STOP_WHEN_FULL,
     PROP_RECORD_COUNT,
@@ -260,6 +263,8 @@ void Trend_Log_Init(void)
                     tClock += 900;
                 }
 
+                bacnet_character_cstring_free(&LogInfo[iLog].Object_Name);
+                bacnet_character_cstring_free(&LogInfo[iLog].Description);
                 LogInfo[iLog].tLastDataTime = tClock - 900;
                 LogInfo[iLog].bAlignIntervals = true;
                 LogInfo[iLog].bEnable = true;
@@ -306,17 +311,185 @@ void Trend_Log_Init(void)
  * on the assumption that there is a 1 to 1 correspondence. If there
  * is not we need to convert to index before proceeding.
  */
+/**
+ * @brief Get the object-name property for a Trend Log object.
+ * @param object_instance - object-instance number of the object.
+ * @param object_name - BACnet character string to receive the name.
+ * @return true if the object name is available, false if not.
+ */
 bool Trend_Log_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
-    char text[32] = "";
     bool status = false;
+    TL_LOG_INFO *CurrentLog;
+    int len = 0;
+
+    if ((object_name == NULL) || (object_instance >= MAX_TREND_LOGS)) {
+        return false;
+    }
+
+    CurrentLog = &LogInfo[object_instance];
+    status = bacnet_character_cstring_to_characterstring(
+        object_name, &CurrentLog->Object_Name);
+    if (!status) {
+        len = characterstring_utf8_snprintf(
+            object_name, "TREND-LOG-%lu", (unsigned long)object_instance);
+        if (len > 0) {
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @note The object name must be unique within this device.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if object-name was set
+ */
+bool Trend_Log_Name_Set(uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    TL_LOG_INFO *CurrentLog;
 
     if (object_instance < MAX_TREND_LOGS) {
-        snprintf(
-            text, sizeof(text), "Trend Log %lu",
-            (unsigned long)object_instance);
-        status = characterstring_init_ansi(object_name, text);
+        CurrentLog = &LogInfo[object_instance];
+        status =
+            bacnet_character_cstring_set(&CurrentLog->Object_Name, new_name);
+    }
+
+    return status;
+}
+
+/**
+ * @brief Return the object name C string.
+ * @param object_instance - BACnet object instance number.
+ * @return object name or NULL if not found.
+ */
+const char *Trend_Log_Name_ASCII(uint32_t object_instance)
+{
+    const char *name = NULL;
+    if (object_instance < MAX_TREND_LOGS) {
+        TL_LOG_INFO *CurrentLog = &LogInfo[object_instance];
+        name = bacnet_character_cstring_value_const(&CurrentLog->Object_Name);
+    }
+
+    return name;
+}
+
+/**
+ * @brief Set the object-name property value using write-property context.
+ * @param wp_data [in,out] Write property request/response context.
+ * @param cstring [in] New object-name value.
+ * @return true if object-name was set.
+ */
+static bool Trend_Log_Object_Name_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    TL_LOG_INFO *CurrentLog;
+
+    if (wp_data == NULL || cstring == NULL) {
+        return false;
+    }
+    if (wp_data->object_instance >= MAX_TREND_LOGS) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        return false;
+    }
+    if (characterstring_utf8_valid(cstring)) {
+        CurrentLog = &LogInfo[wp_data->object_instance];
+        status = bacnet_character_cstring_from_characterstring_strdup(
+            &CurrentLog->Object_Name, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Get the description property for a Trend Log object.
+ * @param object_instance - object-instance number of the object.
+ * @return description text or empty string if unset.
+ */
+const char *Trend_Log_Description(uint32_t object_instance)
+{
+    const char *value = "";
+    TL_LOG_INFO *CurrentLog;
+
+    if (object_instance < MAX_TREND_LOGS) {
+        CurrentLog = &LogInfo[object_instance];
+        value = bacnet_character_cstring_value_default(
+            &CurrentLog->Description, "");
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if description was set
+ */
+bool Trend_Log_Description_Set(uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    TL_LOG_INFO *CurrentLog;
+
+    if (object_instance < MAX_TREND_LOGS) {
+        CurrentLog = &LogInfo[object_instance];
+        status =
+            bacnet_character_cstring_set(&CurrentLog->Description, new_name);
+    }
+
+    return status;
+}
+
+/**
+ * @brief Set the description property value using write-property context.
+ * @param wp_data [in,out] Write property request/response context.
+ * @param cstring [in] New description value.
+ * @return true if description was set.
+ */
+static bool Trend_Log_Description_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    TL_LOG_INFO *CurrentLog;
+
+    if (wp_data == NULL || cstring == NULL) {
+        return false;
+    }
+
+    if (wp_data->object_instance >= MAX_TREND_LOGS) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        return false;
+    }
+    if (characterstring_utf8_valid(cstring)) {
+        CurrentLog = &LogInfo[wp_data->object_instance];
+        status = bacnet_character_cstring_from_characterstring_strdup(
+            &CurrentLog->Description, cstring);
+        if (!status) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
     }
 
     return status;
@@ -395,9 +568,15 @@ int Trend_Log_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                 &apdu[0], OBJECT_TRENDLOG, rpdata->object_instance);
             break;
 
-        case PROP_DESCRIPTION:
         case PROP_OBJECT_NAME:
             Trend_Log_Object_Name(rpdata->object_instance, &char_string);
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
+            break;
+
+        case PROP_DESCRIPTION:
+            characterstring_init_ansi(
+                &char_string, Trend_Log_Description(rpdata->object_instance));
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -562,6 +741,24 @@ bool Trend_Log_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     switch (wp_data->object_property) {
+        case PROP_OBJECT_NAME:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Trend_Log_Object_Name_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+
+        case PROP_DESCRIPTION:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Trend_Log_Description_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+
         case PROP_ENABLE:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);

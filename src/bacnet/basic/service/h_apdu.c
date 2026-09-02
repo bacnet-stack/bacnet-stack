@@ -297,7 +297,7 @@ bool apdu_confirmed_simple_ack_service(BACNET_CONFIRMED_SERVICE service_choice)
 }
 
 /**
- * @brief Set the the BACnet Simple Ack Service handler
+ * @brief Set the BACnet Simple Ack Service handler
  * @param service_choice [in] BACnet confirmed service choice
  * @param pFunction [in] handler for the service
  */
@@ -311,7 +311,7 @@ void apdu_set_confirmed_simple_ack_handler(
 }
 
 /**
- * @brief Set the the BACnet Confirmed Ack Service handler
+ * @brief Set the BACnet Confirmed Ack Service handler
  * @param service_choice [in] BACnet confirmed service choice
  * @param pFunction [in] handler for the service
  */
