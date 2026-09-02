@@ -30,6 +30,19 @@
 #define islessequal(x, y) ((x) < (y) || !islessgreater((x), (y)))
 #endif
 
+#ifdef __MINGW32__
+/* GCC provides native, type-generic built-ins for these math operations.
+   They operate identically to the standard macros, bypass the broken
+   MinGW header logic entirely, and do not trigger warnings.*/
+#undef isfinite
+#undef isnan
+#undef isinf
+
+#define isfinite(x) __builtin_isfinite(x)
+#define isnan(x) __builtin_isnan(x)
+#define isinf(x) __builtin_isinf(x)
+#endif
+
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(array) ((size_t)(sizeof(array) / sizeof((array)[0])))
 #endif
