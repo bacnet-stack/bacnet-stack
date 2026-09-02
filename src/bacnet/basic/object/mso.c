@@ -437,7 +437,8 @@ bool Multistate_Output_Present_Value_Set(
     if (pObject) {
         max_states = state_name_list_count(pObject->State_List);
         if ((value >= 1) && (value <= max_states) && (priority >= 1) &&
-            (priority <= BACNET_MAX_PRIORITY)) {
+            (priority <= BACNET_MAX_PRIORITY) &&
+            (priority != 6 /* reserved */)) {
             old_value = Object_Present_Value(pObject);
             pObject->Relinquished[priority - 1] = false;
             pObject->Priority_Array[priority - 1] = value;
@@ -543,7 +544,8 @@ bool Multistate_Output_Present_Value_Relinquish(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+        if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY) &&
+            (priority != 6 /* reserved */)) {
             old_value = Object_Present_Value(pObject);
             pObject->Relinquished[priority - 1] = true;
             pObject->Priority_Array[priority - 1] = 0;
