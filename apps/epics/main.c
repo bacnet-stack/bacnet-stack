@@ -325,7 +325,7 @@ static void wait_for_response(void)
  * @param property [in] Property identifier
  * @return true if writable, false otherwise
  */
-static bool Writeable_Properties(
+static bool property_list_test_writable_member(
     BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID property)
 {
     if (object_type >= OBJECT_PROPRIETARY_MIN) {
@@ -515,8 +515,12 @@ static void PrintReadPropertyData(
             value = value->next; /* next or NULL */
         } /* End while loop */
     }
-    if (WritePropertyEnabled) {
-        if (Writeable_Properties(
+    if (property_list_writable_member(
+            object_value.object_type, object_value.object_property)) {
+        /* required to be writable */
+        printf(" W");
+    } else if (WritePropertyEnabled) {
+        if (property_list_test_writable_member(
                 object_value.object_type, object_value.object_property)) {
             /* attempt to write the received value back to the device */
             apdu_len = bacapp_encode_data_list(NULL, object_value.value);
