@@ -588,9 +588,11 @@ bool Binary_Value_Present_Value_Set(
 {
     bool status = false;
 #if defined(BACNET_OBJECT_BINARY_VALUE_COMMANDABLE)
-    /* with no priority given, the closest equivalent is to drive
-       present-value through the relinquish-default fallback */
-    status = Binary_Value_Relinquish_Default_Set(object_instance, value);
+    /* with no priority given, drive present-value at the lowest priority
+       instead of through Relinquish_Default_Set(), so that a genuine
+       Present_Value transition raises Change_Of_Value */
+    status = Binary_Value_Present_Value_Priority_Set(
+        object_instance, value, BACNET_MAX_PRIORITY);
 #else
     struct object_data *pObject;
     BACNET_BINARY_PV old_value;
@@ -802,14 +804,17 @@ static bool Binary_Value_Present_Value_Write(
 
     pObject = Binary_Value_Object(object_instance);
     if (pObject) {
+#if defined(BACNET_OBJECT_BINARY_VALUE_COMMANDABLE)
         if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY) &&
             (value < BINARY_PV_MAX)) {
-#if defined(BACNET_OBJECT_BINARY_VALUE_COMMANDABLE)
             if (priority == 6) {
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 return false;
             }
+#else
+        (void)priority;
+        if (value < BINARY_PV_MAX) {
 #endif
             if (!(pObject->Write_Enabled || pObject->Out_Of_Service)) {
                 *error_class = ERROR_CLASS_PROPERTY;
@@ -1513,8 +1518,12 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
-                Binary_Value_Relinquish_Default_Set(
+                status = Binary_Value_Relinquish_Default_Set(
                     wp_data->object_instance, value.type.Enumerated);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
 #endif
