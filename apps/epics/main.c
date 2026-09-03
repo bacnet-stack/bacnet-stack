@@ -121,6 +121,9 @@ static PROPERTY_LIST *RPM_All_Prop_List = NULL;
 static uint32_t RPM_All_Prop_List_Size = 0;
 static uint32_t RPM_All_Prop_List_Count = 0;
 
+/**
+ * @brief Free the accumulated property value list and reset its pointers.
+ */
 static void free_value_list(void)
 {
     BACNET_APPLICATION_DATA_VALUE *value, *next;
@@ -153,6 +156,10 @@ static void epics_success_callback(uint32_t device_id)
     Response_Status = RESP_SUCCESS;
 }
 
+/**
+ * @brief Initialize the Device object and register the APDU service
+ *  handlers this tool needs to bind to and read from a target device.
+ */
 static void Init_Service_Handlers(void)
 {
 #ifdef BAC_ROUTING
@@ -186,6 +193,12 @@ static void Init_Service_Handlers(void)
     bacnet_read_write_success_callback_set(epics_success_callback);
 }
 
+/**
+ * @brief Get the service name text for a Protocol_Services_Supported bit.
+ * @param bit_index [in] bit position within the Protocol_Services_Supported
+ *  bitstring
+ * @return name of the confirmed or unconfirmed service at that bit
+ */
 static const char *protocol_services_supported_text(size_t bit_index)
 {
     bool is_confirmed = false;
@@ -278,6 +291,10 @@ static void PrintProtocolBitValues(BACNET_OBJECT_PROPERTY_VALUE *object_value)
     }
 }
 
+/**
+ * @brief Process incoming PDUs and the read/write state machine until a
+ *  response is received or the aggregate APDU timeout expires.
+ */
 static void wait_for_response(void)
 {
     uint16_t pdu_len = 0;
@@ -303,6 +320,23 @@ static void wait_for_response(void)
         }
     }
     Response_Status = RESP_TIMEOUT;
+}
+
+/**
+ * @brief Determine if a property is a standard property being read from
+ *  a proprietary object - BTF/VTS wants these commented out, except for
+ *  the standard properties used to identify the object itself.
+ * @param object_type [in] Object type
+ * @param property [in] Property identifier
+ * @return true if the property should be treated as proprietary output
+ */
+static bool proprietary_object_property(
+    BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID property)
+{
+    return (object_type >= OBJECT_PROPRIETARY_MIN) &&
+        (object_type <= OBJECT_PROPRIETARY_MAX) &&
+        (property != PROP_OBJECT_IDENTIFIER) &&
+        (property != PROP_OBJECT_TYPE) && (property != PROP_OBJECT_NAME);
 }
 
 /**
@@ -572,13 +606,8 @@ static void print_property_value(
         }
         return;
     }
-    if ((rp_data->object_type >= OBJECT_PROPRIETARY_MIN) &&
-        (rp_data->object_type <= OBJECT_PROPRIETARY_MAX) &&
-        (rp_data->object_property != PROP_OBJECT_IDENTIFIER) &&
-        (rp_data->object_property != PROP_OBJECT_TYPE) &&
-        (rp_data->object_property != PROP_OBJECT_NAME)) {
-        is_proprietary = true;
-    }
+    is_proprietary = proprietary_object_property(
+        rp_data->object_type, rp_data->object_property);
     if (bactext_property_name_proprietary(rp_data->object_property)) {
         printf("    -- proprietary-%u: ", rp_data->object_property);
     } else {
@@ -623,6 +652,9 @@ static void flush_pending_property(uint32_t device_instance)
  *  row through this same callback; as soon as a different property is
  *  seen, the previous one (already fully collected) is printed and
  *  discarded, so no separate cache of properties/values is kept.
+ * @param device_instance [in] device instance number where data originated
+ * @param rp_data [in] property identity, array index, and error status
+ * @param value [in] one decoded value of the property, or NULL
  */
 static void epics_value_callback(
     uint32_t device_instance,
@@ -675,16 +707,25 @@ static void epics_value_callback(
     }
 }
 
+/**
+ * @brief Print the command line usage summary.
+ * @param filename [in] name of this executable, as invoked
+ */
 static void print_usage(const char *filename)
 {
     printf("Usage: %s [options] [device-instance]\n", filename);
-    printf("    [-h] [-v] [-d] [-w]\n");
+    printf("    [-h] [-v] [-d] [-e] [-o] [-w]\n");
     printf("    [-t <device MAC or IP:port>]\n");
     printf("    [-p <local-port>]\n");
     printf("    [--dnet <dnet>] [--dadr <dadr>] [--mac <MAC-address>]\n");
+    printf("    [--debug <severity>]\n");
     printf("    [--help] [--version]\n");
 }
 
+/**
+ * @brief Print the detailed command line help text.
+ * @param filename [in] name of this executable, as invoked (unused)
+ */
 static void print_help(const char *filename)
 {
     (void)filename;
@@ -707,6 +748,10 @@ static void print_help(const char *filename)
            "or an IP string with optional port number like 10.1.2.3:47808\n"
            "or an Ethernet MAC in hex like 00:21:70:7e:32:bb\n");
     printf("\n");
+    printf("--debug S\n"
+           "Optional debug severity level 0=emergency, 1=alert, 2=critical,\n"
+           "3=error, 4=warning, 5=notice, 6=info, 7=debug, -1=disable.\n");
+    printf("\n");
     printf("device-instance:\n"
            "BACnet Device Object Instance number that you are\n"
            "trying to communicate to.  This number will be used\n"
@@ -715,14 +760,19 @@ static void print_help(const char *filename)
            "Device Object 123, the device-instance would be 123.\n");
     printf("\n");
     printf("-d: show only device object properties\n");
+    printf("\n");
+    printf("-e: show errors, rejects, and aborts in the output\n");
+    printf("\n");
+    printf("-o: read required and optional properties one at a time when\n"
+           "    ReadPropertyMultiple ALL does not work\n");
+    printf("\n");
     printf("-p: UDP port number for local BACnet/IP. Default=47808.\n");
     printf("    Enables loopback testing with localhost.\n");
+    printf("\n");
     printf("-t: declare target's MAC or IP address instead of using Who-Is\n");
     printf("    to bind to device-instance.\n");
     printf("    Format is \"192.168.1.42:47808\" or \"C0:A8:01:2A:BA:C0\".\n");
     printf("    Use \"127.0.0.1:47808\" for loopback testing.\n");
-    printf("-n: specify target's DNET if not local BACnet network  \n");
-    printf("    or on routed Virtual Network \n");
     printf("\n");
     printf("-h: omit the BIBBs header\n");
     printf("\n");
@@ -735,6 +785,14 @@ static void print_help(const char *filename)
     printf("$ bacepics 4194302 > epics-4194302.tpi \n");
 }
 
+/**
+ * @brief Parse the command line arguments, setting the module-level
+ *  target and option variables. Exits the process for --help,
+ *  --version, or invalid arguments.
+ * @param argc [in] argument count
+ * @param argv [in] argument value array
+ * @return 0 on success
+ */
 static int CheckCommandLineArgs(int argc, char *argv[])
 {
     bool bFoundTarget = false;
@@ -852,6 +910,16 @@ static int CheckCommandLineArgs(int argc, char *argv[])
     return 0; /* All OK if we reach here */
 }
 
+/**
+ * @brief Read a single property and return its first decoded value.
+ * @param device_instance [in] device instance number to read from
+ * @param object [in] object identifier to read the property from
+ * @param property [in] property identifier to read
+ * @param array_index [in] array index, or BACNET_ARRAY_ALL
+ * @param value_ptr [out] receives a copy of the first decoded value
+ * @return RESP_SUCCESS if a value was received and decoded, or the
+ *  failure status otherwise
+ */
 static RESPONSE_STATUS get_primitive_value(
     uint32_t device_instance,
     BACNET_OBJECT_ID object,
@@ -1019,6 +1087,14 @@ static uint32_t get_object_property_list(
     return num_properties;
 }
 
+/**
+ * @brief Read a single property from an object and print its label and
+ *  value(s), or an error/placeholder if the read failed.
+ * @param device_instance [in] device instance number to read from
+ * @param object [in] object identifier to read the property from
+ * @param property [in] property identifier to read
+ * @param array_index [in] array index, or BACNET_ARRAY_ALL
+ */
 static void get_print_value(
     uint32_t device_instance,
     BACNET_OBJECT_ID object,
@@ -1029,17 +1105,7 @@ static void get_print_value(
     bool is_proprietary = false;
 
     /* get and print properties */
-    if (object.type >= OBJECT_PROPRIETARY_MIN &&
-        object.type <= OBJECT_PROPRIETARY_MAX) {
-        /* propriatary object */
-        if (property != PROP_OBJECT_IDENTIFIER &&
-            property != PROP_OBJECT_TYPE && property != PROP_OBJECT_NAME) {
-            /* standard property, other than above, in a proprietary
-             * object
-             * - BTF wants them commented out */
-            is_proprietary = true;
-        }
-    }
+    is_proprietary = proprietary_object_property(object.type, property);
     /* read property value */
     Value_List_Head = NULL;
     Value_List_Tail = NULL;
@@ -1105,6 +1171,13 @@ static void get_print_value(
     free_value_list();
 }
 
+/**
+ * @brief Print the EPICS file header - vendor/product identification,
+ *  the BIBBs block, supported services and object types, and the
+ *  remaining static conformance sections.
+ * @param device_instance [in] device instance number to read from
+ * @return number of errors encountered while gathering header data
+ */
 static uint32_t Print_EPICS_Header(uint32_t device_instance)
 {
     BACNET_OBJECT_PROPERTY_VALUE property_value;
@@ -1536,6 +1609,12 @@ static uint32_t Print_EPICS_Header(uint32_t device_instance)
     return (error);
 }
 
+/**
+ * @brief Print the Object_List property by reading and printing each
+ *  object identifier element one at a time.
+ * @param object [in] the Device object whose Object_List is read
+ * @param num_objects [in] number of elements in the Object_List
+ */
 static void get_print_object_list(BACNET_OBJECT_ID object, uint32_t num_objects)
 {
     BACNET_APPLICATION_DATA_VALUE data_value;
@@ -1578,42 +1657,48 @@ static void get_print_object_list(BACNET_OBJECT_ID object, uint32_t num_objects)
     printf("    }\n");
 }
 
+/**
+ * @brief Print the Property_List property as the property identifiers
+ *  (or names, if ShowValues is set) previously discovered for an object.
+ * @param prop_list [in] array of property identifiers to print
+ * @param num_properties [in] number of elements in prop_list
+ * @param type [in] object type, used to detect proprietary properties
+ */
 static void print_property_list(
     PROPERTY_LIST *prop_list, uint32_t num_properties, BACNET_OBJECT_TYPE type)
 {
     uint32_t i;
     bool is_proprietary = false;
+    BACNET_PROPERTY_ID property = PROP_PROPERTY_LIST;
+    const char *property_name = NULL;
+    bool comma = false;
 
-    if (type >= OBJECT_PROPRIETARY_MIN && type <= OBJECT_PROPRIETARY_MAX) {
-        /* propriatary object */
-        /* standard property, other than above, in a proprietary object -
-         * BTF wants them remmed out */
-        is_proprietary = true;
-    }
+    is_proprietary = proprietary_object_property(type, property);
     printf(
         "    %s%s: {\n", is_proprietary ? "-- " : "",
-        bactext_property_name(PROP_PROPERTY_LIST));
+        bactext_property_name(property));
     for (i = 0; i < num_properties; i++) {
-        if (i == num_properties - 1) {
-            if (ShowValues) {
-                printf(
-                    "        %s}\n",
-                    bactext_property_name(prop_list[i].property));
-            } else {
-                printf("        %i}\n", prop_list[i].property);
-            }
+        property = prop_list[i].property;
+        property_name = bactext_property_name(property);
+        if ((i < (num_properties - 1))) {
+            comma = true;
         } else {
-            if (ShowValues) {
-                printf(
-                    "        %s,\n",
-                    bactext_property_name(prop_list[i].property));
-            } else {
-                printf("        %i,\n", prop_list[i].property);
-            }
+            comma = false;
+        }
+        if (ShowValues) {
+            printf("        %s%s\n", property_name, comma ? "," : "}");
+        } else {
+            printf("        %i%s\n", property, comma ? "," : "}");
         }
     }
 }
 
+/**
+ * @brief Print the full list of objects in the device, along with each
+ *  object's required, optional, and remaining properties and values.
+ * @param device_instance [in] device instance number to read from
+ * @return number of errors encountered while gathering object data
+ */
 static uint32_t Print_List_Of_Objects(uint32_t device_instance)
 {
     BACNET_OBJECT_ID device_object, object;
