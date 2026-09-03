@@ -36,6 +36,7 @@
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/bip.h"
 #include "bacnet/datalink/dlenv.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/client/bac-rw.h"
 
@@ -78,8 +79,6 @@ static bool ShowValues = false;
 static bool ShowHeader = true;
 /* Show errors, abort, rejects */
 static bool ShowErrors = false;
-/* debugging info */
-static bool Debug_Enabled = false;
 /* show only device object properties */
 static bool ShowDeviceObjectOnly = false;
 /* read required and optional properties when RPM ALL does not work */
@@ -628,6 +627,7 @@ static int CheckCommandLineArgs(int argc, char *argv[])
     bool bFoundTarget = false;
     BACNET_MAC_ADDRESS mac = { 0 };
     int argi = 0;
+    uint32_t severity = 0;
     const char *filename = NULL;
 
     filename = filename_remove_path(argv[0]);
@@ -649,7 +649,13 @@ static int CheckCommandLineArgs(int argc, char *argv[])
                    "FITNESS FOR A PARTICULAR PURPOSE.\n");
             exit(0);
         } else if (strcmp(argv[argi], "--debug") == 0) {
-            Debug_Enabled = true;
+            if (++argi < argc) {
+                if (bactext_debug_severity_strtol(argv[argi], &severity)) {
+                    debug_log_severity_set(severity);
+                } else {
+                    debug_log_severity_set(DEBUG_LOG_DISABLED);
+                }
+            }
         } else if (strcmp(argv[argi], "--mac") == 0) {
             if (++argi < argc) {
                 if (bacnet_address_mac_from_ascii(
@@ -872,11 +878,10 @@ static uint32_t Print_EPICS_Header(uint32_t device_instance)
             "Vendor Name: \"%s\"\n",
             (char *)&data_value.type.Character_String.value);
     } else {
-        if (Debug_Enabled) {
-            fprintf(
-                stderr, "DEBUG: Failed to read VENDOR_NAME from device %u\n",
-                device_instance);
-        }
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
+            "DEBUG: Failed to read VENDOR_NAME from device %u\n",
+            device_instance);
         printf("Vendor Name: \"your vendor name here\"\n");
         error++;
     }
@@ -891,11 +896,10 @@ static uint32_t Print_EPICS_Header(uint32_t device_instance)
             "Product Model Number: \"%s\"\n",
             (char *)&data_value.type.Character_String.value);
     } else {
-        if (Debug_Enabled) {
-            fprintf(
-                stderr, "DEBUG: Failed to read MODEL_NAME from device %u\n",
-                device_instance);
-        }
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
+            "DEBUG: Failed to read MODEL_NAME from device %u\n",
+            device_instance);
         printf("Product Name: \"your product name here\"\n");
         printf("Product Model Number: \"your model number here\"\n");
         error++;
@@ -1131,6 +1135,9 @@ static uint32_t Print_EPICS_Header(uint32_t device_instance)
                    speed up the acquisition of object property values. */
                 if (i == SERVICE_SUPPORTED_READ_PROP_MULTIPLE) {
                     RPM_Service_Supported = true;
+                    debug_log_fprintf(
+                        DEBUG_LOG_INFO, stderr, "RPM supported in device %u\n",
+                        device_instance);
                 }
             } else {
                 printf(
@@ -1493,9 +1500,9 @@ static uint32_t Print_List_Of_Objects(uint32_t device_instance)
         /* now get and print the rest of the objects */
         for (i = 1; i <= num_objects; i++) {
             /* get object ids from device object object_list */
-            if (Debug_Enabled) {
-                fprintf(stderr, "\rReading object %i of %i\n", i, num_objects);
-            }
+            debug_log_fprintf(
+                DEBUG_LOG_INFO, stderr, "\rReading object %i of %i\n", i,
+                num_objects);
             status = get_primitive_value(
                 device_instance, device_object, PROP_OBJECT_LIST, i,
                 &data_value);
@@ -1554,14 +1561,12 @@ static uint32_t Print_List_Of_Objects(uint32_t device_instance)
                     } else {
                         /* failed to read the property identifier - this
                          * entry will be ignored */
-                        if (Debug_Enabled) {
-                            fprintf(
-                                stderr,
-                                "\n-- ERROR - failed to read PROPERTY_LIST "
-                                "entry = %i for object %s %u\n",
-                                j, bactext_object_type_name(object.type),
-                                object.instance);
-                        }
+                        debug_log_fprintf(
+                            DEBUG_LOG_ERROR, stderr,
+                            "\n-- ERROR - failed to read PROPERTY_LIST "
+                            "entry = %i for object %s %u\n",
+                            j, bactext_object_type_name(object.type),
+                            object.instance);
                         prop_list[j].property = MAX_BACNET_PROPERTY_ID;
                         prop_list[j].printed = true;
                     }
@@ -1633,9 +1638,9 @@ static uint32_t Print_List_Of_Objects(uint32_t device_instance)
         }
     } else {
         /* failed to get size of object list */
-        if (Debug_Enabled) {
-            fprintf(stderr, "\n-- ERROR - failed to read OBJECT_LIST\n");
-        }
+        debug_log_fprintf(
+            DEBUG_LOG_ERROR, stderr,
+            "\n-- ERROR - failed to read OBJECT_LIST\n");
         error++;
         return error;
     }
