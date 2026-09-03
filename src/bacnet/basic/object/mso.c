@@ -421,7 +421,8 @@ static bool Multistate_Output_Relinquish_Default_Write(
  * @brief For a given object instance-number, sets the present-value
  * @param  object_instance - object-instance number of the object
  * @param  value - integer multi-state value 1..N
- * @param  priority - priority-array index value 1..16
+ * @param  priority - priority-array index value 1..16, excluding 6
+ *  (reserved for Minimum On/Off)
  * @return  true if values are within range and present-value is set.
  */
 bool Multistate_Output_Present_Value_Set(
@@ -437,7 +438,8 @@ bool Multistate_Output_Present_Value_Set(
     if (pObject) {
         max_states = state_name_list_count(pObject->State_List);
         if ((value >= 1) && (value <= max_states) && (priority >= 1) &&
-            (priority <= BACNET_MAX_PRIORITY)) {
+            (priority <= BACNET_MAX_PRIORITY) &&
+            (priority != 6 /* reserved */)) {
             old_value = Object_Present_Value(pObject);
             pObject->Relinquished[priority - 1] = false;
             pObject->Priority_Array[priority - 1] = value;
@@ -456,7 +458,8 @@ bool Multistate_Output_Present_Value_Set(
  * @brief For a given object instance-number, sets the present-value
  * @param  object_instance - object-instance number of the object
  * @param  state_name - state name to set the present value to
- * @param  priority - priority-array index value 1..16
+ * @param  priority - priority-array index value 1..16, excluding 6
+ *  (reserved for Minimum On/Off)
  * @return  true if value is within range and present-value is set.
  */
 bool Multistate_Output_Present_Value_By_Name_Set(
@@ -530,7 +533,8 @@ uint32_t Multistate_Output_Priority_Array_Value(
 /**
  * @brief For a given object instance-number, relinquishes the present-value
  * @param  object_instance - object-instance number of the object
- * @param  priority - priority-array index value 1..16
+ * @param  priority - priority-array index value 1..16, excluding 6
+ *  (reserved for Minimum On/Off)
  * @return  true if values are within range and present-value is relinquished.
  */
 bool Multistate_Output_Present_Value_Relinquish(
@@ -543,7 +547,8 @@ bool Multistate_Output_Present_Value_Relinquish(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+        if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY) &&
+            (priority != 6 /* reserved */)) {
             old_value = Object_Present_Value(pObject);
             pObject->Relinquished[priority - 1] = true;
             pObject->Priority_Array[priority - 1] = 0;
