@@ -580,7 +580,7 @@ static void print_property_value(
         is_proprietary = true;
     }
     if (bactext_property_name_proprietary(rp_data->object_property)) {
-        printf("    -- proprietary-%u: \n", rp_data->object_property);
+        printf("    -- proprietary-%u: ", rp_data->object_property);
     } else {
         printf(
             "    %s%s: ", is_proprietary ? "-- " : "",
@@ -1054,7 +1054,7 @@ static void get_print_value(
             rpm_property.value = Value_List_Head;
             rpm_property.next = NULL;
             if (bactext_property_name_proprietary(property)) {
-                printf("    -- proprietary-%u: \n", property);
+                printf("    -- proprietary-%u: ", property);
             } else {
                 printf(
                     "    %s%s: ", is_proprietary ? "-- " : "",
@@ -1985,8 +1985,11 @@ int main(int argc, char *argv[])
                 break;
         }
 
-        /* Check for timeouts */
-        if (!found || !bacnet_read_write_idle()) {
+        /* Check for timeouts - skip once BUILD has already finished, since
+           a stale (already-completed) queue entry can otherwise be
+           mistaken for a pending unanswered request */
+        if ((myState != EPICS_STATE_EXIT) &&
+            (!found || !bacnet_read_write_idle())) {
             /* increment timer - exit if timed out */
             if (mstimer_expired(&Timeout_Timer)) {
                 printf("\rError: APDU Timeout! (%us)\n", timeout_seconds);
