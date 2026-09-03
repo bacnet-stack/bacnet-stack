@@ -111,6 +111,16 @@ typedef struct Property_List {
     bool printed;
 } PROPERTY_LIST;
 
+/* true once the current request has received its first property value;
+   used to detect when a ReadPropertyMultiple ALL response moves on to
+   the next property, so nothing needs to be cached for printing */
+static bool Property_Started = false;
+/* when non-NULL, epics_value_callback() records each new property
+   identifier it sees here as it prints the value immediately */
+static PROPERTY_LIST *RPM_All_Prop_List = NULL;
+static uint32_t RPM_All_Prop_List_Size = 0;
+static uint32_t RPM_All_Prop_List_Count = 0;
+
 static void free_value_list(void)
 {
     BACNET_APPLICATION_DATA_VALUE *value, *next;
@@ -125,34 +135,12 @@ static void free_value_list(void)
     Value_List_Tail = NULL;
 }
 
+/* forward declaration - defined after PrintReadPropertyData(), which it
+   uses to print each property as its value(s) are received */
 static void epics_value_callback(
     uint32_t device_instance,
     BACNET_READ_PROPERTY_DATA *rp_data,
-    BACNET_APPLICATION_DATA_VALUE *value)
-{
-    BACNET_APPLICATION_DATA_VALUE *new_val;
-
-    (void)device_instance;
-    if (rp_data->error_code != ERROR_CODE_SUCCESS) {
-        Response_Status = RESP_ERROR_CODE;
-        Last_Error_Class = rp_data->error_class;
-        Last_Error_Code = rp_data->error_code;
-        return;
-    }
-    Response_Status = RESP_SUCCESS;
-    Saved_RP_Data = *rp_data;
-    if (value) {
-        new_val = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
-        bacapp_copy(new_val, value);
-        if (!Value_List_Head) {
-            Value_List_Head = new_val;
-            Value_List_Tail = new_val;
-        } else {
-            Value_List_Tail->next = new_val;
-            Value_List_Tail = new_val;
-        }
-    }
-}
+    BACNET_APPLICATION_DATA_VALUE *value);
 
 /**
  * @brief Callback for successful WriteProperty response
@@ -562,6 +550,131 @@ static void PrintReadPropertyData(
     } /* End while loop */
 }
 
+/**
+ * @brief Print the value(s) collected for one property, or its error.
+ * @param device_instance [in] device instance number where data originated
+ * @param rp_data [in] property identity, array index, and error status
+ * @param value_head [in] the property's decoded value(s), or NULL
+ */
+static void print_property_value(
+    uint32_t device_instance,
+    BACNET_READ_PROPERTY_DATA *rp_data,
+    BACNET_APPLICATION_DATA_VALUE *value_head)
+{
+    BACNET_PROPERTY_REFERENCE rpm_property;
+    bool is_proprietary = false;
+
+    if (rp_data->error_code != ERROR_CODE_SUCCESS) {
+        Last_Error_Class = rp_data->error_class;
+        Last_Error_Code = rp_data->error_code;
+        if (ShowErrors) {
+            print_property_error_suffix(rp_data->object_property);
+        }
+        return;
+    }
+    if ((rp_data->object_type >= OBJECT_PROPRIETARY_MIN) &&
+        (rp_data->object_type <= OBJECT_PROPRIETARY_MAX) &&
+        (rp_data->object_property != PROP_OBJECT_IDENTIFIER) &&
+        (rp_data->object_property != PROP_OBJECT_TYPE) &&
+        (rp_data->object_property != PROP_OBJECT_NAME)) {
+        is_proprietary = true;
+    }
+    if (bactext_property_name_proprietary(rp_data->object_property)) {
+        printf("    -- proprietary-%u: \n", rp_data->object_property);
+    } else {
+        printf(
+            "    %s%s: ", is_proprietary ? "-- " : "",
+            bactext_property_name(rp_data->object_property));
+    }
+    rpm_property.propertyIdentifier = rp_data->object_property;
+    rpm_property.propertyArrayIndex = rp_data->array_index;
+    rpm_property.value = value_head;
+    rpm_property.next = NULL;
+    PrintReadPropertyData(
+        device_instance, rp_data->object_type, rp_data->object_instance,
+        &rpm_property);
+}
+
+/**
+ * @brief Print (or discard) the property currently being accumulated,
+ *  then clear it so the next property can start collecting.
+ * @param device_instance [in] device instance number where data originated
+ */
+static void flush_pending_property(uint32_t device_instance)
+{
+    if (!Property_Started) {
+        return;
+    }
+    if ((Saved_RP_Data.object_property == PROP_OBJECT_LIST) ||
+        (Saved_RP_Data.object_property == PROP_PROPERTY_LIST)) {
+        /* these are printed separately, one array element at a time */
+        free_value_list();
+    } else {
+        print_property_value(device_instance, &Saved_RP_Data, Value_List_Head);
+    }
+    Value_List_Head = NULL;
+    Value_List_Tail = NULL;
+    Property_Started = false;
+}
+
+/**
+ * @brief Callback for ReadProperty and ReadPropertyMultiple responses.
+ *  A ReadPropertyMultiple ALL response reports several properties in a
+ *  row through this same callback; as soon as a different property is
+ *  seen, the previous one (already fully collected) is printed and
+ *  discarded, so no separate cache of properties/values is kept.
+ */
+static void epics_value_callback(
+    uint32_t device_instance,
+    BACNET_READ_PROPERTY_DATA *rp_data,
+    BACNET_APPLICATION_DATA_VALUE *value)
+{
+    BACNET_APPLICATION_DATA_VALUE *new_val;
+
+    if (rp_data->object_property == PROP_ALL) {
+        /* the request itself was rejected, aborted, or timed out */
+        Response_Status = RESP_ERROR_CODE;
+        Last_Error_Class = rp_data->error_class;
+        Last_Error_Code = rp_data->error_code;
+        return;
+    }
+    if (Property_Started &&
+        (Saved_RP_Data.object_property != rp_data->object_property)) {
+        /* a different property has begun (ReadPropertyMultiple ALL
+           response) - the previous one is already complete */
+        flush_pending_property(device_instance);
+    }
+    if (!Property_Started) {
+        Property_Started = true;
+        if (RPM_All_Prop_List &&
+            (RPM_All_Prop_List_Count < RPM_All_Prop_List_Size)) {
+            RPM_All_Prop_List[RPM_All_Prop_List_Count].property =
+                rp_data->object_property;
+            RPM_All_Prop_List[RPM_All_Prop_List_Count].printed = true;
+            RPM_All_Prop_List_Count++;
+        }
+    }
+    Saved_RP_Data = *rp_data;
+    if (rp_data->error_code != ERROR_CODE_SUCCESS) {
+        Response_Status = RESP_ERROR_CODE;
+        Last_Error_Class = rp_data->error_class;
+        Last_Error_Code = rp_data->error_code;
+        return;
+    }
+    Response_Status = RESP_SUCCESS;
+    if (value) {
+        new_val = calloc(1, sizeof(BACNET_APPLICATION_DATA_VALUE));
+        bacapp_copy(new_val, value);
+        if (!Value_List_Head) {
+            Value_List_Head = new_val;
+            Value_List_Tail = new_val;
+        } else {
+            Value_List_Tail->next = new_val;
+            Value_List_Tail = new_val;
+        }
+    }
+}
+
 static void print_usage(const char *filename)
 {
     printf("Usage: %s [options] [device-instance]\n", filename);
@@ -748,6 +861,7 @@ static RESPONSE_STATUS get_primitive_value(
 {
     Value_List_Head = NULL;
     Value_List_Tail = NULL;
+    Property_Started = false;
     bacnet_read_property_queue(
         device_instance, object.type, object.instance, property, array_index);
     wait_for_response();
@@ -761,6 +875,141 @@ static RESPONSE_STATUS get_primitive_value(
     free_value_list();
     /* failed to get a decodable response */
     return RESP_FAILED;
+}
+
+/**
+ * @brief Read all of an object's properties and values in one request,
+ *  using ReadPropertyMultiple PROP_ALL. Each property is printed by
+ *  epics_value_callback() as soon as it is fully received, and its
+ *  identifier is recorded into prop_list.
+ * @param device_instance [in] device instance number to read from
+ * @param object [in] object identifier whose properties are to be read
+ * @param prop_list [out] array to record each returned property identifier
+ * @param prop_list_size [in] capacity of prop_list
+ * @param prop_list_count [out] number of properties recorded into prop_list
+ * @return RESP_SUCCESS if the device answered the RPM-All request, or
+ *  the failure status otherwise (e.g. reject/abort/timeout)
+ */
+static RESPONSE_STATUS get_object_properties_rpm_all(
+    uint32_t device_instance,
+    BACNET_OBJECT_ID object,
+    PROPERTY_LIST *prop_list,
+    uint32_t prop_list_size,
+    uint32_t *prop_list_count)
+{
+    Value_List_Head = NULL;
+    Value_List_Tail = NULL;
+    Property_Started = false;
+    RPM_All_Prop_List = prop_list;
+    RPM_All_Prop_List_Size = prop_list_size;
+    RPM_All_Prop_List_Count = 0;
+    bacnet_read_property_queue(
+        device_instance, object.type, object.instance, PROP_ALL,
+        BACNET_ARRAY_ALL);
+    wait_for_response();
+    /* the last property received never triggered a "next property"
+       transition, so print/discard it now */
+    flush_pending_property(device_instance);
+    *prop_list_count = RPM_All_Prop_List_Count;
+    RPM_All_Prop_List = NULL;
+    RPM_All_Prop_List_Size = 0;
+    RPM_All_Prop_List_Count = 0;
+
+    return Response_Status;
+}
+
+/**
+ * @brief Determine the list of properties for an object, trying
+ *  ReadPropertyMultiple PROP_ALL first (which prints each property as
+ *  soon as its value(s) arrive), then the device's PROPERTY_LIST
+ *  property read one element at a time, and finally a synthetic
+ *  property list built from the standard object model.
+ * @param device_instance [in] device instance number to read from
+ * @param object [in] object identifier whose properties are enumerated
+ * @param prop_list [out] array to receive the discovered property
+ *  identifiers
+ * @param prop_list_size [in] capacity of prop_list
+ * @param property_list_supported [out] true if the effective property
+ *  set is known (from RPM-All or PROPERTY_LIST); false if only a
+ *  synthetic guess is used
+ * @param rpm_all_used [out] true if ReadPropertyMultiple PROP_ALL was
+ *  used - every property in prop_list has already been printed
+ * @return number of properties discovered (bounded by prop_list_size)
+ */
+static uint32_t get_object_property_list(
+    uint32_t device_instance,
+    BACNET_OBJECT_ID object,
+    PROPERTY_LIST *prop_list,
+    uint32_t prop_list_size,
+    bool *property_list_supported,
+    bool *rpm_all_used)
+{
+    BACNET_APPLICATION_DATA_VALUE data_value;
+    RESPONSE_STATUS status;
+    uint32_t num_properties = 0, j;
+
+    *property_list_supported = false;
+    *rpm_all_used = false;
+    if (RPM_Service_Supported) {
+        status = get_object_properties_rpm_all(
+            device_instance, object, prop_list, prop_list_size,
+            &num_properties);
+        if (status == RESP_SUCCESS) {
+            *property_list_supported = true;
+            *rpm_all_used = true;
+            return num_properties;
+        }
+    }
+    status = get_primitive_value(
+        device_instance, object, PROP_PROPERTY_LIST, 0, &data_value);
+    if (status == RESP_SUCCESS) {
+        /* got number of properties */
+        num_properties = data_value.type.Unsigned_Int;
+        if (num_properties > prop_list_size) {
+            num_properties = prop_list_size;
+        }
+        for (j = 0; j < num_properties; j++) {
+            status = get_primitive_value(
+                device_instance, object, PROP_PROPERTY_LIST, j + 1,
+                &data_value);
+            if (status == RESP_SUCCESS) {
+                prop_list[j].property = data_value.type.Unsigned_Int;
+                prop_list[j].printed = false;
+            } else {
+                /* failed to read the property identifier - this
+                 * entry will be ignored */
+                debug_log_fprintf(
+                    DEBUG_LOG_ERROR, stderr,
+                    "\n-- ERROR - failed to read PROPERTY_LIST "
+                    "entry = %u for object %s %u\n",
+                    j, bactext_object_type_name(object.type), object.instance);
+                prop_list[j].property = MAX_BACNET_PROPERTY_ID;
+                prop_list[j].printed = true;
+            }
+        }
+        *property_list_supported = true;
+        return num_properties;
+    }
+    /* failed to read the PROPERTY_LIST - use synthetic */
+    num_properties = property_list_special_count(object.type, PROP_ALL);
+    if (num_properties > prop_list_size) {
+        num_properties = prop_list_size;
+    }
+    for (j = 0; j < num_properties; j++) {
+        prop_list[j].property =
+            property_list_special_property(object.type, PROP_ALL, j);
+        if ((prop_list[j].property == PROP_OBJECT_IDENTIFIER) ||
+            (prop_list[j].property == PROP_OBJECT_NAME) ||
+            (prop_list[j].property == PROP_OBJECT_TYPE) ||
+            (prop_list[j].property == PROP_OBJECT_LIST) ||
+            (prop_list[j].property == PROP_PROPERTY_LIST)) {
+            prop_list[j].printed = true;
+        } else {
+            prop_list[j].printed = false;
+        }
+    }
+    *property_list_supported = false;
+    return num_properties;
 }
 
 static void get_print_value(
@@ -787,6 +1036,7 @@ static void get_print_value(
     /* read property value */
     Value_List_Head = NULL;
     Value_List_Tail = NULL;
+    Property_Started = false;
     bacnet_read_property_queue(
         device_instance, object.type, object.instance, property, array_index);
     wait_for_response();
@@ -1368,6 +1618,7 @@ static uint32_t Print_List_Of_Objects(uint32_t device_instance)
     uint32_t error = 0;
     RESPONSE_STATUS status;
     bool property_list_supported = false;
+    bool rpm_all_used = false;
 
     device_object.type = OBJECT_DEVICE;
     device_object.instance = device_instance;
@@ -1384,58 +1635,21 @@ static uint32_t Print_List_Of_Objects(uint32_t device_instance)
 
         /* get and print device object */
         object = device_object;
-        status = get_primitive_value(
-            object.instance, object, PROP_PROPERTY_LIST, 0, &data_value);
-        if (status == RESP_SUCCESS) {
-            /* got number of properties */
-            num_properties = data_value.type.Unsigned_Int;
-            property_list_supported = true;
-        } else {
-            /* failed to read the PROPERTY_LIST - use synthetic */
-            num_properties = property_list_special_count(object.type, PROP_ALL);
-            property_list_supported = false;
-        }
-        if (num_properties > sizeof(prop_list)) {
-            num_properties = sizeof(prop_list);
-        }
         printf("  {\n"); /* And opening brace for the first object */
-        /* Since object-id, object-type, object-name are not
-         * part of the property-list, print manually.*/
-        get_print_value(
-            device_instance, object, PROP_OBJECT_IDENTIFIER, BACNET_ARRAY_ALL);
-        get_print_value(
-            device_instance, object, PROP_OBJECT_NAME, BACNET_ARRAY_ALL);
-        get_print_value(
-            device_instance, object, PROP_OBJECT_TYPE, BACNET_ARRAY_ALL);
-        /* get and save list of property ids in this object in the IUT */
-        for (j = 0; j < num_properties; j++) {
-            if (property_list_supported) {
-                status = get_primitive_value(
-                    device_instance, object, PROP_PROPERTY_LIST, j + 1,
-                    &data_value);
-                if (status == RESP_SUCCESS) {
-                    prop_list[j].property = data_value.type.Unsigned_Int;
-                    prop_list[j].printed = false;
-                } else {
-                    /* failed to read the PROPERTY_LIST element, skip print
-                     */
-                    prop_list[j].property = MAX_BACNET_PROPERTY_ID;
-                    prop_list[j].printed = true;
-                }
-            } else {
-                /* failed to read the PROPERTY_LIST - use synthetic */
-                prop_list[j].property =
-                    property_list_special_property(OBJECT_DEVICE, PROP_ALL, j);
-                if ((prop_list[j].property == PROP_OBJECT_IDENTIFIER) ||
-                    (prop_list[j].property == PROP_OBJECT_NAME) ||
-                    (prop_list[j].property == PROP_OBJECT_TYPE) ||
-                    (prop_list[j].property == PROP_OBJECT_LIST) ||
-                    (prop_list[j].property == PROP_PROPERTY_LIST)) {
-                    prop_list[j].printed = true;
-                } else {
-                    prop_list[j].printed = false;
-                }
-            }
+        num_properties = get_object_property_list(
+            device_instance, object, prop_list,
+            sizeof(prop_list) / sizeof(prop_list[0]), &property_list_supported,
+            &rpm_all_used);
+        if (!rpm_all_used) {
+            /* Since object-id, object-type, object-name are not
+             * part of the property-list, print manually.*/
+            get_print_value(
+                device_instance, object, PROP_OBJECT_IDENTIFIER,
+                BACNET_ARRAY_ALL);
+            get_print_value(
+                device_instance, object, PROP_OBJECT_NAME, BACNET_ARRAY_ALL);
+            get_print_value(
+                device_instance, object, PROP_OBJECT_TYPE, BACNET_ARRAY_ALL);
         }
         /* print out the required properties */
         property_list_special(object.type, &special_property_list);
@@ -1453,7 +1667,7 @@ static uint32_t Print_List_Of_Objects(uint32_t device_instance)
                            property and object lists are read later
                            one element at a time */
                         prop_list[k].printed = true;
-                    } else {
+                    } else if (!prop_list[k].printed) {
                         /* read and print required property */
                         get_print_value(
                             device_instance, object, prop_list[k].property,
@@ -1472,8 +1686,9 @@ static uint32_t Print_List_Of_Objects(uint32_t device_instance)
         /* print out the optional properties */
         for (j = 0; j < special_property_list.Optional.count; j++) {
             for (k = 0; k < num_properties; k++) {
-                if (special_property_list.Optional.pList[j] ==
-                    prop_list[k].property) {
+                if ((special_property_list.Optional.pList[j] ==
+                     prop_list[k].property) &&
+                    !prop_list[k].printed) {
                     /* read and print optional property */
                     get_print_value(
                         device_instance, object, prop_list[k].property,
@@ -1516,73 +1731,25 @@ static uint32_t Print_List_Of_Objects(uint32_t device_instance)
                 /* skip device object - already done */
                 continue;
             }
-            /* get number of properties in object */
-            status = get_primitive_value(
-                device_instance, object, PROP_PROPERTY_LIST, 0, &data_value);
-            if (status == RESP_SUCCESS) {
-                /* got number of properties */
-                num_properties = data_value.type.Unsigned_Int;
-                property_list_supported = true;
-            } else {
-                if (RPM_Service_Supported) {
-                    status = get_primitive_value(
-                        device_instance, object, PROP_ALL, 0, &data_value);
-                }
-                /* failed to read the PROPERTY_LIST - use synthetic */
-                num_properties =
-                    property_list_special_count(object.type, PROP_ALL);
-                property_list_supported = false;
-            }
-            if (num_properties > sizeof(prop_list)) {
-                num_properties = sizeof(prop_list);
-            }
-            /* got number of properties */
             /* Add opening brace for the first object */
             printf("  {\n");
-            /* Since object-id, object-type, object-name are not
-             * part of the property-list, print manually.*/
-            get_print_value(
-                device_instance, object, PROP_OBJECT_IDENTIFIER,
-                BACNET_ARRAY_ALL);
-            get_print_value(
-                device_instance, object, PROP_OBJECT_NAME, BACNET_ARRAY_ALL);
-            get_print_value(
-                device_instance, object, PROP_OBJECT_TYPE, BACNET_ARRAY_ALL);
-            /* get and save list of property ids in this object in
-             * the IUT */
-            for (j = 0; j < num_properties; j++) {
-                if (property_list_supported) {
-                    status = get_primitive_value(
-                        device_instance, object, PROP_PROPERTY_LIST, j + 1,
-                        &data_value);
-                    if (status == RESP_SUCCESS) {
-                        prop_list[j].property = data_value.type.Unsigned_Int;
-                        prop_list[j].printed = false;
-                    } else {
-                        /* failed to read the property identifier - this
-                         * entry will be ignored */
-                        debug_log_fprintf(
-                            DEBUG_LOG_ERROR, stderr,
-                            "\n-- ERROR - failed to read PROPERTY_LIST "
-                            "entry = %i for object %s %u\n",
-                            j, bactext_object_type_name(object.type),
-                            object.instance);
-                        prop_list[j].property = MAX_BACNET_PROPERTY_ID;
-                        prop_list[j].printed = true;
-                    }
-                } else {
-                    /* failed to read the PROPERTY_LIST - use synthetic */
-                    prop_list[j].property = property_list_special_property(
-                        object.type, PROP_ALL, j);
-                    if ((prop_list[j].property == PROP_OBJECT_IDENTIFIER) ||
-                        (prop_list[j].property == PROP_OBJECT_NAME) ||
-                        (prop_list[j].property == PROP_OBJECT_TYPE) ||
-                        (prop_list[j].property == PROP_PROPERTY_LIST)) {
-                        prop_list[j].printed = true;
-                    } else {
-                        prop_list[j].printed = false;
-                    }
-                }
+            /* get the object's properties, preferring RPM-All */
+            num_properties = get_object_property_list(
+                device_instance, object, prop_list,
+                sizeof(prop_list) / sizeof(prop_list[0]),
+                &property_list_supported, &rpm_all_used);
+            if (!rpm_all_used) {
+                /* Since object-id, object-type, object-name are not
+                 * part of the property-list, print manually.*/
+                get_print_value(
+                    device_instance, object, PROP_OBJECT_IDENTIFIER,
+                    BACNET_ARRAY_ALL);
+                get_print_value(
+                    device_instance, object, PROP_OBJECT_NAME,
+                    BACNET_ARRAY_ALL);
+                get_print_value(
+                    device_instance, object, PROP_OBJECT_TYPE,
+                    BACNET_ARRAY_ALL);
             }
             /* print out the required properties */
             property_list_special(object.type, &special_property_list);
@@ -1597,7 +1764,7 @@ static uint32_t Print_List_Of_Objects(uint32_t device_instance)
                             /* property list is read later one
                              * element at a time */
                             prop_list[k].printed = true;
-                        } else {
+                        } else if (!prop_list[k].printed) {
                             /* read and print required property */
                             get_print_value(
                                 device_instance, object, prop_list[k].property,
@@ -1614,8 +1781,9 @@ static uint32_t Print_List_Of_Objects(uint32_t device_instance)
             /* print out the optional properties */
             for (j = 0; j < special_property_list.Optional.count; j++) {
                 for (k = 0; k < num_properties; k++) {
-                    if (special_property_list.Optional.pList[j] ==
-                        prop_list[k].property) {
+                    if ((special_property_list.Optional.pList[j] ==
+                         prop_list[k].property) &&
+                        !prop_list[k].printed) {
                         /* read and print optional property */
                         get_print_value(
                             device_instance, object, prop_list[k].property,
