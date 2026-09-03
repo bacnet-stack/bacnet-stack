@@ -914,7 +914,14 @@ static RESPONSE_STATUS get_object_properties_rpm_all(
     RPM_All_Prop_List = NULL;
     RPM_All_Prop_List_Size = 0;
     RPM_All_Prop_List_Count = 0;
-
+    /* Response_Status only reflects the last property processed, which
+       may be a normal per-property access error (e.g. an optional
+       property the object doesn't implement) inside an otherwise valid
+       reply - receiving any property at all means the RPM-All request
+       itself succeeded */
+    if (*prop_list_count > 0) {
+        return RESP_SUCCESS;
+    }
     return Response_Status;
 }
 
