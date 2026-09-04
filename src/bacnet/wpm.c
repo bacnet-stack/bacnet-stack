@@ -216,9 +216,15 @@ int wpm_decode_object_property(
             wp_data->priority = unsigned_value;
         }
     } else if (len == 0) {
-        /* OPTIONAL - no priority */
+        /* OPTIONAL */
+        /* If an attempt is made to write to a commandable property
+        without explicitly specifying the priority, a default
+        priority of 16 (the lowest priority) shall be assumed.
+        If an attempt is made to write to a property that is not
+        commandable with a specified priority, the priority shall
+        be ignored.*/
         if (wp_data) {
-            wp_data->priority = BACNET_NO_PRIORITY;
+            wp_data->priority = BACNET_MAX_PRIORITY;
         }
     } else {
         if (wp_data) {

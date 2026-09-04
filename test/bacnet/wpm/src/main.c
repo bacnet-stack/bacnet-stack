@@ -6,6 +6,7 @@
  *
  * @copyright SPDX-License-Identifier: MIT
  */
+#include <string.h>
 #include <zephyr/ztest.h>
 #include <bacnet/wpm.h>
 
@@ -83,7 +84,7 @@ static void testWritePropertyMultiple(void)
     property_value[1].value.tag = BACNET_APPLICATION_TAG_REAL;
     property_value[1].value.type.Real = 1.41421f;
     property_value[1].value.next = NULL;
-    property_value[1].priority = 0;
+    property_value[1].priority = BACNET_MIN_PRIORITY;
 
     write_access_data[2].object_type = OBJECT_BINARY_VALUE;
     write_access_data[2].object_instance = 1;
@@ -94,7 +95,7 @@ static void testWritePropertyMultiple(void)
     property_value[2].value.tag = BACNET_APPLICATION_TAG_ENUMERATED;
     property_value[2].value.type.Enumerated = BINARY_ACTIVE;
     property_value[2].value.next = NULL;
-    property_value[2].priority = 0;
+    property_value[2].priority = BACNET_NO_PRIORITY;
 
     apdu_len =
         wpm_encode_apdu(apdu, sizeof(apdu), invoke_id, write_access_data);
@@ -152,6 +153,66 @@ static void testWritePropertyMultiple(void)
     } while (offset < apdu_len);
 }
 
+/**
+ * @brief Encode/decode round trip for a single object-property, including
+ *  the optional array-index and priority fields.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(wp_tests, testWritePropertyMultipleObjectProperty)
+#else
+static void testWritePropertyMultipleObjectProperty(void)
+#endif
+{
+    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
+    BACNET_WRITE_PROPERTY_DATA test_data = { 0 };
+    uint8_t apdu[480] = { 0 };
+    int len = 0, null_len = 0;
+
+    wpdata.object_property = PROP_PRESENT_VALUE;
+    wpdata.array_index = BACNET_ARRAY_ALL;
+    wpdata.application_data_len =
+        encode_application_real(wpdata.application_data, 3.14159f);
+    wpdata.priority = BACNET_NO_PRIORITY;
+
+    /* priority omitted - decoder shall assume the default priority */
+    null_len = wpm_encode_apdu_object_property(NULL, &wpdata);
+    len = wpm_encode_apdu_object_property(apdu, &wpdata);
+    zassert_equal(len, null_len, NULL);
+    zassert_not_equal(len, 0, NULL);
+    null_len = wpm_decode_object_property(apdu, len, NULL);
+    len = wpm_decode_object_property(apdu, len, &test_data);
+    zassert_equal(len, null_len, NULL);
+    zassert_not_equal(len, 0, NULL);
+    zassert_equal(test_data.object_property, wpdata.object_property, NULL);
+    zassert_equal(test_data.array_index, BACNET_ARRAY_ALL, NULL);
+    zassert_equal(test_data.priority, BACNET_MAX_PRIORITY, NULL);
+    zassert_equal(
+        test_data.application_data_len, wpdata.application_data_len, NULL);
+    zassert_equal(
+        memcmp(
+            test_data.application_data, wpdata.application_data,
+            wpdata.application_data_len),
+        0, NULL);
+
+    /* priority explicitly given - decoder shall return that priority */
+    wpdata.priority = BACNET_MIN_PRIORITY;
+    len = wpm_encode_apdu_object_property(apdu, &wpdata);
+    zassert_not_equal(len, 0, NULL);
+    len = wpm_decode_object_property(apdu, len, &test_data);
+    zassert_not_equal(len, 0, NULL);
+    zassert_equal(test_data.priority, BACNET_MIN_PRIORITY, NULL);
+
+    /* array-index given - decoder shall return that array index */
+    wpdata.array_index = 1;
+    wpdata.priority = BACNET_NO_PRIORITY;
+    len = wpm_encode_apdu_object_property(apdu, &wpdata);
+    zassert_not_equal(len, 0, NULL);
+    len = wpm_decode_object_property(apdu, len, &test_data);
+    zassert_not_equal(len, 0, NULL);
+    zassert_equal(test_data.array_index, 1, NULL);
+    zassert_equal(test_data.priority, BACNET_MAX_PRIORITY, NULL);
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(wp_tests, testWritePropertyMultiple_ACK)
 #else
@@ -199,6 +260,7 @@ void test_main(void)
 {
     ztest_test_suite(
         wp_tests, ztest_unit_test(testWritePropertyMultiple),
+        ztest_unit_test(testWritePropertyMultipleObjectProperty),
         ztest_unit_test(testWritePropertyMultiple_ACK));
 
     ztest_run_test_suite(wp_tests);
