@@ -212,8 +212,16 @@ int wpm_decode_object_property(
         &apdu[apdu_len], apdu_size - apdu_len, 3, &unsigned_value);
     if (len > 0) {
         apdu_len += len;
-        if (wp_data) {
-            wp_data->priority = unsigned_value;
+        if ((unsigned_value >= BACNET_MIN_PRIORITY) &&
+            (unsigned_value <= BACNET_MAX_PRIORITY)) {
+            if (wp_data) {
+                wp_data->priority = (uint8_t)unsigned_value;
+            }
+        } else {
+            if (wp_data) {
+                wp_data->error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
+            }
+            return BACNET_STATUS_REJECT;
         }
     } else if (len == 0) {
         /* OPTIONAL */
