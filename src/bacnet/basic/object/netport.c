@@ -485,7 +485,7 @@ void Network_Port_Writable_Property_List(
  * @param pRequired - pointer to list of int terminated by -1, of
  * BACnet required properties for this object.
  * @param pOptional - pointer to list of int terminated by -1, of
- * BACnet optkional properties for this object.
+ * BACnet optional properties for this object.
  * @param pProprietary - pointer to list of int terminated by -1, of
  * BACnet proprietary properties for this object.
  */
