@@ -95,6 +95,29 @@ BACNET_BINARY_PV Binary_Value_Present_Value(uint32_t instance);
 BACNET_STACK_EXPORT
 bool Binary_Value_Present_Value_Set(uint32_t instance, BACNET_BINARY_PV value);
 BACNET_STACK_EXPORT
+bool Binary_Value_Present_Value_Priority_Set(
+    uint32_t instance, BACNET_BINARY_PV value, unsigned priority);
+
+BACNET_STACK_EXPORT
+bool Binary_Value_Priority_Array_Relinquished(
+    uint32_t object_instance, unsigned priority);
+BACNET_STACK_EXPORT
+BACNET_BINARY_PV
+Binary_Value_Priority_Array_Value(uint32_t object_instance, unsigned priority);
+
+BACNET_STACK_EXPORT
+bool Binary_Value_Present_Value_Relinquish(
+    uint32_t instance, unsigned priority);
+BACNET_STACK_EXPORT
+unsigned Binary_Value_Present_Value_Priority(uint32_t object_instance);
+
+BACNET_STACK_EXPORT
+BACNET_BINARY_PV Binary_Value_Relinquish_Default(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Binary_Value_Relinquish_Default_Set(
+    uint32_t object_instance, BACNET_BINARY_PV value);
+
+BACNET_STACK_EXPORT
 void Binary_Value_Write_Present_Value_Callback_Set(
     binary_value_write_present_value_callback cb);
 
