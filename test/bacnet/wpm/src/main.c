@@ -178,11 +178,11 @@ static void testWritePropertyMultipleObjectProperty(void)
     null_len = wpm_encode_apdu_object_property(NULL, &wpdata);
     len = wpm_encode_apdu_object_property(apdu, &wpdata);
     zassert_equal(len, null_len, NULL);
-    zassert_not_equal(len, 0, NULL);
+    zassert_true(len > 0, NULL);
     null_len = wpm_decode_object_property(apdu, len, NULL);
     len = wpm_decode_object_property(apdu, len, &test_data);
     zassert_equal(len, null_len, NULL);
-    zassert_not_equal(len, 0, NULL);
+    zassert_true(len > 0, NULL);
     zassert_equal(test_data.object_property, wpdata.object_property, NULL);
     zassert_equal(test_data.array_index, BACNET_ARRAY_ALL, NULL);
     zassert_equal(test_data.priority, BACNET_MAX_PRIORITY, NULL);
