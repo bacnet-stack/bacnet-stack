@@ -355,10 +355,16 @@ bool Multistate_Output_Relinquish_Default_Set(
 {
     bool status = false;
     struct object_data *pObject;
+    uint32_t old_value, new_value;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
+        old_value = Object_Present_Value(pObject);
         pObject->Relinquish_Default = value;
+        new_value = Object_Present_Value(pObject);
+        if (old_value != new_value) {
+            pObject->Changed = true;
+        }
         status = true;
     }
 

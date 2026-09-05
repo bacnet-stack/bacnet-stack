@@ -131,6 +131,45 @@ static void testMultistateOutput_Priority_6_Reserved(void)
     Multistate_Output_Cleanup();
 }
 /**
+ * @brief Test that changing Relinquish_Default alters the effective
+ *  Present_Value sets the Change_Of_Value flag, and that setting the
+ *  same effective value again does not
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(mso_tests, testMultistateOutput_Relinquish_Default_COV)
+#else
+static void testMultistateOutput_Relinquish_Default_COV(void)
+#endif
+{
+    const uint32_t instance = 654;
+    bool status = false;
+
+    Multistate_Output_Init();
+    zassert_not_equal(
+        Multistate_Output_Create(instance), BACNET_MAX_INSTANCE, NULL);
+
+    /* all priorities relinquished: Present_Value tracks Relinquish_Default,
+       which defaults to state 1 */
+    Multistate_Output_Change_Of_Value_Clear(instance);
+    zassert_false(Multistate_Output_Change_Of_Value(instance), NULL);
+    zassert_equal(Multistate_Output_Present_Value(instance), 1, NULL);
+
+    /* a value change must set Changed */
+    status = Multistate_Output_Relinquish_Default_Set(instance, 2);
+    zassert_true(status, NULL);
+    zassert_equal(Multistate_Output_Present_Value(instance), 2, NULL);
+    zassert_true(Multistate_Output_Change_Of_Value(instance), NULL);
+
+    /* setting the same effective value again must not set Changed */
+    Multistate_Output_Change_Of_Value_Clear(instance);
+    status = Multistate_Output_Relinquish_Default_Set(instance, 2);
+    zassert_true(status, NULL);
+    zassert_false(Multistate_Output_Change_Of_Value(instance), NULL);
+
+    Multistate_Output_Delete(instance);
+    Multistate_Output_Cleanup();
+}
+/**
  * @}
  */
 
@@ -142,7 +181,8 @@ void test_main(void)
     ztest_test_suite(
         mso_tests, ztest_unit_test(testMultistateOutput),
         ztest_unit_test(testMultistateOutputByName),
-        ztest_unit_test(testMultistateOutput_Priority_6_Reserved));
+        ztest_unit_test(testMultistateOutput_Priority_6_Reserved),
+        ztest_unit_test(testMultistateOutput_Relinquish_Default_COV));
 
     ztest_run_test_suite(mso_tests);
 }

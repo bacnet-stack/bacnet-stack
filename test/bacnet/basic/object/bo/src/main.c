@@ -85,6 +85,45 @@ static void testBinaryOutput_Writable_Properties(void)
     Binary_Output_Cleanup();
 }
 /**
+ * @brief Test that changing Relinquish_Default alters the effective
+ *  Present_Value sets the Change_Of_Value flag, and that setting the
+ *  same effective value again does not
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bo_tests, testBinaryOutput_Relinquish_Default_COV)
+#else
+static void testBinaryOutput_Relinquish_Default_COV(void)
+#endif
+{
+    const uint32_t instance = 654;
+    bool status = false;
+
+    Binary_Output_Init();
+    zassert_not_equal(
+        Binary_Output_Create(instance), BACNET_MAX_INSTANCE, NULL);
+
+    /* all priorities relinquished: Present_Value tracks Relinquish_Default,
+       which defaults to BINARY_INACTIVE */
+    Binary_Output_Change_Of_Value_Clear(instance);
+    zassert_false(Binary_Output_Change_Of_Value(instance), NULL);
+    zassert_equal(Binary_Output_Present_Value(instance), BINARY_INACTIVE, NULL);
+
+    /* a value change must set Changed */
+    status = Binary_Output_Relinquish_Default_Set(instance, BINARY_ACTIVE);
+    zassert_true(status, NULL);
+    zassert_equal(Binary_Output_Present_Value(instance), BINARY_ACTIVE, NULL);
+    zassert_true(Binary_Output_Change_Of_Value(instance), NULL);
+
+    /* setting the same effective value again must not set Changed */
+    Binary_Output_Change_Of_Value_Clear(instance);
+    status = Binary_Output_Relinquish_Default_Set(instance, BINARY_ACTIVE);
+    zassert_true(status, NULL);
+    zassert_false(Binary_Output_Change_Of_Value(instance), NULL);
+
+    Binary_Output_Delete(instance);
+    Binary_Output_Cleanup();
+}
+/**
  * @}
  */
 
@@ -95,7 +134,8 @@ void test_main(void)
 {
     ztest_test_suite(
         bo_tests, ztest_unit_test(testBinaryOutput),
-        ztest_unit_test(testBinaryOutput_Writable_Properties));
+        ztest_unit_test(testBinaryOutput_Writable_Properties),
+        ztest_unit_test(testBinaryOutput_Relinquish_Default_COV));
 
     ztest_run_test_suite(bo_tests);
 }

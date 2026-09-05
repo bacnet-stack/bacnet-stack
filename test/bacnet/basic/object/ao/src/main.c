@@ -209,6 +209,48 @@ static void testAnalogOutput_Priority_6_Reserved(void)
     Analog_Output_Cleanup();
 }
 /**
+ * @brief Test that changing Relinquish_Default alters the effective
+ *  Present_Value beyond COV_Increment sets the Change_Of_Value flag, and
+ *  that a change within COV_Increment does not
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ao_tests, testAnalogOutput_Relinquish_Default_COV)
+#else
+static void testAnalogOutput_Relinquish_Default_COV(void)
+#endif
+{
+    const uint32_t instance = 987;
+    bool status = false;
+
+    Analog_Output_Init();
+    zassert_not_equal(
+        Analog_Output_Create(instance), BACNET_MAX_INSTANCE, NULL);
+
+    /* all priorities relinquished: Present_Value tracks Relinquish_Default */
+    Analog_Output_Change_Of_Value_Clear(instance);
+    zassert_false(Analog_Output_Change_Of_Value(instance), NULL);
+
+    /* change beyond COV_Increment (default 1.0) must set Changed */
+    status = Analog_Output_Relinquish_Default_Set(instance, 5.0f);
+    zassert_true(status, NULL);
+    zassert_within(Analog_Output_Present_Value(instance), 5.0f, 0.001f, NULL);
+    zassert_true(Analog_Output_Change_Of_Value(instance), NULL);
+
+    /* a change within COV_Increment must not set Changed */
+    Analog_Output_Change_Of_Value_Clear(instance);
+    status = Analog_Output_Relinquish_Default_Set(instance, 5.5f);
+    zassert_true(status, NULL);
+    zassert_false(Analog_Output_Change_Of_Value(instance), NULL);
+
+    /* another change beyond COV_Increment must set Changed again */
+    status = Analog_Output_Relinquish_Default_Set(instance, 10.0f);
+    zassert_true(status, NULL);
+    zassert_true(Analog_Output_Change_Of_Value(instance), NULL);
+
+    Analog_Output_Delete(instance);
+    Analog_Output_Cleanup();
+}
+/**
  * @}
  */
 
@@ -221,7 +263,8 @@ void test_main(void)
         ao_tests, ztest_unit_test(testAnalogOutput),
         ztest_unit_test(testAnalogOutput_name_description_write),
         ztest_unit_test(testAnalogOutput_Writable_Properties),
-        ztest_unit_test(testAnalogOutput_Priority_6_Reserved));
+        ztest_unit_test(testAnalogOutput_Priority_6_Reserved),
+        ztest_unit_test(testAnalogOutput_Relinquish_Default_COV));
 
     ztest_run_test_suite(ao_tests);
 }
