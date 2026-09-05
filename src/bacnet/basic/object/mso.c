@@ -347,8 +347,8 @@ uint32_t Multistate_Output_Relinquish_Default(uint32_t object_instance)
 /**
  * @brief For a given object instance-number, sets the relinquish-default value
  * @param  object_instance - object-instance number of the object
- * @param  value - floating point analog output relinquish-default value
- * @return  true if values are within range and relinquish-default value is set.
+ * @param  value - integer multi-state relinquish-default value
+ * @return  true if the relinquish-default value is set.
  */
 bool Multistate_Output_Relinquish_Default_Set(
     uint32_t object_instance, uint32_t value)
