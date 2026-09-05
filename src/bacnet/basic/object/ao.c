@@ -331,7 +331,7 @@ Analog_Output_Present_Value_COV_Detect(struct object_data *pObject, float value)
  * @param  object_instance - object-instance number of the object
  * @param  value - floating point analog output relinquish-default value
  *
- * @return  true if values are within range and relinquish-default value is set.
+ * @return  true if the relinquish-default value was set.
  */
 bool Analog_Output_Relinquish_Default_Set(uint32_t object_instance, float value)
 {
