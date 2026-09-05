@@ -746,7 +746,7 @@ BACNET_BINARY_PV Binary_Output_Relinquish_Default(uint32_t object_instance)
  * property value
  *
  * @param object_instance - object-instance number of the object
- * @param value - floating point relinquish-default value
+ * @param value - BACNET_BINARY_PV relinquish-default value
  *
  * @return true if the relinquish-default property value was set
  */
