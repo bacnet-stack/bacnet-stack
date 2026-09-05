@@ -768,10 +768,16 @@ bool Binary_Value_Relinquish_Default_Set(
 {
     bool status = false;
     struct object_data *pObject;
+    BACNET_BINARY_PV old_value, new_value;
 
     pObject = Binary_Value_Object(object_instance);
     if (pObject && (value < BINARY_PV_MAX)) {
+        old_value = Object_Present_Value(pObject);
         pObject->Relinquish_Default = BACnet_Binary_PV_To_Boolean(value);
+        new_value = Object_Present_Value(pObject);
+        if (old_value != new_value) {
+            pObject->Change_Of_Value = true;
+        }
         status = true;
     }
 

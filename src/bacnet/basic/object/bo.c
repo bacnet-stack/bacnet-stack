@@ -746,7 +746,7 @@ BACNET_BINARY_PV Binary_Output_Relinquish_Default(uint32_t object_instance)
  * property value
  *
  * @param object_instance - object-instance number of the object
- * @param value - floating point relinquish-default value
+ * @param value - BACNET_BINARY_PV relinquish-default value
  *
  * @return true if the relinquish-default property value was set
  */
@@ -755,15 +755,23 @@ bool Binary_Output_Relinquish_Default_Set(
 {
     bool status = false;
     struct object_data *pObject;
+    BACNET_BINARY_PV old_value, new_value;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
+        old_value = Object_Present_Value(pObject);
         if (value == BINARY_ACTIVE) {
             pObject->Relinquish_Default = true;
             status = true;
         } else if (value == BINARY_INACTIVE) {
             pObject->Relinquish_Default = false;
             status = true;
+        }
+        if (status) {
+            new_value = Object_Present_Value(pObject);
+            if (old_value != new_value) {
+                pObject->Changed = true;
+            }
         }
     }
 

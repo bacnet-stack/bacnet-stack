@@ -298,28 +298,6 @@ float Analog_Output_Relinquish_Default(uint32_t object_instance)
 }
 
 /**
- * For a given object instance-number, sets the relinquish-default value
- *
- * @param  object_instance - object-instance number of the object
- * @param  value - floating point analog output relinquish-default value
- *
- * @return  true if values are within range and relinquish-default value is set.
- */
-bool Analog_Output_Relinquish_Default_Set(uint32_t object_instance, float value)
-{
-    bool status = false;
-    struct object_data *pObject;
-
-    pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject) {
-        pObject->Relinquish_Default = value;
-        status = true;
-    }
-
-    return status;
-}
-
-/**
  * For a given object instance-number, checks the present-value for COV
  *
  * @param  pObject - specific object with valid data
@@ -345,6 +323,32 @@ Analog_Output_Present_Value_COV_Detect(struct object_data *pObject, float value)
             pObject->Prior_Value = value;
         }
     }
+}
+
+/**
+ * For a given object instance-number, sets the relinquish-default value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - floating point analog output relinquish-default value
+ *
+ * @return  true if the relinquish-default value was set.
+ */
+bool Analog_Output_Relinquish_Default_Set(uint32_t object_instance, float value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Relinquish_Default = value;
+        /* a Relinquish_Default change can alter Present_Value when all
+           priorities are relinquished, so check for COV here too */
+        Analog_Output_Present_Value_COV_Detect(
+            pObject, Analog_Output_Present_Value(object_instance));
+        status = true;
+    }
+
+    return status;
 }
 
 /**

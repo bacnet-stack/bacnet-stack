@@ -209,6 +209,81 @@ static void testAnalogOutput_Priority_6_Reserved(void)
     Analog_Output_Cleanup();
 }
 /**
+ * @brief Test that changes to Present_Value (priority-array),
+ *  Relinquish_Default, and Status_Flags (Out_Of_Service, Reliability/Fault)
+ *  set the Change_Of_Value flag when the observable value actually changes,
+ *  and that redundant writes do not
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ao_tests, testAnalogOutput_COV)
+#else
+static void testAnalogOutput_COV(void)
+#endif
+{
+    const uint32_t instance = 987;
+    bool status = false;
+
+    Analog_Output_Init();
+    zassert_not_equal(
+        Analog_Output_Create(instance), BACNET_MAX_INSTANCE, NULL);
+
+    /* Present_Value via the priority array must set Changed */
+    Analog_Output_Change_Of_Value_Clear(instance);
+    zassert_false(Analog_Output_Change_Of_Value(instance), NULL);
+    status = Analog_Output_Present_Value_Set(instance, 20.0f, 8);
+    zassert_true(status, NULL);
+    zassert_within(Analog_Output_Present_Value(instance), 20.0f, 0.001f, NULL);
+    zassert_true(Analog_Output_Change_Of_Value(instance), NULL);
+
+    /* relinquishing that priority reverts to Relinquish_Default and must
+       set Changed again */
+    Analog_Output_Change_Of_Value_Clear(instance);
+    status = Analog_Output_Present_Value_Relinquish(instance, 8);
+    zassert_true(status, NULL);
+    zassert_true(Analog_Output_Change_Of_Value(instance), NULL);
+
+    /* all priorities relinquished: a Relinquish_Default change beyond
+       COV_Increment (default 1.0) must set Changed */
+    Analog_Output_Change_Of_Value_Clear(instance);
+    status = Analog_Output_Relinquish_Default_Set(instance, 5.0f);
+    zassert_true(status, NULL);
+    zassert_within(Analog_Output_Present_Value(instance), 5.0f, 0.001f, NULL);
+    zassert_true(Analog_Output_Change_Of_Value(instance), NULL);
+
+    /* a Relinquish_Default change within COV_Increment must not set
+       Changed */
+    Analog_Output_Change_Of_Value_Clear(instance);
+    status = Analog_Output_Relinquish_Default_Set(instance, 5.5f);
+    zassert_true(status, NULL);
+    zassert_false(Analog_Output_Change_Of_Value(instance), NULL);
+
+    /* Status_Flags: an Out_Of_Service change must set Changed */
+    Analog_Output_Change_Of_Value_Clear(instance);
+    Analog_Output_Out_Of_Service_Set(instance, true);
+    zassert_true(Analog_Output_Change_Of_Value(instance), NULL);
+
+    /* setting the same Out_Of_Service value again must not set Changed */
+    Analog_Output_Change_Of_Value_Clear(instance);
+    Analog_Output_Out_Of_Service_Set(instance, true);
+    zassert_false(Analog_Output_Change_Of_Value(instance), NULL);
+    Analog_Output_Out_Of_Service_Set(instance, false);
+
+    /* Status_Flags: a Fault change via Reliability must set Changed */
+    Analog_Output_Change_Of_Value_Clear(instance);
+    status = Analog_Output_Reliability_Set(instance, RELIABILITY_NO_SENSOR);
+    zassert_true(status, NULL);
+    zassert_true(Analog_Output_Change_Of_Value(instance), NULL);
+
+    /* setting the same reliability again must not set Changed */
+    Analog_Output_Change_Of_Value_Clear(instance);
+    status = Analog_Output_Reliability_Set(instance, RELIABILITY_NO_SENSOR);
+    zassert_true(status, NULL);
+    zassert_false(Analog_Output_Change_Of_Value(instance), NULL);
+
+    Analog_Output_Delete(instance);
+    Analog_Output_Cleanup();
+}
+/**
  * @}
  */
 
@@ -221,7 +296,8 @@ void test_main(void)
         ao_tests, ztest_unit_test(testAnalogOutput),
         ztest_unit_test(testAnalogOutput_name_description_write),
         ztest_unit_test(testAnalogOutput_Writable_Properties),
-        ztest_unit_test(testAnalogOutput_Priority_6_Reserved));
+        ztest_unit_test(testAnalogOutput_Priority_6_Reserved),
+        ztest_unit_test(testAnalogOutput_COV));
 
     ztest_run_test_suite(ao_tests);
 }

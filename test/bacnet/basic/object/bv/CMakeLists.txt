@@ -25,6 +25,7 @@ add_compile_definitions(
     CONFIG_ZTEST=1
     INTRINSIC_REPORTING=1
     BINARY_VALUE_INTRINSIC_REPORTING=1
+    BACNET_OBJECT_BINARY_VALUE_COMMANDABLE=1
     )
 
 include_directories(
