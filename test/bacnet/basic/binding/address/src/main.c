@@ -32,14 +32,19 @@ static void set_address(unsigned index, BACNET_ADDRESS *dest)
 {
     unsigned i;
 
-    for (i = 0; i < MAX_MAC_LEN; i++) {
-        dest->mac[i] = index;
+    /* Encode the full index so MACs stay unique when MAX_ADDRESS_CACHE > 255 */
+    dest->mac[0] = (uint8_t)(index & 0xFF);
+    dest->mac[1] = (uint8_t)((index >> 8) & 0xFF);
+    for (i = 2; i < MAX_MAC_LEN; i++) {
+        dest->mac[i] = 0;
     }
     dest->mac_len = MAX_MAC_LEN;
     dest->net = 7;
     dest->len = MAX_MAC_LEN;
-    for (i = 0; i < MAX_MAC_LEN; i++) {
-        dest->adr[i] = index;
+    dest->adr[0] = (uint8_t)(index & 0xFF);
+    dest->adr[1] = (uint8_t)((index >> 8) & 0xFF);
+    for (i = 2; i < MAX_MAC_LEN; i++) {
+        dest->adr[i] = 0;
     }
 }
 
