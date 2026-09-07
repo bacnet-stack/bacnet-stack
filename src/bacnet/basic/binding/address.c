@@ -40,7 +40,7 @@ static uint32_t Own_Device_ID = 0xFFFFFFFF;
 /* is removed to make room. If your device is a simple server */
 /* and does not need to bind, then you don't need to use this. */
 #if !defined(MAX_ADDRESS_CACHE)
-#define MAX_ADDRESS_CACHE 4096
+#define MAX_ADDRESS_CACHE 255
 #endif
 
 struct Address_Cache_Entry {
@@ -155,17 +155,21 @@ static bool address_entry_bound(const struct Address_Cache_Entry *pMatch)
 }
 
 /**
- * @brief Remove an entry from the cache and free it.
+ * @brief Remove an entry from the Keylist and keep the protected prefix
+ * aligned. If the detached index was inside the protected range, later
+ * entries shift down, so Top_Protected_Entry is decremented.
  *
  * @param device_id  Device instance
+ *
+ * @return Pointer to the detached entry, or NULL if not found.
  */
-static void address_entry_delete(uint32_t device_id)
+static struct Address_Cache_Entry *address_entry_detach(uint32_t device_id)
 {
     struct Address_Cache_Entry *pMatch;
     int index;
 
     if (!Address_Cache) {
-        return;
+        return NULL;
     }
     index = Keylist_Index(Address_Cache, device_id);
     pMatch = Keylist_Data_Delete(Address_Cache, device_id);
@@ -173,6 +177,51 @@ static void address_entry_delete(uint32_t device_id)
         if ((index >= 0) && ((unsigned)index < Top_Protected_Entry)) {
             Top_Protected_Entry--;
         }
+    }
+
+    return pMatch;
+}
+
+/**
+ * @brief Insert an entry into the Keylist and keep the protected prefix
+ * aligned. If the new index falls inside the protected range, later
+ * protected entries shift up, so Top_Protected_Entry is incremented.
+ *
+ * @param device_id  Device instance used as the Keylist key
+ * @param pMatch  Cache entry to insert
+ *
+ * @return true if the entry was added
+ */
+static bool
+address_entry_attach(uint32_t device_id, struct Address_Cache_Entry *pMatch)
+{
+    int index;
+
+    if (!Address_Cache || !pMatch) {
+        return false;
+    }
+    index = Keylist_Data_Add(Address_Cache, device_id, pMatch);
+    if (index < 0) {
+        return false;
+    }
+    if ((unsigned)index < Top_Protected_Entry) {
+        Top_Protected_Entry++;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Remove an entry from the cache and free it.
+ *
+ * @param device_id  Device instance
+ */
+static void address_entry_delete(uint32_t device_id)
+{
+    struct Address_Cache_Entry *pMatch;
+
+    pMatch = address_entry_detach(device_id);
+    if (pMatch) {
         free(pMatch);
     }
 }
@@ -222,7 +271,7 @@ static struct Address_Cache_Entry *address_remove_oldest(void)
 
     if (pCandidate != NULL) {
         /* Found something to free up */
-        pCandidate = Keylist_Data_Delete(Address_Cache, pCandidate->device_id);
+        pCandidate = address_entry_detach(pCandidate->device_id);
         if (pCandidate) {
             pCandidate->Flags = BAC_ADDR_RESERVED;
             /* only reserve it for a short while */
@@ -249,7 +298,7 @@ static struct Address_Cache_Entry *address_remove_oldest(void)
 
     if (pCandidate != NULL) {
         /* Found something to free up */
-        pCandidate = Keylist_Data_Delete(Address_Cache, pCandidate->device_id);
+        pCandidate = address_entry_detach(pCandidate->device_id);
         if (pCandidate) {
             pCandidate->Flags = BAC_ADDR_RESERVED;
             /* only reserve it for a short while */
@@ -288,8 +337,7 @@ static struct Address_Cache_Entry *address_entry_create(uint32_t device_id)
         }
     }
     pMatch->device_id = device_id;
-    if (!Address_Cache ||
-        (Keylist_Data_Add(Address_Cache, device_id, pMatch) < 0)) {
+    if (!address_entry_attach(device_id, pMatch)) {
         free(pMatch);
         return NULL;
     }
