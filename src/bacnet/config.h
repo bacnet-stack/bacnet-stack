@@ -190,7 +190,7 @@
 /* If your device is a simple server and does not need to bind, */
 /* then you don't need to use this. */
 #if !defined(MAX_ADDRESS_CACHE)
-#define MAX_ADDRESS_CACHE 255
+#define MAX_ADDRESS_CACHE 4095
 #endif
 
 /* some modules have debugging enabled using PRINT_ENABLED */
