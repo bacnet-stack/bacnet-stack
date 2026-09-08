@@ -12,12 +12,12 @@
 #include "bacnet/bacdcode.h"
 
 /**
- * @brief Encode a BACnetDailySchedule value to a buffer
- * @param apdu [out] Buffer to encode to
+ * @brief Decode a BACnetDailySchedule value from a buffer
+ * @param apdu [in] Buffer to decode from
  * @param apdu_size [in] Size of the buffer
  * @param tag_number [in] Tag number to use
- * @param day [in] Value to encode
- * @return Number of bytes encoded, or  BACNET_STATUS_ERROR if an error occurs
+ * @param day [out] Value to decode into, or NULL to only get the length
+ * @return Number of bytes decoded, or  BACNET_STATUS_ERROR if an error occurs
  */
 int bacnet_dailyschedule_context_decode(
     const uint8_t *apdu,
@@ -27,20 +27,24 @@ int bacnet_dailyschedule_context_decode(
 {
     unsigned int tv_count = 0;
     int len = 0;
+    BACNET_TIME_VALUE *time_values = NULL;
+    unsigned int max_time_values = 0;
 
-    if (day == NULL) {
-        return BACNET_STATUS_ERROR;
-    }
     if (apdu == NULL) {
         return BACNET_STATUS_ERROR;
     }
+    if (day) {
+        time_values = &day->Time_Values[0];
+        max_time_values = ARRAY_SIZE(day->Time_Values);
+    }
     len = bacnet_time_values_context_decode(
-        apdu, apdu_size, tag_number, &day->Time_Values[0],
-        ARRAY_SIZE(day->Time_Values), &tv_count);
+        apdu, apdu_size, tag_number, time_values, max_time_values, &tv_count);
     if (len < 0) {
         return BACNET_STATUS_ERROR;
     }
-    day->TV_Count = (uint16_t)tv_count;
+    if (day) {
+        day->TV_Count = (uint16_t)tv_count;
+    }
 
     return len;
 }

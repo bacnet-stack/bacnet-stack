@@ -107,6 +107,7 @@ list(APPEND testdirs
   bacnet/bacstr
   bacnet/bactext
   bacnet/bactimevalue
+  bacnet/calendar_entry
   bacnet/channel_value
   bacnet/cov
   bacnet/create_object

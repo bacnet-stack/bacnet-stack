@@ -795,6 +795,8 @@ static void testBACnetDateRangeDecodes(void)
     null_len = bacnet_daterange_encode(NULL, &data);
     zassert_equal(len, null_len, NULL);
 
+    null_len = bacnet_daterange_decode(apdu, len, NULL);
+    zassert_equal(len, null_len, NULL);
     test_len = bacnet_daterange_decode(apdu, len, &test_data);
     zassert_equal(len, test_len, NULL);
     zassert_equal(data.startdate.day, test_data.startdate.day, NULL);
@@ -2221,6 +2223,8 @@ static void testDateRangeContextDecodes(void)
 
     len = bacnet_daterange_context_encode(apdu, 10, &data);
     null_len = bacnet_daterange_context_encode(NULL, 10, &data);
+    zassert_equal(len, null_len, NULL);
+    null_len = bacnet_daterange_context_decode(apdu, len, 10, NULL);
     zassert_equal(len, null_len, NULL);
     test_len = bacnet_daterange_context_decode(apdu, len, 10, &test_data);
     zassert_equal(len, test_len, NULL);
