@@ -44,6 +44,7 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/osv.c \
 	$(BACNET_OBJECT_DIR)/piv.c \
 	$(BACNET_OBJECT_DIR)/program.c  \
+	$(BACNET_OBJECT_DIR)/schedule.c \
 	$(BACNET_OBJECT_DIR)/structured_view.c \
 	$(BACNET_OBJECT_DIR)/timer.c  \
 	$(BACNET_OBJECT_DIR)/time_value.c

@@ -63,6 +63,8 @@ static void test_BACnetSpecialEvent_CalendarRef(void)
     null_len = bacnet_special_event_encode(NULL, &in);
     zassert_equal(len, null_len, NULL);
 
+    null_len = bacnet_special_event_decode(apdu, len, NULL);
+    zassert_equal(len, null_len, NULL);
     apdu_len = bacnet_special_event_decode(apdu, len, &out);
     zassert_equal(len, apdu_len, NULL);
 
@@ -146,6 +148,8 @@ static void test_BACnetSpecialEvent_Date(void)
     null_len = bacnet_special_event_encode(NULL, &in);
     zassert_equal(len, null_len, NULL);
 
+    null_len = bacnet_special_event_decode(apdu, len, NULL);
+    zassert_equal(len, null_len, NULL);
     apdu_len = bacnet_special_event_decode(apdu, len, &out);
     zassert_equal(len, apdu_len, NULL);
     zassert_equal(in.periodTag, out.periodTag, NULL);
@@ -199,6 +203,8 @@ static void test_BACnetSpecialEvent_DateRange(void)
     null_len = bacnet_special_event_encode(NULL, &in);
     zassert_equal(len, null_len, NULL);
 
+    null_len = bacnet_special_event_decode(apdu, len, NULL);
+    zassert_equal(len, null_len, NULL);
     apdu_len = bacnet_special_event_decode(apdu, len, &out);
     zassert_equal(len, apdu_len, "apdu_len %d != len %d", apdu_len, len);
     zassert_equal(in.periodTag, out.periodTag, NULL);
@@ -262,6 +268,8 @@ static void test_BACnetSpecialEvent_WeekNDate(void)
     null_len = bacnet_special_event_encode(NULL, &in);
     zassert_equal(len, null_len, NULL);
 
+    null_len = bacnet_special_event_decode(apdu, len, NULL);
+    zassert_equal(len, null_len, NULL);
     apdu_len = bacnet_special_event_decode(apdu, len, &out);
     zassert_equal(len, apdu_len, NULL);
     zassert_equal(in.periodTag, out.periodTag, NULL);
@@ -289,13 +297,15 @@ ZTEST(BACnetSpecialEvent_tests, test_BACnetSpecialEvent_DecodeRealAPDU)
 static void test_BACnetSpecialEvent_DecodeRealAPDU(void)
 #endif
 {
-    int apdu_len;
+    int apdu_len, null_len;
     BACNET_SPECIAL_EVENT out = { 0 };
     uint8_t sample[18] = {
         0x0e, 0x0c, 0xff, 0x0a, 0x1c, 0xff, 0x0f, 0x2e, 0xb4,
         0x00, 0x00, 0x00, 0x00, 0x91, 0x00, 0x2f, 0x39, 0x10
     };
 
+    null_len = bacnet_special_event_decode(sample, sizeof(sample), NULL);
+    zassert_equal(sizeof(sample), null_len, NULL);
     apdu_len = bacnet_special_event_decode(sample, sizeof(sample), &out);
     zassert_equal(sizeof(sample), apdu_len, NULL);
 

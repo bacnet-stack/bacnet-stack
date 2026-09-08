@@ -39,6 +39,15 @@ typedef struct BACnet_Daily_Schedule {
     uint16_t TV_Count; /* the number of time values actually used */
 } BACNET_DAILY_SCHEDULE;
 
+/** Node of a dynamically-sized (linked list) BACnetDailySchedule, for use
+ *  when the number of day-schedule time-values is not known ahead of time
+ *  or changes at runtime. Memory management of the list is up to the
+ *  caller; this module only encodes and decodes the list. */
+typedef struct BACnet_Daily_Schedule_Entry {
+    BACNET_TIME_VALUE Time_Value;
+    struct BACnet_Daily_Schedule_Entry *next;
+} BACNET_DAILY_SCHEDULE_ENTRY;
+
 /** Decode DailySchedule (sequence of times and values) */
 BACNET_STACK_EXPORT
 int bacnet_dailyschedule_context_decode(
@@ -59,6 +68,43 @@ bool bacnet_dailyschedule_same(
 BACNET_STACK_EXPORT
 void bacnet_dailyschedule_copy(
     BACNET_DAILY_SCHEDULE *dest, const BACNET_DAILY_SCHEDULE *src);
+
+/** Encode a linked-list BACnetDailySchedule (day-schedule SEQUENCE OF
+ *  BACnetTimeValue) wrapped in an opening/closing context tag pair.
+ *  @param apdu [out] Buffer to encode to, or NULL for length-only.
+ *  @param tag_number [in] Context tag number to use.
+ *  @param head [in] Head of linked list; NULL encodes an empty list.
+ *  @return Number of bytes encoded, or BACNET_STATUS_ERROR on failure. */
+BACNET_STACK_EXPORT
+int bacnet_dailyschedule_list_context_encode(
+    uint8_t *apdu, uint8_t tag_number, const BACNET_DAILY_SCHEDULE_ENTRY *head);
+
+/** Callback invoked by bacnet_dailyschedule_list_context_decode() for each
+ *  decoded BACnetTimeValue entry. Return false to abort decoding. */
+typedef bool (*bacnet_dailyschedule_entry_store_fn)(
+    const BACNET_TIME_VALUE *time_value, void *ctx);
+
+/** Decode a linked-list BACnetDailySchedule (day-schedule SEQUENCE OF
+ *  BACnetTimeValue) wrapped in an opening/closing context tag pair,
+ *  calling store_fn once per decoded time-value so the caller can build
+ *  its own linked list.
+ *  @param apdu [in] Buffer of data to be decoded.
+ *  @param apdu_size [in] Number of bytes in the buffer.
+ *  @param tag_number [in] Context tag number to match.
+ *  @param store_fn [in] Called per decoded entry; return false to abort.
+ *  @param ctx [in] Caller context passed to store_fn.
+ *  @return Number of bytes decoded, or BACNET_STATUS_ERROR on failure. */
+BACNET_STACK_EXPORT
+int bacnet_dailyschedule_list_context_decode(
+    const uint8_t *apdu,
+    int apdu_size,
+    uint8_t tag_number,
+    bacnet_dailyschedule_entry_store_fn store_fn,
+    void *ctx);
+
+BACNET_STACK_EXPORT
+bool bacnet_dailyschedule_list_same(
+    const BACNET_DAILY_SCHEDULE_ENTRY *a, const BACNET_DAILY_SCHEDULE_ENTRY *b);
 
 #ifdef __cplusplus
 }

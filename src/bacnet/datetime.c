@@ -1365,7 +1365,7 @@ int bacnet_daterange_encode(uint8_t *apdu, const BACNET_DATE_RANGE *value)
  * @brief Decode BACnetDateRange complex data type
  * @param apdu - apdu buffer; NULL to only measure capacity needed
  * @param apdu_size - apdu buffer size
- * @param value - value to decode
+ * @param value - value to decode, or NULL to only get the length
  * @return number of bytes emitted, BACNET_STATUS_ERROR on error
  */
 int bacnet_daterange_decode(
@@ -1373,18 +1373,24 @@ int bacnet_daterange_decode(
 {
     int len = 0;
     int apdu_len = 0;
+    BACNET_DATE *startdate = NULL;
+    BACNET_DATE *enddate = NULL;
 
-    if (!apdu || !value) {
+    if (!apdu) {
         return BACNET_STATUS_ERROR;
     }
+    if (value) {
+        startdate = &value->startdate;
+        enddate = &value->enddate;
+    }
     len = bacnet_date_application_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, &value->startdate);
+        &apdu[apdu_len], apdu_size - apdu_len, startdate);
     if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
     apdu_len += len;
     len = bacnet_date_application_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, &value->enddate);
+        &apdu[apdu_len], apdu_size - apdu_len, enddate);
     if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
@@ -1432,7 +1438,7 @@ int bacnet_daterange_context_encode(
  * @param apdu - apdu buffer to decode
  * @param apdu_size - apdu buffer size
  * @param tag_number - context tag number
- * @param value - value to encode
+ * @param value - value to decode, or NULL to only get the length
  * @return number of bytes decoded, BACNET_STATUS_ERROR on error
  */
 int bacnet_daterange_context_decode(
@@ -1444,7 +1450,7 @@ int bacnet_daterange_context_decode(
     int apdu_len = 0;
     int len = 0;
 
-    if (!apdu || !value) {
+    if (!apdu) {
         return -1;
     }
     if (bacnet_is_opening_tag_number(

@@ -96,7 +96,8 @@ int bacnet_calendar_entry_context_encode(
  * @brief Decodes from bytes into the calendar-entry structure
  * @param apdu - buffer to hold the bytes
  * @param apdu_size - number of bytes in the buffer to decode
- * @param entry - calendar entry value to place the decoded values
+ * @param entry - calendar entry value to place the decoded values, or NULL
+ *  to only get the length
  * @return number of bytes decoded, or BACNET_STATUS_REJECT
  */
 int bacnet_calendar_entry_decode(
@@ -106,8 +107,10 @@ int bacnet_calendar_entry_decode(
     int len = 0;
     BACNET_TAG tag = { 0 };
     BACNET_OCTET_STRING octet_string = { 0 };
+    BACNET_DATE *bdate = NULL;
+    BACNET_DATE_RANGE *bdate_range = NULL;
 
-    if (!apdu || !entry) {
+    if (!apdu) {
         return BACNET_STATUS_REJECT;
     }
     if (apdu_size == 0) {
@@ -118,16 +121,19 @@ int bacnet_calendar_entry_decode(
     if (len <= 0) {
         return BACNET_STATUS_REJECT;
     }
-    if (tag.context || tag.opening) {
-        entry->tag = tag.number;
-    } else {
+    if (!(tag.context || tag.opening)) {
         return BACNET_STATUS_REJECT;
     }
-    switch (entry->tag) {
+    if (entry) {
+        entry->tag = tag.number;
+    }
+    switch (tag.number) {
         case BACNET_CALENDAR_DATE:
+            if (entry) {
+                bdate = &entry->type.Date;
+            }
             len = bacnet_date_context_decode(
-                &apdu[apdu_len], apdu_size - apdu_len, entry->tag,
-                &entry->type.Date);
+                &apdu[apdu_len], apdu_size - apdu_len, tag.number, bdate);
             if (len <= 0) {
                 return BACNET_STATUS_REJECT;
             }
@@ -135,9 +141,11 @@ int bacnet_calendar_entry_decode(
             break;
 
         case BACNET_CALENDAR_DATE_RANGE:
+            if (entry) {
+                bdate_range = &entry->type.DateRange;
+            }
             len = bacnet_daterange_context_decode(
-                &apdu[apdu_len], apdu_size - apdu_len, entry->tag,
-                &entry->type.DateRange);
+                &apdu[apdu_len], apdu_size - apdu_len, tag.number, bdate_range);
             if (len <= 0) {
                 return BACNET_STATUS_REJECT;
             }
@@ -146,7 +154,7 @@ int bacnet_calendar_entry_decode(
 
         case BACNET_CALENDAR_WEEK_N_DAY:
             len = bacnet_octet_string_context_decode(
-                &apdu[apdu_len], apdu_size - apdu_len, entry->tag,
+                &apdu[apdu_len], apdu_size - apdu_len, tag.number,
                 &octet_string);
             if (len <= 0) {
                 return BACNET_STATUS_REJECT;
@@ -156,9 +164,11 @@ int bacnet_calendar_entry_decode(
             if (octet_string.length != 3) {
                 return BACNET_STATUS_ERROR;
             }
-            entry->type.WeekNDay.month = octet_string.value[0];
-            entry->type.WeekNDay.weekofmonth = octet_string.value[1];
-            entry->type.WeekNDay.dayofweek = octet_string.value[2];
+            if (entry) {
+                entry->type.WeekNDay.month = octet_string.value[0];
+                entry->type.WeekNDay.weekofmonth = octet_string.value[1];
+                entry->type.WeekNDay.dayofweek = octet_string.value[2];
+            }
             break;
         default:
             /* none */
@@ -174,7 +184,8 @@ int bacnet_calendar_entry_decode(
  * @param apdu - buffer to hold the bytes
  * @param apdu_size - number of bytes in the buffer to decode
  * @param tag_number - tag number to encode this chunk
- * @param value - calendar entry value to place the decoded values
+ * @param value - calendar entry value to place the decoded values, or NULL
+ *  to only get the length
  *
  * @return number of bytes decoded, or BACNET_STATUS_REJECT
  */
