@@ -132,6 +132,7 @@
     defined(CONFIG_BACNET_BASIC_OBJECT_LIGHTING_OUTPUT) ||        \
     defined(CONFIG_BACNET_BASIC_OBJECT_LOAD_CONTROL) ||           \
     defined(CONFIG_BACNET_BASIC_OBJECT_COMMAND) ||                \
+    defined(CONFIG_BACNET_BASIC_OBJECT_SCHEDULE) ||               \
     defined(CONFIG_BACNET_BASIC_OBJECT_CHANNEL) ||                \
     defined(CONFIG_BACNET_BASIC_OBJECT_BINARY_LIGHTING_OUTPUT) || \
     defined(CONFIG_BACNET_BASIC_OBJECT_COLOR) ||                  \
@@ -169,6 +170,7 @@
 #define CONFIG_BACNET_BASIC_OBJECT_LIGHTING_OUTPUT
 #define CONFIG_BACNET_BASIC_OBJECT_LOAD_CONTROL
 #define CONFIG_BACNET_BASIC_OBJECT_COMMAND
+#define CONFIG_BACNET_BASIC_OBJECT_SCHEDULE
 #define CONFIG_BACNET_BASIC_OBJECT_CHANNEL
 #define CONFIG_BACNET_BASIC_OBJECT_BINARY_LIGHTING_OUTPUT
 #define CONFIG_BACNET_BASIC_OBJECT_COLOR
@@ -1008,6 +1010,29 @@ static object_functions_t Default_Object_Table[] = {
       Audit_Log_Delete,
       NULL /* Timer */,
       Audit_Log_Writable_Property_List },
+#endif
+#if defined(CONFIG_BACNET_BASIC_OBJECT_SCHEDULE)
+    { OBJECT_SCHEDULE,
+      Schedule_Init,
+      Schedule_Count,
+      Schedule_Index_To_Instance,
+      Schedule_Valid_Instance,
+      Schedule_Object_Name,
+      Schedule_Read_Property,
+      Schedule_Write_Property,
+      Schedule_Property_Lists,
+      NULL /* ReadRangeInfo */,
+      NULL /* Iterator */,
+      NULL /* Value_Lists */,
+      NULL /* COV */,
+      NULL /* COV Clear */,
+      NULL /* Intrinsic Reporting */,
+      Schedule_Add_List_Element,
+      Schedule_Remove_List_Element,
+      Schedule_Create,
+      Schedule_Delete,
+      Schedule_Timer,
+      Schedule_Writable_Property_List },
 #endif
     {
         MAX_BACNET_OBJECT_TYPE,
