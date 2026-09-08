@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include "bacnet/dailyschedule.h"
 #include "bacnet/bactimevalue.h"
+#include "bacnet/bacdcode.h"
 
 /**
  * @brief Encode a BACnetDailySchedule value to a buffer
@@ -111,4 +112,109 @@ void bacnet_dailyschedule_copy(
     for (i = 0; i < dest->TV_Count; i++) {
         bacnet_time_value_copy(&dest->Time_Values[i], &src->Time_Values[i]);
     }
+}
+
+/**
+ * @brief Encode a linked-list BACnetDailySchedule to a buffer
+ * @param apdu [out] Buffer to encode to, or NULL for length-only
+ * @param tag_number [in] Context tag number to use
+ * @param head [in] Head of linked list; NULL encodes an empty list
+ * @return Number of bytes encoded, or BACNET_STATUS_ERROR if an error occurs
+ */
+int bacnet_dailyschedule_list_context_encode(
+    uint8_t *apdu, uint8_t tag_number, const BACNET_DAILY_SCHEDULE_ENTRY *head)
+{
+    int len;
+    int apdu_len = 0;
+    const BACNET_DAILY_SCHEDULE_ENTRY *entry;
+
+    /* day-schedule [x] SEQUENCE OF BACnetTimeValue */
+    len = encode_opening_tag(apdu, tag_number);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    for (entry = head; entry; entry = entry->next) {
+        len = bacnet_time_value_encode(apdu, &entry->Time_Value);
+        if (len < 0) {
+            return BACNET_STATUS_ERROR;
+        }
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+    }
+    len = encode_closing_tag(apdu, tag_number);
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode a linked-list BACnetDailySchedule from a buffer, calling
+ *  store_fn once per decoded time-value so the caller can build its own
+ *  linked list.
+ * @param apdu [in] Buffer of data to be decoded
+ * @param apdu_size [in] Number of bytes in the buffer
+ * @param tag_number [in] Context tag number to match
+ * @param store_fn [in] Called per decoded entry; return false to abort
+ * @param ctx [in] Caller context passed to store_fn
+ * @return Number of bytes decoded, or BACNET_STATUS_ERROR if an error occurs
+ */
+int bacnet_dailyschedule_list_context_decode(
+    const uint8_t *apdu,
+    int apdu_size,
+    uint8_t tag_number,
+    bacnet_dailyschedule_entry_store_fn store_fn,
+    void *ctx)
+{
+    int len = 0;
+    int apdu_len = 0;
+    BACNET_TIME_VALUE time_value;
+
+    if (apdu == NULL) {
+        return BACNET_STATUS_ERROR;
+    }
+    /* day-schedule [x] SEQUENCE OF BACnetTimeValue */
+    if (!bacnet_is_opening_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    while (!bacnet_is_closing_tag_number(
+        &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+        len = bacnet_time_value_decode(
+            &apdu[apdu_len], apdu_size - apdu_len, &time_value);
+        if (len < 0) {
+            return BACNET_STATUS_ERROR;
+        }
+        apdu_len += len;
+        if (store_fn && !store_fn(&time_value, ctx)) {
+            return BACNET_STATUS_ERROR;
+        }
+    }
+    /* closing tag */
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
+ * @brief Compare two linked-list BACnetDailySchedule values
+ * @param a [in] Head of the first list to compare
+ * @param b [in] Head of the second list to compare
+ * @return true if the lists have the same length and matching time-values
+ *  in the same order, false otherwise
+ */
+bool bacnet_dailyschedule_list_same(
+    const BACNET_DAILY_SCHEDULE_ENTRY *a, const BACNET_DAILY_SCHEDULE_ENTRY *b)
+{
+    while (a && b) {
+        if (!bacnet_time_value_same(&a->Time_Value, &b->Time_Value)) {
+            return false;
+        }
+        a = a->next;
+        b = b->next;
+    }
+    return (a == NULL) && (b == NULL);
 }

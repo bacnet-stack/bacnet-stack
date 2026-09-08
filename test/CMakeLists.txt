@@ -110,6 +110,7 @@ list(APPEND testdirs
   bacnet/channel_value
   bacnet/cov
   bacnet/create_object
+  bacnet/dailyschedule
   bacnet/datetime
   bacnet/dcc
   bacnet/delete_object
