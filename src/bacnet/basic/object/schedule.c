@@ -166,7 +166,7 @@ static struct object_data *Object_Data(uint32_t object_instance)
 
 /**
  * @brief Empty all the Time-Values from a single day of Weekly_Schedule,
- *  keeping the day's Keylist itself intact and ready for re-use
+ *  keeping the day's Keylist itself intact and ready for reuse
  * @param pDay - daily schedule data to empty
  */
 static void
@@ -185,25 +185,25 @@ Daily_Schedule_Time_Value_Delete_All(struct daily_schedule_data *pDay)
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
 /**
  * @brief Empty all the entries from Exception_Schedule, keeping the
- *  Keylist itself intact and ready for re-use
+ *  Keylist itself intact and ready for reuse
  * @param pObject - object data to empty
  */
 static void Exception_Schedule_Delete_All(struct object_data *pObject)
 {
-    BACNET_SPECIAL_EVENT *pEvent;
+    BACNET_SPECIAL_EVENT *special_event;
 
     if (pObject) {
         do {
-            pEvent = Keylist_Data_Pop(pObject->Exception_Schedule);
-            free(pEvent);
-        } while (pEvent);
+            special_event = Keylist_Data_Pop(pObject->Exception_Schedule);
+            free(special_event);
+        } while (special_event);
     }
 }
 #endif
 
 /**
  * @brief Empty all the entries from List_Of_Object_Property_References,
- *  keeping the Keylist itself intact and ready for re-use
+ *  keeping the Keylist itself intact and ready for reuse
  * @param pObject - object data to empty
  */
 static void Object_Property_References_Delete_All(struct object_data *pObject)
@@ -940,7 +940,7 @@ bool Schedule_Exception_Schedule_Add(
     uint32_t object_instance, const BACNET_SPECIAL_EVENT *value)
 {
     struct object_data *pObject;
-    BACNET_SPECIAL_EVENT *pEvent;
+    BACNET_SPECIAL_EVENT *special_event;
     unsigned count;
 
     pObject = Object_Data(object_instance);
@@ -951,13 +951,14 @@ bool Schedule_Exception_Schedule_Add(
     if (count >= BACNET_EXCEPTION_SCHEDULE_SIZE) {
         return false;
     }
-    pEvent = calloc(1, sizeof(BACNET_SPECIAL_EVENT));
-    if (!pEvent) {
+    special_event = calloc(1, sizeof(BACNET_SPECIAL_EVENT));
+    if (!special_event) {
         return false;
     }
-    bacnet_special_event_copy(pEvent, value);
-    if (Keylist_Data_Add(pObject->Exception_Schedule, (KEY)count, pEvent) < 0) {
-        free(pEvent);
+    bacnet_special_event_copy(special_event, value);
+    if (Keylist_Data_Add(
+            pObject->Exception_Schedule, (KEY)count, special_event) < 0) {
+        free(special_event);
         return false;
     }
 
@@ -977,7 +978,7 @@ bool Schedule_Exception_Schedule_Set(
     uint32_t object_instance, unsigned index, const BACNET_SPECIAL_EVENT *value)
 {
     struct object_data *pObject;
-    BACNET_SPECIAL_EVENT *pEvent;
+    BACNET_SPECIAL_EVENT *special_event;
     unsigned count;
 
     pObject = Object_Data(object_instance);
@@ -986,11 +987,12 @@ bool Schedule_Exception_Schedule_Set(
     }
     count = (unsigned)Keylist_Count(pObject->Exception_Schedule);
     if (index < count) {
-        pEvent = Keylist_Data_Index(pObject->Exception_Schedule, (int)index);
-        if (!pEvent) {
+        special_event =
+            Keylist_Data_Index(pObject->Exception_Schedule, (int)index);
+        if (!special_event) {
             return false;
         }
-        return bacnet_special_event_copy(pEvent, value);
+        return bacnet_special_event_copy(special_event, value);
     } else if (index == count) {
         return Schedule_Exception_Schedule_Add(object_instance, value);
     }
@@ -1091,7 +1093,7 @@ static BACNET_ERROR_CODE Schedule_Exception_Schedule_Element_Write(
 {
     struct object_data *pObject;
     BACNET_SPECIAL_EVENT special_event = { 0 };
-    BACNET_SPECIAL_EVENT *pEvent;
+    BACNET_SPECIAL_EVENT *new_event;
     unsigned count;
     int len;
 
@@ -1107,18 +1109,18 @@ static BACNET_ERROR_CODE Schedule_Exception_Schedule_Element_Write(
         }
         count = (unsigned)Keylist_Count(pObject->Exception_Schedule);
         while (count > array_size) {
-            pEvent = Keylist_Data_Pop(pObject->Exception_Schedule);
-            free(pEvent);
+            new_event = Keylist_Data_Pop(pObject->Exception_Schedule);
+            free(new_event);
             count--;
         }
         while (count < array_size) {
-            pEvent = calloc(1, sizeof(BACNET_SPECIAL_EVENT));
-            if (!pEvent) {
+            new_event = calloc(1, sizeof(BACNET_SPECIAL_EVENT));
+            if (!new_event) {
                 return ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
             }
             if (Keylist_Data_Add(
-                    pObject->Exception_Schedule, (KEY)count, pEvent) < 0) {
-                free(pEvent);
+                    pObject->Exception_Schedule, (KEY)count, new_event) < 0) {
+                free(new_event);
                 return ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
             }
             count++;
@@ -1131,11 +1133,12 @@ static BACNET_ERROR_CODE Schedule_Exception_Schedule_Element_Write(
     if (len <= 0) {
         return ERROR_CODE_INVALID_DATA_TYPE;
     }
-    pEvent = Keylist_Data_Index(pObject->Exception_Schedule, (int)array_index);
-    if (!pEvent) {
+    new_event =
+        Keylist_Data_Index(pObject->Exception_Schedule, (int)array_index);
+    if (!new_event) {
         return ERROR_CODE_INVALID_ARRAY_INDEX;
     }
-    if (!bacnet_special_event_copy(pEvent, &special_event)) {
+    if (!bacnet_special_event_copy(new_event, &special_event)) {
         return ERROR_CODE_INVALID_DATA_TYPE;
     }
 
