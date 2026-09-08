@@ -676,33 +676,41 @@ Weekly_Schedule_Day(struct object_data *pObject, unsigned array_index)
  * @brief Get the Weekly Schedule for a given object instance
  * @param object_instance - object-instance number of the object
  * @param array_index - index of the Weekly Schedule to get 0 to 6
- * @param value - copy of the daily schedule, if found
+ * @param entries - caller-supplied array of nodes to fill and link;
+ *  entries[0] is the head of the returned list when entries_count > 0
+ * @param entries_size - number of nodes available in entries
+ * @param entries_count - [out] number of nodes filled in entries
  * @return true if the Weekly Schedule was found and copied
  */
 bool Schedule_Weekly_Schedule(
     uint32_t object_instance,
     unsigned array_index,
-    BACNET_DAILY_SCHEDULE *value)
+    BACNET_DAILY_SCHEDULE_ENTRY *entries,
+    size_t entries_size,
+    size_t *entries_count)
 {
     struct daily_schedule_data *pDay;
     BACNET_TIME_VALUE *pTV;
     unsigned i, count;
 
     pDay = Weekly_Schedule_Day(Object_Data(object_instance), array_index);
-    if (!pDay || !value) {
+    if (!pDay || !entries || !entries_size) {
         return false;
     }
     count = (unsigned)Keylist_Count(pDay->Time_Values);
-    if (count > BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE) {
-        count = BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE;
+    if (count > entries_size) {
+        count = (unsigned)entries_size;
     }
     for (i = 0; i < count; i++) {
         pTV = Keylist_Data_Index(pDay->Time_Values, i);
         if (pTV) {
-            memcpy(&value->Time_Values[i], pTV, sizeof(BACNET_TIME_VALUE));
+            entries[i].Time_Value = *pTV;
         }
+        entries[i].next = (i + 1 < count) ? &entries[i + 1] : NULL;
     }
-    value->TV_Count = (uint16_t)count;
+    if (entries_count) {
+        *entries_count = count;
+    }
 
     return true;
 }
@@ -712,34 +720,35 @@ bool Schedule_Weekly_Schedule(
  *  the Time-Values for that day
  * @param object_instance - object-instance number of the object
  * @param array_index - index of the Weekly Schedule to set 0 to 6
- * @param value - pointer to the Weekly Schedule to set
+ * @param entries - head of the linked list of Time-Values to set, or NULL
+ *  to empty the day
  * @return true if the Weekly Schedule was set, and false if not
  */
 bool Schedule_Weekly_Schedule_Set(
     uint32_t object_instance,
     unsigned array_index,
-    const BACNET_DAILY_SCHEDULE *value)
+    const BACNET_DAILY_SCHEDULE_ENTRY *entries)
 {
     struct daily_schedule_data *pDay;
     BACNET_TIME_VALUE *pTV;
-    unsigned i, count;
+    const BACNET_DAILY_SCHEDULE_ENTRY *entry;
+    unsigned count;
 
     pDay = Weekly_Schedule_Day(Object_Data(object_instance), array_index);
-    if (!pDay || !value) {
+    if (!pDay) {
         return false;
     }
     Daily_Schedule_Time_Value_Delete_All(pDay);
-    count = value->TV_Count;
-    if (count > BACNET_SCHEDULE_DAILY_TIME_VALUES_MAX) {
-        count = BACNET_SCHEDULE_DAILY_TIME_VALUES_MAX;
-    }
-    for (i = 0; i < count; i++) {
+    count = 0;
+    for (entry = entries;
+         entry && (count < BACNET_SCHEDULE_DAILY_TIME_VALUES_MAX);
+         entry = entry->next, count++) {
         pTV = calloc(1, sizeof(BACNET_TIME_VALUE));
         if (!pTV) {
             break;
         }
-        memcpy(pTV, &value->Time_Values[i], sizeof(BACNET_TIME_VALUE));
-        if (Keylist_Data_Add(pDay->Time_Values, (KEY)i, pTV) < 0) {
+        *pTV = entry->Time_Value;
+        if (Keylist_Data_Add(pDay->Time_Values, (KEY)count, pTV) < 0) {
             free(pTV);
             break;
         }
@@ -881,17 +890,21 @@ bool Schedule_Weekly_Schedule_Time_Value_Delete_All(
 static int Schedule_Weekly_Schedule_Encode(
     uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu)
 {
-    BACNET_DAILY_SCHEDULE daily_schedule = { 0 };
+    BACNET_DAILY_SCHEDULE_ENTRY
+    entries[BACNET_SCHEDULE_DAILY_TIME_VALUES_MAX] = { 0 };
+    size_t count = 0;
 
     if (array_index >= BACNET_WEEKLY_SCHEDULE_SIZE) {
         return BACNET_STATUS_ERROR;
     }
     if (!Schedule_Weekly_Schedule(
-            object_instance, array_index, &daily_schedule)) {
+            object_instance, array_index, entries, ARRAY_SIZE(entries),
+            &count)) {
         return BACNET_STATUS_ERROR;
     }
 
-    return bacnet_dailyschedule_context_encode(apdu, 0, &daily_schedule);
+    return bacnet_dailyschedule_list_context_encode(
+        apdu, 0, count ? &entries[0] : NULL);
 }
 
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
@@ -1593,6 +1606,34 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     return apdu_len;
 }
 
+/* bounded store used while decoding a written Weekly_Schedule day, since
+   the codec itself must not allocate list nodes */
+struct daily_schedule_write_context {
+    BACNET_DAILY_SCHEDULE_ENTRY entries[BACNET_SCHEDULE_DAILY_TIME_VALUES_MAX];
+    size_t count;
+};
+
+static bool Schedule_Weekly_Schedule_Store_Entry(
+    const BACNET_TIME_VALUE *time_value, void *ctx)
+{
+    struct daily_schedule_write_context *store = ctx;
+
+    if (!time_value || !store) {
+        return false;
+    }
+    if (store->count >= ARRAY_SIZE(store->entries)) {
+        return false;
+    }
+    store->entries[store->count].Time_Value = *time_value;
+    store->entries[store->count].next = NULL;
+    if (store->count > 0) {
+        store->entries[store->count - 1].next = &store->entries[store->count];
+    }
+    store->count++;
+
+    return true;
+}
+
 /**
  * @brief Write a value to a BACnetARRAY property element value
  * @param object_instance [in] BACnet object instance number
@@ -1612,7 +1653,7 @@ static BACNET_ERROR_CODE Schedule_Weekly_Schedule_Element_Write(
     size_t application_data_len)
 {
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    BACNET_DAILY_SCHEDULE daily_schedule = { 0 };
+    struct daily_schedule_write_context store = { 0 };
     int len = 0;
     struct object_data *pObject;
 
@@ -1625,11 +1666,13 @@ static BACNET_ERROR_CODE Schedule_Weekly_Schedule_Element_Write(
             error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
         } else {
             array_index--;
-            len = bacnet_dailyschedule_context_decode(
-                application_data, application_data_len, 0, &daily_schedule);
+            len = bacnet_dailyschedule_list_context_decode(
+                application_data, application_data_len, 0,
+                Schedule_Weekly_Schedule_Store_Entry, &store);
             if (len > 0) {
                 if (Schedule_Weekly_Schedule_Set(
-                        object_instance, array_index, &daily_schedule)) {
+                        object_instance, array_index,
+                        store.count ? &store.entries[0] : NULL)) {
                     error_code = ERROR_CODE_SUCCESS;
                 } else {
                     error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
@@ -1644,7 +1687,7 @@ static BACNET_ERROR_CODE Schedule_Weekly_Schedule_Element_Write(
 }
 
 /**
- * @brief Decode one BACnetARRAY property element
+ * @brief Decode one BACnetARRAY property element to determine its length
  * @param object_instance [in] BACnet object instance number
  * @param apdu [in] Buffer in which the APDU contents are extracted
  * @param apdu_size [in] The size of the APDU buffer
@@ -1653,12 +1696,10 @@ static BACNET_ERROR_CODE Schedule_Weekly_Schedule_Element_Write(
 static int Schedule_Weekly_Schedule_Element_Length(
     uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
 {
-    BACNET_DAILY_SCHEDULE daily_schedule = { 0 };
-
     (void)object_instance;
 
-    return bacnet_dailyschedule_context_decode(
-        apdu, apdu_size, 0, &daily_schedule);
+    return bacnet_dailyschedule_list_context_decode(
+        apdu, apdu_size, 0, NULL, NULL);
 }
 
 /**

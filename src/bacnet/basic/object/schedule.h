@@ -85,12 +85,14 @@ BACNET_STACK_EXPORT
 bool Schedule_Weekly_Schedule(
     uint32_t object_instance,
     unsigned array_index,
-    BACNET_DAILY_SCHEDULE *value);
+    BACNET_DAILY_SCHEDULE_ENTRY *entries,
+    size_t entries_size,
+    size_t *entries_count);
 BACNET_STACK_EXPORT
 bool Schedule_Weekly_Schedule_Set(
     uint32_t object_instance,
     unsigned array_index,
-    const BACNET_DAILY_SCHEDULE *value);
+    const BACNET_DAILY_SCHEDULE_ENTRY *entries);
 BACNET_STACK_EXPORT
 size_t Schedule_Weekly_Schedule_Time_Value_Count(
     uint32_t object_instance, unsigned array_index);
