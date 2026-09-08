@@ -160,6 +160,52 @@ static void test_BACnetDailyScheduleArrayEncodeDecode(void)
         BACNET_STATUS_ERROR, NULL);
 }
 
+/**
+ * @brief A list longer than the caller's bounded store shall abort the
+ *  decode with BACNET_STATUS_ERROR, and store_fn shall never be called
+ *  beyond the store's capacity.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(
+    BACnetDailySchedule_tests, test_BACnetDailyScheduleListDecodeStoreOverflow)
+#else
+static void test_BACnetDailyScheduleListDecodeStoreOverflow(void)
+#endif
+{
+    /* one more entry than BACNET_DAILY_SCHEDULE_STORE_CONTEXT can hold */
+    BACNET_DAILY_SCHEDULE_ENTRY in[5] = { 0 };
+    BACNET_DAILY_SCHEDULE_STORE_CONTEXT out = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int apdu_len, len;
+    uint8_t tag_number = 0;
+    unsigned i;
+
+    for (i = 0; i < ARRAY_SIZE(in); i++) {
+        in[i].Time_Value.Time = (BACNET_TIME) { .hour = (uint8_t)i, .min = 0 };
+        in[i].Time_Value.Value = (BACNET_PRIMITIVE_DATA_VALUE) {
+            .tag = BACNET_APPLICATION_TAG_UNSIGNED_INT,
+            .type.Unsigned_Int = i,
+        };
+        if (i > 0) {
+            in[i - 1].next = &in[i];
+        }
+    }
+    apdu_len =
+        bacnet_dailyschedule_list_context_encode(apdu, tag_number, &in[0]);
+    zassert_true(apdu_len > 0, NULL);
+
+    len = bacnet_dailyschedule_list_context_decode(
+        apdu, apdu_len, tag_number, bacnet_dailyschedule_store_entry, &out);
+    zassert_equal(len, BACNET_STATUS_ERROR, NULL);
+    /* store_fn stopped at capacity - no overrun into adjacent memory */
+    zassert_equal(
+        out.count, (sizeof(out.entries) / sizeof(out.entries[0])), NULL);
+    for (i = 0; i < out.count; i++) {
+        zassert_true(
+            bacnet_time_value_same(&in[i].Time_Value, &out.entries[i]), NULL);
+    }
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(BACnetDailySchedule_tests, NULL, NULL, NULL, NULL, NULL);
 #else
@@ -168,7 +214,8 @@ void test_main(void)
     ztest_test_suite(
         BACnetDailySchedule_tests,
         ztest_unit_test(test_BACnetDailyScheduleListEncodeDecode),
-        ztest_unit_test(test_BACnetDailyScheduleArrayEncodeDecode));
+        ztest_unit_test(test_BACnetDailyScheduleArrayEncodeDecode),
+        ztest_unit_test(test_BACnetDailyScheduleListDecodeStoreOverflow));
 
     ztest_run_test_suite(BACnetDailySchedule_tests);
 }
