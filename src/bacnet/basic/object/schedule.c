@@ -5,7 +5,6 @@
  * @brief A basic BACnet Schedule object implementation.
  * @copyright SPDX-License-Identifier: MIT
  */
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
@@ -745,12 +744,15 @@ bool Schedule_Weekly_Schedule_Set(
          entry = entry->next, count++) {
         pTV = calloc(1, sizeof(BACNET_TIME_VALUE));
         if (!pTV) {
-            break;
+            /* roll back so the day is not left partially updated */
+            Daily_Schedule_Time_Value_Delete_All(pDay);
+            return false;
         }
         *pTV = entry->Time_Value;
         if (Keylist_Data_Add(pDay->Time_Values, (KEY)count, pTV) < 0) {
             free(pTV);
-            break;
+            Daily_Schedule_Time_Value_Delete_All(pDay);
+            return false;
         }
     }
 
@@ -1063,11 +1065,9 @@ static int Schedule_Exception_Schedule_Encode(
 static int Schedule_Exception_Schedule_Element_Length(
     uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
 {
-    BACNET_SPECIAL_EVENT special_event = { 0 };
-
     (void)object_instance;
 
-    return bacnet_special_event_decode(apdu, apdu_size, &special_event);
+    return bacnet_special_event_decode(apdu, apdu_size, NULL);
 }
 
 /**
