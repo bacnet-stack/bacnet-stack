@@ -11,6 +11,7 @@
 #include <bacnet/bacstr.h>
 #include <bacnet/bacdcode.h>
 #include <bacnet/basic/object/schedule.h>
+#include <bacnet/basic/object/device.h>
 #include <property_test.h>
 
 /* test hook defined in test/bacnet/basic/object/test/device_mock.c */
@@ -408,8 +409,9 @@ static void testScheduleCalendarPresentValueUpdate(void)
 }
 
 /**
- * @brief Test that Schedule_Timer() only recalculates Present_Value while
- *  the current date is within the Effective_Period, per 135-2024 12.24.3
+ * @brief Test that Schedule_Timer() recalculates Present_Value at every
+ *  poll, falling back to Schedule_Default while the current date is
+ *  outside the Effective_Period, per 135-2024 12.24.11
  */
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(schedule_tests, testScheduleTimerEffectivePeriod)
@@ -447,15 +449,15 @@ static void testScheduleTimerEffectivePeriod(void)
     zassert_within(
         testSchedule_Present_Value_Real(object_instance), 10.0f, 0.001f, NULL);
 
-    /* outside the Effective_Period: recalculation is skipped, so
-     * Present_Value keeps its prior value instead of falling back to
-     * Schedule_Default for a non-matching weekday */
+    /* outside the Effective_Period: Present_Value falls back to
+     * Schedule_Default (21.0), rather than freezing the prior in-period
+     * value */
     out_of_period.date = (BACNET_DATE) { 2024, 2, 15, BACNET_WEEKDAY_THURSDAY };
     datetime_set_time(&out_of_period.time, 9, 0, 0, 0);
     Device_getCurrentDateTime_Value_Set(&out_of_period);
     Schedule_Timer(object_instance, 0);
     zassert_within(
-        testSchedule_Present_Value_Real(object_instance), 10.0f, 0.001f, NULL);
+        testSchedule_Present_Value_Real(object_instance), 21.0f, 0.001f, NULL);
 
     /* back inside the Effective_Period: recalculation resumes */
     Device_getCurrentDateTime_Value_Set(&in_period);
@@ -618,9 +620,77 @@ static void testScheduleWriteEveryScheduledAction(void)
 }
 
 /**
- * @brief Test the object creation, use, and cleanup, checking for any
- *  memory leaks with each pass.
+ * @brief Test that List_Of_Object_Property_References members naming an
+ *  explicit deviceIdentifier other than this device are skipped, while
+ *  members with no deviceIdentifier (or one naming this device) are
+ *  still written, per 135-2024 clause 21
+ *  BACnetDeviceObjectPropertyReference
  */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(schedule_tests, testScheduleWriteMembersRemoteDevice)
+#else
+static void testScheduleWriteMembersRemoteDevice(void)
+#endif
+{
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+    uint32_t object_instance;
+    BACNET_DAILY_SCHEDULE_ENTRY entry = { 0 };
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
+    BACNET_DATE test_date = { 2024, 6, 15, BACNET_WEEKDAY_SATURDAY };
+    BACNET_TIME test_time = { 0 };
+    bool status;
+
+    object_instance = Schedule_Create(BACNET_MAX_INSTANCE);
+    zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
+
+    /* no deviceIdentifier: refers to an object in this Device */
+    member.objectIdentifier.type = OBJECT_ANALOG_VALUE;
+    member.objectIdentifier.instance = 1;
+    member.propertyIdentifier = PROP_PRESENT_VALUE;
+    member.arrayIndex = BACNET_ARRAY_ALL;
+    status = Schedule_List_Of_Object_Property_References_Add(
+        object_instance, &member);
+    zassert_true(status, NULL);
+    /* deviceIdentifier naming this device (mock Device_Object_Instance_
+     * Number() returns 0): still local */
+    member.objectIdentifier.instance = 2;
+    member.deviceIdentifier.type = OBJECT_DEVICE;
+    member.deviceIdentifier.instance = Device_Object_Instance_Number();
+    status = Schedule_List_Of_Object_Property_References_Add(
+        object_instance, &member);
+    zassert_true(status, NULL);
+    /* deviceIdentifier naming a different device: not local, skipped */
+    member.objectIdentifier.instance = 3;
+    member.deviceIdentifier.instance = Device_Object_Instance_Number() + 1;
+    status = Schedule_List_Of_Object_Property_References_Add(
+        object_instance, &member);
+    zassert_true(status, NULL);
+
+    /* Weekly_Schedule: Saturday 08:00 -> 10.0, distinct from
+     * Schedule_Default */
+    datetime_set_time(&entry.Time_Value.Time, 8, 0, 0, 0);
+    entry.Time_Value.Value.tag = BACNET_APPLICATION_TAG_REAL;
+    entry.Time_Value.Value.type.Real = 10.0f;
+    entry.next = NULL;
+    status = Schedule_Weekly_Schedule_Set(
+        object_instance, BACNET_WEEKDAY_SATURDAY - 1, &entry);
+    zassert_true(status, NULL);
+    datetime_set_time(&test_time, 9, 0, 0, 0);
+
+    Schedule_Write_Property_Internal_Callback_Set(
+        testSchedule_Write_Property_Stub);
+    testSchedule_Write_Property_Call_Count = 0;
+    Schedule_Calendar_Present_Value_Update(
+        object_instance, &test_date, &test_time);
+    /* only the two local members (no deviceIdentifier, and this device's
+     * deviceIdentifier) are written; the remote member is skipped */
+    zassert_equal(testSchedule_Write_Property_Call_Count, 2, NULL);
+
+    status = Schedule_Delete(object_instance);
+    zassert_true(status, NULL);
+#endif
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(schedule_tests, testScheduleCreateDelete)
 #else
@@ -659,6 +729,7 @@ void test_main(void)
         ztest_unit_test(testScheduleCalendarPresentValueUpdate),
         ztest_unit_test(testScheduleTimerEffectivePeriod),
         ztest_unit_test(testScheduleWriteEveryScheduledAction),
+        ztest_unit_test(testScheduleWriteMembersRemoteDevice),
         ztest_unit_test(testScheduleCreateDelete));
 
     ztest_run_test_suite(schedule_tests);

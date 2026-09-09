@@ -2141,6 +2141,30 @@ static bool Schedule_Special_Event_In_Effect(
 #endif
 
 /**
+ * @brief Determine if a member reference targets an object on this device.
+ * @param pMember [in] Member reference to check.
+ * @return true if deviceIdentifier is absent, or names this device.
+ */
+static bool Schedule_Member_Target_Is_Local(
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
+{
+    if (!pMember) {
+        return false;
+    }
+    if (pMember->deviceIdentifier.type != OBJECT_DEVICE) {
+        /* deviceIdentifier not provided - refers to an object in this
+           Device, per 135-2024 clause 21 BACnetDeviceObjectPropertyReference
+         */
+        return true;
+    }
+    if (pMember->deviceIdentifier.instance == Device_Object_Instance_Number()) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * @brief Write the current Present_Value to every member of
  *  List_Of_Object_Property_References, using the Priority_For_Writing
  *  property. Per 135-2024 12.24.11: "An error writing to any member of
@@ -2169,6 +2193,11 @@ Schedule_Write_Members(uint32_t object_instance, struct object_data *pObject)
     for (i = 0; i < count; i++) {
         if (!Schedule_List_Of_Object_Property_References(
                 object_instance, i, &member)) {
+            continue;
+        }
+        if (!Schedule_Member_Target_Is_Local(&member)) {
+            /* external device references need a network WriteProperty,
+               which Write_Property_Internal_Callback does not provide */
             continue;
         }
         wp_data.object_type = member.objectIdentifier.type;
@@ -2287,32 +2316,38 @@ void Schedule_Calendar_Present_Value_Update(
     old_value = pObject->Present_Value;
     pObject->Present_Value.tag = BACNET_APPLICATION_TAG_NULL;
 
+    /* 135-2024 12.24.11: only Weekly_Schedule/Exception_Schedule entries
+       within the Effective_Period are considered; outside of it, the
+       object falls back to Schedule_Default like any other day with no
+       matching entry, rather than freezing the last in-period value */
+    if (Schedule_In_Effective_Period(object_instance, date)) {
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
-    count = (unsigned)Keylist_Count(pObject->Exception_Schedule);
-    for (i = 0; i < count; i++) {
-        event = Keylist_Data_Index(pObject->Exception_Schedule, (int)i);
-        if (!event || !Schedule_Special_Event_In_Effect(event, date)) {
-            continue;
+        count = (unsigned)Keylist_Count(pObject->Exception_Schedule);
+        for (i = 0; i < count; i++) {
+            event = Keylist_Data_Index(pObject->Exception_Schedule, (int)i);
+            if (!event || !Schedule_Special_Event_In_Effect(event, date)) {
+                continue;
+            }
+            pCandidate = Schedule_Special_Event_Current_Time_Value(
+                &event->timeValues, time);
+            if (!pCandidate ||
+                (pCandidate->Value.tag == BACNET_APPLICATION_TAG_NULL)) {
+                continue;
+            }
+            if ((best_priority < 0) ||
+                (event->priority < (unsigned)best_priority)) {
+                best_priority = event->priority;
+                pFound = pCandidate;
+            }
         }
-        pCandidate =
-            Schedule_Special_Event_Current_Time_Value(&event->timeValues, time);
-        if (!pCandidate ||
-            (pCandidate->Value.tag == BACNET_APPLICATION_TAG_NULL)) {
-            continue;
-        }
-        if ((best_priority < 0) ||
-            (event->priority < (unsigned)best_priority)) {
-            best_priority = event->priority;
-            pFound = pCandidate;
-        }
-    }
 #endif
-    if (!pFound) {
-        pCandidate = Schedule_Weekly_Day_Current_Time_Value(
-            pObject->Weekly_Schedule[date->wday - 1].Time_Values, time);
-        if (pCandidate &&
-            (pCandidate->Value.tag != BACNET_APPLICATION_TAG_NULL)) {
-            pFound = pCandidate;
+        if (!pFound) {
+            pCandidate = Schedule_Weekly_Day_Current_Time_Value(
+                pObject->Weekly_Schedule[date->wday - 1].Time_Values, time);
+            if (pCandidate &&
+                (pCandidate->Value.tag != BACNET_APPLICATION_TAG_NULL)) {
+                pFound = pCandidate;
+            }
         }
     }
     if (pFound) {
@@ -2344,10 +2379,10 @@ void Schedule_Timer(uint32_t object_instance, uint16_t milliseconds)
     pObject = Object_Data(object_instance);
     if (pObject) {
         Device_getCurrentDateTime(&bdatetime);
-        /* 135-2024 12.24.3: only active within the Effective_Period */
-        if (Schedule_In_Effective_Period(object_instance, &bdatetime.date)) {
-            Schedule_Calendar_Present_Value_Update(
-                object_instance, &bdatetime.date, &bdatetime.time);
-        }
+        /* always recalculate: Schedule_Calendar_Present_Value_Update()
+           applies Schedule_Default outside the Effective_Period, per
+           135-2024 12.24.11 */
+        Schedule_Calendar_Present_Value_Update(
+            object_instance, &bdatetime.date, &bdatetime.time);
     }
 }
