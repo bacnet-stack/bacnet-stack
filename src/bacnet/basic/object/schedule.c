@@ -58,6 +58,9 @@ struct object_data {
     OS_Keylist Object_Property_References;
     uint8_t Priority_For_Writing; /* (1..16) */
     bool Out_Of_Service;
+    bool Write_Every_Scheduled_Action;
+    /* re-entrancy guard while writing List_Of_Object_Property_References */
+    bool Writeback_Active;
 };
 
 /* Key List for storing the object data sorted by instance number */
@@ -87,6 +90,9 @@ static const int32_t Schedule_Properties_Required[] = {
 static const int32_t Schedule_Properties_Optional[] = {
     /* list of optional properties */
     PROP_DESCRIPTION, PROP_WEEKLY_SCHEDULE,
+#if (BACNET_PROTOCOL_REVISION >= 24)
+    PROP_WRITE_EVERY_SCHEDULED_ACTION,
+#endif
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
     PROP_EXCEPTION_SCHEDULE,
 #endif
@@ -107,11 +113,18 @@ static const int32_t Writable_Properties[] = {
     PROP_WEEKLY_SCHEDULE,
     PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES,
     PROP_EFFECTIVE_PERIOD,
+#if (BACNET_PROTOCOL_REVISION >= 24)
+    PROP_WRITE_EVERY_SCHEDULED_ACTION,
+#endif
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
     PROP_EXCEPTION_SCHEDULE,
 #endif
     -1
 };
+
+/* registered by the Device object so List_Of_Object_Property_References
+   members can be written without a build dependency on those objects */
+static write_property_function Write_Property_Internal_Callback;
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -652,6 +665,55 @@ bool Schedule_Out_Of_Service(uint32_t object_instance)
     }
 
     return false;
+}
+
+/**
+ * @brief Sets the Write_Every_Scheduled_Action property
+ * @param object_instance - object-instance number of the object
+ * @param value - true to write every scheduled action, and false to only
+ *  write List_Of_Object_Property_References members when Present_Value
+ *  changes
+ * @return true if set, and false if not
+ */
+bool Schedule_Write_Every_Scheduled_Action_Set(
+    uint32_t object_instance, bool value)
+{
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        pObject->Write_Every_Scheduled_Action = value;
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * @brief Gets the Write_Every_Scheduled_Action property
+ * @param object_instance - object-instance number of the object
+ * @return true if every scheduled action is written, and false if not
+ */
+bool Schedule_Write_Every_Scheduled_Action(uint32_t object_instance)
+{
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        return pObject->Write_Every_Scheduled_Action;
+    }
+
+    return false;
+}
+
+/**
+ * @brief Sets callback used to write List_Of_Object_Property_References
+ *  members, similar to the Loop and Timer object write-back pattern
+ * @param cb - callback used to write referenced properties
+ */
+void Schedule_Write_Property_Internal_Callback_Set(write_property_function cb)
+{
+    Write_Property_Internal_Callback = cb;
 }
 
 /**
@@ -1599,6 +1661,12 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len =
                 encode_application_boolean(&apdu[0], CurrentSC->Out_Of_Service);
             break;
+#if (BACNET_PROTOCOL_REVISION >= 24)
+        case PROP_WRITE_EVERY_SCHEDULED_ACTION:
+            apdu_len = encode_application_boolean(
+                &apdu[0], CurrentSC->Write_Every_Scheduled_Action);
+            break;
+#endif
         default:
             rpdata->error_class = ERROR_CLASS_PROPERTY;
             rpdata->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
@@ -1746,6 +1814,16 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->object_instance, value.type.Boolean);
             }
             break;
+#if (BACNET_PROTOCOL_REVISION >= 24)
+        case PROP_WRITE_EVERY_SCHEDULED_ACTION:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
+            if (status) {
+                Schedule_Write_Every_Scheduled_Action_Set(
+                    wp_data->object_instance, value.type.Boolean);
+            }
+            break;
+#endif
         case PROP_WEEKLY_SCHEDULE:
             wp_data->error_code = bacnet_array_write(
                 wp_data->object_instance, wp_data->array_index,
@@ -2060,6 +2138,75 @@ static bool Schedule_Special_Event_In_Effect(
 #endif
 
 /**
+ * @brief Write the current Present_Value to every member of
+ *  List_Of_Object_Property_References, using the Priority_For_Writing
+ *  property. Per 135-2024 12.24.11: "An error writing to any member of
+ *  the list shall not stop the Schedule object from writing to the
+ *  remaining members."
+ * @param object_instance - object-instance number of the object
+ * @param pObject - object instance data
+ */
+static void
+Schedule_Write_Members(uint32_t object_instance, struct object_data *pObject)
+{
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    unsigned i, count;
+
+    if (!pObject || !Write_Property_Internal_Callback) {
+        return;
+    }
+    if (pObject->Writeback_Active) {
+        /* prevent recursive writeback (e.g. a member reference that
+           loops back into this Schedule object) */
+        return;
+    }
+    pObject->Writeback_Active = true;
+    count = Schedule_List_Of_Object_Property_References_Count(object_instance);
+    for (i = 0; i < count; i++) {
+        if (!Schedule_List_Of_Object_Property_References(
+                object_instance, i, &member)) {
+            continue;
+        }
+        wp_data.object_type = member.objectIdentifier.type;
+        wp_data.object_instance = member.objectIdentifier.instance;
+        wp_data.object_property = member.propertyIdentifier;
+        wp_data.array_index = (BACNET_ARRAY_INDEX)member.arrayIndex;
+        wp_data.priority = pObject->Priority_For_Writing;
+        wp_data.error_class = ERROR_CLASS_PROPERTY;
+        wp_data.error_code = ERROR_CODE_SUCCESS;
+        wp_data.application_data_len = bacapp_encode_application_data(
+            wp_data.application_data, &pObject->Present_Value);
+        /* ignore individual failures - continue with the remaining
+           members of the list */
+        (void)Write_Property_Internal_Callback(&wp_data);
+    }
+    pObject->Writeback_Active = false;
+}
+
+/**
+ * @brief Write to List_Of_Object_Property_References members when required
+ *  by 135-2024 12.24.4/12.24.25: whenever the Present_Value changes, or
+ *  unconditionally when Write_Every_Scheduled_Action is TRUE
+ * @param object_instance - object-instance number of the object
+ * @param pObject - object instance data
+ * @param old_value - Present_Value prior to recalculation
+ */
+static void Schedule_Present_Value_Notify(
+    uint32_t object_instance,
+    struct object_data *pObject,
+    const BACNET_APPLICATION_DATA_VALUE *old_value)
+{
+    if (!pObject) {
+        return;
+    }
+    if (pObject->Write_Every_Scheduled_Action ||
+        !bacapp_same_value(old_value, &pObject->Present_Value)) {
+        Schedule_Write_Members(object_instance, pObject);
+    }
+}
+
+/**
  * @brief Recalculate the Present Value of the Schedule object
  * @param object_instance - object-instance number of the object
  * @param wday - day of the week
@@ -2070,11 +2217,13 @@ void Schedule_Recalculate_PV(
 {
     struct object_data *pObject;
     const BACNET_TIME_VALUE *pCurrent;
+    BACNET_APPLICATION_DATA_VALUE old_value;
 
     pObject = Object_Data(object_instance);
     if (!pObject || !time || (wday < 1) || (wday > 7)) {
         return;
     }
+    old_value = pObject->Present_Value;
     pObject->Present_Value.tag = BACNET_APPLICATION_TAG_NULL;
 
     /* for future development, here should be the loop for Exception Schedule
@@ -2092,6 +2241,7 @@ void Schedule_Recalculate_PV(
             &pObject->Present_Value, &pObject->Schedule_Default,
             sizeof(pObject->Present_Value));
     }
+    Schedule_Present_Value_Notify(object_instance, pObject, &old_value);
 }
 
 /**
@@ -2108,6 +2258,7 @@ void Schedule_Calendar_Present_Value_Update(
     struct object_data *pObject;
     const BACNET_TIME_VALUE *pFound = NULL;
     const BACNET_TIME_VALUE *pCandidate;
+    BACNET_APPLICATION_DATA_VALUE old_value;
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
     const BACNET_SPECIAL_EVENT *event;
     unsigned i, count;
@@ -2118,6 +2269,7 @@ void Schedule_Calendar_Present_Value_Update(
     if (!pObject || !date || !time || (date->wday < 1) || (date->wday > 7)) {
         return;
     }
+    old_value = pObject->Present_Value;
     pObject->Present_Value.tag = BACNET_APPLICATION_TAG_NULL;
 
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
@@ -2156,6 +2308,7 @@ void Schedule_Calendar_Present_Value_Update(
             &pObject->Present_Value, &pObject->Schedule_Default,
             sizeof(pObject->Present_Value));
     }
+    Schedule_Present_Value_Notify(object_instance, pObject, &old_value);
 }
 
 /**

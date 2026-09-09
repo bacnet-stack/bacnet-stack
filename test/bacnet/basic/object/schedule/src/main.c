@@ -256,6 +256,20 @@ static float testSchedule_Present_Value_Real(uint32_t object_instance)
 
     return value.type.Real;
 }
+
+/* stub used to capture WriteProperty requests issued to
+ * List_Of_Object_Property_References members */
+static unsigned testSchedule_Write_Property_Call_Count;
+static BACNET_WRITE_PROPERTY_DATA testSchedule_Write_Property_Last_Data;
+
+static bool
+testSchedule_Write_Property_Stub(BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    testSchedule_Write_Property_Call_Count++;
+    testSchedule_Write_Property_Last_Data = *wp_data;
+
+    return true;
+}
 #endif
 
 /**
@@ -456,6 +470,134 @@ static void testScheduleTimerEffectivePeriod(void)
 }
 
 /**
+ * @brief Test that List_Of_Object_Property_References members are written
+ *  when Present_Value changes, and that Write_Every_Scheduled_Action
+ *  forces a write on every recalculation regardless of a value change,
+ *  per 135-2024 12.24.4/12.24.25
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(schedule_tests, testScheduleWriteEveryScheduledAction)
+#else
+static void testScheduleWriteEveryScheduledAction(void)
+#endif
+{
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+    uint32_t object_instance;
+    BACNET_DAILY_SCHEDULE_ENTRY entry = { 0 };
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
+    BACNET_DATE test_date = { 2024, 6, 15, BACNET_WEEKDAY_SATURDAY };
+    BACNET_TIME test_time_before = { 0 }, test_time_after = { 0 };
+    bool status;
+
+    object_instance = Schedule_Create(BACNET_MAX_INSTANCE);
+    zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
+    /* Write_Every_Scheduled_Action defaults to FALSE */
+    zassert_false(Schedule_Write_Every_Scheduled_Action(object_instance), NULL);
+
+    /* one member reference to write Present_Value to */
+    member.objectIdentifier.type = OBJECT_ANALOG_VALUE;
+    member.objectIdentifier.instance = 1;
+    member.propertyIdentifier = PROP_PRESENT_VALUE;
+    member.arrayIndex = BACNET_ARRAY_ALL;
+    status = Schedule_List_Of_Object_Property_References_Add(
+        object_instance, &member);
+    zassert_true(status, NULL);
+
+    /* Weekly_Schedule: Saturday 08:00 -> 10.0, distinct from
+     * Schedule_Default */
+    datetime_set_time(&entry.Time_Value.Time, 8, 0, 0, 0);
+    entry.Time_Value.Value.tag = BACNET_APPLICATION_TAG_REAL;
+    entry.Time_Value.Value.type.Real = 10.0f;
+    entry.next = NULL;
+    status = Schedule_Weekly_Schedule_Set(
+        object_instance, BACNET_WEEKDAY_SATURDAY - 1, &entry);
+    zassert_true(status, NULL);
+    datetime_set_time(&test_time_before, 7, 0, 0, 0);
+    datetime_set_time(&test_time_after, 9, 0, 0, 0);
+
+    Schedule_Write_Property_Internal_Callback_Set(
+        testSchedule_Write_Property_Stub);
+    testSchedule_Write_Property_Call_Count = 0;
+
+    /* before 08:00: falls back to Schedule_Default, unchanged from the
+     * initial value, so no write occurs */
+    Schedule_Calendar_Present_Value_Update(
+        object_instance, &test_date, &test_time_before);
+    zassert_equal(testSchedule_Write_Property_Call_Count, 0, NULL);
+
+    /* Present_Value changes (Schedule_Default -> 10.0): one write */
+    Schedule_Calendar_Present_Value_Update(
+        object_instance, &test_date, &test_time_after);
+    zassert_equal(testSchedule_Write_Property_Call_Count, 1, NULL);
+    zassert_equal(
+        testSchedule_Write_Property_Last_Data.object_type, OBJECT_ANALOG_VALUE,
+        NULL);
+    zassert_equal(
+        testSchedule_Write_Property_Last_Data.object_instance, 1, NULL);
+    zassert_equal(
+        testSchedule_Write_Property_Last_Data.object_property,
+        PROP_PRESENT_VALUE, NULL);
+
+    /* Present_Value unchanged: no write while Write_Every_Scheduled_Action
+     * is FALSE */
+    Schedule_Calendar_Present_Value_Update(
+        object_instance, &test_date, &test_time_after);
+    zassert_equal(testSchedule_Write_Property_Call_Count, 1, NULL);
+
+    /* Write_Every_Scheduled_Action = TRUE: unchanged Present_Value still
+     * triggers a write on every recalculation */
+    status = Schedule_Write_Every_Scheduled_Action_Set(object_instance, true);
+    zassert_true(status, NULL);
+    zassert_true(Schedule_Write_Every_Scheduled_Action(object_instance), NULL);
+    Schedule_Calendar_Present_Value_Update(
+        object_instance, &test_date, &test_time_after);
+    zassert_equal(testSchedule_Write_Property_Call_Count, 2, NULL);
+
+    /* WriteProperty/ReadProperty round-trip for
+     * PROP_WRITE_EVERY_SCHEDULED_ACTION */
+    {
+        uint8_t apdu[16] = { 0 };
+        BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+        BACNET_READ_PROPERTY_DATA rp_data = { 0 };
+        BACNET_APPLICATION_DATA_VALUE value = { 0 };
+        int len;
+
+        wp_data.object_type = OBJECT_SCHEDULE;
+        wp_data.object_instance = object_instance;
+        wp_data.object_property = PROP_WRITE_EVERY_SCHEDULED_ACTION;
+        wp_data.array_index = BACNET_ARRAY_ALL;
+        wp_data.application_data_len =
+            encode_application_boolean(wp_data.application_data, false);
+        status = Schedule_Write_Property(&wp_data);
+        zassert_true(status, NULL);
+        zassert_false(
+            Schedule_Write_Every_Scheduled_Action(object_instance), NULL);
+
+        rp_data.object_type = OBJECT_SCHEDULE;
+        rp_data.object_instance = object_instance;
+        rp_data.object_property = PROP_WRITE_EVERY_SCHEDULED_ACTION;
+        rp_data.array_index = BACNET_ARRAY_ALL;
+        rp_data.application_data = apdu;
+        rp_data.application_data_len = sizeof(apdu);
+        len = Schedule_Read_Property(&rp_data);
+        zassert_true(len > 0, NULL);
+        len = bacapp_decode_application_data(apdu, (uint32_t)len, &value);
+        zassert_true(len > 0, NULL);
+        zassert_equal(value.tag, BACNET_APPLICATION_TAG_BOOLEAN, NULL);
+        zassert_false(value.type.Boolean, NULL);
+    }
+
+    /* invalid instance / no member references are a no-op, not a crash */
+    Schedule_Write_Property_Internal_Callback_Set(NULL);
+    Schedule_Calendar_Present_Value_Update(
+        object_instance, &test_date, &test_time_before);
+
+    status = Schedule_Delete(object_instance);
+    zassert_true(status, NULL);
+#endif
+}
+
+/**
  * @brief Test the object creation, use, and cleanup, checking for any
  *  memory leaks with each pass.
  */
@@ -496,6 +638,7 @@ void test_main(void)
         schedule_tests, ztest_unit_test(testSchedule),
         ztest_unit_test(testScheduleCalendarPresentValueUpdate),
         ztest_unit_test(testScheduleTimerEffectivePeriod),
+        ztest_unit_test(testScheduleWriteEveryScheduledAction),
         ztest_unit_test(testScheduleCreateDelete));
 
     ztest_run_test_suite(schedule_tests);

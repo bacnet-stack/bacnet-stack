@@ -79,6 +79,16 @@ void Schedule_Out_Of_Service_Set(uint32_t object_instance, bool value);
 BACNET_STACK_EXPORT
 bool Schedule_Out_Of_Service(uint32_t object_instance);
 
+#if (BACNET_PROTOCOL_REVISION >= 24)
+BACNET_STACK_EXPORT
+bool Schedule_Write_Every_Scheduled_Action_Set(
+    uint32_t object_instance, bool value);
+BACNET_STACK_EXPORT
+bool Schedule_Write_Every_Scheduled_Action(uint32_t object_instance);
+#endif
+BACNET_STACK_EXPORT
+void Schedule_Write_Property_Internal_Callback_Set(write_property_function cb);
+
 /* Weekly_Schedule: fixed BACnetARRAY[7] of day schedules (per the standard);
    each day's Time-Values are stored dynamically (see accessors below) */
 BACNET_STACK_EXPORT
