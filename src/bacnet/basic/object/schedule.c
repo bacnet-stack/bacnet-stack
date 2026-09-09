@@ -1931,36 +1931,22 @@ bool Schedule_In_Effective_Period(
 }
 
 /**
- * @brief Recalculate the Present Value of the Schedule object
- * @param object_instance - object-instance number of the object
- * @param wday - day of the week
- * @param time - time of the day
+ * @brief Find the latest BACnetTimeValue in a Weekly_Schedule day whose
+ *  time is at or before the given time
+ * @param Time_Values - OS_Keylist of BACNET_TIME_VALUE* for one day
+ * @param time - time of day to evaluate against
+ * @return pointer to the matching BACNET_TIME_VALUE, or NULL if none apply
  */
-void Schedule_Recalculate_PV(
-    uint32_t object_instance, BACNET_WEEKDAY wday, const BACNET_TIME *time)
+static const BACNET_TIME_VALUE *Schedule_Weekly_Day_Current_Time_Value(
+    OS_Keylist Time_Values, const BACNET_TIME *time)
 {
-    struct object_data *pObject;
-    struct daily_schedule_data *pDay;
-    BACNET_TIME_VALUE *pTV, *pCurrent;
+    BACNET_TIME_VALUE *pTV, *pCurrent = NULL;
     unsigned i, count;
     int diff;
 
-    pObject = Object_Data(object_instance);
-    if (!pObject || !time || (wday < 1) || (wday > 7)) {
-        return;
-    }
-    pObject->Present_Value.tag = BACNET_APPLICATION_TAG_NULL;
-
-    /* for future development, here should be the loop for Exception Schedule
-     */
-
-    /*  Note to developers: please ping Edward at info@connect-ex.com
-        for a more complete schedule object implementation. */
-    pDay = &pObject->Weekly_Schedule[wday - 1];
-    pCurrent = NULL;
-    count = (unsigned)Keylist_Count(pDay->Time_Values);
+    count = (unsigned)Keylist_Count(Time_Values);
     for (i = 0; i < count; i++) {
-        pTV = Keylist_Data_Index(pDay->Time_Values, (int)i);
+        pTV = Keylist_Data_Index(Time_Values, (int)i);
         if (!pTV) {
             continue;
         }
@@ -1977,9 +1963,194 @@ void Schedule_Recalculate_PV(
             }
         }
     }
-    if (pCurrent) {
+
+    return pCurrent;
+}
+
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+/**
+ * @brief Find the latest BACnetTimeValue in a BACnetSpecialEvent's list
+ *  whose time is at or before the given time
+ * @param schedule - fixed-size Time_Values/TV_Count of a BACnetSpecialEvent
+ * @param time - time of day to evaluate against
+ * @return pointer to the matching BACNET_TIME_VALUE, or NULL if none apply
+ */
+static const BACNET_TIME_VALUE *Schedule_Special_Event_Current_Time_Value(
+    const BACNET_DAILY_SCHEDULE *schedule, const BACNET_TIME *time)
+{
+    const BACNET_TIME_VALUE *pTV, *pCurrent = NULL;
+    unsigned i;
+    int diff;
+
+    for (i = 0; i < schedule->TV_Count; i++) {
+        pTV = &schedule->Time_Values[i];
+        diff = datetime_wildcard_compare_time(time, &pTV->Time);
+        if (diff >= 0) {
+            if (!pCurrent) {
+                pCurrent = pTV;
+            } else {
+                diff =
+                    datetime_wildcard_compare_time(&pTV->Time, &pCurrent->Time);
+                if (diff >= 0) {
+                    pCurrent = pTV;
+                }
+            }
+        }
+    }
+
+    return pCurrent;
+}
+
+/* registered by the Device object so a CalendarReference period can be
+   resolved without a build dependency on the Calendar object */
+static read_property_function Read_Property_Internal_Callback;
+
+/**
+ * @brief Sets callback used to resolve Exception_Schedule CalendarReference
+ *  periods by reading the referenced object's Present_Value
+ * @param cb - callback used to read referenced properties
+ */
+void Schedule_Read_Property_Internal_Callback_Set(read_property_function cb)
+{
+    Read_Property_Internal_Callback = cb;
+}
+
+/**
+ * @brief Determine if a BACnetSpecialEvent's Period is in effect for a date
+ * @param event - BACnetSpecialEvent to evaluate
+ * @param date - date to check against the event's Period
+ * @return true if the event's Period matches the given date
+ */
+static bool Schedule_Special_Event_In_Effect(
+    const BACNET_SPECIAL_EVENT *event, const BACNET_DATE *date)
+{
+    BACNET_READ_PROPERTY_DATA rp_data = { 0 };
+    uint8_t apdu[8];
+    int apdu_len;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+
+    if (event->periodTag == BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY) {
+        return bacapp_date_in_calendar_entry(
+            date, &event->period.calendarEntry);
+    }
+    /* CalendarReference: ask the Device dispatcher to read the referenced
+       object's Present_Value, since this module has no direct dependency
+       on the Calendar object */
+    if (!Read_Property_Internal_Callback) {
+        return false;
+    }
+    rp_data.object_type = event->period.calendarReference.type;
+    rp_data.object_instance = event->period.calendarReference.instance;
+    rp_data.object_property = PROP_PRESENT_VALUE;
+    rp_data.array_index = BACNET_ARRAY_ALL;
+    rp_data.application_data = apdu;
+    rp_data.application_data_len = sizeof(apdu);
+    rp_data.error_class = ERROR_CLASS_PROPERTY;
+    rp_data.error_code = ERROR_CODE_UNKNOWN_PROPERTY;
+    apdu_len = Read_Property_Internal_Callback(&rp_data);
+    if (apdu_len <= 0) {
+        return false;
+    }
+    if (bacapp_decode_application_data(apdu, (uint32_t)apdu_len, &value) <= 0) {
+        return false;
+    }
+
+    return (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) && value.type.Boolean;
+}
+#endif
+
+/**
+ * @brief Recalculate the Present Value of the Schedule object
+ * @param object_instance - object-instance number of the object
+ * @param wday - day of the week
+ * @param time - time of the day
+ */
+void Schedule_Recalculate_PV(
+    uint32_t object_instance, BACNET_WEEKDAY wday, const BACNET_TIME *time)
+{
+    struct object_data *pObject;
+    const BACNET_TIME_VALUE *pCurrent;
+
+    pObject = Object_Data(object_instance);
+    if (!pObject || !time || (wday < 1) || (wday > 7)) {
+        return;
+    }
+    pObject->Present_Value.tag = BACNET_APPLICATION_TAG_NULL;
+
+    /* for future development, here should be the loop for Exception Schedule
+     */
+
+    /*  Note to developers: please ping Edward at info@connect-ex.com
+        for a more complete schedule object implementation. */
+    pCurrent = Schedule_Weekly_Day_Current_Time_Value(
+        pObject->Weekly_Schedule[wday - 1].Time_Values, time);
+    if (pCurrent && (pCurrent->Value.tag != BACNET_APPLICATION_TAG_NULL)) {
         bacnet_primitive_to_application_data_value(
             &pObject->Present_Value, &pCurrent->Value);
+    } else {
+        memcpy(
+            &pObject->Present_Value, &pObject->Schedule_Default,
+            sizeof(pObject->Present_Value));
+    }
+}
+
+/**
+ * @brief Recalculate the Present Value of the Schedule object, taking the
+ *  Exception_Schedule into account per 135-2024 12.24.4
+ * @param object_instance - object-instance number of the object
+ * @param date - current date (used for Exception_Schedule matching and to
+ *  select the Weekly_Schedule day via date->wday)
+ * @param time - current time of day
+ */
+void Schedule_Calendar_Present_Value_Update(
+    uint32_t object_instance, const BACNET_DATE *date, const BACNET_TIME *time)
+{
+    struct object_data *pObject;
+    const BACNET_TIME_VALUE *pFound = NULL;
+    const BACNET_TIME_VALUE *pCandidate;
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+    const BACNET_SPECIAL_EVENT *event;
+    unsigned i, count;
+    int best_priority = -1;
+#endif
+
+    pObject = Object_Data(object_instance);
+    if (!pObject || !date || !time || (date->wday < 1) || (date->wday > 7)) {
+        return;
+    }
+    pObject->Present_Value.tag = BACNET_APPLICATION_TAG_NULL;
+
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+    count = (unsigned)Keylist_Count(pObject->Exception_Schedule);
+    for (i = 0; i < count; i++) {
+        event = Keylist_Data_Index(pObject->Exception_Schedule, (int)i);
+        if (!event || !Schedule_Special_Event_In_Effect(event, date)) {
+            continue;
+        }
+        pCandidate =
+            Schedule_Special_Event_Current_Time_Value(&event->timeValues, time);
+        if (!pCandidate ||
+            (pCandidate->Value.tag == BACNET_APPLICATION_TAG_NULL)) {
+            continue;
+        }
+        if ((best_priority < 0) ||
+            (event->priority < (unsigned)best_priority)) {
+            best_priority = event->priority;
+            pFound = pCandidate;
+        }
+    }
+#endif
+    if (!pFound) {
+        pCandidate = Schedule_Weekly_Day_Current_Time_Value(
+            pObject->Weekly_Schedule[date->wday - 1].Time_Values, time);
+        if (pCandidate &&
+            (pCandidate->Value.tag != BACNET_APPLICATION_TAG_NULL)) {
+            pFound = pCandidate;
+        }
+    }
+    if (pFound) {
+        bacnet_primitive_to_application_data_value(
+            &pObject->Present_Value, &pFound->Value);
     } else {
         memcpy(
             &pObject->Present_Value, &pObject->Schedule_Default,
@@ -2001,7 +2172,7 @@ void Schedule_Timer(uint32_t object_instance, uint16_t milliseconds)
     pObject = Object_Data(object_instance);
     if (pObject) {
         Device_getCurrentDateTime(&bdatetime);
-        Schedule_Recalculate_PV(
-            object_instance, bdatetime.date.wday, &bdatetime.time);
+        Schedule_Calendar_Present_Value_Update(
+            object_instance, &bdatetime.date, &bdatetime.time);
     }
 }

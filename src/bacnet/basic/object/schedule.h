@@ -185,15 +185,23 @@ int Schedule_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element);
 BACNET_STACK_EXPORT
 int Schedule_Remove_List_Element(BACNET_LIST_ELEMENT_DATA *list_element);
 
-/* utility functions for calculating current Present Value
- * if Exception Schedule is to be added, these functions must take that into
- * account */
+/* utility functions for calculating current Present Value */
 BACNET_STACK_EXPORT
 bool Schedule_In_Effective_Period(
     uint32_t object_instance, const BACNET_DATE *date);
+/* weekly-schedule-only Present Value calculation (no Exception_Schedule) */
 BACNET_STACK_EXPORT
 void Schedule_Recalculate_PV(
     uint32_t object_instance, BACNET_WEEKDAY wday, const BACNET_TIME *time);
+/* full Present Value calculation per 135-2024 12.24.4, including
+ * Exception_Schedule priority evaluation */
+BACNET_STACK_EXPORT
+void Schedule_Calendar_Present_Value_Update(
+    uint32_t object_instance, const BACNET_DATE *date, const BACNET_TIME *time);
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+BACNET_STACK_EXPORT
+void Schedule_Read_Property_Internal_Callback_Set(read_property_function cb);
+#endif
 
 BACNET_STACK_EXPORT
 void Schedule_Timer(uint32_t object_instance, uint16_t milliseconds);

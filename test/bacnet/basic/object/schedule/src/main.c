@@ -9,6 +9,7 @@
 
 #include <zephyr/ztest.h>
 #include <bacnet/bacstr.h>
+#include <bacnet/bacdcode.h>
 #include <bacnet/basic/object/schedule.h>
 #include <property_test.h>
 
@@ -220,6 +221,174 @@ static void testSchedule(void)
     zassert_false(status, NULL);
 }
 
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+/* stub used to resolve a CalendarReference Exception_Schedule period,
+ * always reporting the referenced Calendar as "in effect" */
+static int testSchedule_Read_Property_Stub(BACNET_READ_PROPERTY_DATA *rp_data)
+{
+    return encode_application_boolean(rp_data->application_data, true);
+}
+
+/* reads back PROP_PRESENT_VALUE as a Real, since there is no direct
+ * Present_Value accessor for this object */
+static float testSchedule_Present_Value_Real(uint32_t object_instance)
+{
+    uint8_t apdu[64] = { 0 };
+    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    int len;
+
+    rpdata.object_type = OBJECT_SCHEDULE;
+    rpdata.object_instance = object_instance;
+    rpdata.object_property = PROP_PRESENT_VALUE;
+    rpdata.array_index = BACNET_ARRAY_ALL;
+    rpdata.application_data = apdu;
+    rpdata.application_data_len = sizeof(apdu);
+    len = Schedule_Read_Property(&rpdata);
+    zassert_true(len > 0, NULL);
+    len = bacapp_decode_application_data(apdu, (uint32_t)len, &value);
+    zassert_true(len > 0, NULL);
+    zassert_equal(value.tag, BACNET_APPLICATION_TAG_REAL, NULL);
+
+    return value.type.Real;
+}
+#endif
+
+/**
+ * @brief Test Present_Value calculation with Exception_Schedule in effect
+ *  per 135-2024 12.24.4: priority ordering, index tie-break, Null
+ *  value fallthrough, and CalendarReference resolution
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(schedule_tests, testScheduleCalendarPresentValueUpdate)
+#else
+static void testScheduleCalendarPresentValueUpdate(void)
+#endif
+{
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+    uint32_t object_instance;
+    BACNET_DAILY_SCHEDULE_ENTRY entry = { 0 };
+    BACNET_SPECIAL_EVENT special_event = { 0 };
+    BACNET_DATE test_date = { 2024, 6, 15, BACNET_WEEKDAY_SATURDAY };
+    BACNET_TIME test_time = { 0 };
+    bool status;
+
+    object_instance = Schedule_Create(BACNET_MAX_INSTANCE);
+    zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
+    datetime_set_time(&test_time, 9, 0, 0, 0);
+    /* Weekly_Schedule: Saturday 08:00 -> 10.0 */
+    datetime_set_time(&entry.Time_Value.Time, 8, 0, 0, 0);
+    entry.Time_Value.Value.tag = BACNET_APPLICATION_TAG_REAL;
+    entry.Time_Value.Value.type.Real = 10.0f;
+    entry.next = NULL;
+    status = Schedule_Weekly_Schedule_Set(
+        object_instance, BACNET_WEEKDAY_SATURDAY - 1, &entry);
+    zassert_true(status, NULL);
+
+    /* no Exception_Schedule entries yet: weekly value wins */
+    Schedule_Calendar_Present_Value_Update(
+        object_instance, &test_date, &test_time);
+    zassert_within(
+        testSchedule_Present_Value_Real(object_instance), 10.0f, 0.001f, NULL);
+
+    /* index 0: priority 5, matches test_date, value 20.0 */
+    special_event.periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY;
+    special_event.period.calendarEntry.tag = BACNET_CALENDAR_DATE;
+    special_event.period.calendarEntry.type.Date = test_date;
+    special_event.priority = 5;
+    special_event.timeValues.TV_Count = 1;
+    datetime_set_time(
+        &special_event.timeValues.Time_Values[0].Time, 8, 0, 0, 0);
+    special_event.timeValues.Time_Values[0].Value.tag =
+        BACNET_APPLICATION_TAG_REAL;
+    special_event.timeValues.Time_Values[0].Value.type.Real = 20.0f;
+    status =
+        Schedule_Exception_Schedule_Set(object_instance, 0, &special_event);
+    zassert_true(status, NULL);
+
+    /* exception (priority 5) now overrides the weekly schedule value */
+    Schedule_Calendar_Present_Value_Update(
+        object_instance, &test_date, &test_time);
+    zassert_within(
+        testSchedule_Present_Value_Real(object_instance), 20.0f, 0.001f, NULL);
+
+    /* index 1: higher relative priority (lower number) wins, value 30.0 */
+    special_event.priority = 3;
+    special_event.timeValues.Time_Values[0].Value.type.Real = 30.0f;
+    status =
+        Schedule_Exception_Schedule_Set(object_instance, 1, &special_event);
+    zassert_true(status, NULL);
+    Schedule_Calendar_Present_Value_Update(
+        object_instance, &test_date, &test_time);
+    zassert_within(
+        testSchedule_Present_Value_Real(object_instance), 30.0f, 0.001f, NULL);
+
+    /* index 2: same priority as index 1, but a higher index loses the
+     * tie-break, so value 30.0 (index 1) still wins */
+    special_event.timeValues.Time_Values[0].Value.type.Real = 40.0f;
+    status =
+        Schedule_Exception_Schedule_Set(object_instance, 2, &special_event);
+    zassert_true(status, NULL);
+    Schedule_Calendar_Present_Value_Update(
+        object_instance, &test_date, &test_time);
+    zassert_within(
+        testSchedule_Present_Value_Real(object_instance), 30.0f, 0.001f, NULL);
+
+    /* a Null value at the winning priority falls through to the next-best
+     * candidate (index 0, priority 5, value 20.0) */
+    special_event.priority = 3;
+    special_event.timeValues.Time_Values[0].Value.tag =
+        BACNET_APPLICATION_TAG_NULL;
+    status =
+        Schedule_Exception_Schedule_Set(object_instance, 1, &special_event);
+    zassert_true(status, NULL);
+    status =
+        Schedule_Exception_Schedule_Set(object_instance, 2, &special_event);
+    zassert_true(status, NULL);
+    Schedule_Calendar_Present_Value_Update(
+        object_instance, &test_date, &test_time);
+    zassert_within(
+        testSchedule_Present_Value_Real(object_instance), 20.0f, 0.001f, NULL);
+
+    /* CalendarReference period with no callback registered is ignored */
+    status = Schedule_Exception_Schedule_Delete_All(object_instance);
+    zassert_true(status, NULL);
+    special_event.periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE;
+    special_event.period.calendarReference.type = OBJECT_CALENDAR;
+    special_event.period.calendarReference.instance = 0;
+    special_event.priority = 1;
+    special_event.timeValues.Time_Values[0].Value.tag =
+        BACNET_APPLICATION_TAG_REAL;
+    special_event.timeValues.Time_Values[0].Value.type.Real = 50.0f;
+    status =
+        Schedule_Exception_Schedule_Set(object_instance, 0, &special_event);
+    zassert_true(status, NULL);
+    Schedule_Calendar_Present_Value_Update(
+        object_instance, &test_date, &test_time);
+    zassert_within(
+        testSchedule_Present_Value_Real(object_instance), 10.0f, 0.001f, NULL);
+
+    /* with a resolver callback registered, the CalendarReference resolves
+     * to "in effect" and the exception applies */
+    Schedule_Read_Property_Internal_Callback_Set(
+        testSchedule_Read_Property_Stub);
+    Schedule_Calendar_Present_Value_Update(
+        object_instance, &test_date, &test_time);
+    zassert_within(
+        testSchedule_Present_Value_Real(object_instance), 50.0f, 0.001f, NULL);
+    Schedule_Read_Property_Internal_Callback_Set(NULL);
+
+    /* invalid arguments are a no-op */
+    Schedule_Calendar_Present_Value_Update(
+        BACNET_MAX_INSTANCE, &test_date, &test_time);
+    Schedule_Calendar_Present_Value_Update(object_instance, NULL, &test_time);
+    Schedule_Calendar_Present_Value_Update(object_instance, &test_date, NULL);
+
+    status = Schedule_Delete(object_instance);
+    zassert_true(status, NULL);
+#endif
+}
+
 /**
  * @brief Test the object creation, use, and cleanup, checking for any
  *  memory leaks with each pass.
@@ -259,6 +428,7 @@ void test_main(void)
 {
     ztest_test_suite(
         schedule_tests, ztest_unit_test(testSchedule),
+        ztest_unit_test(testScheduleCalendarPresentValueUpdate),
         ztest_unit_test(testScheduleCreateDelete));
 
     ztest_run_test_suite(schedule_tests);

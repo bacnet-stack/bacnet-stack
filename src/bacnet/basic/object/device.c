@@ -4441,6 +4441,11 @@ void Device_Init(object_functions_t *object_table)
     Loop_Write_Property_Internal_Callback_Set(Device_Write_Property);
     /* link ReadProperty to Averaging object for sampled references */
     Averaging_Read_Property_Internal_Callback_Set(Device_Read_Property);
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+    /* link ReadProperty to Schedule object for Exception_Schedule
+       CalendarReference lookups */
+    Schedule_Read_Property_Internal_Callback_Set(Device_Read_Property);
+#endif
 #if (BACNET_PROTOCOL_REVISION >= 17)
     /* link WriteProperty to Timer object for references */
     Timer_Write_Property_Internal_Callback_Set(Device_Write_Property);
