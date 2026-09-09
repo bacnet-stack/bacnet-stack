@@ -4184,6 +4184,10 @@ void Device_Init(object_functions_t *object_table)
        List_Of_Object_Property_References */
     Schedule_Write_Property_Internal_Callback_Set(Device_Write_Property);
 #endif
+#ifdef CONFIG_BACNET_BASIC_OBJECT_AVERAGING
+    /* link ReadProperty to Averaging object for sampled references */
+    Averaging_Read_Property_Internal_Callback_Set(Device_Read_Property);
+#endif
 #ifdef CONFIG_BACNET_BASIC_OBJECT_TIMER
     /* link WriteProperty to Timer object for references */
     Timer_Write_Property_Internal_Callback_Set(Device_Write_Property);
