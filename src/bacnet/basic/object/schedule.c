@@ -2172,7 +2172,10 @@ void Schedule_Timer(uint32_t object_instance, uint16_t milliseconds)
     pObject = Object_Data(object_instance);
     if (pObject) {
         Device_getCurrentDateTime(&bdatetime);
-        Schedule_Calendar_Present_Value_Update(
-            object_instance, &bdatetime.date, &bdatetime.time);
+        /* 135-2024 12.24.3: only active within the Effective_Period */
+        if (Schedule_In_Effective_Period(object_instance, &bdatetime.date)) {
+            Schedule_Calendar_Present_Value_Update(
+                object_instance, &bdatetime.date, &bdatetime.time);
+        }
     }
 }

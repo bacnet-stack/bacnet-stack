@@ -13,6 +13,10 @@
 #include <bacnet/basic/object/schedule.h>
 #include <property_test.h>
 
+/* test hook defined in test/bacnet/basic/object/test/device_mock.c */
+extern void
+Device_getCurrentDateTime_Value_Set(const BACNET_DATE_TIME *datetime);
+
 /**
  * @addtogroup bacnet_tests
  * @{
@@ -390,6 +394,68 @@ static void testScheduleCalendarPresentValueUpdate(void)
 }
 
 /**
+ * @brief Test that Schedule_Timer() only recalculates Present_Value while
+ *  the current date is within the Effective_Period, per 135-2024 12.24.3
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(schedule_tests, testScheduleTimerEffectivePeriod)
+#else
+static void testScheduleTimerEffectivePeriod(void)
+#endif
+{
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+    uint32_t object_instance;
+    BACNET_DAILY_SCHEDULE_ENTRY entry = { 0 };
+    BACNET_DATE start_date = { 2024, 1, 1, BACNET_WEEKDAY_MONDAY };
+    BACNET_DATE end_date = { 2024, 1, 31, BACNET_WEEKDAY_WEDNESDAY };
+    BACNET_DATE_TIME in_period = { 0 }, out_of_period = { 0 };
+    bool status;
+
+    object_instance = Schedule_Create(BACNET_MAX_INSTANCE);
+    zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
+    status =
+        Schedule_Effective_Period_Set(object_instance, &start_date, &end_date);
+    zassert_true(status, NULL);
+    /* Weekly_Schedule: Monday 08:00 -> 10.0, distinct from Schedule_Default */
+    datetime_set_time(&entry.Time_Value.Time, 8, 0, 0, 0);
+    entry.Time_Value.Value.tag = BACNET_APPLICATION_TAG_REAL;
+    entry.Time_Value.Value.type.Real = 10.0f;
+    entry.next = NULL;
+    status = Schedule_Weekly_Schedule_Set(
+        object_instance, BACNET_WEEKDAY_MONDAY - 1, &entry);
+    zassert_true(status, NULL);
+
+    /* inside the Effective_Period: recalculation happens */
+    in_period.date = (BACNET_DATE) { 2024, 1, 15, BACNET_WEEKDAY_MONDAY };
+    datetime_set_time(&in_period.time, 9, 0, 0, 0);
+    Device_getCurrentDateTime_Value_Set(&in_period);
+    Schedule_Timer(object_instance, 0);
+    zassert_within(
+        testSchedule_Present_Value_Real(object_instance), 10.0f, 0.001f, NULL);
+
+    /* outside the Effective_Period: recalculation is skipped, so
+     * Present_Value keeps its prior value instead of falling back to
+     * Schedule_Default for a non-matching weekday */
+    out_of_period.date = (BACNET_DATE) { 2024, 2, 15, BACNET_WEEKDAY_THURSDAY };
+    datetime_set_time(&out_of_period.time, 9, 0, 0, 0);
+    Device_getCurrentDateTime_Value_Set(&out_of_period);
+    Schedule_Timer(object_instance, 0);
+    zassert_within(
+        testSchedule_Present_Value_Real(object_instance), 10.0f, 0.001f, NULL);
+
+    /* back inside the Effective_Period: recalculation resumes */
+    Device_getCurrentDateTime_Value_Set(&in_period);
+    Schedule_Timer(object_instance, 0);
+    zassert_within(
+        testSchedule_Present_Value_Real(object_instance), 10.0f, 0.001f, NULL);
+
+    Device_getCurrentDateTime_Value_Set(NULL);
+    status = Schedule_Delete(object_instance);
+    zassert_true(status, NULL);
+#endif
+}
+
+/**
  * @brief Test the object creation, use, and cleanup, checking for any
  *  memory leaks with each pass.
  */
@@ -429,6 +495,7 @@ void test_main(void)
     ztest_test_suite(
         schedule_tests, ztest_unit_test(testSchedule),
         ztest_unit_test(testScheduleCalendarPresentValueUpdate),
+        ztest_unit_test(testScheduleTimerEffectivePeriod),
         ztest_unit_test(testScheduleCreateDelete));
 
     ztest_run_test_suite(schedule_tests);
