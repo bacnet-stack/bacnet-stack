@@ -59,6 +59,9 @@ struct object_data {
     uint8_t Priority_For_Writing; /* (1..16) */
     bool Out_Of_Service;
     bool Write_Every_Scheduled_Action;
+    /* identity of the currently active scheduled time-value, used to detect
+       when a new scheduled action begins (see Schedule_Present_Value_Notify) */
+    const BACNET_TIME_VALUE *Active_Time_Value;
     /* re-entrancy guard while writing List_Of_Object_Property_References */
     bool Writeback_Active;
 };
@@ -2187,20 +2190,24 @@ Schedule_Write_Members(uint32_t object_instance, struct object_data *pObject)
 /**
  * @brief Write to List_Of_Object_Property_References members when required
  *  by 135-2024 12.24.4/12.24.25: whenever the Present_Value changes, or
- *  unconditionally when Write_Every_Scheduled_Action is TRUE
+ *  once when a new scheduled action activates and Write_Every_Scheduled_Action
+ *  is TRUE
  * @param object_instance - object-instance number of the object
  * @param pObject - object instance data
  * @param old_value - Present_Value prior to recalculation
+ * @param action_changed - true if a different scheduled time-value is active
+ *  than at the previous evaluation
  */
 static void Schedule_Present_Value_Notify(
     uint32_t object_instance,
     struct object_data *pObject,
-    const BACNET_APPLICATION_DATA_VALUE *old_value)
+    const BACNET_APPLICATION_DATA_VALUE *old_value,
+    bool action_changed)
 {
     if (!pObject) {
         return;
     }
-    if (pObject->Write_Every_Scheduled_Action ||
+    if ((pObject->Write_Every_Scheduled_Action && action_changed) ||
         !bacapp_same_value(old_value, &pObject->Present_Value)) {
         Schedule_Write_Members(object_instance, pObject);
     }
@@ -2217,6 +2224,8 @@ void Schedule_Recalculate_PV(
 {
     struct object_data *pObject;
     const BACNET_TIME_VALUE *pCurrent;
+    const BACNET_TIME_VALUE *pActive = NULL;
+    bool action_changed;
     BACNET_APPLICATION_DATA_VALUE old_value;
 
     pObject = Object_Data(object_instance);
@@ -2234,6 +2243,7 @@ void Schedule_Recalculate_PV(
     pCurrent = Schedule_Weekly_Day_Current_Time_Value(
         pObject->Weekly_Schedule[wday - 1].Time_Values, time);
     if (pCurrent && (pCurrent->Value.tag != BACNET_APPLICATION_TAG_NULL)) {
+        pActive = pCurrent;
         bacnet_primitive_to_application_data_value(
             &pObject->Present_Value, &pCurrent->Value);
     } else {
@@ -2241,7 +2251,11 @@ void Schedule_Recalculate_PV(
             &pObject->Present_Value, &pObject->Schedule_Default,
             sizeof(pObject->Present_Value));
     }
-    Schedule_Present_Value_Notify(object_instance, pObject, &old_value);
+    /* a scheduled action occurs only when a new time-value becomes active */
+    action_changed = (pActive != pObject->Active_Time_Value);
+    pObject->Active_Time_Value = pActive;
+    Schedule_Present_Value_Notify(
+        object_instance, pObject, &old_value, action_changed);
 }
 
 /**
@@ -2258,6 +2272,7 @@ void Schedule_Calendar_Present_Value_Update(
     struct object_data *pObject;
     const BACNET_TIME_VALUE *pFound = NULL;
     const BACNET_TIME_VALUE *pCandidate;
+    bool action_changed;
     BACNET_APPLICATION_DATA_VALUE old_value;
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
     const BACNET_SPECIAL_EVENT *event;
@@ -2308,7 +2323,11 @@ void Schedule_Calendar_Present_Value_Update(
             &pObject->Present_Value, &pObject->Schedule_Default,
             sizeof(pObject->Present_Value));
     }
-    Schedule_Present_Value_Notify(object_instance, pObject, &old_value);
+    /* a scheduled action occurs only when a new time-value becomes active */
+    action_changed = (pFound != pObject->Active_Time_Value);
+    pObject->Active_Time_Value = pFound;
+    Schedule_Present_Value_Notify(
+        object_instance, pObject, &old_value, action_changed);
 }
 
 /**

@@ -472,8 +472,9 @@ static void testScheduleTimerEffectivePeriod(void)
 /**
  * @brief Test that List_Of_Object_Property_References members are written
  *  when Present_Value changes, and that Write_Every_Scheduled_Action
- *  forces a write on every recalculation regardless of a value change,
- *  per 135-2024 12.24.4/12.24.25
+ *  forces one write when a new scheduled action becomes active (even
+ *  without a value change), but not on repeated recalculations of the
+ *  same still-active action, per 135-2024 12.24.4/12.24.25
  */
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(schedule_tests, testScheduleWriteEveryScheduledAction)
@@ -483,10 +484,11 @@ static void testScheduleWriteEveryScheduledAction(void)
 {
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
     uint32_t object_instance;
-    BACNET_DAILY_SCHEDULE_ENTRY entry = { 0 };
+    BACNET_DAILY_SCHEDULE_ENTRY entry = { 0 }, entry2 = { 0 };
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
     BACNET_DATE test_date = { 2024, 6, 15, BACNET_WEEKDAY_SATURDAY };
-    BACNET_TIME test_time_before = { 0 }, test_time_after = { 0 };
+    BACNET_TIME test_time_before = { 0 }, test_time_mid = { 0 },
+                test_time_after = { 0 };
     bool status;
 
     object_instance = Schedule_Create(BACNET_MAX_INSTANCE);
@@ -503,16 +505,21 @@ static void testScheduleWriteEveryScheduledAction(void)
         object_instance, &member);
     zassert_true(status, NULL);
 
-    /* Weekly_Schedule: Saturday 08:00 -> 10.0, distinct from
-     * Schedule_Default */
+    /* Weekly_Schedule: Saturday 08:00 -> 10.0, then 08:30 -> 10.0 (same
+     * value as the first action, but a distinct scheduled action) */
     datetime_set_time(&entry.Time_Value.Time, 8, 0, 0, 0);
     entry.Time_Value.Value.tag = BACNET_APPLICATION_TAG_REAL;
     entry.Time_Value.Value.type.Real = 10.0f;
-    entry.next = NULL;
+    entry.next = &entry2;
+    datetime_set_time(&entry2.Time_Value.Time, 8, 30, 0, 0);
+    entry2.Time_Value.Value.tag = BACNET_APPLICATION_TAG_REAL;
+    entry2.Time_Value.Value.type.Real = 10.0f;
+    entry2.next = NULL;
     status = Schedule_Weekly_Schedule_Set(
         object_instance, BACNET_WEEKDAY_SATURDAY - 1, &entry);
     zassert_true(status, NULL);
     datetime_set_time(&test_time_before, 7, 0, 0, 0);
+    datetime_set_time(&test_time_mid, 8, 15, 0, 0);
     datetime_set_time(&test_time_after, 9, 0, 0, 0);
 
     Schedule_Write_Property_Internal_Callback_Set(
@@ -525,9 +532,10 @@ static void testScheduleWriteEveryScheduledAction(void)
         object_instance, &test_date, &test_time_before);
     zassert_equal(testSchedule_Write_Property_Call_Count, 0, NULL);
 
-    /* Present_Value changes (Schedule_Default -> 10.0): one write */
+    /* 08:00 action activates: Present_Value changes (Default -> 10.0):
+     * one write */
     Schedule_Calendar_Present_Value_Update(
-        object_instance, &test_date, &test_time_after);
+        object_instance, &test_date, &test_time_mid);
     zassert_equal(testSchedule_Write_Property_Call_Count, 1, NULL);
     zassert_equal(
         testSchedule_Write_Property_Last_Data.object_type, OBJECT_ANALOG_VALUE,
@@ -538,17 +546,29 @@ static void testScheduleWriteEveryScheduledAction(void)
         testSchedule_Write_Property_Last_Data.object_property,
         PROP_PRESENT_VALUE, NULL);
 
-    /* Present_Value unchanged: no write while Write_Every_Scheduled_Action
-     * is FALSE */
+    /* same action still active, Present_Value unchanged: no write while
+     * Write_Every_Scheduled_Action is FALSE */
     Schedule_Calendar_Present_Value_Update(
-        object_instance, &test_date, &test_time_after);
+        object_instance, &test_date, &test_time_mid);
     zassert_equal(testSchedule_Write_Property_Call_Count, 1, NULL);
 
-    /* Write_Every_Scheduled_Action = TRUE: unchanged Present_Value still
-     * triggers a write on every recalculation */
+    /* Write_Every_Scheduled_Action = TRUE, but the 08:00 action is still
+     * the one in effect (no new action, no value change): no write - a
+     * poll of an already-active action must not repeat the writeback */
     status = Schedule_Write_Every_Scheduled_Action_Set(object_instance, true);
     zassert_true(status, NULL);
     zassert_true(Schedule_Write_Every_Scheduled_Action(object_instance), NULL);
+    Schedule_Calendar_Present_Value_Update(
+        object_instance, &test_date, &test_time_mid);
+    zassert_equal(testSchedule_Write_Property_Call_Count, 1, NULL);
+
+    /* 08:30 action activates: Present_Value is unchanged (10.0 -> 10.0),
+     * but it is a new scheduled action, so it is written */
+    Schedule_Calendar_Present_Value_Update(
+        object_instance, &test_date, &test_time_after);
+    zassert_equal(testSchedule_Write_Property_Call_Count, 2, NULL);
+
+    /* same 08:30 action still active: no additional write */
     Schedule_Calendar_Present_Value_Update(
         object_instance, &test_date, &test_time_after);
     zassert_equal(testSchedule_Write_Property_Call_Count, 2, NULL);
