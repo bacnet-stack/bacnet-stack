@@ -2373,16 +2373,16 @@ void Schedule_Calendar_Present_Value_Update(
 void Schedule_Timer(uint32_t object_instance, uint16_t milliseconds)
 {
     struct object_data *pObject;
-    BACNET_DATE_TIME bdatetime;
+    BACNET_DATE bdate;
+    BACNET_TIME btime;
 
     UNUSED(milliseconds);
     pObject = Object_Data(object_instance);
     if (pObject) {
-        Device_getCurrentDateTime(&bdatetime);
+        datetime_local(&bdate, &btime, NULL, NULL);
         /* always recalculate: Schedule_Calendar_Present_Value_Update()
            applies Schedule_Default outside the Effective_Period, per
            135-2024 12.24.11 */
-        Schedule_Calendar_Present_Value_Update(
-            object_instance, &bdatetime.date, &bdatetime.time);
+        Schedule_Calendar_Present_Value_Update(object_instance, &bdate, &btime);
     }
 }

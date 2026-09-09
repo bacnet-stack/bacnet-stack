@@ -14,10 +14,6 @@
 #include <bacnet/basic/object/device.h>
 #include <property_test.h>
 
-/* test hook defined in test/bacnet/basic/object/test/device_mock.c */
-extern void
-Device_getCurrentDateTime_Value_Set(const BACNET_DATE_TIME *datetime);
-
 /**
  * @addtogroup bacnet_tests
  * @{
@@ -444,7 +440,7 @@ static void testScheduleTimerEffectivePeriod(void)
     /* inside the Effective_Period: recalculation happens */
     in_period.date = (BACNET_DATE) { 2024, 1, 15, BACNET_WEEKDAY_MONDAY };
     datetime_set_time(&in_period.time, 9, 0, 0, 0);
-    Device_getCurrentDateTime_Value_Set(&in_period);
+    datetime_timesync(&in_period.date, &in_period.time, false);
     Schedule_Timer(object_instance, 0);
     zassert_within(
         testSchedule_Present_Value_Real(object_instance), 10.0f, 0.001f, NULL);
@@ -454,18 +450,17 @@ static void testScheduleTimerEffectivePeriod(void)
      * value */
     out_of_period.date = (BACNET_DATE) { 2024, 2, 15, BACNET_WEEKDAY_THURSDAY };
     datetime_set_time(&out_of_period.time, 9, 0, 0, 0);
-    Device_getCurrentDateTime_Value_Set(&out_of_period);
+    datetime_timesync(&out_of_period.date, &out_of_period.time, false);
     Schedule_Timer(object_instance, 0);
     zassert_within(
         testSchedule_Present_Value_Real(object_instance), 21.0f, 0.001f, NULL);
 
     /* back inside the Effective_Period: recalculation resumes */
-    Device_getCurrentDateTime_Value_Set(&in_period);
+    datetime_timesync(&in_period.date, &in_period.time, false);
     Schedule_Timer(object_instance, 0);
     zassert_within(
         testSchedule_Present_Value_Real(object_instance), 10.0f, 0.001f, NULL);
 
-    Device_getCurrentDateTime_Value_Set(NULL);
     status = Schedule_Delete(object_instance);
     zassert_true(status, NULL);
 #endif
