@@ -250,15 +250,17 @@ unsigned Binary_Value_Instance_To_Index(uint32_t object_instance)
     return Keylist_Index(Object_List, object_instance);
 }
 
-#if defined(BACNET_OBJECT_BINARY_VALUE_COMMANDABLE)
 /**
- * @brief Calculated the present-value property from the priority array.
+ * @brief Determine the present-value property of the object: calculated
+ * from the priority array when commandable, or read from its plain
+ * storage when not.
  * @param pObject - pointer to the object data
  * @return The present-value of the object
  */
 static BACNET_BINARY_PV Object_Present_Value(struct object_data *pObject)
 {
     BACNET_BINARY_PV value = BINARY_INACTIVE;
+#if defined(BACNET_OBJECT_BINARY_VALUE_COMMANDABLE)
     unsigned p = 0;
 
     if (pObject) {
@@ -276,26 +278,14 @@ static BACNET_BINARY_PV Object_Present_Value(struct object_data *pObject)
             }
         }
     }
-
-    return value;
-}
 #else
-/**
- * @brief Get the present-value property from its non-commandable storage
- * @param pObject - pointer to the object data
- * @return The present-value of the object
- */
-static BACNET_BINARY_PV Object_Present_Value(struct object_data *pObject)
-{
-    BACNET_BINARY_PV value = BINARY_INACTIVE;
-
     if (pObject && pObject->Present_Value) {
         value = BINARY_ACTIVE;
     }
+#endif
 
     return value;
 }
-#endif
 
 /**
  * @brief Converts a BACNET_BINARY_PV enumeration to a boolean value
