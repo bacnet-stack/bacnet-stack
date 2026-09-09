@@ -473,10 +473,95 @@ static void testScheduleTimerEffectivePeriod(void)
 
 /**
  * @brief Test that List_Of_Object_Property_References members are written
- *  when Present_Value changes, and that Write_Every_Scheduled_Action
- *  forces one write when a new scheduled action becomes active (even
- *  without a value change), but not on repeated recalculations of the
- *  same still-active action, per 135-2024 12.24.4/12.24.25
+ *  when Present_Value changes, and are not rewritten on a subsequent
+ *  poll of the same still-active action with no value change, per
+ *  135-2024 12.24.4. This behavior does not depend on the
+ *  Write_Every_Scheduled_Action property (added in Protocol_Revision 24).
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(schedule_tests, testScheduleWriteMembersOnValueChange)
+#else
+static void testScheduleWriteMembersOnValueChange(void)
+#endif
+{
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+    uint32_t object_instance;
+    BACNET_DAILY_SCHEDULE_ENTRY entry = { 0 };
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
+    BACNET_DATE test_date = { 2024, 6, 15, BACNET_WEEKDAY_SATURDAY };
+    BACNET_TIME test_time_before = { 0 }, test_time_mid = { 0 };
+    bool status;
+
+    object_instance = Schedule_Create(BACNET_MAX_INSTANCE);
+    zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
+
+    /* one member reference to write Present_Value to */
+    member.objectIdentifier.type = OBJECT_ANALOG_VALUE;
+    member.objectIdentifier.instance = 1;
+    member.propertyIdentifier = PROP_PRESENT_VALUE;
+    member.arrayIndex = BACNET_ARRAY_ALL;
+    status = Schedule_List_Of_Object_Property_References_Add(
+        object_instance, &member);
+    zassert_true(status, NULL);
+
+    /* Weekly_Schedule: Saturday 08:00 -> 10.0 */
+    datetime_set_time(&entry.Time_Value.Time, 8, 0, 0, 0);
+    entry.Time_Value.Value.tag = BACNET_APPLICATION_TAG_REAL;
+    entry.Time_Value.Value.type.Real = 10.0f;
+    entry.next = NULL;
+    status = Schedule_Weekly_Schedule_Set(
+        object_instance, BACNET_WEEKDAY_SATURDAY - 1, &entry);
+    zassert_true(status, NULL);
+    datetime_set_time(&test_time_before, 7, 0, 0, 0);
+    datetime_set_time(&test_time_mid, 8, 15, 0, 0);
+
+    Schedule_Write_Property_Internal_Callback_Set(
+        testSchedule_Write_Property_Stub);
+    testSchedule_Write_Property_Call_Count = 0;
+
+    /* before 08:00: falls back to Schedule_Default, unchanged from the
+     * initial value, so no write occurs */
+    Schedule_Calendar_Present_Value_Update(
+        object_instance, &test_date, &test_time_before);
+    zassert_equal(testSchedule_Write_Property_Call_Count, 0, NULL);
+
+    /* 08:00 action activates: Present_Value changes (Default -> 10.0):
+     * one write */
+    Schedule_Calendar_Present_Value_Update(
+        object_instance, &test_date, &test_time_mid);
+    zassert_equal(testSchedule_Write_Property_Call_Count, 1, NULL);
+    zassert_equal(
+        testSchedule_Write_Property_Last_Data.object_type, OBJECT_ANALOG_VALUE,
+        NULL);
+    zassert_equal(
+        testSchedule_Write_Property_Last_Data.object_instance, 1, NULL);
+    zassert_equal(
+        testSchedule_Write_Property_Last_Data.object_property,
+        PROP_PRESENT_VALUE, NULL);
+
+    /* same action still active, Present_Value unchanged: no write */
+    Schedule_Calendar_Present_Value_Update(
+        object_instance, &test_date, &test_time_mid);
+    zassert_equal(testSchedule_Write_Property_Call_Count, 1, NULL);
+
+    /* invalid instance / no member references are a no-op, not a crash */
+    Schedule_Write_Property_Internal_Callback_Set(NULL);
+    Schedule_Calendar_Present_Value_Update(
+        object_instance, &test_date, &test_time_before);
+
+    status = Schedule_Delete(object_instance);
+    zassert_true(status, NULL);
+#endif
+}
+
+/**
+ * @brief Test that Write_Every_Scheduled_Action forces one write when a
+ *  new scheduled action becomes active (even without a value change),
+ *  but not on repeated recalculations of the same still-active action,
+ *  per 135-2024 12.24.25. Write_Every_Scheduled_Action and its
+ *  WriteProperty/ReadProperty round-trip were added in Protocol_Revision
+ *  24, so this test (and the getter/setter it exercises) is only
+ *  compiled for that revision or later.
  */
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(schedule_tests, testScheduleWriteEveryScheduledAction)
@@ -484,7 +569,7 @@ ZTEST(schedule_tests, testScheduleWriteEveryScheduledAction)
 static void testScheduleWriteEveryScheduledAction(void)
 #endif
 {
-#if BACNET_EXCEPTION_SCHEDULE_SIZE
+#if BACNET_EXCEPTION_SCHEDULE_SIZE && (BACNET_PROTOCOL_REVISION >= 24)
     uint32_t object_instance;
     BACNET_DAILY_SCHEDULE_ENTRY entry = { 0 }, entry2 = { 0 };
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
@@ -539,14 +624,6 @@ static void testScheduleWriteEveryScheduledAction(void)
     Schedule_Calendar_Present_Value_Update(
         object_instance, &test_date, &test_time_mid);
     zassert_equal(testSchedule_Write_Property_Call_Count, 1, NULL);
-    zassert_equal(
-        testSchedule_Write_Property_Last_Data.object_type, OBJECT_ANALOG_VALUE,
-        NULL);
-    zassert_equal(
-        testSchedule_Write_Property_Last_Data.object_instance, 1, NULL);
-    zassert_equal(
-        testSchedule_Write_Property_Last_Data.object_property,
-        PROP_PRESENT_VALUE, NULL);
 
     /* same action still active, Present_Value unchanged: no write while
      * Write_Every_Scheduled_Action is FALSE */
@@ -609,11 +686,7 @@ static void testScheduleWriteEveryScheduledAction(void)
         zassert_false(value.type.Boolean, NULL);
     }
 
-    /* invalid instance / no member references are a no-op, not a crash */
     Schedule_Write_Property_Internal_Callback_Set(NULL);
-    Schedule_Calendar_Present_Value_Update(
-        object_instance, &test_date, &test_time_before);
-
     status = Schedule_Delete(object_instance);
     zassert_true(status, NULL);
 #endif
@@ -728,6 +801,7 @@ void test_main(void)
         schedule_tests, ztest_unit_test(testSchedule),
         ztest_unit_test(testScheduleCalendarPresentValueUpdate),
         ztest_unit_test(testScheduleTimerEffectivePeriod),
+        ztest_unit_test(testScheduleWriteMembersOnValueChange),
         ztest_unit_test(testScheduleWriteEveryScheduledAction),
         ztest_unit_test(testScheduleWriteMembersRemoteDevice),
         ztest_unit_test(testScheduleCreateDelete));
