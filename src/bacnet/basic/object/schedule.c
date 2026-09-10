@@ -1075,11 +1075,12 @@ static int Schedule_Weekly_Schedule_Encode(
 static bool Special_Event_Data_Set(
     struct special_event_data *event, const BACNET_SPECIAL_EVENT_ENTRY *value)
 {
-    BACNET_TIME_VALUE *pTV;
+    BACNET_TIME_VALUE *time_value;
     const BACNET_DAILY_SCHEDULE_ENTRY *entry;
     unsigned count;
 
-    if (!event || !value) {
+    if (!event || !value || (value->priority == 0) ||
+        (value->priority > BACNET_MAX_PRIORITY)) {
         return false;
     }
     event->periodTag = value->periodTag;
@@ -1090,15 +1091,15 @@ static bool Special_Event_Data_Set(
     for (entry = value->timeValues;
          entry && (count < BACNET_SCHEDULE_DAILY_TIME_VALUES_MAX);
          entry = entry->next, count++) {
-        pTV = calloc(1, sizeof(BACNET_TIME_VALUE));
-        if (!pTV) {
+        time_value = calloc(1, sizeof(BACNET_TIME_VALUE));
+        if (!time_value) {
             /* roll back so the entry is not left partially updated */
             Special_Event_Time_Value_Delete_All(event);
             return false;
         }
-        *pTV = entry->Time_Value;
-        if (Keylist_Data_Add(event->Time_Values, (KEY)count, pTV) < 0) {
-            free(pTV);
+        *time_value = entry->Time_Value;
+        if (Keylist_Data_Add(event->Time_Values, (KEY)count, time_value) < 0) {
+            free(time_value);
             Special_Event_Time_Value_Delete_All(event);
             return false;
         }
