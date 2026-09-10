@@ -852,7 +852,11 @@ bool Schedule_Weekly_Schedule(
         if (pTV) {
             entries[i].Time_Value = *pTV;
         }
-        entries[i].next = (i + 1 < count) ? &entries[i + 1] : NULL;
+        if (i + 1 < count) {
+            entries[i].next = &entries[i + 1];
+        } else {
+            entries[i].next = NULL;
+        }
     }
     if (entries_count) {
         *entries_count = count;
@@ -1052,8 +1056,11 @@ static int Schedule_Weekly_Schedule_Encode(
         return BACNET_STATUS_ERROR;
     }
 
-    return bacnet_dailyschedule_list_context_encode(
-        apdu, 0, count ? &entries[0] : NULL);
+    if (count) {
+        return bacnet_dailyschedule_list_context_encode(apdu, 0, &entries[0]);
+    } else {
+        return bacnet_dailyschedule_list_context_encode(apdu, 0, NULL);
+    }
 }
 
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
@@ -1143,7 +1150,11 @@ bool Schedule_Exception_Schedule(
             if (pTV) {
                 entries[i].Time_Value = *pTV;
             }
-            entries[i].next = (i + 1 < count) ? &entries[i + 1] : NULL;
+            if (i + 1 < count) {
+                entries[i].next = &entries[i + 1];
+            } else {
+                entries[i].next = NULL;
+            }
         }
     }
     if (entries_count) {
@@ -1153,7 +1164,11 @@ bool Schedule_Exception_Schedule(
         value->periodTag = pEvent->periodTag;
         memcpy(&value->period, &pEvent->period, sizeof(value->period));
         value->priority = pEvent->priority;
-        value->timeValues = count ? &entries[0] : NULL;
+        if (count) {
+            value->timeValues = &entries[0];
+        } else {
+            value->timeValues = NULL;
+        }
     }
 
     return true;
@@ -1380,7 +1395,11 @@ static BACNET_ERROR_CODE Schedule_Exception_Schedule_Element_Write(
     if (len <= 0) {
         return ERROR_CODE_INVALID_DATA_TYPE;
     }
-    special_event.timeValues = store.count ? &store.entries[0] : NULL;
+    if (store.count) {
+        special_event.timeValues = &store.entries[0];
+    } else {
+        special_event.timeValues = NULL;
+    }
     new_event =
         Keylist_Data_Index(pObject->Exception_Schedule, (int)array_index);
     if (!new_event) {
@@ -1899,9 +1918,14 @@ static BACNET_ERROR_CODE Schedule_Weekly_Schedule_Element_Write(
                 application_data, application_data_len, 0,
                 Schedule_Time_Value_List_Store_Entry, &store);
             if (len > 0) {
+                BACNET_DAILY_SCHEDULE_ENTRY *head;
+                if (store.count) {
+                    head = &store.entries[0];
+                } else {
+                    head = NULL;
+                }
                 if (Schedule_Weekly_Schedule_Set(
-                        object_instance, array_index,
-                        store.count ? &store.entries[0] : NULL)) {
+                        object_instance, array_index, head)) {
                     error_code = ERROR_CODE_SUCCESS;
                 } else {
                     error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
