@@ -18,29 +18,17 @@ static bool is_data_value_schedule_compatible(uint8_t tag)
     switch (tag) {
         /* Every member of the union must be listed here to allow decoding */
         case BACNET_APPLICATION_TAG_NULL:
-            return true;
-#if defined(BACAPP_BOOLEAN)
         case BACNET_APPLICATION_TAG_BOOLEAN:
-            return true;
-#endif
-#if defined(BACAPP_UNSIGNED)
         case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+        case BACNET_APPLICATION_TAG_REAL:
+        case BACNET_APPLICATION_TAG_ENUMERATED:
             return true;
-#endif
-#if defined(BACAPP_SIGNED)
+#if BACNET_USE_SIGNED
         case BACNET_APPLICATION_TAG_SIGNED_INT:
             return true;
 #endif
-#if defined(BACAPP_REAL)
-        case BACNET_APPLICATION_TAG_REAL:
-            return true;
-#endif
-#if defined(BACAPP_DOUBLE)
+#if BACNET_USE_DOUBLE
         case BACNET_APPLICATION_TAG_DOUBLE:
-            return true;
-#endif
-#if defined(BACAPP_ENUMERATED)
-        case BACNET_APPLICATION_TAG_ENUMERATED:
             return true;
 #endif
         default:
@@ -180,48 +168,38 @@ int bacnet_primitive_value_encode(
 
     if (value) {
         switch (value->tag) {
-#if defined(BACAPP_NULL)
             case BACNET_APPLICATION_TAG_NULL:
                 if (apdu) {
                     apdu[0] = value->tag;
                 }
                 apdu_len++;
                 break;
-#endif
-#if defined(BACAPP_BOOLEAN)
             case BACNET_APPLICATION_TAG_BOOLEAN:
                 apdu_len =
                     encode_application_boolean(apdu, value->type.Boolean);
                 break;
-#endif
-#if defined(BACAPP_UNSIGNED)
             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
                 apdu_len =
                     encode_application_unsigned(apdu, value->type.Unsigned_Int);
                 break;
-#endif
-#if defined(BACAPP_SIGNED)
+#if BACNET_USE_SIGNED
             case BACNET_APPLICATION_TAG_SIGNED_INT:
                 apdu_len =
                     encode_application_signed(apdu, value->type.Signed_Int);
                 break;
 #endif
-#if defined(BACAPP_REAL)
             case BACNET_APPLICATION_TAG_REAL:
                 apdu_len = encode_application_real(apdu, value->type.Real);
                 break;
-#endif
-#if defined(BACAPP_DOUBLE)
+#if BACNET_USE_DOUBLE
             case BACNET_APPLICATION_TAG_DOUBLE:
                 apdu_len = encode_application_double(apdu, value->type.Double);
                 break;
 #endif
-#if defined(BACAPP_ENUMERATED)
             case BACNET_APPLICATION_TAG_ENUMERATED:
                 apdu_len =
                     encode_application_enumerated(apdu, value->type.Enumerated);
                 break;
-#endif
             default:
                 break;
         }
@@ -256,46 +234,36 @@ int bacnet_primitive_value_application_decode(
 
     if (value) {
         switch (tag_data_type) {
-#if defined(BACAPP_NULL)
             case BACNET_APPLICATION_TAG_NULL:
                 /* nothing else to do */
                 break;
-#endif
-#if defined(BACAPP_BOOLEAN)
             case BACNET_APPLICATION_TAG_BOOLEAN:
                 value->type.Boolean = decode_boolean(len_value_type);
                 break;
-#endif
-#if defined(BACAPP_UNSIGNED)
             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
                 len = bacnet_unsigned_decode(
                     apdu, apdu_size, len_value_type, &value->type.Unsigned_Int);
                 break;
-#endif
-#if defined(BACAPP_SIGNED)
+#if BACNET_USE_SIGNED
             case BACNET_APPLICATION_TAG_SIGNED_INT:
                 len = bacnet_signed_decode(
                     apdu, apdu_size, len_value_type, &value->type.Signed_Int);
                 break;
 #endif
-#if defined(BACAPP_REAL)
             case BACNET_APPLICATION_TAG_REAL:
                 len = bacnet_real_decode(
                     apdu, apdu_size, len_value_type, &(value->type.Real));
                 break;
-#endif
-#if defined(BACAPP_DOUBLE)
+#if BACNET_USE_DOUBLE
             case BACNET_APPLICATION_TAG_DOUBLE:
                 len = bacnet_double_decode(
                     apdu, apdu_size, len_value_type, &(value->type.Double));
                 break;
 #endif
-#if defined(BACAPP_ENUMERATED)
             case BACNET_APPLICATION_TAG_ENUMERATED:
                 len = bacnet_enumerated_decode(
                     apdu, apdu_size, len_value_type, &value->type.Enumerated);
                 break;
-#endif
             default:
                 break;
         }
@@ -374,40 +342,32 @@ bool bacnet_primitive_value_same(
         status = false;
         /* does the value match? */
         switch (test_value->tag) {
-#if defined(BACAPP_NULL)
             case BACNET_APPLICATION_TAG_NULL:
                 status = true;
                 break;
-#endif
-#if defined(BACAPP_BOOLEAN)
             case BACNET_APPLICATION_TAG_BOOLEAN:
                 if (test_value->type.Boolean == value->type.Boolean) {
                     status = true;
                 }
                 break;
-#endif
-#if defined(BACAPP_UNSIGNED)
             case BACNET_APPLICATION_TAG_UNSIGNED_INT:
                 if (test_value->type.Unsigned_Int == value->type.Unsigned_Int) {
                     status = true;
                 }
                 break;
-#endif
-#if defined(BACAPP_SIGNED)
+#if BACNET_USE_SIGNED
             case BACNET_APPLICATION_TAG_SIGNED_INT:
                 if (test_value->type.Signed_Int == value->type.Signed_Int) {
                     status = true;
                 }
                 break;
 #endif
-#if defined(BACAPP_REAL)
             case BACNET_APPLICATION_TAG_REAL:
                 if (!islessgreater(test_value->type.Real, value->type.Real)) {
                     status = true;
                 }
                 break;
-#endif
-#if defined(BACAPP_DOUBLE)
+#if BACNET_USE_DOUBLE
             case BACNET_APPLICATION_TAG_DOUBLE:
                 if (!islessgreater(
                         test_value->type.Double, value->type.Double)) {
@@ -415,13 +375,11 @@ bool bacnet_primitive_value_same(
                 }
                 break;
 #endif
-#if defined(BACAPP_ENUMERATED)
             case BACNET_APPLICATION_TAG_ENUMERATED:
                 if (test_value->type.Enumerated == value->type.Enumerated) {
                     status = true;
                 }
                 break;
-#endif
             default:
                 break;
         }
@@ -444,41 +402,31 @@ bool bacnet_primitive_value_copy(
     }
     dest->tag = src->tag;
     switch (src->tag) {
-#if defined(BACAPP_NULL)
         case BACNET_APPLICATION_TAG_NULL:
             /* nothing else to do */
             break;
-#endif
-#if defined(BACAPP_BOOLEAN)
         case BACNET_APPLICATION_TAG_BOOLEAN:
             dest->type.Boolean = src->type.Boolean;
             break;
-#endif
-#if defined(BACAPP_UNSIGNED)
         case BACNET_APPLICATION_TAG_UNSIGNED_INT:
             dest->type.Unsigned_Int = src->type.Unsigned_Int;
             break;
-#endif
-#if defined(BACAPP_SIGNED)
+#if BACNET_USE_SIGNED
         case BACNET_APPLICATION_TAG_SIGNED_INT:
             dest->type.Signed_Int = src->type.Signed_Int;
             break;
 #endif
-#if defined(BACAPP_REAL)
         case BACNET_APPLICATION_TAG_REAL:
             dest->type.Real = src->type.Real;
             break;
-#endif
-#if defined(BACAPP_DOUBLE)
+#if BACNET_USE_DOUBLE
         case BACNET_APPLICATION_TAG_DOUBLE:
             dest->type.Double = src->type.Double;
             break;
 #endif
-#if defined(BACAPP_ENUMERATED)
         case BACNET_APPLICATION_TAG_ENUMERATED:
             dest->type.Enumerated = src->type.Enumerated;
             break;
-#endif
         default:
             return false;
     }
