@@ -56,18 +56,6 @@ extern "C" {
 #endif /* __cplusplus */
 struct BACnet_Application_Data_Value;
 
-/** returns 0 if OK, -1 on error */
-BACNET_STACK_EXPORT
-int bacnet_application_to_primitive_data_value(
-    BACNET_PRIMITIVE_DATA_VALUE *dest,
-    const struct BACnet_Application_Data_Value *src);
-
-/** returns 0 if OK, -1 on error */
-BACNET_STACK_EXPORT
-int bacnet_primitive_to_application_data_value(
-    struct BACnet_Application_Data_Value *dest,
-    const BACNET_PRIMITIVE_DATA_VALUE *src);
-
 BACNET_STACK_EXPORT
 int bacnet_primitive_value_encode(
     uint8_t *apdu, const BACNET_PRIMITIVE_DATA_VALUE *value);

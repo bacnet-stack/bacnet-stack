@@ -130,7 +130,6 @@ static void test_BACnetTimeValues(void)
 {
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     BACNET_TIME_VALUE time_value = { 0 };
-    int rc = BACNET_STATUS_OK;
     bool status = false;
 
     test_BACnetTimeValue(&time_value);
@@ -138,20 +137,16 @@ static void test_BACnetTimeValues(void)
     status = bacapp_parse_application_data(
         BACNET_APPLICATION_TAG_BOOLEAN, "active", &value);
     zassert_true(status, NULL);
-    rc = bacnet_application_to_primitive_data_value(&time_value.Value, &value);
-    zassert_equal(rc, BACNET_STATUS_OK, NULL);
-    rc = bacnet_primitive_to_application_data_value(&value, &time_value.Value);
-    zassert_equal(rc, BACNET_STATUS_OK, NULL);
+    time_value.Value.tag = value.tag;
+    time_value.Value.type.Boolean = value.type.Boolean;
     datetime_time_init_ascii(&time_value.Time, "00:00.01");
     test_BACnetTimeValue(&time_value);
 
     status = bacapp_parse_application_data(
         BACNET_APPLICATION_TAG_UNSIGNED_INT, "99999", &value);
     zassert_true(status, NULL);
-    rc = bacnet_application_to_primitive_data_value(&time_value.Value, &value);
-    zassert_equal(rc, BACNET_STATUS_OK, NULL);
-    rc = bacnet_primitive_to_application_data_value(&value, &time_value.Value);
-    zassert_equal(rc, BACNET_STATUS_OK, NULL);
+    time_value.Value.tag = value.tag;
+    time_value.Value.type.Unsigned_Int = value.type.Unsigned_Int;
     status = datetime_time_init_ascii(&time_value.Time, "23:59:59");
     zassert_true(status, NULL);
     test_BACnetTimeValue(&time_value);
@@ -159,10 +154,8 @@ static void test_BACnetTimeValues(void)
     status = bacapp_parse_application_data(
         BACNET_APPLICATION_TAG_SIGNED_INT, "-42", &value);
     zassert_true(status, NULL);
-    rc = bacnet_application_to_primitive_data_value(&time_value.Value, &value);
-    zassert_equal(rc, BACNET_STATUS_OK, NULL);
-    rc = bacnet_primitive_to_application_data_value(&value, &time_value.Value);
-    zassert_equal(rc, BACNET_STATUS_OK, NULL);
+    time_value.Value.tag = value.tag;
+    time_value.Value.type.Signed_Int = value.type.Signed_Int;
     status = datetime_time_init_ascii(&time_value.Time, "13:00:59.99");
     zassert_true(status, NULL);
     test_BACnetTimeValue(&time_value);
@@ -170,10 +163,8 @@ static void test_BACnetTimeValues(void)
     status = bacapp_parse_application_data(
         BACNET_APPLICATION_TAG_REAL, "4.2", &value);
     zassert_true(status, NULL);
-    rc = bacnet_application_to_primitive_data_value(&time_value.Value, &value);
-    zassert_equal(rc, BACNET_STATUS_OK, NULL);
-    rc = bacnet_primitive_to_application_data_value(&value, &time_value.Value);
-    zassert_equal(rc, BACNET_STATUS_OK, NULL);
+    time_value.Value.tag = value.tag;
+    time_value.Value.type.Real = value.type.Real;
     status = datetime_time_init_ascii(&time_value.Time, "12:00");
     zassert_true(status, NULL);
     test_BACnetTimeValue(&time_value);
@@ -181,10 +172,8 @@ static void test_BACnetTimeValues(void)
     status = bacapp_parse_application_data(
         BACNET_APPLICATION_TAG_DOUBLE, "3.141593", &value);
     zassert_true(status, NULL);
-    rc = bacnet_application_to_primitive_data_value(&time_value.Value, &value);
-    zassert_equal(rc, BACNET_STATUS_OK, NULL);
-    rc = bacnet_primitive_to_application_data_value(&value, &time_value.Value);
-    zassert_equal(rc, BACNET_STATUS_OK, NULL);
+    time_value.Value.tag = value.tag;
+    time_value.Value.type.Double = value.type.Double;
     status = datetime_time_init_ascii(&time_value.Time, "3:14.15.93");
     zassert_true(status, NULL);
     test_BACnetTimeValue(&time_value);
@@ -192,27 +181,11 @@ static void test_BACnetTimeValues(void)
     status = bacapp_parse_application_data(
         BACNET_APPLICATION_TAG_ENUMERATED, "42", &value);
     zassert_true(status, NULL);
-    rc = bacnet_application_to_primitive_data_value(&time_value.Value, &value);
-    zassert_equal(rc, BACNET_STATUS_OK, NULL);
-    rc = bacnet_primitive_to_application_data_value(&value, &time_value.Value);
-    zassert_equal(rc, BACNET_STATUS_OK, NULL);
+    time_value.Value.tag = value.tag;
+    time_value.Value.type.Enumerated = value.type.Enumerated;
     status = datetime_time_init_ascii(&time_value.Time, "8:00.00.00");
     zassert_true(status, NULL);
     test_BACnetTimeValue(&time_value);
-
-    status = bacapp_parse_application_data(
-        BACNET_APPLICATION_TAG_OBJECT_ID, "8:4194303", &value);
-    zassert_true(status, NULL);
-    rc = bacnet_application_to_primitive_data_value(&time_value.Value, &value);
-    zassert_equal(rc, BACNET_STATUS_ERROR, "rc=%d", rc);
-    rc = bacnet_application_to_primitive_data_value(NULL, &value);
-    zassert_equal(rc, BACNET_STATUS_ERROR, "rc=%d", rc);
-    rc = bacnet_application_to_primitive_data_value(&time_value.Value, NULL);
-    zassert_equal(rc, BACNET_STATUS_ERROR, "rc=%d", rc);
-    rc = bacnet_primitive_to_application_data_value(NULL, &time_value.Value);
-    zassert_equal(rc, BACNET_STATUS_ERROR, NULL);
-    rc = bacnet_primitive_to_application_data_value(&value, NULL);
-    zassert_equal(rc, BACNET_STATUS_ERROR, NULL);
 }
 /**
  * @}
