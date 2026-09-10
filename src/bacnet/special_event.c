@@ -96,7 +96,7 @@ int bacnet_special_event_decode(
     if (len < 0) {
         return BACNET_STATUS_ERROR;
     }
-    if (priority > BACNET_MAX_PRIORITY) {
+    if ((priority == 0) || (priority > BACNET_MAX_PRIORITY)) {
         return BACNET_STATUS_ERROR;
     }
     if (value) {
@@ -476,7 +476,7 @@ int bacnet_special_event_entry_decode(
     if (len < 0) {
         return BACNET_STATUS_ERROR;
     }
-    if (priority > BACNET_MAX_PRIORITY) {
+    if ((priority == 0) || (priority > BACNET_MAX_PRIORITY)) {
         return BACNET_STATUS_ERROR;
     }
     if (value) {
