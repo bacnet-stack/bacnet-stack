@@ -89,8 +89,6 @@ bool Schedule_Write_Every_Scheduled_Action(uint32_t object_instance);
 BACNET_STACK_EXPORT
 void Schedule_Write_Property_Internal_Callback_Set(write_property_function cb);
 
-/* Weekly_Schedule: fixed BACnetARRAY[7] of day schedules (per the standard);
-   each day's Time-Values are stored dynamically (see accessors below) */
 BACNET_STACK_EXPORT
 bool Schedule_Weekly_Schedule(
     uint32_t object_instance,
@@ -122,8 +120,6 @@ BACNET_STACK_EXPORT
 bool Schedule_Weekly_Schedule_Time_Value_Delete_All(
     uint32_t object_instance, unsigned array_index);
 
-/* Exception_Schedule: resizable BACnetARRAY of BACnetSpecialEvent; each
-   entry's list-of-time-values is stored dynamically (see accessors below) */
 BACNET_STACK_EXPORT
 bool Schedule_Exception_Schedule(
     uint32_t object_instance,
@@ -145,8 +141,6 @@ bool Schedule_Exception_Schedule_Add(
 BACNET_STACK_EXPORT
 bool Schedule_Exception_Schedule_Delete_All(uint32_t object_instance);
 
-/* List_Of_Object_Property_References: resizable BACnetLIST of
-   BACnetDeviceObjectPropertyReference */
 BACNET_STACK_EXPORT
 bool Schedule_List_Of_Object_Property_References_Set(
     uint32_t object_instance,
@@ -201,16 +195,12 @@ int Schedule_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element);
 BACNET_STACK_EXPORT
 int Schedule_Remove_List_Element(BACNET_LIST_ELEMENT_DATA *list_element);
 
-/* utility functions for calculating current Present Value */
 BACNET_STACK_EXPORT
 bool Schedule_In_Effective_Period(
     uint32_t object_instance, const BACNET_DATE *date);
-/* weekly-schedule-only Present Value calculation (no Exception_Schedule) */
 BACNET_STACK_EXPORT
 void Schedule_Recalculate_PV(
     uint32_t object_instance, BACNET_WEEKDAY wday, const BACNET_TIME *time);
-/* full Present Value calculation per 135-2024 12.24.4, including
- * Exception_Schedule priority evaluation */
 BACNET_STACK_EXPORT
 void Schedule_Calendar_Present_Value_Update(
     uint32_t object_instance, const BACNET_DATE *date, const BACNET_TIME *time);
