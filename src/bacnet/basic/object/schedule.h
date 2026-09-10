@@ -122,20 +122,26 @@ BACNET_STACK_EXPORT
 bool Schedule_Weekly_Schedule_Time_Value_Delete_All(
     uint32_t object_instance, unsigned array_index);
 
-/* Exception_Schedule: resizable BACnetARRAY of BACnetSpecialEvent */
+/* Exception_Schedule: resizable BACnetARRAY of BACnetSpecialEvent; each
+   entry's list-of-time-values is stored dynamically (see accessors below) */
 BACNET_STACK_EXPORT
-BACNET_SPECIAL_EVENT *
-Schedule_Exception_Schedule(uint32_t object_instance, unsigned index);
+bool Schedule_Exception_Schedule(
+    uint32_t object_instance,
+    unsigned index,
+    BACNET_SPECIAL_EVENT_ENTRY *value,
+    BACNET_DAILY_SCHEDULE_ENTRY *entries,
+    size_t entries_size,
+    size_t *entries_count);
 BACNET_STACK_EXPORT
 bool Schedule_Exception_Schedule_Set(
     uint32_t object_instance,
     unsigned index,
-    const BACNET_SPECIAL_EVENT *value);
+    const BACNET_SPECIAL_EVENT_ENTRY *value);
 BACNET_STACK_EXPORT
 unsigned Schedule_Exception_Schedule_Count(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Schedule_Exception_Schedule_Add(
-    uint32_t object_instance, const BACNET_SPECIAL_EVENT *value);
+    uint32_t object_instance, const BACNET_SPECIAL_EVENT_ENTRY *value);
 BACNET_STACK_EXPORT
 bool Schedule_Exception_Schedule_Delete_All(uint32_t object_instance);
 

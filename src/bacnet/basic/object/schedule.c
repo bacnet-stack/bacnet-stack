@@ -34,6 +34,21 @@ struct daily_schedule_data {
     OS_Keylist Time_Values; /* keyed 0..N-1, data is BACNET_TIME_VALUE* */
 };
 
+/* per-entry dynamic Time-Value storage used by the Exception_Schedule
+   property, analogous to struct daily_schedule_data used by
+   Weekly_Schedule. The Exception_Schedule outer BACnetARRAY is a resizable
+   OS_Keylist of these entries, each of which owns its own resizable
+   list-of-time-values. */
+struct special_event_data {
+    BACNET_SPECIAL_EVENT_PERIOD_TAG periodTag;
+    union {
+        BACNET_CALENDAR_ENTRY calendarEntry;
+        BACNET_OBJECT_ID calendarReference;
+    } period;
+    OS_Keylist Time_Values; /* keyed 0..N-1, data is BACNET_TIME_VALUE* */
+    uint8_t priority;
+};
+
 struct object_data {
     BACNET_CHARACTER_CSTRING Object_Name;
     BACNET_CHARACTER_CSTRING Description;
@@ -43,7 +58,7 @@ struct object_data {
     /* Properties concerning Present Value */
     struct daily_schedule_data Weekly_Schedule[BACNET_WEEKLY_SCHEDULE_SIZE];
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
-    /* keyed 0..N-1, data is BACNET_SPECIAL_EVENT* */
+    /* keyed 0..N-1, data is struct special_event_data* */
     OS_Keylist Exception_Schedule;
 #endif
     BACNET_APPLICATION_DATA_VALUE Schedule_Default;
@@ -198,7 +213,74 @@ Daily_Schedule_Time_Value_Delete_All(struct daily_schedule_data *pDay)
     }
 }
 
+/* bounded store used while decoding a written list-of-time-values (a
+   Weekly_Schedule day, or an Exception_Schedule entry), since the codec
+   itself must not allocate list nodes */
+struct time_value_list_write_context {
+    BACNET_DAILY_SCHEDULE_ENTRY entries[BACNET_SCHEDULE_DAILY_TIME_VALUES_MAX];
+    size_t count;
+};
+
+/**
+ * @brief bacnet_dailyschedule_entry_store_fn callback that appends a
+ *  decoded Time-Value into a bounded, statically-linked entries array
+ * @param time_value - decoded Time-Value to store
+ * @param ctx - struct time_value_list_write_context to store into
+ * @return true if stored, false if the bounded store is full
+ */
+static bool Schedule_Time_Value_List_Store_Entry(
+    const BACNET_TIME_VALUE *time_value, void *ctx)
+{
+    struct time_value_list_write_context *store = ctx;
+
+    if (!time_value || !store) {
+        return false;
+    }
+    if (store->count >= ARRAY_SIZE(store->entries)) {
+        return false;
+    }
+    store->entries[store->count].Time_Value = *time_value;
+    store->entries[store->count].next = NULL;
+    if (store->count > 0) {
+        store->entries[store->count - 1].next = &store->entries[store->count];
+    }
+    store->count++;
+
+    return true;
+}
+
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
+/**
+ * @brief Empty all the Time-Values from a single Exception_Schedule entry,
+ *  keeping the entry's Keylist itself intact and ready for reuse
+ * @param pEvent - special event data to empty
+ */
+static void
+Special_Event_Time_Value_Delete_All(struct special_event_data *pEvent)
+{
+    BACNET_TIME_VALUE *pTV;
+
+    if (pEvent) {
+        do {
+            pTV = Keylist_Data_Pop(pEvent->Time_Values);
+            free(pTV);
+        } while (pTV);
+    }
+}
+
+/**
+ * @brief Free a single Exception_Schedule entry and its Time-Values Keylist
+ * @param pEvent - special event data to free
+ */
+static void Special_Event_Free(struct special_event_data *pEvent)
+{
+    if (pEvent) {
+        Special_Event_Time_Value_Delete_All(pEvent);
+        Keylist_Delete(pEvent->Time_Values);
+        free(pEvent);
+    }
+}
+
 /**
  * @brief Empty all the entries from Exception_Schedule, keeping the
  *  Keylist itself intact and ready for reuse
@@ -206,12 +288,12 @@ Daily_Schedule_Time_Value_Delete_All(struct daily_schedule_data *pDay)
  */
 static void Exception_Schedule_Delete_All(struct object_data *pObject)
 {
-    BACNET_SPECIAL_EVENT *special_event;
+    struct special_event_data *special_event;
 
     if (pObject) {
         do {
             special_event = Keylist_Data_Pop(pObject->Exception_Schedule);
-            free(special_event);
+            Special_Event_Free(special_event);
         } while (special_event);
     }
 }
@@ -976,36 +1058,118 @@ static int Schedule_Weekly_Schedule_Encode(
 
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
 /**
+ * @brief Set the periodTag/period/priority/list-of-time-values of an
+ *  Exception_Schedule entry from a caller-supplied linked list
+ * @param pEvent - special event data to set
+ * @param value - periodTag/period/priority and head of the linked list of
+ *  Time-Values to set
+ * @return true if set, and false if not (allocation failure)
+ */
+static bool Special_Event_Data_Set(
+    struct special_event_data *pEvent, const BACNET_SPECIAL_EVENT_ENTRY *value)
+{
+    BACNET_TIME_VALUE *pTV;
+    const BACNET_DAILY_SCHEDULE_ENTRY *entry;
+    unsigned count;
+
+    if (!pEvent || !value) {
+        return false;
+    }
+    pEvent->periodTag = value->periodTag;
+    memcpy(&pEvent->period, &value->period, sizeof(pEvent->period));
+    pEvent->priority = value->priority;
+    Special_Event_Time_Value_Delete_All(pEvent);
+    count = 0;
+    for (entry = value->timeValues;
+         entry && (count < BACNET_SCHEDULE_DAILY_TIME_VALUES_MAX);
+         entry = entry->next, count++) {
+        pTV = calloc(1, sizeof(BACNET_TIME_VALUE));
+        if (!pTV) {
+            /* roll back so the entry is not left partially updated */
+            Special_Event_Time_Value_Delete_All(pEvent);
+            return false;
+        }
+        *pTV = entry->Time_Value;
+        if (Keylist_Data_Add(pEvent->Time_Values, (KEY)count, pTV) < 0) {
+            free(pTV);
+            Special_Event_Time_Value_Delete_All(pEvent);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
  * @brief Get an Exception Schedule entry for a given object instance
  * @param object_instance - object-instance number of the object
  * @param index - 0-based index of the Exception Schedule entry
- * @return pointer to the Exception Schedule BACnetSpecialEvent,
- *  or NULL if not found
+ * @param value - [out] periodTag/period/priority/timeValues, or NULL
+ * @param entries - caller-supplied array of nodes to fill and link the
+ *  list-of-time-values; entries[0] is the head of the returned list when
+ *  entries_count > 0
+ * @param entries_size - number of nodes available in entries
+ * @param entries_count - [out] number of nodes filled in entries
+ * @return true if the Exception Schedule entry was found and copied
  */
-BACNET_SPECIAL_EVENT *
-Schedule_Exception_Schedule(uint32_t object_instance, unsigned index)
+bool Schedule_Exception_Schedule(
+    uint32_t object_instance,
+    unsigned index,
+    BACNET_SPECIAL_EVENT_ENTRY *value,
+    BACNET_DAILY_SCHEDULE_ENTRY *entries,
+    size_t entries_size,
+    size_t *entries_count)
 {
     struct object_data *pObject;
+    struct special_event_data *pEvent;
+    BACNET_TIME_VALUE *pTV;
+    unsigned i, count = 0;
 
     pObject = Object_Data(object_instance);
     if (!pObject) {
-        return NULL;
+        return false;
+    }
+    pEvent = Keylist_Data_Index(pObject->Exception_Schedule, (int)index);
+    if (!pEvent) {
+        return false;
+    }
+    if (entries && entries_size) {
+        count = (unsigned)Keylist_Count(pEvent->Time_Values);
+        if (count > entries_size) {
+            count = (unsigned)entries_size;
+        }
+        for (i = 0; i < count; i++) {
+            pTV = Keylist_Data_Index(pEvent->Time_Values, i);
+            if (pTV) {
+                entries[i].Time_Value = *pTV;
+            }
+            entries[i].next = (i + 1 < count) ? &entries[i + 1] : NULL;
+        }
+    }
+    if (entries_count) {
+        *entries_count = count;
+    }
+    if (value) {
+        value->periodTag = pEvent->periodTag;
+        memcpy(&value->period, &pEvent->period, sizeof(value->period));
+        value->priority = pEvent->priority;
+        value->timeValues = count ? &entries[0] : NULL;
     }
 
-    return Keylist_Data_Index(pObject->Exception_Schedule, (int)index);
+    return true;
 }
 
 /**
  * @brief Add a new Exception Schedule entry to a given object instance
  * @param object_instance - object-instance number of the object
- * @param value - pointer to the Exception Schedule BACnetSpecialEvent to add
+ * @param value - pointer to the Exception Schedule entry to add
  * @return true if added, false if not added (DoS guard reached)
  */
 bool Schedule_Exception_Schedule_Add(
-    uint32_t object_instance, const BACNET_SPECIAL_EVENT *value)
+    uint32_t object_instance, const BACNET_SPECIAL_EVENT_ENTRY *value)
 {
     struct object_data *pObject;
-    BACNET_SPECIAL_EVENT *special_event;
+    struct special_event_data *pEvent;
     unsigned count;
 
     pObject = Object_Data(object_instance);
@@ -1016,14 +1180,21 @@ bool Schedule_Exception_Schedule_Add(
     if (count >= BACNET_EXCEPTION_SCHEDULE_SIZE) {
         return false;
     }
-    special_event = calloc(1, sizeof(BACNET_SPECIAL_EVENT));
-    if (!special_event) {
+    pEvent = calloc(1, sizeof(struct special_event_data));
+    if (!pEvent) {
         return false;
     }
-    bacnet_special_event_copy(special_event, value);
-    if (Keylist_Data_Add(
-            pObject->Exception_Schedule, (KEY)count, special_event) < 0) {
-        free(special_event);
+    pEvent->Time_Values = Keylist_Create();
+    if (!pEvent->Time_Values) {
+        free(pEvent);
+        return false;
+    }
+    if (!Special_Event_Data_Set(pEvent, value)) {
+        Special_Event_Free(pEvent);
+        return false;
+    }
+    if (Keylist_Data_Add(pObject->Exception_Schedule, (KEY)count, pEvent) < 0) {
+        Special_Event_Free(pEvent);
         return false;
     }
 
@@ -1035,15 +1206,16 @@ bool Schedule_Exception_Schedule_Add(
  * @param object_instance - object-instance number of the object
  * @param index - 0-based index of the Exception Schedule entry; use the
  *  current count to append a new entry
- * @param value - pointer to the Weekly Schedule BACnetSpecialEvent to set
- * @return true if the Exception Schedule BACnetSpecialEvent was set,
- *  and false if not
+ * @param value - pointer to the Exception Schedule entry to set
+ * @return true if the Exception Schedule entry was set, and false if not
  */
 bool Schedule_Exception_Schedule_Set(
-    uint32_t object_instance, unsigned index, const BACNET_SPECIAL_EVENT *value)
+    uint32_t object_instance,
+    unsigned index,
+    const BACNET_SPECIAL_EVENT_ENTRY *value)
 {
     struct object_data *pObject;
-    BACNET_SPECIAL_EVENT *special_event;
+    struct special_event_data *pEvent;
     unsigned count;
 
     pObject = Object_Data(object_instance);
@@ -1052,12 +1224,11 @@ bool Schedule_Exception_Schedule_Set(
     }
     count = (unsigned)Keylist_Count(pObject->Exception_Schedule);
     if (index < count) {
-        special_event =
-            Keylist_Data_Index(pObject->Exception_Schedule, (int)index);
-        if (!special_event) {
+        pEvent = Keylist_Data_Index(pObject->Exception_Schedule, (int)index);
+        if (!pEvent) {
             return false;
         }
-        return bacnet_special_event_copy(special_event, value);
+        return Special_Event_Data_Set(pEvent, value);
     } else if (index == count) {
         return Schedule_Exception_Schedule_Add(object_instance, value);
     }
@@ -1112,14 +1283,18 @@ bool Schedule_Exception_Schedule_Delete_All(uint32_t object_instance)
 static int Schedule_Exception_Schedule_Encode(
     uint32_t object_instance, BACNET_ARRAY_INDEX array_index, uint8_t *apdu)
 {
-    const BACNET_SPECIAL_EVENT *value;
+    BACNET_SPECIAL_EVENT_ENTRY value = { 0 };
+    BACNET_DAILY_SCHEDULE_ENTRY
+    entries[BACNET_SCHEDULE_DAILY_TIME_VALUES_MAX] = { 0 };
+    size_t count = 0;
 
-    value = Schedule_Exception_Schedule(object_instance, array_index);
-    if (!value) {
+    if (!Schedule_Exception_Schedule(
+            object_instance, array_index, &value, entries, ARRAY_SIZE(entries),
+            &count)) {
         return BACNET_STATUS_ERROR;
     }
 
-    return bacnet_special_event_encode(apdu, value);
+    return bacnet_special_event_entry_encode(apdu, &value);
 }
 
 /**
@@ -1134,7 +1309,7 @@ static int Schedule_Exception_Schedule_Element_Length(
 {
     (void)object_instance;
 
-    return bacnet_special_event_decode(apdu, apdu_size, NULL);
+    return bacnet_special_event_entry_decode(apdu, apdu_size, NULL, NULL, NULL);
 }
 
 /**
@@ -1157,8 +1332,9 @@ static BACNET_ERROR_CODE Schedule_Exception_Schedule_Element_Write(
     size_t application_data_len)
 {
     struct object_data *pObject;
-    BACNET_SPECIAL_EVENT special_event = { 0 };
-    BACNET_SPECIAL_EVENT *new_event;
+    struct special_event_data *new_event;
+    BACNET_SPECIAL_EVENT_ENTRY special_event = { 0 };
+    struct time_value_list_write_context store = { 0 };
     unsigned count;
     int len;
 
@@ -1175,17 +1351,22 @@ static BACNET_ERROR_CODE Schedule_Exception_Schedule_Element_Write(
         count = (unsigned)Keylist_Count(pObject->Exception_Schedule);
         while (count > array_size) {
             new_event = Keylist_Data_Pop(pObject->Exception_Schedule);
-            free(new_event);
+            Special_Event_Free(new_event);
             count--;
         }
         while (count < array_size) {
-            new_event = calloc(1, sizeof(BACNET_SPECIAL_EVENT));
+            new_event = calloc(1, sizeof(struct special_event_data));
             if (!new_event) {
+                return ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+            new_event->Time_Values = Keylist_Create();
+            if (!new_event->Time_Values) {
+                free(new_event);
                 return ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
             }
             if (Keylist_Data_Add(
                     pObject->Exception_Schedule, (KEY)count, new_event) < 0) {
-                free(new_event);
+                Special_Event_Free(new_event);
                 return ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
             }
             count++;
@@ -1193,17 +1374,19 @@ static BACNET_ERROR_CODE Schedule_Exception_Schedule_Element_Write(
         return ERROR_CODE_SUCCESS;
     }
     array_index--; /* 1-based protocol index -> 0-based internal index */
-    len = bacnet_special_event_decode(
-        application_data, application_data_len, &special_event);
+    len = bacnet_special_event_entry_decode(
+        application_data, application_data_len, &special_event,
+        Schedule_Time_Value_List_Store_Entry, &store);
     if (len <= 0) {
         return ERROR_CODE_INVALID_DATA_TYPE;
     }
+    special_event.timeValues = store.count ? &store.entries[0] : NULL;
     new_event =
         Keylist_Data_Index(pObject->Exception_Schedule, (int)array_index);
     if (!new_event) {
         return ERROR_CODE_INVALID_ARRAY_INDEX;
     }
-    if (!bacnet_special_event_copy(new_event, &special_event)) {
+    if (!Special_Event_Data_Set(new_event, &special_event)) {
         return ERROR_CODE_INVALID_DATA_TYPE;
     }
 
@@ -1680,34 +1863,6 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     return apdu_len;
 }
 
-/* bounded store used while decoding a written Weekly_Schedule day, since
-   the codec itself must not allocate list nodes */
-struct daily_schedule_write_context {
-    BACNET_DAILY_SCHEDULE_ENTRY entries[BACNET_SCHEDULE_DAILY_TIME_VALUES_MAX];
-    size_t count;
-};
-
-static bool Schedule_Weekly_Schedule_Store_Entry(
-    const BACNET_TIME_VALUE *time_value, void *ctx)
-{
-    struct daily_schedule_write_context *store = ctx;
-
-    if (!time_value || !store) {
-        return false;
-    }
-    if (store->count >= ARRAY_SIZE(store->entries)) {
-        return false;
-    }
-    store->entries[store->count].Time_Value = *time_value;
-    store->entries[store->count].next = NULL;
-    if (store->count > 0) {
-        store->entries[store->count - 1].next = &store->entries[store->count];
-    }
-    store->count++;
-
-    return true;
-}
-
 /**
  * @brief Write a value to a BACnetARRAY property element value
  * @param object_instance [in] BACnet object instance number
@@ -1727,7 +1882,7 @@ static BACNET_ERROR_CODE Schedule_Weekly_Schedule_Element_Write(
     size_t application_data_len)
 {
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    struct daily_schedule_write_context store = { 0 };
+    struct time_value_list_write_context store = { 0 };
     int len = 0;
     struct object_data *pObject;
 
@@ -1742,7 +1897,7 @@ static BACNET_ERROR_CODE Schedule_Weekly_Schedule_Element_Write(
             array_index--;
             len = bacnet_dailyschedule_list_context_decode(
                 application_data, application_data_len, 0,
-                Schedule_Weekly_Schedule_Store_Entry, &store);
+                Schedule_Time_Value_List_Store_Entry, &store);
             if (len > 0) {
                 if (Schedule_Weekly_Schedule_Set(
                         object_instance, array_index,
@@ -2049,39 +2204,6 @@ static const BACNET_TIME_VALUE *Schedule_Weekly_Day_Current_Time_Value(
 }
 
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
-/**
- * @brief Find the latest BACnetTimeValue in a BACnetSpecialEvent's list
- *  whose time is at or before the given time
- * @param schedule - fixed-size Time_Values/TV_Count of a BACnetSpecialEvent
- * @param time - time of day to evaluate against
- * @return pointer to the matching BACNET_TIME_VALUE, or NULL if none apply
- */
-static const BACNET_TIME_VALUE *Schedule_Special_Event_Current_Time_Value(
-    const BACNET_DAILY_SCHEDULE *schedule, const BACNET_TIME *time)
-{
-    const BACNET_TIME_VALUE *pTV, *pCurrent = NULL;
-    unsigned i;
-    int diff;
-
-    for (i = 0; i < schedule->TV_Count; i++) {
-        pTV = &schedule->Time_Values[i];
-        diff = datetime_wildcard_compare_time(time, &pTV->Time);
-        if (diff >= 0) {
-            if (!pCurrent) {
-                pCurrent = pTV;
-            } else {
-                diff =
-                    datetime_wildcard_compare_time(&pTV->Time, &pCurrent->Time);
-                if (diff >= 0) {
-                    pCurrent = pTV;
-                }
-            }
-        }
-    }
-
-    return pCurrent;
-}
-
 /* registered by the Device object so a CalendarReference period can be
    resolved without a build dependency on the Calendar object */
 static read_property_function Read_Property_Internal_Callback;
@@ -2098,12 +2220,12 @@ void Schedule_Read_Property_Internal_Callback_Set(read_property_function cb)
 
 /**
  * @brief Determine if a BACnetSpecialEvent's Period is in effect for a date
- * @param event - BACnetSpecialEvent to evaluate
+ * @param event - Exception_Schedule entry to evaluate
  * @param date - date to check against the event's Period
  * @return true if the event's Period matches the given date
  */
 static bool Schedule_Special_Event_In_Effect(
-    const BACNET_SPECIAL_EVENT *event, const BACNET_DATE *date)
+    const struct special_event_data *event, const BACNET_DATE *date)
 {
     BACNET_READ_PROPERTY_DATA rp_data = { 0 };
     uint8_t apdu[8];
@@ -2304,7 +2426,7 @@ void Schedule_Calendar_Present_Value_Update(
     bool action_changed;
     BACNET_APPLICATION_DATA_VALUE old_value;
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
-    const BACNET_SPECIAL_EVENT *event;
+    const struct special_event_data *event;
     unsigned i, count;
     int best_priority = -1;
 #endif
@@ -2328,8 +2450,8 @@ void Schedule_Calendar_Present_Value_Update(
             if (!event || !Schedule_Special_Event_In_Effect(event, date)) {
                 continue;
             }
-            pCandidate = Schedule_Special_Event_Current_Time_Value(
-                &event->timeValues, time);
+            pCandidate = Schedule_Weekly_Day_Current_Time_Value(
+                event->Time_Values, time);
             if (!pCandidate ||
                 (pCandidate->Value.tag == BACNET_APPLICATION_TAG_NULL)) {
                 continue;

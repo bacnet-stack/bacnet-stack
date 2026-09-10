@@ -37,7 +37,8 @@ static void testSchedule(void)
     test_entries[BACNET_SCHEDULE_DAILY_TIME_VALUES_MAX] = { 0 };
     size_t test_count = 0;
     BACNET_TIME_VALUE single_tv = { 0 };
-    BACNET_SPECIAL_EVENT special_event = { 0 }, *test_special_event;
+    BACNET_SPECIAL_EVENT_ENTRY special_event = { 0 },
+                               test_special_event = { 0 };
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE object_property_reference = { 0 },
                                             test_object_property_reference = {
                                                 0
@@ -116,23 +117,27 @@ static void testSchedule(void)
 
     for (i = 0; i < BACNET_EXCEPTION_SCHEDULE_SIZE; i++) {
         special_event.periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY;
-        special_event.timeValues.TV_Count =
-            BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE;
-        for (tv = 0; tv < special_event.timeValues.TV_Count; tv++) {
-            datetime_set_time(
-                &special_event.timeValues.Time_Values[tv].Time, tv % 24, 0, 0,
-                0);
-            special_event.timeValues.Time_Values[tv].Value.tag =
-                BACNET_APPLICATION_TAG_REAL;
-            special_event.timeValues.Time_Values[tv].Value.type.Real =
-                1.0f + tv;
-            special_event.priority = tv % (BACNET_MAX_PRIORITY + 1);
+        for (tv = 0; tv < BACNET_SCHEDULE_DAILY_TIME_VALUES_MAX; tv++) {
+            datetime_set_time(&entries[tv].Time_Value.Time, tv % 24, 0, 0, 0);
+            entries[tv].Time_Value.Value.tag = BACNET_APPLICATION_TAG_REAL;
+            entries[tv].Time_Value.Value.type.Real = 1.0f + tv;
+            entries[tv].next = (tv + 1 < BACNET_SCHEDULE_DAILY_TIME_VALUES_MAX)
+                ? &entries[tv + 1]
+                : NULL;
         }
+        special_event.timeValues = &entries[0];
+        special_event.priority = i % (BACNET_MAX_PRIORITY + 1);
         status =
             Schedule_Exception_Schedule_Set(object_instance, i, &special_event);
         zassert_true(status, NULL);
-        test_special_event = Schedule_Exception_Schedule(object_instance, i);
-        status = bacnet_special_event_same(&special_event, test_special_event);
+        test_count = 0;
+        status = Schedule_Exception_Schedule(
+            object_instance, i, &test_special_event, test_entries,
+            sizeof(test_entries) / sizeof(test_entries[0]), &test_count);
+        zassert_true(status, NULL);
+        zassert_equal(test_count, BACNET_SCHEDULE_DAILY_TIME_VALUES_MAX, NULL);
+        status = bacnet_special_event_entry_same(
+            &special_event, &test_special_event);
         zassert_true(status, NULL);
     }
     zassert_equal(
@@ -283,7 +288,8 @@ static void testScheduleCalendarPresentValueUpdate(void)
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
     uint32_t object_instance;
     BACNET_DAILY_SCHEDULE_ENTRY entry = { 0 };
-    BACNET_SPECIAL_EVENT special_event = { 0 };
+    BACNET_DAILY_SCHEDULE_ENTRY exception_entry = { 0 };
+    BACNET_SPECIAL_EVENT_ENTRY special_event = { 0 };
     BACNET_DATE test_date = { 2024, 6, 15, BACNET_WEEKDAY_SATURDAY };
     BACNET_TIME test_time = { 0 };
     bool status;
@@ -311,12 +317,11 @@ static void testScheduleCalendarPresentValueUpdate(void)
     special_event.period.calendarEntry.tag = BACNET_CALENDAR_DATE;
     special_event.period.calendarEntry.type.Date = test_date;
     special_event.priority = 5;
-    special_event.timeValues.TV_Count = 1;
-    datetime_set_time(
-        &special_event.timeValues.Time_Values[0].Time, 8, 0, 0, 0);
-    special_event.timeValues.Time_Values[0].Value.tag =
-        BACNET_APPLICATION_TAG_REAL;
-    special_event.timeValues.Time_Values[0].Value.type.Real = 20.0f;
+    exception_entry.next = NULL;
+    special_event.timeValues = &exception_entry;
+    datetime_set_time(&exception_entry.Time_Value.Time, 8, 0, 0, 0);
+    exception_entry.Time_Value.Value.tag = BACNET_APPLICATION_TAG_REAL;
+    exception_entry.Time_Value.Value.type.Real = 20.0f;
     status =
         Schedule_Exception_Schedule_Set(object_instance, 0, &special_event);
     zassert_true(status, NULL);
@@ -329,7 +334,7 @@ static void testScheduleCalendarPresentValueUpdate(void)
 
     /* index 1: higher relative priority (lower number) wins, value 30.0 */
     special_event.priority = 3;
-    special_event.timeValues.Time_Values[0].Value.type.Real = 30.0f;
+    exception_entry.Time_Value.Value.type.Real = 30.0f;
     status =
         Schedule_Exception_Schedule_Set(object_instance, 1, &special_event);
     zassert_true(status, NULL);
@@ -340,7 +345,7 @@ static void testScheduleCalendarPresentValueUpdate(void)
 
     /* index 2: same priority as index 1, but a higher index loses the
      * tie-break, so value 30.0 (index 1) still wins */
-    special_event.timeValues.Time_Values[0].Value.type.Real = 40.0f;
+    exception_entry.Time_Value.Value.type.Real = 40.0f;
     status =
         Schedule_Exception_Schedule_Set(object_instance, 2, &special_event);
     zassert_true(status, NULL);
@@ -352,8 +357,7 @@ static void testScheduleCalendarPresentValueUpdate(void)
     /* a Null value at the winning priority falls through to the next-best
      * candidate (index 0, priority 5, value 20.0) */
     special_event.priority = 3;
-    special_event.timeValues.Time_Values[0].Value.tag =
-        BACNET_APPLICATION_TAG_NULL;
+    exception_entry.Time_Value.Value.tag = BACNET_APPLICATION_TAG_NULL;
     status =
         Schedule_Exception_Schedule_Set(object_instance, 1, &special_event);
     zassert_true(status, NULL);
@@ -372,9 +376,8 @@ static void testScheduleCalendarPresentValueUpdate(void)
     special_event.period.calendarReference.type = OBJECT_CALENDAR;
     special_event.period.calendarReference.instance = 0;
     special_event.priority = 1;
-    special_event.timeValues.Time_Values[0].Value.tag =
-        BACNET_APPLICATION_TAG_REAL;
-    special_event.timeValues.Time_Values[0].Value.type.Real = 50.0f;
+    exception_entry.Time_Value.Value.tag = BACNET_APPLICATION_TAG_REAL;
+    exception_entry.Time_Value.Value.type.Real = 50.0f;
     status =
         Schedule_Exception_Schedule_Set(object_instance, 0, &special_event);
     zassert_true(status, NULL);
