@@ -408,6 +408,58 @@ static void testScheduleCalendarPresentValueUpdate(void)
 }
 
 /**
+ * @brief Test that Schedule_Timer() skips recalculation when the local
+ *  clock cannot be read, even if stale valid date/time values are left in
+ *  the outputs.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(schedule_tests, testScheduleTimerSkipsWhenClockReadFails)
+#else
+static void testScheduleTimerSkipsWhenClockReadFails(void)
+#endif
+{
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+    uint32_t object_instance;
+    BACNET_DAILY_SCHEDULE_ENTRY entry = { 0 };
+    BACNET_DATE monday = { 2024, 1, 15, BACNET_WEEKDAY_MONDAY };
+    BACNET_DATE tuesday = { 2024, 1, 16, BACNET_WEEKDAY_TUESDAY };
+    BACNET_TIME monday_time = { 0 }, tuesday_time = { 0 };
+    bool status;
+
+    object_instance = Schedule_Create(BACNET_MAX_INSTANCE);
+    zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
+    status = Schedule_Effective_Period_Set(
+        object_instance, &(BACNET_DATE) { 2024, 1, 1, BACNET_WEEKDAY_MONDAY },
+        &(BACNET_DATE) { 2024, 12, 31, BACNET_WEEKDAY_TUESDAY });
+    zassert_true(status, NULL);
+
+    datetime_set_time(&entry.Time_Value.Time, 8, 0, 0, 0);
+    entry.Time_Value.Value.tag = BACNET_APPLICATION_TAG_REAL;
+    entry.Time_Value.Value.type.Real = 10.0f;
+    entry.next = NULL;
+    status = Schedule_Weekly_Schedule_Set(
+        object_instance, BACNET_WEEKDAY_MONDAY - 1, &entry);
+    zassert_true(status, NULL);
+
+    datetime_set_time(&monday_time, 9, 0, 0, 0);
+    Schedule_Calendar_Present_Value_Update(
+        object_instance, &monday, &monday_time);
+    zassert_within(
+        testSchedule_Present_Value_Real(object_instance), 10.0f, 0.001f, NULL);
+
+    datetime_set_time(&tuesday_time, 9, 0, 0, 0);
+    datetime_timesync(NULL, NULL, false);
+    Schedule_Timer(object_instance, 0);
+    zassert_within(
+        testSchedule_Present_Value_Real(object_instance), 10.0f, 0.001f, NULL);
+
+    datetime_timesync(&tuesday, &tuesday_time, false);
+    status = Schedule_Delete(object_instance);
+    zassert_true(status, NULL);
+#endif
+}
+
+/**
  * @brief Test that Schedule_Timer() recalculates Present_Value at every
  *  poll, falling back to Schedule_Default while the current date is
  *  outside the Effective_Period, per 135-2024 12.24.11
@@ -823,6 +875,7 @@ void test_main(void)
     ztest_test_suite(
         schedule_tests, ztest_unit_test(testSchedule),
         ztest_unit_test(testScheduleCalendarPresentValueUpdate),
+        ztest_unit_test(testScheduleTimerSkipsWhenClockReadFails),
         ztest_unit_test(testScheduleTimerEffectivePeriod),
         ztest_unit_test(testScheduleWriteMembersOnValueChange),
         ztest_unit_test(testScheduleWriteEveryScheduledAction),

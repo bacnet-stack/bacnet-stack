@@ -2581,7 +2581,9 @@ void Schedule_Timer(uint32_t object_instance, uint16_t milliseconds)
     UNUSED(milliseconds);
     pObject = Object_Data(object_instance);
     if (pObject) {
-        datetime_local(&bdate, &btime, NULL, NULL);
+        if (!datetime_local(&bdate, &btime, NULL, NULL)) {
+            return;
+        }
         /* always recalculate: Schedule_Calendar_Present_Value_Update()
            applies Schedule_Default outside the Effective_Period, per
            135-2024 12.24.11 */

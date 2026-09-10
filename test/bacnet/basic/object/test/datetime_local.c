@@ -19,6 +19,13 @@ bool datetime_local(
     int16_t *utc_offset_minutes,
     bool *dst_active)
 {
+    BACNET_DATE_TIME bdatetime = { 0 };
+
+    bdatetime.date = BACnet_Date;
+    bdatetime.time = BACnet_Time;
+    if (datetime_wildcard_present(&bdatetime)) {
+        return false;
+    }
     if (bdate) {
         datetime_copy_date(bdate, &BACnet_Date);
     }
@@ -35,9 +42,13 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
 {
     if (bdate) {
         datetime_copy_date(&BACnet_Date, bdate);
+    } else {
+        datetime_date_wildcard_set(&BACnet_Date);
     }
     if (btime) {
         datetime_copy_time(&BACnet_Time, btime);
+    } else {
+        datetime_time_wildcard_set(&BACnet_Time);
     }
     (void)utc;
 }
