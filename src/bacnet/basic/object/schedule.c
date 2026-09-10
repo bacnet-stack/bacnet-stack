@@ -253,16 +253,16 @@ static bool Schedule_Time_Value_List_Store_Entry(
 /**
  * @brief Empty all the Time-Values from a single Exception_Schedule entry,
  *  keeping the entry's Keylist itself intact and ready for reuse
- * @param pEvent - special event data to empty
+ * @param event - special event data to empty
  */
 static void
-Special_Event_Time_Value_Delete_All(struct special_event_data *pEvent)
+Special_Event_Time_Value_Delete_All(struct special_event_data *event)
 {
     BACNET_TIME_VALUE *pTV;
 
-    if (pEvent) {
+    if (event) {
         do {
-            pTV = Keylist_Data_Pop(pEvent->Time_Values);
+            pTV = Keylist_Data_Pop(event->Time_Values);
             free(pTV);
         } while (pTV);
     }
@@ -270,14 +270,14 @@ Special_Event_Time_Value_Delete_All(struct special_event_data *pEvent)
 
 /**
  * @brief Free a single Exception_Schedule entry and its Time-Values Keylist
- * @param pEvent - special event data to free
+ * @param event - special event data to free
  */
-static void Special_Event_Free(struct special_event_data *pEvent)
+static void Special_Event_Free(struct special_event_data *event)
 {
-    if (pEvent) {
-        Special_Event_Time_Value_Delete_All(pEvent);
-        Keylist_Delete(pEvent->Time_Values);
-        free(pEvent);
+    if (event) {
+        Special_Event_Time_Value_Delete_All(event);
+        Keylist_Delete(event->Time_Values);
+        free(event);
     }
 }
 
@@ -1067,25 +1067,25 @@ static int Schedule_Weekly_Schedule_Encode(
 /**
  * @brief Set the periodTag/period/priority/list-of-time-values of an
  *  Exception_Schedule entry from a caller-supplied linked list
- * @param pEvent - special event data to set
+ * @param event - special event data to set
  * @param value - periodTag/period/priority and head of the linked list of
  *  Time-Values to set
  * @return true if set, and false if not (allocation failure)
  */
 static bool Special_Event_Data_Set(
-    struct special_event_data *pEvent, const BACNET_SPECIAL_EVENT_ENTRY *value)
+    struct special_event_data *event, const BACNET_SPECIAL_EVENT_ENTRY *value)
 {
     BACNET_TIME_VALUE *pTV;
     const BACNET_DAILY_SCHEDULE_ENTRY *entry;
     unsigned count;
 
-    if (!pEvent || !value) {
+    if (!event || !value) {
         return false;
     }
-    pEvent->periodTag = value->periodTag;
-    memcpy(&pEvent->period, &value->period, sizeof(pEvent->period));
-    pEvent->priority = value->priority;
-    Special_Event_Time_Value_Delete_All(pEvent);
+    event->periodTag = value->periodTag;
+    memcpy(&event->period, &value->period, sizeof(event->period));
+    event->priority = value->priority;
+    Special_Event_Time_Value_Delete_All(event);
     count = 0;
     for (entry = value->timeValues;
          entry && (count < BACNET_SCHEDULE_DAILY_TIME_VALUES_MAX);
@@ -1093,13 +1093,13 @@ static bool Special_Event_Data_Set(
         pTV = calloc(1, sizeof(BACNET_TIME_VALUE));
         if (!pTV) {
             /* roll back so the entry is not left partially updated */
-            Special_Event_Time_Value_Delete_All(pEvent);
+            Special_Event_Time_Value_Delete_All(event);
             return false;
         }
         *pTV = entry->Time_Value;
-        if (Keylist_Data_Add(pEvent->Time_Values, (KEY)count, pTV) < 0) {
+        if (Keylist_Data_Add(event->Time_Values, (KEY)count, pTV) < 0) {
             free(pTV);
-            Special_Event_Time_Value_Delete_All(pEvent);
+            Special_Event_Time_Value_Delete_All(event);
             return false;
         }
     }
@@ -1128,7 +1128,7 @@ bool Schedule_Exception_Schedule(
     size_t *entries_count)
 {
     struct object_data *pObject;
-    struct special_event_data *pEvent;
+    struct special_event_data *event;
     BACNET_TIME_VALUE *pTV;
     unsigned i, count = 0;
 
@@ -1136,17 +1136,17 @@ bool Schedule_Exception_Schedule(
     if (!pObject) {
         return false;
     }
-    pEvent = Keylist_Data_Index(pObject->Exception_Schedule, (int)index);
-    if (!pEvent) {
+    event = Keylist_Data_Index(pObject->Exception_Schedule, (int)index);
+    if (!event) {
         return false;
     }
     if (entries && entries_size) {
-        count = (unsigned)Keylist_Count(pEvent->Time_Values);
+        count = (unsigned)Keylist_Count(event->Time_Values);
         if (count > entries_size) {
             count = (unsigned)entries_size;
         }
         for (i = 0; i < count; i++) {
-            pTV = Keylist_Data_Index(pEvent->Time_Values, i);
+            pTV = Keylist_Data_Index(event->Time_Values, i);
             if (pTV) {
                 entries[i].Time_Value = *pTV;
             }
@@ -1161,9 +1161,9 @@ bool Schedule_Exception_Schedule(
         *entries_count = count;
     }
     if (value) {
-        value->periodTag = pEvent->periodTag;
-        memcpy(&value->period, &pEvent->period, sizeof(value->period));
-        value->priority = pEvent->priority;
+        value->periodTag = event->periodTag;
+        memcpy(&value->period, &event->period, sizeof(value->period));
+        value->priority = event->priority;
         if (count) {
             value->timeValues = &entries[0];
         } else {
@@ -1184,7 +1184,7 @@ bool Schedule_Exception_Schedule_Add(
     uint32_t object_instance, const BACNET_SPECIAL_EVENT_ENTRY *value)
 {
     struct object_data *pObject;
-    struct special_event_data *pEvent;
+    struct special_event_data *event;
     unsigned count;
 
     pObject = Object_Data(object_instance);
@@ -1195,21 +1195,21 @@ bool Schedule_Exception_Schedule_Add(
     if (count >= BACNET_EXCEPTION_SCHEDULE_SIZE) {
         return false;
     }
-    pEvent = calloc(1, sizeof(struct special_event_data));
-    if (!pEvent) {
+    event = calloc(1, sizeof(struct special_event_data));
+    if (!event) {
         return false;
     }
-    pEvent->Time_Values = Keylist_Create();
-    if (!pEvent->Time_Values) {
-        free(pEvent);
+    event->Time_Values = Keylist_Create();
+    if (!event->Time_Values) {
+        free(event);
         return false;
     }
-    if (!Special_Event_Data_Set(pEvent, value)) {
-        Special_Event_Free(pEvent);
+    if (!Special_Event_Data_Set(event, value)) {
+        Special_Event_Free(event);
         return false;
     }
-    if (Keylist_Data_Add(pObject->Exception_Schedule, (KEY)count, pEvent) < 0) {
-        Special_Event_Free(pEvent);
+    if (Keylist_Data_Add(pObject->Exception_Schedule, (KEY)count, event) < 0) {
+        Special_Event_Free(event);
         return false;
     }
 
@@ -1230,7 +1230,7 @@ bool Schedule_Exception_Schedule_Set(
     const BACNET_SPECIAL_EVENT_ENTRY *value)
 {
     struct object_data *pObject;
-    struct special_event_data *pEvent;
+    struct special_event_data *event;
     unsigned count;
 
     pObject = Object_Data(object_instance);
@@ -1239,11 +1239,11 @@ bool Schedule_Exception_Schedule_Set(
     }
     count = (unsigned)Keylist_Count(pObject->Exception_Schedule);
     if (index < count) {
-        pEvent = Keylist_Data_Index(pObject->Exception_Schedule, (int)index);
-        if (!pEvent) {
+        event = Keylist_Data_Index(pObject->Exception_Schedule, (int)index);
+        if (!event) {
             return false;
         }
-        return Special_Event_Data_Set(pEvent, value);
+        return Special_Event_Data_Set(event, value);
     } else if (index == count) {
         return Schedule_Exception_Schedule_Add(object_instance, value);
     }
