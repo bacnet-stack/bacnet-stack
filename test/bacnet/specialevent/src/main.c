@@ -197,7 +197,7 @@ static void test_BACnetSpecialEvent_DateRange(void)
     in.period.calendarEntry.type.DateRange.enddate.day = 31;
     in.period.calendarEntry.type.DateRange.enddate.wday = 0xff;
     in.timeValues.TV_Count = 0;
-    in.priority = 0;
+    in.priority = 1;
 
     len = bacnet_special_event_encode(apdu, &in);
     null_len = bacnet_special_event_encode(NULL, &in);
