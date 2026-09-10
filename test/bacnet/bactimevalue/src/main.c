@@ -23,6 +23,46 @@
  */
 
 /**
+ * @brief Test encode/decode API for BACnetPrimitiveDataValue
+ */
+static void
+test_BACnetPrimitiveDataValue(const BACNET_PRIMITIVE_DATA_VALUE *value)
+{
+    int len, apdu_len, null_len = 0;
+    uint8_t apdu[MAX_APDU] = { 0 };
+    BACNET_PRIMITIVE_DATA_VALUE test_value = { 0 };
+    bool status = false;
+
+    null_len = bacnet_primitive_value_encode(NULL, value);
+    len = bacnet_primitive_value_encode(apdu, value);
+    zassert_equal(len, null_len, NULL);
+    zassert_true(len > 0, NULL);
+    apdu_len = bacnet_primitive_value_decode(apdu, len, &test_value);
+    zassert_true(apdu_len > 0, NULL);
+    status = bacnet_primitive_value_same(value, &test_value);
+    zassert_true(status, NULL);
+    /* apdu too short testing */
+    while (--apdu_len) {
+        len = bacnet_primitive_value_decode(apdu, apdu_len, &test_value);
+        zassert_true(len <= 0, NULL);
+    }
+    /* negative testing */
+    zassert_equal(bacnet_primitive_value_encode(apdu, NULL), 0, NULL);
+    zassert_equal(
+        bacnet_primitive_value_decode(apdu, sizeof(apdu), NULL), 0, NULL);
+    zassert_false(bacnet_primitive_value_same(NULL, value), NULL);
+    zassert_false(bacnet_primitive_value_same(value, NULL), NULL);
+    zassert_false(bacnet_primitive_value_same(NULL, NULL), NULL);
+    /* copy testing */
+    memset(&test_value, 0xff, sizeof(test_value));
+    status = bacnet_primitive_value_copy(&test_value, value);
+    zassert_true(status, NULL);
+    zassert_true(bacnet_primitive_value_same(value, &test_value), NULL);
+    zassert_false(bacnet_primitive_value_copy(NULL, value), NULL);
+    zassert_false(bacnet_primitive_value_copy(&test_value, NULL), NULL);
+}
+
+/**
  * @brief Test encode/decode API
  */
 static void test_BACnetTimeValue(BACNET_TIME_VALUE *value)
@@ -34,6 +74,7 @@ static void test_BACnetTimeValue(BACNET_TIME_VALUE *value)
     bool status = false;
     uint8_t tag_number = 0;
 
+    test_BACnetPrimitiveDataValue(&value->Value);
     null_len = bacnet_time_value_encode(NULL, value);
     len = bacnet_time_value_encode(apdu, value);
     zassert_equal(len, null_len, NULL);

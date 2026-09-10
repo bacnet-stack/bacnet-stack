@@ -78,6 +78,33 @@ int bacnet_primitive_to_application_data_value(
     const BACNET_PRIMITIVE_DATA_VALUE *src);
 
 BACNET_STACK_EXPORT
+int bacnet_primitive_value_encode(
+    uint8_t *apdu, const BACNET_PRIMITIVE_DATA_VALUE *value);
+
+BACNET_STACK_EXPORT
+int bacnet_primitive_value_application_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_data_type,
+    uint32_t len_value_type,
+    BACNET_PRIMITIVE_DATA_VALUE *value);
+
+BACNET_STACK_EXPORT
+int bacnet_primitive_value_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    BACNET_PRIMITIVE_DATA_VALUE *value);
+
+BACNET_STACK_EXPORT
+bool bacnet_primitive_value_same(
+    const BACNET_PRIMITIVE_DATA_VALUE *value,
+    const BACNET_PRIMITIVE_DATA_VALUE *test_value);
+
+BACNET_STACK_EXPORT
+bool bacnet_primitive_value_copy(
+    BACNET_PRIMITIVE_DATA_VALUE *dest, const BACNET_PRIMITIVE_DATA_VALUE *src);
+
+BACNET_STACK_EXPORT
 int bacnet_time_value_encode(uint8_t *apdu, const BACNET_TIME_VALUE *value);
 
 BACNET_STACK_DEPRECATED("Use bacnet_time_value_encode() instead")

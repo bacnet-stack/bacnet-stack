@@ -242,8 +242,6 @@ int bacnet_special_event_context_decode(
 bool bacnet_special_event_same(
     const BACNET_SPECIAL_EVENT *value1, const BACNET_SPECIAL_EVENT *value2)
 {
-    BACNET_APPLICATION_DATA_VALUE adv1 = { 0 }, adv2 = { 0 };
-    const BACNET_TIME_VALUE *tv1, *tv2;
     int ti;
 
     if (value1->periodTag != value2->periodTag ||
@@ -258,21 +256,13 @@ bool bacnet_special_event_same(
         }
     }
 
-    /* TODO extract shared code with `bacnet_weeklyschedule_same` */
     if (value1->timeValues.TV_Count != value2->timeValues.TV_Count) {
         return false;
     }
     for (ti = 0; ti < value1->timeValues.TV_Count; ti++) {
-        tv1 = &value1->timeValues.Time_Values[ti];
-        tv2 = &value2->timeValues.Time_Values[ti];
-        if (0 != datetime_compare_time(&tv1->Time, &tv2->Time)) {
-            return false;
-        }
-
-        bacnet_primitive_to_application_data_value(&adv1, &tv1->Value);
-        bacnet_primitive_to_application_data_value(&adv2, &tv2->Value);
-
-        if (!bacapp_same_value(&adv1, &adv2)) {
+        if (!bacnet_time_value_same(
+                &value1->timeValues.Time_Values[ti],
+                &value2->timeValues.Time_Values[ti])) {
             return false;
         }
     }

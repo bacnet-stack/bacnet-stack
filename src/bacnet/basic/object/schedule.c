@@ -61,14 +61,11 @@ struct object_data {
     /* keyed 0..N-1, data is struct special_event_data* */
     OS_Keylist Exception_Schedule;
 #endif
-    BACNET_APPLICATION_DATA_VALUE Schedule_Default;
-    /*
-     * Caution: This is a converted to BACNET_PRIMITIVE_APPLICATION_DATA_VALUE.
-     * Only some data types may be used!
-     *
-     * Must be set to a valid value. Default is Schedule_Default.
-     */
-    BACNET_APPLICATION_DATA_VALUE Present_Value;
+    /* 135-2024 12.24.4/12.24.9: Present_Value/Schedule_Default may be any
+       primitive datatype; Present_Value must be set to a valid value,
+       default is Schedule_Default. */
+    BACNET_PRIMITIVE_DATA_VALUE Schedule_Default;
+    BACNET_PRIMITIVE_DATA_VALUE Present_Value;
     /* keyed 0..N-1, data is BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE* */
     OS_Keylist Object_Property_References;
     uint8_t Priority_For_Writing; /* (1..16) */
@@ -151,7 +148,7 @@ static write_property_function Write_Property_Internal_Callback;
 static void Schedule_Present_Value_Notify(
     uint32_t object_instance,
     struct object_data *pObject,
-    const BACNET_APPLICATION_DATA_VALUE *old_value,
+    const BACNET_PRIMITIVE_DATA_VALUE *old_value,
     bool action_changed);
 
 /**
@@ -429,12 +426,10 @@ uint32_t Schedule_Create(uint32_t object_instance)
         datetime_wildcard_weekday_set(&end_date);
         datetime_copy_date(&pObject->Start_Date, &start_date);
         datetime_copy_date(&pObject->End_Date, &end_date);
-        pObject->Schedule_Default.context_specific = false;
         pObject->Schedule_Default.tag = BACNET_APPLICATION_TAG_REAL;
         pObject->Schedule_Default.type.Real = 21.0f; /* 21 C, room temp */
-        memcpy(
-            &pObject->Present_Value, &pObject->Schedule_Default,
-            sizeof(pObject->Present_Value));
+        bacnet_primitive_value_copy(
+            &pObject->Present_Value, &pObject->Schedule_Default);
         pObject->Priority_For_Writing = 16; /* lowest priority */
         pObject->Out_Of_Service = false;
         /* add to list */
@@ -1829,7 +1824,8 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_enumerated(&apdu[0], OBJECT_SCHEDULE);
             break;
         case PROP_PRESENT_VALUE:
-            apdu_len = bacapp_encode_data(&apdu[0], &CurrentSC->Present_Value);
+            apdu_len = bacnet_primitive_value_encode(
+                &apdu[0], &CurrentSC->Present_Value);
             break;
         case PROP_EFFECTIVE_PERIOD:
             apdu_len =
@@ -1867,8 +1863,8 @@ int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 #endif
         case PROP_SCHEDULE_DEFAULT:
-            apdu_len =
-                bacapp_encode_data(&apdu[0], &CurrentSC->Schedule_Default);
+            apdu_len = bacnet_primitive_value_encode(
+                &apdu[0], &CurrentSC->Schedule_Default);
             break;
         case PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES:
             imax = Schedule_List_Of_Object_Property_References_Count(
@@ -2002,8 +1998,8 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool boolean_value = false;
     BACNET_CHARACTER_STRING char_string = { 0 };
     BACNET_DATE_RANGE date_range = { 0 };
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
-    BACNET_APPLICATION_DATA_VALUE old_value;
+    BACNET_PRIMITIVE_DATA_VALUE primitive_value = { 0 };
+    BACNET_PRIMITIVE_DATA_VALUE old_value;
     struct object_data *pObject;
 
     /* Valid data? */
@@ -2042,9 +2038,12 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
                 return false;
             }
-            len = bacapp_decode_known_property(
+            /* 135-2024 12.24.4: Present_Value may only be a primitive
+               datatype; bacnet_primitive_value_decode() rejects anything
+               this instance cannot store */
+            len = bacnet_primitive_value_decode(
                 wp_data->application_data, wp_data->application_data_len,
-                &value, OBJECT_SCHEDULE, PROP_PRESENT_VALUE);
+                &primitive_value);
             if (len <= 0) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 if (len < 0) {
@@ -2054,13 +2053,14 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 }
                 return false;
             }
-            if (value.tag == BACNET_APPLICATION_TAG_NULL) {
+            if (primitive_value.tag == BACNET_APPLICATION_TAG_NULL) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
                 return false;
             }
-            old_value = pObject->Present_Value;
-            pObject->Present_Value = value;
+            bacnet_primitive_value_copy(&old_value, &pObject->Present_Value);
+            bacnet_primitive_value_copy(
+                &pObject->Present_Value, &primitive_value);
             /* 135-2024 12.24.14(b): treat this write as if it had occurred
                by internal calculation, e.g. propagate to member refs */
             Schedule_Present_Value_Notify(
@@ -2454,7 +2454,7 @@ Schedule_Write_Members(uint32_t object_instance, struct object_data *pObject)
         wp_data.priority = pObject->Priority_For_Writing;
         wp_data.error_class = ERROR_CLASS_PROPERTY;
         wp_data.error_code = ERROR_CODE_SUCCESS;
-        wp_data.application_data_len = bacapp_encode_application_data(
+        wp_data.application_data_len = bacnet_primitive_value_encode(
             wp_data.application_data, &pObject->Present_Value);
         /* ignore individual failures - continue with the remaining
            members of the list */
@@ -2477,7 +2477,7 @@ Schedule_Write_Members(uint32_t object_instance, struct object_data *pObject)
 static void Schedule_Present_Value_Notify(
     uint32_t object_instance,
     struct object_data *pObject,
-    const BACNET_APPLICATION_DATA_VALUE *old_value,
+    const BACNET_PRIMITIVE_DATA_VALUE *old_value,
     bool action_changed)
 {
     if (!pObject) {
@@ -2489,7 +2489,7 @@ static void Schedule_Present_Value_Notify(
        shall respond to changes made to that property,
        as if those changes had occurred by internal calculations.*/
     if ((pObject->Write_Every_Scheduled_Action && action_changed) ||
-        !bacapp_same_value(old_value, &pObject->Present_Value)) {
+        !bacnet_primitive_value_same(old_value, &pObject->Present_Value)) {
         Schedule_Write_Members(object_instance, pObject);
     }
 }
@@ -2507,7 +2507,7 @@ void Schedule_Recalculate_PV(
     const BACNET_TIME_VALUE *pCurrent;
     const BACNET_TIME_VALUE *pActive = NULL;
     bool action_changed;
-    BACNET_APPLICATION_DATA_VALUE old_value;
+    BACNET_PRIMITIVE_DATA_VALUE old_value;
 
     pObject = Object_Data(object_instance);
     if (!pObject || !time || (wday < 1) || (wday > 7)) {
@@ -2518,7 +2518,7 @@ void Schedule_Recalculate_PV(
            calculations while Out_Of_Service is TRUE */
         return;
     }
-    old_value = pObject->Present_Value;
+    bacnet_primitive_value_copy(&old_value, &pObject->Present_Value);
     pObject->Present_Value.tag = BACNET_APPLICATION_TAG_NULL;
 
     /* for future development, here should be the loop for Exception Schedule
@@ -2530,12 +2530,10 @@ void Schedule_Recalculate_PV(
         pObject->Weekly_Schedule[wday - 1].Time_Values, time);
     if (pCurrent && (pCurrent->Value.tag != BACNET_APPLICATION_TAG_NULL)) {
         pActive = pCurrent;
-        bacnet_primitive_to_application_data_value(
-            &pObject->Present_Value, &pCurrent->Value);
+        bacnet_primitive_value_copy(&pObject->Present_Value, &pCurrent->Value);
     } else {
-        memcpy(
-            &pObject->Present_Value, &pObject->Schedule_Default,
-            sizeof(pObject->Present_Value));
+        bacnet_primitive_value_copy(
+            &pObject->Present_Value, &pObject->Schedule_Default);
     }
     /* a scheduled action occurs only when a new time-value becomes active */
     action_changed = (pActive != pObject->Active_Time_Value);
@@ -2559,7 +2557,7 @@ void Schedule_Calendar_Present_Value_Update(
     const BACNET_TIME_VALUE *pFound = NULL;
     const BACNET_TIME_VALUE *pCandidate;
     bool action_changed;
-    BACNET_APPLICATION_DATA_VALUE old_value;
+    BACNET_PRIMITIVE_DATA_VALUE old_value;
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
     const struct special_event_data *event;
     unsigned i, count;
@@ -2575,7 +2573,7 @@ void Schedule_Calendar_Present_Value_Update(
            calculations while Out_Of_Service is TRUE */
         return;
     }
-    old_value = pObject->Present_Value;
+    bacnet_primitive_value_copy(&old_value, &pObject->Present_Value);
     pObject->Present_Value.tag = BACNET_APPLICATION_TAG_NULL;
 
     /* 135-2024 12.24.11: only Weekly_Schedule/Exception_Schedule entries
@@ -2613,12 +2611,10 @@ void Schedule_Calendar_Present_Value_Update(
         }
     }
     if (pFound) {
-        bacnet_primitive_to_application_data_value(
-            &pObject->Present_Value, &pFound->Value);
+        bacnet_primitive_value_copy(&pObject->Present_Value, &pFound->Value);
     } else {
-        memcpy(
-            &pObject->Present_Value, &pObject->Schedule_Default,
-            sizeof(pObject->Present_Value));
+        bacnet_primitive_value_copy(
+            &pObject->Present_Value, &pObject->Schedule_Default);
     }
     /* a scheduled action occurs only when a new time-value becomes active */
     action_changed = (pFound != pObject->Active_Time_Value);
