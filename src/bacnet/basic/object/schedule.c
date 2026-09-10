@@ -1901,9 +1901,10 @@ static BACNET_ERROR_CODE Schedule_Weekly_Schedule_Element_Write(
     size_t application_data_len)
 {
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    struct time_value_list_write_context store = { 0 };
-    int len = 0;
     struct object_data *pObject;
+    struct time_value_list_write_context store = { 0 };
+    BACNET_DAILY_SCHEDULE_ENTRY *head;
+    int len = 0;
 
     pObject = Object_Data(object_instance);
     if (pObject) {
@@ -1918,7 +1919,6 @@ static BACNET_ERROR_CODE Schedule_Weekly_Schedule_Element_Write(
                 application_data, application_data_len, 0,
                 Schedule_Time_Value_List_Store_Entry, &store);
             if (len > 0) {
-                BACNET_DAILY_SCHEDULE_ENTRY *head;
                 if (store.count) {
                     head = &store.entries[0];
                 } else {
