@@ -1939,22 +1939,14 @@ static int Schedule_Weekly_Schedule_Element_Length(
 bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
-    int len;
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    int len = 0;
+    bool boolean_value = false;
+    BACNET_CHARACTER_STRING char_string = { 0 };
+    BACNET_DATE_RANGE date_range = { 0 };
     struct object_data *pObject;
 
     /* Valid data? */
     if (wp_data == NULL) {
-        return false;
-    }
-    /* decode the some of the request */
-    len = bacapp_decode_known_array_property(
-        wp_data->application_data, wp_data->application_data_len, &value,
-        wp_data->object_type, wp_data->object_property, wp_data->array_index);
-    if (len < 0) {
-        /* error while decoding - a value larger than we can handle */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
     pObject = Object_Data(wp_data->object_instance);
@@ -1965,21 +1957,39 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch ((int)wp_data->object_property) {
         case PROP_OUT_OF_SERVICE:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
-            if (status) {
-                Schedule_Out_Of_Service_Set(
-                    wp_data->object_instance, value.type.Boolean);
+            len = bacnet_boolean_application_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &boolean_value);
+            if (len <= 0) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                if (len < 0) {
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                } else {
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                }
+                return false;
             }
+            Schedule_Out_Of_Service_Set(
+                wp_data->object_instance, boolean_value);
+            status = true;
             break;
 #if (BACNET_PROTOCOL_REVISION >= 24)
         case PROP_WRITE_EVERY_SCHEDULED_ACTION:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
-            if (status) {
-                Schedule_Write_Every_Scheduled_Action_Set(
-                    wp_data->object_instance, value.type.Boolean);
+            len = bacnet_boolean_application_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &boolean_value);
+            if (len <= 0) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                if (len < 0) {
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                } else {
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                }
+                return false;
             }
+            Schedule_Write_Every_Scheduled_Action_Set(
+                wp_data->object_instance, boolean_value);
+            status = true;
             break;
 #endif
         case PROP_WEEKLY_SCHEDULE:
@@ -2005,15 +2015,22 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_EFFECTIVE_PERIOD:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_DATERANGE);
-            if (status) {
-                /* set the start and end date */
-                datetime_copy_date(
-                    &pObject->Start_Date, &value.type.Date_Range.startdate);
-                datetime_copy_date(
-                    &pObject->End_Date, &value.type.Date_Range.enddate);
+            len = bacnet_daterange_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &date_range);
+            if (len <= 0) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                if (len < 0) {
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                } else {
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                }
+                return false;
             }
+            /* set the start and end date */
+            datetime_copy_date(&pObject->Start_Date, &date_range.startdate);
+            datetime_copy_date(&pObject->End_Date, &date_range.enddate);
+            status = true;
             break;
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
         case PROP_EXCEPTION_SCHEDULE:
@@ -2029,20 +2046,34 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
 #endif
         case PROP_OBJECT_NAME:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
-            if (status) {
-                status = Schedule_Object_Name_Write(
-                    wp_data, &value.type.Character_String);
+            len = bacnet_character_string_application_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &char_string);
+            if (len <= 0) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                if (len < 0) {
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                } else {
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                }
+                return false;
             }
+            status = Schedule_Object_Name_Write(wp_data, &char_string);
             break;
         case PROP_DESCRIPTION:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
-            if (status) {
-                status = Schedule_Description_Write(
-                    wp_data, &value.type.Character_String);
+            len = bacnet_character_string_application_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &char_string);
+            if (len <= 0) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                if (len < 0) {
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                } else {
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                }
+                return false;
             }
+            status = Schedule_Description_Write(wp_data, &char_string);
             break;
         default:
             if (property_lists_member(
