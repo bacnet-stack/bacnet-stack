@@ -839,6 +839,125 @@ static void testScheduleWriteMembersRemoteDevice(void)
 #endif
 }
 
+/**
+ * @brief Test that Out_Of_Service decouples Present_Value from internal
+ *  recalculation, per 135-2024 12.24.14(a), and that Present_Value becomes
+ *  writable - triggering member writeback exactly as an internally
+ *  calculated change would - only while Out_Of_Service is TRUE, per
+ *  135-2024 12.24.14(b)
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(schedule_tests, testScheduleOutOfService)
+#else
+static void testScheduleOutOfService(void)
+#endif
+{
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+    uint32_t object_instance;
+    BACNET_DAILY_SCHEDULE_ENTRY entry = { 0 };
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
+    BACNET_DATE test_date = { 2024, 6, 15, BACNET_WEEKDAY_SATURDAY };
+    BACNET_TIME test_time = { 0 };
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    bool status;
+
+    object_instance = Schedule_Create(BACNET_MAX_INSTANCE);
+    zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
+    zassert_false(Schedule_Out_Of_Service(object_instance), NULL);
+
+    /* one member reference to observe writeback on */
+    member.objectIdentifier.type = OBJECT_ANALOG_VALUE;
+    member.objectIdentifier.instance = 1;
+    member.propertyIdentifier = PROP_PRESENT_VALUE;
+    member.arrayIndex = BACNET_ARRAY_ALL;
+    status = Schedule_List_Of_Object_Property_References_Add(
+        object_instance, &member);
+    zassert_true(status, NULL);
+
+    /* Weekly_Schedule: Saturday 08:00 -> 10.0 */
+    datetime_set_time(&entry.Time_Value.Time, 8, 0, 0, 0);
+    entry.Time_Value.Value.tag = BACNET_APPLICATION_TAG_REAL;
+    entry.Time_Value.Value.type.Real = 10.0f;
+    entry.next = NULL;
+    status = Schedule_Weekly_Schedule_Set(
+        object_instance, BACNET_WEEKDAY_SATURDAY - 1, &entry);
+    zassert_true(status, NULL);
+    datetime_set_time(&test_time, 9, 0, 0, 0);
+
+    /* normal operation: internal calculation drives Present_Value */
+    Schedule_Calendar_Present_Value_Update(
+        object_instance, &test_date, &test_time);
+    zassert_within(
+        testSchedule_Present_Value_Real(object_instance), 10.0f, 0.001f, NULL);
+
+    /* PROP_PRESENT_VALUE is not writable while Out_Of_Service is FALSE */
+    wp_data.object_type = OBJECT_SCHEDULE;
+    wp_data.object_instance = object_instance;
+    wp_data.object_property = PROP_PRESENT_VALUE;
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    wp_data.application_data_len =
+        encode_application_real(wp_data.application_data, 99.0f);
+    status = Schedule_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_WRITE_ACCESS_DENIED, NULL);
+    zassert_within(
+        testSchedule_Present_Value_Real(object_instance), 10.0f, 0.001f, NULL);
+
+    /* Out_Of_Service = TRUE decouples Present_Value from internal
+     * calculation: a changed Weekly_Schedule value no longer takes effect */
+    Schedule_Out_Of_Service_Set(object_instance, true);
+    zassert_true(Schedule_Out_Of_Service(object_instance), NULL);
+    entry.Time_Value.Value.type.Real = 55.0f;
+    status = Schedule_Weekly_Schedule_Set(
+        object_instance, BACNET_WEEKDAY_SATURDAY - 1, &entry);
+    zassert_true(status, NULL);
+    Schedule_Calendar_Present_Value_Update(
+        object_instance, &test_date, &test_time);
+    zassert_within(
+        testSchedule_Present_Value_Real(object_instance), 10.0f, 0.001f, NULL);
+    Schedule_Recalculate_PV(object_instance, test_date.wday, &test_time);
+    zassert_within(
+        testSchedule_Present_Value_Real(object_instance), 10.0f, 0.001f, NULL);
+
+    /* while Out_Of_Service is TRUE, Present_Value is writable, and the
+     * write is treated as if it had occurred by internal calculation:
+     * member references are written */
+    Schedule_Write_Property_Internal_Callback_Set(
+        testSchedule_Write_Property_Stub);
+    testSchedule_Write_Property_Call_Count = 0;
+    wp_data.application_data_len =
+        encode_application_real(wp_data.application_data, 77.0f);
+    status = Schedule_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_within(
+        testSchedule_Present_Value_Real(object_instance), 77.0f, 0.001f, NULL);
+    zassert_equal(testSchedule_Write_Property_Call_Count, 1, NULL);
+    zassert_equal(
+        testSchedule_Write_Property_Last_Data.object_type, OBJECT_ANALOG_VALUE,
+        NULL);
+    zassert_equal(
+        testSchedule_Write_Property_Last_Data.object_instance, 1, NULL);
+
+    /* a NULL value is rejected */
+    wp_data.application_data_len =
+        encode_application_null(wp_data.application_data);
+    status = Schedule_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+
+    /* returning to service resumes internal calculation */
+    Schedule_Out_Of_Service_Set(object_instance, false);
+    Schedule_Calendar_Present_Value_Update(
+        object_instance, &test_date, &test_time);
+    zassert_within(
+        testSchedule_Present_Value_Real(object_instance), 55.0f, 0.001f, NULL);
+
+    Schedule_Write_Property_Internal_Callback_Set(NULL);
+    status = Schedule_Delete(object_instance);
+    zassert_true(status, NULL);
+#endif
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(schedule_tests, testScheduleCreateDelete)
 #else
@@ -880,6 +999,7 @@ void test_main(void)
         ztest_unit_test(testScheduleWriteMembersOnValueChange),
         ztest_unit_test(testScheduleWriteEveryScheduledAction),
         ztest_unit_test(testScheduleWriteMembersRemoteDevice),
+        ztest_unit_test(testScheduleOutOfService),
         ztest_unit_test(testScheduleCreateDelete));
 
     ztest_run_test_suite(schedule_tests);

@@ -122,7 +122,8 @@ static const int32_t Schedule_Properties_Proprietary[] = { -1 };
 /* Every object shall have a Writable Property_List property
    which is a BACnetARRAY of property identifiers,
    one property identifier for each property within this object
-   that is always writable.  */
+   that is always writable. Present_Value is conditionally writable
+   (only while Out_Of_Service is TRUE), so it is not included here. */
 static const int32_t Writable_Properties[] = {
     /* unordered list of always writable properties */
     PROP_OBJECT_NAME,
@@ -143,6 +144,15 @@ static const int32_t Writable_Properties[] = {
 /* registered by the Device object so List_Of_Object_Property_References
    members can be written without a build dependency on those objects */
 static write_property_function Write_Property_Internal_Callback;
+
+/* forward declaration: used by Schedule_Write_Property() to treat a direct
+   Present_Value write the same as an internally calculated change, per
+   135-2024 12.24.14(b) */
+static void Schedule_Present_Value_Notify(
+    uint32_t object_instance,
+    struct object_data *pObject,
+    const BACNET_APPLICATION_DATA_VALUE *old_value,
+    bool action_changed);
 
 /**
  * Returns the list of required, optional, and proprietary properties.
@@ -1992,6 +2002,8 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool boolean_value = false;
     BACNET_CHARACTER_STRING char_string = { 0 };
     BACNET_DATE_RANGE date_range = { 0 };
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_APPLICATION_DATA_VALUE old_value;
     struct object_data *pObject;
 
     /* Valid data? */
@@ -2020,6 +2032,39 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             Schedule_Out_Of_Service_Set(
                 wp_data->object_instance, boolean_value);
+            status = true;
+            break;
+        case PROP_PRESENT_VALUE:
+            /* 135-2024 12.24.14: only writable while Out_Of_Service is
+               TRUE, since it is otherwise driven by internal calculation */
+            if (!pObject->Out_Of_Service) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                return false;
+            }
+            len = bacapp_decode_known_property(
+                wp_data->application_data, wp_data->application_data_len,
+                &value, OBJECT_SCHEDULE, PROP_PRESENT_VALUE);
+            if (len <= 0) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                if (len < 0) {
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                } else {
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                }
+                return false;
+            }
+            if (value.tag == BACNET_APPLICATION_TAG_NULL) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                return false;
+            }
+            old_value = pObject->Present_Value;
+            pObject->Present_Value = value;
+            /* 135-2024 12.24.14(b): treat this write as if it had occurred
+               by internal calculation, e.g. propagate to member refs */
+            Schedule_Present_Value_Notify(
+                wp_data->object_instance, pObject, &old_value, false);
             status = true;
             break;
 #if (BACNET_PROTOCOL_REVISION >= 24)
@@ -2438,6 +2483,11 @@ static void Schedule_Present_Value_Notify(
     if (!pObject) {
         return;
     }
+    /* note: When Out_Of_Service is TRUE:
+       functions that depend on the state of the Present_Value,
+       such as writing to the members of the List_Of_Object_Property_References,
+       shall respond to changes made to that property,
+       as if those changes had occurred by internal calculations.*/
     if ((pObject->Write_Every_Scheduled_Action && action_changed) ||
         !bacapp_same_value(old_value, &pObject->Present_Value)) {
         Schedule_Write_Members(object_instance, pObject);
@@ -2461,6 +2511,11 @@ void Schedule_Recalculate_PV(
 
     pObject = Object_Data(object_instance);
     if (!pObject || !time || (wday < 1) || (wday > 7)) {
+        return;
+    }
+    if (pObject->Out_Of_Service) {
+        /* 135-2024 12.24.14(a): Present_Value is decoupled from internal
+           calculations while Out_Of_Service is TRUE */
         return;
     }
     old_value = pObject->Present_Value;
@@ -2513,6 +2568,11 @@ void Schedule_Calendar_Present_Value_Update(
 
     pObject = Object_Data(object_instance);
     if (!pObject || !date || !time || (date->wday < 1) || (date->wday > 7)) {
+        return;
+    }
+    if (pObject->Out_Of_Service) {
+        /* 135-2024 12.24.14(a): Present_Value is decoupled from internal
+           calculations while Out_Of_Service is TRUE */
         return;
     }
     old_value = pObject->Present_Value;
