@@ -196,6 +196,18 @@ static struct object_data *Object_Data(uint32_t object_instance)
 }
 
 /**
+ * @brief Invalidates the cached active Time-Value pointer before any list
+ *  mutation can free the underlying node.
+ * @param pObject - object whose active action state needs invalidation
+ */
+static void Schedule_Invalidate_Active_Time_Value(struct object_data *pObject)
+{
+    if (pObject) {
+        pObject->Active_Time_Value = NULL;
+    }
+}
+
+/**
  * @brief Empty all the Time-Values from a single day of Weekly_Schedule,
  *  keeping the day's Keylist itself intact and ready for reuse
  * @param pDay - daily schedule data to empty
@@ -291,6 +303,7 @@ static void Exception_Schedule_Delete_All(struct object_data *pObject)
     struct special_event_data *special_event;
 
     if (pObject) {
+        Schedule_Invalidate_Active_Time_Value(pObject);
         do {
             special_event = Keylist_Data_Pop(pObject->Exception_Schedule);
             Special_Event_Free(special_event);
@@ -327,6 +340,7 @@ static void Schedule_Free_Object(struct object_data *pObject)
     if (!pObject) {
         return;
     }
+    Schedule_Invalidate_Active_Time_Value(pObject);
     for (j = 0; j < BACNET_WEEKLY_SCHEDULE_SIZE; j++) {
         Daily_Schedule_Time_Value_Delete_All(&pObject->Weekly_Schedule[j]);
         Keylist_Delete(pObject->Weekly_Schedule[j].Time_Values);
@@ -879,15 +893,18 @@ bool Schedule_Weekly_Schedule_Set(
     unsigned array_index,
     const BACNET_DAILY_SCHEDULE_ENTRY *entries)
 {
+    struct object_data *pObject;
     struct daily_schedule_data *pDay;
     BACNET_TIME_VALUE *pTV;
     const BACNET_DAILY_SCHEDULE_ENTRY *entry;
     unsigned count;
 
-    pDay = Weekly_Schedule_Day(Object_Data(object_instance), array_index);
+    pObject = Object_Data(object_instance);
+    pDay = Weekly_Schedule_Day(pObject, array_index);
     if (!pDay) {
         return false;
     }
+    Schedule_Invalidate_Active_Time_Value(pObject);
     Daily_Schedule_Time_Value_Delete_All(pDay);
     count = 0;
     for (entry = entries;
@@ -1019,12 +1036,15 @@ bool Schedule_Weekly_Schedule_Time_Value_Set(
 bool Schedule_Weekly_Schedule_Time_Value_Delete_All(
     uint32_t object_instance, unsigned array_index)
 {
+    struct object_data *pObject;
     struct daily_schedule_data *pDay;
 
-    pDay = Weekly_Schedule_Day(Object_Data(object_instance), array_index);
+    pObject = Object_Data(object_instance);
+    pDay = Weekly_Schedule_Day(pObject, array_index);
     if (!pDay) {
         return false;
     }
+    Schedule_Invalidate_Active_Time_Value(pObject);
     Daily_Schedule_Time_Value_Delete_All(pDay);
 
     return true;
@@ -1073,19 +1093,21 @@ static int Schedule_Weekly_Schedule_Encode(
  * @return true if set, and false if not (allocation failure)
  */
 static bool Special_Event_Data_Set(
-    struct special_event_data *event, const BACNET_SPECIAL_EVENT_ENTRY *value)
+    struct object_data *pObject,
+    struct special_event_data *event,
+    const BACNET_SPECIAL_EVENT_ENTRY *value)
 {
     BACNET_TIME_VALUE *time_value;
     const BACNET_DAILY_SCHEDULE_ENTRY *entry;
     unsigned count;
 
-    if (!event || !value || (value->priority == 0) ||
-        (value->priority > BACNET_MAX_PRIORITY)) {
+    if (!event || !value || (value->priority > BACNET_MAX_PRIORITY)) {
         return false;
     }
     event->periodTag = value->periodTag;
     memcpy(&event->period, &value->period, sizeof(event->period));
     event->priority = value->priority;
+    Schedule_Invalidate_Active_Time_Value(pObject);
     Special_Event_Time_Value_Delete_All(event);
     count = 0;
     for (entry = value->timeValues;
@@ -1205,7 +1227,7 @@ bool Schedule_Exception_Schedule_Add(
         free(event);
         return false;
     }
-    if (!Special_Event_Data_Set(event, value)) {
+    if (!Special_Event_Data_Set(pObject, event, value)) {
         Special_Event_Free(event);
         return false;
     }
@@ -1244,7 +1266,7 @@ bool Schedule_Exception_Schedule_Set(
         if (!event) {
             return false;
         }
-        return Special_Event_Data_Set(event, value);
+        return Special_Event_Data_Set(pObject, event, value);
     } else if (index == count) {
         return Schedule_Exception_Schedule_Add(object_instance, value);
     }
@@ -1282,6 +1304,7 @@ bool Schedule_Exception_Schedule_Delete_All(uint32_t object_instance)
     if (!pObject) {
         return false;
     }
+    Schedule_Invalidate_Active_Time_Value(pObject);
     Exception_Schedule_Delete_All(pObject);
 
     return true;
@@ -1365,6 +1388,7 @@ static BACNET_ERROR_CODE Schedule_Exception_Schedule_Element_Write(
             return ERROR_CODE_VALUE_OUT_OF_RANGE;
         }
         count = (unsigned)Keylist_Count(pObject->Exception_Schedule);
+        Schedule_Invalidate_Active_Time_Value(pObject);
         while (count > array_size) {
             new_event = Keylist_Data_Pop(pObject->Exception_Schedule);
             Special_Event_Free(new_event);
@@ -1406,7 +1430,7 @@ static BACNET_ERROR_CODE Schedule_Exception_Schedule_Element_Write(
     if (!new_event) {
         return ERROR_CODE_INVALID_ARRAY_INDEX;
     }
-    if (!Special_Event_Data_Set(new_event, &special_event)) {
+    if (!Special_Event_Data_Set(pObject, new_event, &special_event)) {
         return ERROR_CODE_INVALID_DATA_TYPE;
     }
 

@@ -650,6 +650,31 @@ static void testScheduleWriteEveryScheduledAction(void)
         object_instance, &test_date, &test_time_after);
     zassert_equal(testSchedule_Write_Property_Call_Count, 2, NULL);
 
+    /* Replacing the active day must invalidate the cached time-value before
+     * the old node is freed. Otherwise a reused allocation can make the
+     * stale pointer look like the same action and suppress the required
+     * Write_Every_Scheduled_Action notification. */
+    {
+        BACNET_DAILY_SCHEDULE_ENTRY replacement = { 0 }, replacement2 = { 0 };
+
+        datetime_set_time(&replacement.Time_Value.Time, 8, 0, 0, 0);
+        replacement.Time_Value.Value.tag = BACNET_APPLICATION_TAG_REAL;
+        replacement.Time_Value.Value.type.Real = 10.0f;
+        replacement.next = &replacement2;
+        datetime_set_time(&replacement2.Time_Value.Time, 8, 30, 0, 0);
+        replacement2.Time_Value.Value.tag = BACNET_APPLICATION_TAG_REAL;
+        replacement2.Time_Value.Value.type.Real = 10.0f;
+        replacement2.next = NULL;
+        status = Schedule_Weekly_Schedule_Set(
+            object_instance, BACNET_WEEKDAY_SATURDAY - 1, &replacement);
+        zassert_true(status, NULL);
+
+        testSchedule_Write_Property_Call_Count = 0;
+        Schedule_Calendar_Present_Value_Update(
+            object_instance, &test_date, &test_time_after);
+        zassert_equal(testSchedule_Write_Property_Call_Count, 1, NULL);
+    }
+
     /* WriteProperty/ReadProperty round-trip for
      * PROP_WRITE_EVERY_SCHEDULED_ACTION */
     {
