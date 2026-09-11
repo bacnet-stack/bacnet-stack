@@ -12,6 +12,12 @@
 #include "bacnet/datalink/bsc/websocket.h"
 #include "bacnet/basic/sys/debug.h"
 #include "websocket-global.h"
+#if !defined(LWS_WITH_MBEDTLS)
+#include <openssl/ssl.h>
+#include <openssl/x509.h>
+#include <openssl/pem.h>
+#include <openssl/err.h>
+#endif
 
 #undef DEBUG_PRINTF
 #if DEBUG_WEBSOCKET_SERVER
@@ -90,6 +96,8 @@ typedef struct BACNetWebsocketServerContext {
     BSC_WEBSOCKET_SRV_DISPATCH dispatch_func;
     void *user_param;
     bool stop_worker;
+    uint8_t *ca_cert;
+    size_t ca_cert_size;
 } BSC_WEBSOCKET_CONTEXT;
 
 static BSC_WEBSOCKET_CONTEXT bws_hub_ctx[BSC_CONF_WEBSOCKET_SERVERS_NUM] = {
@@ -306,6 +314,52 @@ bws_find_connnection(BSC_WEBSOCKET_CONTEXT *ctx, struct lws *ws)
     return BSC_WEBSOCKET_INVALID_HANDLE;
 }
 
+#if !defined(LWS_WITH_MBEDTLS)
+/**
+ * @brief Add the BACnet/SC issuer CA cert(s) to a vhost's client-cert
+ * verification store.
+ * @note libwebsockets' OpenSSL TLS backend only loads a CA trust store from
+ * info.ssl_ca_filepath (a file path); it ignores server_ssl_ca_mem, so the
+ * in-memory CA bytes bws_srv_start() was given must be added here instead.
+ */
+static void bws_srv_load_ca_certs(SSL_CTX *ssl_ctx, BSC_WEBSOCKET_CONTEXT *ctx)
+{
+    X509_STORE *store;
+    X509 *x;
+    BIO *bio;
+    const uint8_t *p;
+    int added = 0;
+
+    if (!ssl_ctx || !ctx || !ctx->ca_cert || !ctx->ca_cert_size) {
+        return;
+    }
+    store = SSL_CTX_get_cert_store(ssl_ctx);
+    if (!store) {
+        return;
+    }
+    /* a CA bundle is normally PEM and may contain more than one cert */
+    bio = BIO_new_mem_buf(ctx->ca_cert, (int)ctx->ca_cert_size);
+    if (bio) {
+        while ((x = PEM_read_bio_X509(bio, NULL, NULL, NULL)) != NULL) {
+            X509_STORE_add_cert(store, x);
+            X509_free(x);
+            added++;
+        }
+        BIO_free(bio);
+    }
+    if (!added) {
+        /* fall back to a single DER-encoded certificate */
+        p = ctx->ca_cert;
+        x = d2i_X509(NULL, &p, (long)ctx->ca_cert_size);
+        if (x) {
+            X509_STORE_add_cert(store, x);
+            X509_free(x);
+        }
+    }
+    ERR_clear_error();
+}
+#endif
+
 static int bws_srv_websocket_event(
     struct lws *wsi,
     enum lws_callback_reasons reason,
@@ -314,14 +368,24 @@ static int bws_srv_websocket_event(
     size_t len)
 {
     BSC_WEBSOCKET_HANDLE h;
-    BSC_WEBSOCKET_CONTEXT *ctx =
-        (BSC_WEBSOCKET_CONTEXT *)lws_context_user(lws_get_context(wsi));
+    BSC_WEBSOCKET_CONTEXT *ctx;
     int ret = 0;
     BSC_WEBSOCKET_SRV_DISPATCH dispatch_func;
     void *user_param;
     bool stop_worker;
     uint8_t err_code[2];
     uint16_t err;
+
+    /* Called once per cert in the chain during OpenSSL client-cert
+       verification; wsi/context may not be usable here yet. Reject
+       whatever OpenSSL itself rejected (len carries preverify_ok) instead
+       of relying on libwebsockets' documented fail-open default (accept)
+       for this reason when left unhandled. */
+    if (reason == LWS_CALLBACK_OPENSSL_PERFORM_CLIENT_CERT_VERIFICATION) {
+        return len ? 0 : -1;
+    }
+
+    ctx = (BSC_WEBSOCKET_CONTEXT *)lws_context_user(lws_get_context(wsi));
     (void)user;
 
     DEBUG_PRINTF(
@@ -331,6 +395,12 @@ static int bws_srv_websocket_event(
         ctx, ctx->user_param, ctx->proto, wsi, reason, in, len);
 
     switch (reason) {
+#if !defined(LWS_WITH_MBEDTLS)
+        case LWS_CALLBACK_OPENSSL_LOAD_EXTRA_SERVER_VERIFY_CERTS: {
+            bws_srv_load_ca_certs((SSL_CTX *)user, ctx);
+            break;
+        }
+#endif
         case LWS_CALLBACK_ESTABLISHED: {
             bsc_mutex_lock(&ctx->mutex);
             DEBUG_PRINTF("bws_srv_websocket_event() established connection\n");
@@ -763,6 +833,8 @@ BSC_WEBSOCKET_RET bws_srv_start(
     info.timeout_secs = (unsigned int)timeout_s;
     info.connect_timeout_secs = (unsigned int)timeout_s;
     info.user = ctx;
+    ctx->ca_cert = ca_cert;
+    ctx->ca_cert_size = ca_cert_size;
 
     /* TRICKY: check comments related to lws_context_destroy() call */
 
