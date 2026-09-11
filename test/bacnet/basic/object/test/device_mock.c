@@ -9,6 +9,7 @@
 #include <zephyr/ztest.h>
 #include <bacnet/bactext.h>
 #include <bacnet/basic/object/device.h>
+#include <string.h>
 
 bool Device_Valid_Object_Name(
     const BACNET_CHARACTER_STRING *object_name,
@@ -36,9 +37,35 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     return false;
 }
 
+static BACNET_DATE_TIME Mock_Current_DateTime;
+static bool Mock_Current_DateTime_Valid;
+
+/**
+ * @brief Test hook: control the value returned by Device_getCurrentDateTime()
+ * @param datetime - value to return, or NULL to restore the default no-op
+ */
+void Device_getCurrentDateTime_Value_Set(const BACNET_DATE_TIME *datetime)
+{
+    if (datetime) {
+        Mock_Current_DateTime = *datetime;
+        Mock_Current_DateTime_Valid = true;
+    } else {
+        Mock_Current_DateTime_Valid = false;
+    }
+}
+
 void Device_getCurrentDateTime(BACNET_DATE_TIME *DateTime)
 {
-    (void)DateTime;
+    if (!DateTime) {
+        return;
+    }
+    if (Mock_Current_DateTime_Valid) {
+        *DateTime = Mock_Current_DateTime;
+    } else {
+        /* deterministic default so callers never see an indeterminate
+         * date/time before the test hook has been used */
+        memset(DateTime, 0, sizeof(*DateTime));
+    }
 }
 
 int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)

@@ -1026,6 +1026,7 @@ INDTEXT_DATA bacnet_property_names[] = {
     { PROP_DEFAULT_COLOR, "default-color" },
     { PROP_DEFAULT_COLOR_TEMPERATURE, "default-color-temperature" },
     { PROP_OVERRIDE_COLOR_REFERENCE, "override-color-reference" },
+    { PROP_WRITE_EVERY_SCHEDULED_ACTION, "write-every-scheduled-action" },
     { PROP_COLOR_COMMAND, "color-command" },
     { PROP_HIGH_END_TRIM, "high-end-trim" },
     { PROP_LOW_END_TRIM, "low-end-trim" },

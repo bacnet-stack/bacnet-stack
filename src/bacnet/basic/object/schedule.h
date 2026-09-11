@@ -79,8 +79,16 @@ void Schedule_Out_Of_Service_Set(uint32_t object_instance, bool value);
 BACNET_STACK_EXPORT
 bool Schedule_Out_Of_Service(uint32_t object_instance);
 
-/* Weekly_Schedule: fixed BACnetARRAY[7] of day schedules (per the standard);
-   each day's Time-Values are stored dynamically (see accessors below) */
+#if (BACNET_PROTOCOL_REVISION >= 24)
+BACNET_STACK_EXPORT
+bool Schedule_Write_Every_Scheduled_Action_Set(
+    uint32_t object_instance, bool value);
+BACNET_STACK_EXPORT
+bool Schedule_Write_Every_Scheduled_Action(uint32_t object_instance);
+#endif
+BACNET_STACK_EXPORT
+void Schedule_Write_Property_Internal_Callback_Set(write_property_function cb);
+
 BACNET_STACK_EXPORT
 bool Schedule_Weekly_Schedule(
     uint32_t object_instance,
@@ -112,25 +120,27 @@ BACNET_STACK_EXPORT
 bool Schedule_Weekly_Schedule_Time_Value_Delete_All(
     uint32_t object_instance, unsigned array_index);
 
-/* Exception_Schedule: resizable BACnetARRAY of BACnetSpecialEvent */
 BACNET_STACK_EXPORT
-BACNET_SPECIAL_EVENT *
-Schedule_Exception_Schedule(uint32_t object_instance, unsigned index);
+bool Schedule_Exception_Schedule(
+    uint32_t object_instance,
+    unsigned index,
+    BACNET_SPECIAL_EVENT_ENTRY *value,
+    BACNET_DAILY_SCHEDULE_ENTRY *entries,
+    size_t entries_size,
+    size_t *entries_count);
 BACNET_STACK_EXPORT
 bool Schedule_Exception_Schedule_Set(
     uint32_t object_instance,
     unsigned index,
-    const BACNET_SPECIAL_EVENT *value);
+    const BACNET_SPECIAL_EVENT_ENTRY *value);
 BACNET_STACK_EXPORT
 unsigned Schedule_Exception_Schedule_Count(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Schedule_Exception_Schedule_Add(
-    uint32_t object_instance, const BACNET_SPECIAL_EVENT *value);
+    uint32_t object_instance, const BACNET_SPECIAL_EVENT_ENTRY *value);
 BACNET_STACK_EXPORT
 bool Schedule_Exception_Schedule_Delete_All(uint32_t object_instance);
 
-/* List_Of_Object_Property_References: resizable BACnetLIST of
-   BACnetDeviceObjectPropertyReference */
 BACNET_STACK_EXPORT
 bool Schedule_List_Of_Object_Property_References_Set(
     uint32_t object_instance,
@@ -185,15 +195,19 @@ int Schedule_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element);
 BACNET_STACK_EXPORT
 int Schedule_Remove_List_Element(BACNET_LIST_ELEMENT_DATA *list_element);
 
-/* utility functions for calculating current Present Value
- * if Exception Schedule is to be added, these functions must take that into
- * account */
 BACNET_STACK_EXPORT
 bool Schedule_In_Effective_Period(
     uint32_t object_instance, const BACNET_DATE *date);
 BACNET_STACK_EXPORT
 void Schedule_Recalculate_PV(
     uint32_t object_instance, BACNET_WEEKDAY wday, const BACNET_TIME *time);
+BACNET_STACK_EXPORT
+void Schedule_Calendar_Present_Value_Update(
+    uint32_t object_instance, const BACNET_DATE *date, const BACNET_TIME *time);
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+BACNET_STACK_EXPORT
+void Schedule_Read_Property_Internal_Callback_Set(read_property_function cb);
+#endif
 
 BACNET_STACK_EXPORT
 void Schedule_Timer(uint32_t object_instance, uint16_t milliseconds);

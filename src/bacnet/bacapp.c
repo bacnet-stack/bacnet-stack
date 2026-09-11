@@ -3350,6 +3350,68 @@ static int bacapp_snprintf_log_record(
 }
 #endif
 
+#if defined(BACAPP_WEEKLY_SCHEDULE) || defined(BACAPP_SPECIAL_EVENT)
+/**
+ * @brief Print a BACnet primitive data value to a string for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param value - value to print
+ * @return number of characters written
+ */
+static int bacapp_snprintf_primitive_data_value(
+    char *str, size_t str_len, const BACNET_PRIMITIVE_DATA_VALUE *value)
+{
+    int ret_val = 0;
+
+    switch (value->tag) {
+#if defined(BACAPP_NULL)
+        case BACNET_APPLICATION_TAG_NULL:
+            ret_val = bacapp_snprintf_null(str, str_len);
+            break;
+#endif
+#if defined(BACAPP_BOOLEAN)
+        case BACNET_APPLICATION_TAG_BOOLEAN:
+            ret_val =
+                bacapp_snprintf_boolean(str, str_len, value->type.Boolean);
+            break;
+#endif
+#if defined(BACAPP_UNSIGNED)
+        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+            ret_val = bacapp_snprintf_unsigned_integer(
+                str, str_len, value->type.Unsigned_Int);
+            break;
+#endif
+#if defined(BACAPP_SIGNED) && BACNET_USE_SIGNED
+        case BACNET_APPLICATION_TAG_SIGNED_INT:
+            ret_val = bacapp_snprintf_signed_integer(
+                str, str_len, value->type.Signed_Int);
+            break;
+#endif
+#if defined(BACAPP_REAL)
+        case BACNET_APPLICATION_TAG_REAL:
+            ret_val = bacapp_snprintf_real(str, str_len, value->type.Real);
+            break;
+#endif
+#if defined(BACAPP_DOUBLE) && BACNET_USE_DOUBLE
+        case BACNET_APPLICATION_TAG_DOUBLE:
+            ret_val = bacapp_snprintf_double(str, str_len, value->type.Double);
+            break;
+#endif
+#if defined(BACAPP_ENUMERATED)
+        case BACNET_APPLICATION_TAG_ENUMERATED:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%lu", (unsigned long)value->type.Enumerated);
+            break;
+#endif
+        case BACNET_APPLICATION_TAG_EMPTYLIST:
+            break;
+        default:
+            break;
+    }
+    return ret_val;
+}
+#endif
+
 #if defined(BACAPP_WEEKLY_SCHEDULE)
 /**
  * @brief Print a weekly schedule value to a string for EPICS
@@ -3368,8 +3430,6 @@ static int bacapp_snprintf_weeklyschedule(
     int slen;
     int ret_val = 0;
     int wi, ti;
-    BACNET_OBJECT_PROPERTY_VALUE dummyPropValue;
-    BACNET_APPLICATION_DATA_VALUE dummyDataValue = { 0 };
 
     const char *weekdaynames[7] = { "Mon", "Tue", "Wed", "Thu",
                                     "Fri", "Sat", "Sun" };
@@ -3416,13 +3476,8 @@ static int bacapp_snprintf_weeklyschedule(
             ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
             slen = bacapp_snprintf(str, str_len, " ");
             ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-            bacnet_primitive_to_application_data_value(
-                &dummyDataValue, &ds->Time_Values[ti].Value);
-            dummyPropValue.value = &dummyDataValue;
-            dummyPropValue.object_property = PROP_PRESENT_VALUE;
-            dummyPropValue.object_type = OBJECT_SCHEDULE;
-            dummyPropValue.array_index = 0;
-            slen = bacapp_snprintf_value(str, str_len, &dummyPropValue);
+            slen = bacapp_snprintf_primitive_data_value(
+                str, str_len, &ds->Time_Values[ti].Value);
             ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
             if (ti < ds->TV_Count - 1) {
                 slen = bacapp_snprintf(str, str_len, ", ");
@@ -3529,68 +3584,6 @@ static int bacapp_snprintf_calendar_entry(
     slen = bacapp_snprintf(str, str_len, "}");
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
 
-    return ret_val;
-}
-#endif
-
-#if defined(BACAPP_SPECIAL_EVENT)
-/**
- * @brief Print a value to a string for EPICS
- * @param str - destination string, or NULL for length only
- * @param str_len - length of the destination string, or 0 for length only
- * @param value - value to print
- * @return number of characters written
- */
-static int bacapp_snprintf_primitive_data_value(
-    char *str, size_t str_len, const BACNET_PRIMITIVE_DATA_VALUE *value)
-{
-    int ret_val = 0;
-
-    switch (value->tag) {
-#if defined(BACAPP_NULL)
-        case BACNET_APPLICATION_TAG_NULL:
-            ret_val = bacapp_snprintf_null(str, str_len);
-            break;
-#endif
-#if defined(BACAPP_BOOLEAN)
-        case BACNET_APPLICATION_TAG_BOOLEAN:
-            ret_val =
-                bacapp_snprintf_boolean(str, str_len, value->type.Boolean);
-            break;
-#endif
-#if defined(BACAPP_UNSIGNED)
-        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-            ret_val = bacapp_snprintf_unsigned_integer(
-                str, str_len, value->type.Unsigned_Int);
-            break;
-#endif
-#if defined(BACAPP_SIGNED)
-        case BACNET_APPLICATION_TAG_SIGNED_INT:
-            ret_val = bacapp_snprintf_signed_integer(
-                str, str_len, value->type.Signed_Int);
-            break;
-#endif
-#if defined(BACAPP_REAL)
-        case BACNET_APPLICATION_TAG_REAL:
-            ret_val = bacapp_snprintf_real(str, str_len, value->type.Real);
-            break;
-#endif
-#if defined(BACAPP_DOUBLE)
-        case BACNET_APPLICATION_TAG_DOUBLE:
-            ret_val = bacapp_snprintf_double(str, str_len, value->type.Double);
-            break;
-#endif
-#if defined(BACAPP_ENUMERATED)
-        case BACNET_APPLICATION_TAG_ENUMERATED:
-            ret_val = bacapp_snprintf(
-                str, str_len, "%lu", (unsigned long)value->type.Enumerated);
-            break;
-#endif
-        case BACNET_APPLICATION_TAG_EMPTYLIST:
-            break;
-        default:
-            break;
-    }
     return ret_val;
 }
 #endif
