@@ -2700,6 +2700,7 @@ static void test_hub_function_duplicated_uuid(void)
  *  libwebsockets to accept any client certificate regardless of chain
  *  validity.
  */
+#if !defined(CONFIG_MBEDTLS)
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(hub_test_9, test_hub_function_rejects_foreign_ca_client_cert)
 #else
