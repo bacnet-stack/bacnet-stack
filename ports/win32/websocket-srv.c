@@ -322,7 +322,7 @@ bws_find_connnection(BSC_WEBSOCKET_CONTEXT *ctx, struct lws *ws)
  * info.ssl_ca_filepath (a file path); it ignores server_ssl_ca_mem, so the
  * in-memory CA bytes bws_srv_start() was given must be added here instead.
  */
-static void bws_srv_load_ca_certs(SSL_CTX *ssl_ctx, BSC_WEBSOCKET_CONTEXT *ctx)
+static bool bws_srv_load_ca_certs(SSL_CTX *ssl_ctx, BSC_WEBSOCKET_CONTEXT *ctx)
 {
     X509_STORE *store;
     X509 *x;
@@ -331,19 +331,20 @@ static void bws_srv_load_ca_certs(SSL_CTX *ssl_ctx, BSC_WEBSOCKET_CONTEXT *ctx)
     int added = 0;
 
     if (!ssl_ctx || !ctx || !ctx->ca_cert || !ctx->ca_cert_size) {
-        return;
+        return false;
     }
     store = SSL_CTX_get_cert_store(ssl_ctx);
     if (!store) {
-        return;
+        return false;
     }
     /* a CA bundle is normally PEM and may contain more than one cert */
     bio = BIO_new_mem_buf(ctx->ca_cert, (int)ctx->ca_cert_size);
     if (bio) {
         while ((x = PEM_read_bio_X509(bio, NULL, NULL, NULL)) != NULL) {
-            X509_STORE_add_cert(store, x);
+            if (X509_STORE_add_cert(store, x) == 1) {
+                added++;
+            }
             X509_free(x);
-            added++;
         }
         BIO_free(bio);
     }
@@ -352,11 +353,14 @@ static void bws_srv_load_ca_certs(SSL_CTX *ssl_ctx, BSC_WEBSOCKET_CONTEXT *ctx)
         p = ctx->ca_cert;
         x = d2i_X509(NULL, &p, (long)ctx->ca_cert_size);
         if (x) {
-            X509_STORE_add_cert(store, x);
+            if (X509_STORE_add_cert(store, x) == 1) {
+                added++;
+            }
             X509_free(x);
         }
     }
     ERR_clear_error();
+    return added > 0;
 }
 #endif
 
@@ -382,7 +386,10 @@ static int bws_srv_websocket_event(
        of relying on libwebsockets' documented fail-open default (accept)
        for this reason when left unhandled. */
     if (reason == LWS_CALLBACK_OPENSSL_PERFORM_CLIENT_CERT_VERIFICATION) {
-        return len ? 0 : -1;
+        if (len) {
+            return 0;
+        }
+        return -1;
     }
 
     ctx = (BSC_WEBSOCKET_CONTEXT *)lws_context_user(lws_get_context(wsi));
@@ -397,7 +404,11 @@ static int bws_srv_websocket_event(
     switch (reason) {
 #if !defined(LWS_WITH_MBEDTLS)
         case LWS_CALLBACK_OPENSSL_LOAD_EXTRA_SERVER_VERIFY_CERTS: {
-            bws_srv_load_ca_certs((SSL_CTX *)user, ctx);
+            if (!bws_srv_load_ca_certs((SSL_CTX *)user, ctx)) {
+                DEBUG_PRINTF("bws_srv_websocket_event() failed to load "
+                             "CA certificate(s)\n");
+                return -1;
+            }
             break;
         }
 #endif
