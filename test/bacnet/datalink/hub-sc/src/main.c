@@ -2777,6 +2777,7 @@ static void test_hub_function_rejects_foreign_ca_client_cert(void)
     deinit_hubc_ev(&hubc);
     deinit_hubf_ev(&hubf);
 }
+#endif
 
 #if defined(CONFIG_ZTEST_NEW_API)
 static void *suite_setup(void)
