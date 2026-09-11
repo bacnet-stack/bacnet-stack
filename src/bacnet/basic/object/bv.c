@@ -569,6 +569,13 @@ unsigned Binary_Value_Present_Value_Priority(uint32_t object_instance)
 
 /**
  * @brief For a given object instance-number, sets the present-value
+ *
+ * When the object is commandable, no priority is given here, so the value
+ * is written wherever the present-value is currently resolved from: the
+ * slot of the active command, or relinquish-default when every priority
+ * slot is relinquished. Either way the present-value becomes the value
+ * given, which is what a caller of this function asks for.
+ *
  * @param  object_instance - object-instance number of the object
  * @param  value - enumerated binary present-value
  * @return  true if values are within range and present-value is set.
@@ -578,11 +585,15 @@ bool Binary_Value_Present_Value_Set(
 {
     bool status = false;
 #if defined(BACNET_OBJECT_BINARY_VALUE_COMMANDABLE)
-    /* with no priority given, drive present-value at the lowest priority
-       instead of through Relinquish_Default_Set(), so that a genuine
-       Present_Value transition raises Change_Of_Value */
-    status = Binary_Value_Present_Value_Priority_Set(
-        object_instance, value, BACNET_MAX_PRIORITY);
+    unsigned priority;
+
+    priority = Binary_Value_Present_Value_Priority(object_instance);
+    if (priority) {
+        status = Binary_Value_Present_Value_Priority_Set(
+            object_instance, value, priority);
+    } else {
+        status = Binary_Value_Relinquish_Default_Set(object_instance, value);
+    }
 #else
     struct object_data *pObject;
     BACNET_BINARY_PV old_value;
