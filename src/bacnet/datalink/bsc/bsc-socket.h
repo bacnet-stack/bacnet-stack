@@ -166,6 +166,22 @@ struct BSC_SocketContextFuncs {
         const char *error_desc);
 };
 
+/**
+ * An operator-configured, opt-in entry binding a BACnet/SC peer
+ * certificate identity (a "bacnet://<instance>" SAN URI, see 135-2024
+ * Clause 17.3.3) to the Device UUID/VMAC it is authorized to claim in a
+ * Connect-Request. Not part of the AB.7.4 default connection criteria;
+ * only enforced when a socket context has a non-empty identity policy.
+ */
+typedef struct BSC_Cert_Identity_Entry {
+    /* decimal device instance, i.e. the text after "bacnet://" and before
+     * any '/' or '?' in the peer cert's SAN URI */
+    const char *identity;
+    BACNET_SC_UUID uuid;
+    BACNET_SC_VMAC_ADDRESS vmac;
+    bool vmac_required;
+} BSC_CERT_IDENTITY_ENTRY;
+
 struct BSC_SocketContext {
     BSC_CTX_STATE state;
     BSC_WEBSOCKET_SRV_HANDLE sh;
@@ -175,6 +191,10 @@ struct BSC_SocketContext {
     BSC_CONTEXT_CFG *cfg;
     bool deinit_in_progress;
     void *user_arg;
+    /* identity_policy_num == 0 (default) disables identity binding
+     * enforcement entirely, preserving AB.7.4 default behavior */
+    BSC_CERT_IDENTITY_ENTRY *identity_policy;
+    size_t identity_policy_num;
 };
 
 /* max_local_bvlc_len - The maximum BVLC message size int bytes that can be */

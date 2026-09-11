@@ -497,6 +497,33 @@ BSC_SC_RET bsc_hub_function_start(
 }
 
 /**
+ * @brief Configure the hub function's opt-in peer certificate identity
+ *        binding policy. See BSC_CERT_IDENTITY_ENTRY and
+ *        bsc_hub_function_set_identity_policy() doc in
+ *        bsc-hub-function.h.
+ * @param h - pointer to the hub function handle
+ * @param entries - pointer to an array of policy entries, or NULL
+ * @param entries_num - number of entries in the array, or 0 to disable
+ * @return BSC_SC_SUCCESS on success, BSC_SC_BAD_PARAM for invalid params
+ */
+BSC_SC_RET bsc_hub_function_set_identity_policy(
+    BSC_HUB_FUNCTION_HANDLE h,
+    BSC_CERT_IDENTITY_ENTRY *entries,
+    size_t entries_num)
+{
+    BSC_HUB_FUNCTION *f = (BSC_HUB_FUNCTION *)h;
+
+    if (!f || (entries_num && !entries)) {
+        return BSC_SC_BAD_PARAM;
+    }
+    bws_dispatch_lock();
+    f->ctx.identity_policy = entries;
+    f->ctx.identity_policy_num = entries_num;
+    bws_dispatch_unlock();
+    return BSC_SC_SUCCESS;
+}
+
+/**
  * @brief Stop a BACnet hub function
  * @param h - pointer to the hub function handle
  */

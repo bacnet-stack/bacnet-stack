@@ -810,6 +810,65 @@ void bsc_socket_maintenance_timer(uint16_t seconds)
 }
 
 /**
+ * @brief Check whether a peer certificate's "bacnet://<instance>[...]"
+ *        SAN URI (see bws_srv_get_peer_cert_identity()) matches a policy
+ *        entry's device instance identity, ignoring any path or query
+ *        suffix on the URI.
+ * @param san_uri - SAN URI string as returned by
+ *                  bws_srv_get_peer_cert_identity()
+ * @param identity - decimal device instance string from a
+ *                    BSC_CERT_IDENTITY_ENTRY
+ * @return true if they match
+ */
+static bool bsc_cert_identity_matches(const char *san_uri, const char *identity)
+{
+    const char *instance;
+    size_t instance_len;
+
+    if (!san_uri || !identity || strncmp(san_uri, "bacnet://", 9) != 0) {
+        return false;
+    }
+    instance = san_uri + 9;
+    instance_len = strcspn(instance, "/?");
+    return (strlen(identity) == instance_len) &&
+        (strncmp(instance, identity, instance_len) == 0);
+}
+
+/**
+ * @brief Look up the peer certificate identity policy entry, if any,
+ *        that authorizes the current socket's underlying TLS peer
+ *        certificate. This is an opt-in check (see
+ *        bsc_hub_function_set_identity_policy()); it is skipped entirely
+ *        when no policy is configured, preserving the AB.7.4 default
+ *        behavior.
+ * @param c - pointer to the socket
+ * @return pointer to the matching policy entry, or NULL if the policy is
+ *         disabled, the peer presented no matching cert identity, or no
+ *         entry authorizes it
+ */
+static BSC_CERT_IDENTITY_ENTRY *bsc_find_cert_identity_entry(BSC_SOCKET *c)
+{
+    char san_uri[128];
+    size_t i;
+
+    if (!c->ctx->identity_policy_num) {
+        return NULL;
+    }
+    if (bws_srv_get_peer_cert_identity(
+            c->ctx->sh, c->wh, san_uri, sizeof(san_uri)) !=
+        BSC_WEBSOCKET_SUCCESS) {
+        return NULL;
+    }
+    for (i = 0; i < c->ctx->identity_policy_num; i++) {
+        if (bsc_cert_identity_matches(
+                san_uri, c->ctx->identity_policy[i].identity)) {
+            return &c->ctx->identity_policy[i];
+        }
+    }
+    return NULL;
+}
+
+/**
  * @brief Process the server awaiting request state
  * @param c - pointer to the socket
  * @param dm - pointer to the decoded message
@@ -844,6 +903,53 @@ static void bsc_process_srv_awaiting_request(
                 c->ctx, c, NULL, NULL, error_code, err_desc);
         }
     } else if (dm->hdr.bvlc_function == BVLC_SC_CONNECT_REQUEST) {
+        if (c->ctx->identity_policy_num) {
+            BSC_CERT_IDENTITY_ENTRY *entry = bsc_find_cert_identity_entry(c);
+
+            if (!entry ||
+                memcmp(
+                    &entry->uuid, dm->payload.connect_request.uuid,
+                    sizeof(entry->uuid)) != 0 ||
+                (entry->vmac_required &&
+                 memcmp(
+                     &entry->vmac, dm->payload.connect_request.vmac,
+                     sizeof(entry->vmac)) != 0)) {
+                DEBUG_PRINTF(
+                    "bsc_process_srv_awaiting_request() rejected "
+                    "connection, uuid %s is not authorized by the peer "
+                    "certificate identity\n",
+                    bsc_uuid_to_string(dm->payload.connect_request.uuid));
+                uclass = ERROR_CLASS_SECURITY;
+                ucode = ERROR_CODE_TLS_CLIENT_AUTHENTICATION_FAILED;
+                message_id = dm->hdr.message_id;
+                if (c->ctx->funcs->failed_request) {
+                    c->ctx->funcs->failed_request(
+                        c->ctx, c, dm->payload.connect_request.vmac,
+                        dm->payload.connect_request.uuid,
+                        ERROR_CODE_TLS_CLIENT_AUTHENTICATION_FAILED, NULL);
+                }
+                len = bvlc_sc_encode_result(
+                    TX_BUF_PTR(c), TX_BUF_BYTES_AVAIL(c), message_id, NULL,
+                    NULL, BVLC_SC_CONNECT_REQUEST, 1, NULL, &uclass, &ucode,
+                    NULL);
+                if (len) {
+                    TX_BUF_UPDATE(c, len);
+                    c->state = BSC_SOCK_STATE_ERROR_FLUSH_TX;
+                    c->reason = ERROR_CODE_TLS_CLIENT_AUTHENTICATION_FAILED;
+                    bws_srv_send(c->ctx->sh, c->wh);
+                } else {
+                    DEBUG_PRINTF(
+                        "bsc_process_srv_awaiting_request() sending of "
+                        "nack result message failed, err = "
+                        "BSC_SC_NO_RESOURCES\n");
+                    bsc_srv_process_error(
+                        c, ERROR_CODE_TLS_CLIENT_AUTHENTICATION_FAILED);
+                }
+                DEBUG_PRINTF_VERBOSE(
+                    "bsc_process_srv_awaiting_request() <<<\n");
+                return;
+            }
+        }
         existing = c->ctx->funcs->find_connection_for_uuid(
             dm->payload.connect_request.uuid, c->ctx->user_arg);
 

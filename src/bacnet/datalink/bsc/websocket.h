@@ -462,4 +462,31 @@ bool bws_srv_get_peer_ip_addr(
     uint8_t *ip_str,
     size_t ip_str_len,
     uint16_t *port);
+
+/**
+ * @brief bws_srv_get_peer_cert_identity() looks for a Subject Alternative
+ *        Name URI entry of the form "bacnet://<instance>[...]" (135-2024
+ *        Clause 17.3.3 / Annex Q.8) on the TLS certificate presented by the
+ *        peer of an accepted websocket connection, and copies it, NUL
+ *        terminated, into buf.
+ * @note Per Annex AB.7.4, this identity is not used by default as a
+ *       BACnet/SC connection criteria; it is intended only for an
+ *       installation-enabled, local authorization policy.
+ *
+ * @param sh - websocket server handle.
+ * @param h - websocket handle.
+ * @param buf - buffer to receive the NUL terminated SAN URI string.
+ * @param buf_size - size of buf in bytes.
+ *
+ * @return BSC_WEBSOCKET_SUCCESS if a "bacnet://" SAN URI entry was found
+ *         and copied into buf, BSC_WEBSOCKET_BAD_PARAM for invalid
+ *         parameters, or BSC_WEBSOCKET_INVALID_OPERATION if the peer
+ *         presented no certificate or no matching SAN entry.
+ */
+
+BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identity(
+    BSC_WEBSOCKET_SRV_HANDLE sh,
+    BSC_WEBSOCKET_HANDLE h,
+    char *buf,
+    size_t buf_size);
 #endif

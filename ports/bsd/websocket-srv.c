@@ -17,6 +17,7 @@
 #if !defined(LWS_WITH_MBEDTLS)
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
+#include <openssl/x509v3.h>
 #include <openssl/pem.h>
 #include <openssl/err.h>
 #endif
@@ -1124,4 +1125,65 @@ bool bws_srv_get_peer_ip_addr(
     }
 
     return false;
+}
+
+BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identity(
+    BSC_WEBSOCKET_SRV_HANDLE sh,
+    BSC_WEBSOCKET_HANDLE h,
+    char *buf,
+    size_t buf_size)
+{
+    BSC_WEBSOCKET_CONTEXT *ctx = (BSC_WEBSOCKET_CONTEXT *)sh;
+    SSL *ssl;
+    X509 *cert;
+    GENERAL_NAMES *san;
+    int i;
+    BSC_WEBSOCKET_RET ret = BSC_WEBSOCKET_INVALID_OPERATION;
+
+    if (!ctx || h < 0 || !buf || !buf_size ||
+        h >= bws_srv_get_max_sockets(ctx->proto)) {
+        return BSC_WEBSOCKET_BAD_PARAM;
+    }
+
+    pthread_mutex_lock(ctx->mutex);
+    ssl = (ctx->conn[h].state != BSC_WEBSOCKET_STATE_IDLE && ctx->conn[h].ws)
+        ? lws_get_ssl(ctx->conn[h].ws)
+        : NULL;
+    pthread_mutex_unlock(ctx->mutex);
+    if (!ssl) {
+        return BSC_WEBSOCKET_INVALID_OPERATION;
+    }
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+    cert = SSL_get1_peer_certificate(ssl);
+#else
+    cert = SSL_get_peer_certificate(ssl);
+#endif
+    if (!cert) {
+        return BSC_WEBSOCKET_INVALID_OPERATION;
+    }
+    san = X509_get_ext_d2i(cert, NID_subject_alt_name, NULL, NULL);
+    if (san) {
+        for (i = 0; i < sk_GENERAL_NAME_num(san); i++) {
+            GENERAL_NAME *name = sk_GENERAL_NAME_value(san, i);
+            const unsigned char *s;
+            int slen;
+
+            if (name->type != GEN_URI) {
+                continue;
+            }
+            s = ASN1_STRING_get0_data(name->d.uniformResourceIdentifier);
+            slen = ASN1_STRING_length(name->d.uniformResourceIdentifier);
+            if (slen > 9 && (size_t)slen < buf_size &&
+                memcmp(s, "bacnet://", 9) == 0) {
+                memcpy(buf, s, (size_t)slen);
+                buf[slen] = 0;
+                ret = BSC_WEBSOCKET_SUCCESS;
+                break;
+            }
+        }
+        GENERAL_NAMES_free(san);
+    }
+    X509_free(cert);
+    ERR_clear_error();
+    return ret;
 }
