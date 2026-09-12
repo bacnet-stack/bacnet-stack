@@ -13,10 +13,12 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [Unreleased] - 2026-09-02
+## [Unreleased] - 2026-09-12
 
 ### Security
 
+* Secured the Linux/BSD/Windows websocket by enforcing TLS client-certificate
+  verification in BACnet/SC. (#1503)
 * Secured the apps/ptransfer demo by moving ConfirmedPrivateTransfer
   send/handler logic into the core stack’s basic service layer,
   wiring the server demo to handle confirmed private transfers,
@@ -66,6 +68,8 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added priority array support to the Binary Value object. Implementation
+  is gated with BACNET_OBJECT_BINARY_VALUE_COMMANDABLE namespace. (#1490)(#1500)
 * Added What-Is-Network-Number support to h_routed_npdu(). (#1489)
 * Added write present-value callback to the Accumulator object. The callback
   is called with the old and new value after a successful Present_Value
@@ -115,6 +119,28 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed the Binary Value Present_Value_Set() function when the basic
+  Binary Value object is configured for an output mode (priority-array).
+  Since no priority is provided, the value is written to the current highest
+  priority, or relinquish-default if no priority slots are active. (#1499)
+* Changed the basic Schedule object to support object time of day evaluation
+  and write-back behavior, including exception schedules.
+  Evaluates weekly and exception schedules. Writes Present_Value to
+  referenced properties. Adds Write_Every_Scheduled_Action and related tests.
+  Schedule_Timer uses datetime_local for date/time processing. Each
+  Exception_Schedule entry uses a dynamic linked-list. Schedule_Write_Property
+  uses dedicated decode functions. Special_Event_Data_Set encode/decode
+  validated priority parameter. Schedule_Invalidate_Active_Time_Value manages
+  cached time-values during list mutations. Implements Present_Value
+  write behavior when Out_Of_Service is TRUE. Uses snprintf function
+  for printing primitive data values of BACnetWeeklySchedule in the same
+  way as BACnetDailySchedule. (#1502)
+* Changed basic Schedule object to support CreateObject and DeleteObject
+  service, and to support dynamic Weekly and Exception Schedule time values
+  and dynamic list of object property references. Integrated the basic
+  Schedule object into the BACnet device server configuration. (#1498)
+* Changed address.c device address binding module to use a Keylist
+  instead of a fixed size cache. (#1497)
 * Changed the github workflow to allow ESP32 port build to continue
   despite upstream toolchain issues. (#1487)
 * Changed the basic objects to use character cstrings for object-name
@@ -144,6 +170,15 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the Averaging object to be integrated into the BACnet device
+  server ReadProperty configuration for sampled references. (#1501)
+* Fixed the Relinquish_Default COV trigger in Output objects. (#1496)
+* Fixed the gateway2 app to not announce virtual network as a network. (#1495)
+* Fixed the basic Write Property Multiple to reject priority 0. (#1494)
+* Fixed the basic Multistate Output object to reserve priority 6 and reject
+  writes to it. (#1493)
+* Fixed the basic Analog Output object to reserve priority 6 and reject
+  writes to it. (#1492)
 * Fixed compiler warnings by adding setenv implementation for MinGW/MSVC.
 * Fixed MinGW buggy warnings for isinfinite(), isnan(), and isinf()
   when used with double arguments.
@@ -191,6 +226,8 @@ The git repositories are hosted at the following sites:
 
 ### Removed
 
+* Removed unused application value conversion functions for primitive
+  data values. (#1502)
 * Removed unnecessary platform include from bacapp.c
 * Removed deprecated Borland build tools and related files (#1483)
 * Removed unused Network_Port_SC_Direct_Connect_Accept_URIs_Dirty_Set function.
