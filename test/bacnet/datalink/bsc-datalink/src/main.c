@@ -2738,8 +2738,34 @@ static void test_sc_datalink_hub_identity_policy(void)
     }
     zassert_equal(connected, false, NULL);
 
+    /* allow the peer in first, then apply a restrictive policy live and
+       verify the active connection is torn down without restarting the
+       hub. */
+    ret = bsc_set_hub_function_identity_policy(NULL, 0);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+    wait_for_connection_to_hub(&node_ev2, node2);
+
+    ret = bsc_set_hub_function_identity_policy(policy, 1);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+    connected = true;
+    elapsed_ms = 0;
+    call_maintenance_timer(1, 0);
+    while (elapsed_ms < (uint32_t)(BACNET_TIMEOUT + 2) * 1000) {
+        bsc_event_timedwait(node_ev2.e, WAIT_EVENT_MS);
+        call_maintenance_timer(0, WAIT_EVENT_MS);
+        elapsed_ms += WAIT_EVENT_MS;
+        st1 = bsc_node_hub_connector_status(node2, true);
+        st2 = bsc_node_hub_connector_status(node2, false);
+        if ((!st1 || st1->State != BACNET_SC_CONNECTION_STATE_CONNECTED) &&
+            (!st2 || st2->State != BACNET_SC_CONNECTION_STATE_CONNECTED)) {
+            connected = false;
+            break;
+        }
+    }
+    zassert_equal(connected, false, NULL);
+
     /* disabling the policy on the already-running hub must let the same
-       peer in, without needing a restart */
+       peer back in, without needing a restart */
     ret = bsc_set_hub_function_identity_policy(NULL, 0);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     wait_for_connection_to_hub(&node_ev2, node2);
