@@ -681,12 +681,24 @@ BSC_SC_RET bsc_set_hub_function_identity_policy(
 {
     BSC_SC_RET ret = BSC_SC_SUCCESS;
 
+    if (entries_num && !entries) {
+        return BSC_SC_BAD_PARAM;
+    }
+    if (entries_num && !bws_srv_cert_identity_supported()) {
+        return BSC_SC_INVALID_OPERATION;
+    }
+
     bws_dispatch_lock();
-    bsc_conf.identity_policy = entries;
-    bsc_conf.identity_policy_num = entries_num;
     if (bsc_node) {
         ret = bsc_node_set_hub_function_identity_policy(
             bsc_node, entries, entries_num);
+        if (ret == BSC_SC_SUCCESS) {
+            bsc_conf.identity_policy = entries;
+            bsc_conf.identity_policy_num = entries_num;
+        }
+    } else {
+        bsc_conf.identity_policy = entries;
+        bsc_conf.identity_policy_num = entries_num;
     }
     bws_dispatch_unlock();
     return ret;

@@ -2651,6 +2651,26 @@ static void test_sc_datalink_hub_identity_policy(void)
 
     init_node_ev(&node_ev2);
 
+    /* reject invalid staged policy inputs before the first start, and
+       avoid exercising live policy enforcement when the backend cannot
+       extract peer certificate identities. */
+    ret = bsc_set_hub_function_identity_policy(NULL, 1);
+    zassert_equal(ret, BSC_SC_BAD_PARAM, NULL);
+
+    if (!bws_srv_cert_identity_supported()) {
+        memset(policy, 0, sizeof(policy));
+        policy[0].identity = "not-a-real-identity";
+        policy[0].uuid = unrelated_uuid;
+        policy[0].vmac_required = false;
+        ret = bsc_set_hub_function_identity_policy(policy, 1);
+        zassert_equal(ret, BSC_SC_INVALID_OPERATION, NULL);
+        ret = bsc_set_hub_function_identity_policy(NULL, 0);
+        zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+        Network_Port_Cleanup();
+        bacfile_cleanup();
+        return;
+    }
+
     /* stage a policy that maps an unrelated identity/uuid - no real peer
        can satisfy it - before bsc_init() starts the hub function. */
     memset(policy, 0, sizeof(policy));
