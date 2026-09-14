@@ -497,14 +497,29 @@ BSC_SC_RET bsc_hub_function_start(
 }
 
 /**
- * @brief Configure the hub function's opt-in peer certificate identity
- *        binding policy. See BSC_CERT_IDENTITY_ENTRY and
- *        bsc_hub_function_set_identity_policy() doc in
- *        bsc-hub-function.h.
- * @param h - pointer to the hub function handle
- * @param entries - pointer to an array of policy entries, or NULL
- * @param entries_num - number of entries in the array, or 0 to disable
- * @return BSC_SC_SUCCESS on success, BSC_SC_BAD_PARAM for invalid params
+ * @brief bsc_hub_function_set_identity_policy() configures an opt-in,
+ * disabled-by-default local authorization policy that binds a
+ * Connect-Request's claimed Device UUID/VMAC to the peer certificate
+ * identity presented during the TLS handshake (see
+ * BSC_CERT_IDENTITY_ENTRY). When entries_num is 0 (the default), no
+ * identity binding is enforced and the hub function follows the AB.7.4
+ * default behavior of accepting any Connect-Request whose certificate
+ * passes standard chain validation, regardless of claimed UUID/VMAC or
+ * certificate SAN content. When entries_num is non-zero, a
+ * Connect-Request is rejected unless its peer certificate carries a
+ * "bacnet://<instance>" SAN URI matching an entry whose uuid (and vmac,
+ * if vmac_required) equals the claimed values.
+ *
+ * @param h - hub function handle returned by bsc_hub_function_start().
+ * @param entries - pointer to an array of policy entries. The caller
+ *                  retains ownership; the array must remain valid for as
+ *                  long as it is set on the hub function.
+ * @param entries_num - number of entries in the array, or 0 to disable.
+ *
+ * @return BSC_SC_SUCCESS on success, BSC_SC_BAD_PARAM for invalid
+ *         parameters, or BSC_SC_INVALID_OPERATION if entries_num is
+ *         non-zero but the underlying TLS backend cannot extract peer
+ *         certificate identities (see bws_srv_cert_identity_supported()).
  */
 BSC_SC_RET bsc_hub_function_set_identity_policy(
     BSC_HUB_FUNCTION_HANDLE h,
@@ -515,6 +530,9 @@ BSC_SC_RET bsc_hub_function_set_identity_policy(
 
     if (!f || (entries_num && !entries)) {
         return BSC_SC_BAD_PARAM;
+    }
+    if (entries_num && !bws_srv_cert_identity_supported()) {
+        return BSC_SC_INVALID_OPERATION;
     }
     bws_dispatch_lock();
     f->ctx.identity_policy = entries;
