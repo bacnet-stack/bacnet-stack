@@ -2616,7 +2616,7 @@ static void test_sc_datalink_hub_identity_policy(void)
     char secondary_url2[128];
     BSC_SC_RET ret;
     BSC_NODE *node2;
-    BSC_CERT_IDENTITY_ENTRY policy[1];
+    BSC_CERT_IDENTITY_ENTRY *policy = NULL;
     BACNET_SC_HUB_CONNECTION_STATUS *st1;
     BACNET_SC_HUB_CONNECTION_STATUS *st2;
     bool connected;
@@ -2658,7 +2658,9 @@ static void test_sc_datalink_hub_identity_policy(void)
     zassert_equal(ret, BSC_SC_BAD_PARAM, NULL);
 
     if (!bws_srv_cert_identity_supported()) {
-        memset(policy, 0, sizeof(policy));
+        policy = calloc(1, sizeof(*policy));
+        zassert_not_null(policy, NULL);
+        memset(policy, 0, sizeof(*policy));
         policy[0].identity = "not-a-real-identity";
         policy[0].uuid = unrelated_uuid;
         policy[0].vmac_required = false;
@@ -2666,6 +2668,8 @@ static void test_sc_datalink_hub_identity_policy(void)
         zassert_equal(ret, BSC_SC_INVALID_OPERATION, NULL);
         ret = bsc_set_hub_function_identity_policy(NULL, 0);
         zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+        free(policy);
+        policy = NULL;
         Network_Port_Cleanup();
         bacfile_cleanup();
         return;
@@ -2673,7 +2677,9 @@ static void test_sc_datalink_hub_identity_policy(void)
 
     /* stage a policy that maps an unrelated identity/uuid - no real peer
        can satisfy it - before bsc_init() starts the hub function. */
-    memset(policy, 0, sizeof(policy));
+    policy = calloc(1, sizeof(*policy));
+    zassert_not_null(policy, NULL);
+    memset(policy, 0, sizeof(*policy));
     policy[0].identity = "not-a-real-identity";
     policy[0].uuid = unrelated_uuid;
     policy[0].vmac_required = false;
@@ -2770,11 +2776,33 @@ static void test_sc_datalink_hub_identity_policy(void)
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     wait_for_connection_to_hub(&node_ev2, node2);
 
+    /* a caller may release the staged policy after a full datalink cleanup;
+       the next hub start must default to disabled, not reuse the stale
+       pointer from the previous run. */
+    bsc_node_stop(node2);
+    wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2);
+    bsc_node_deinit(node2);
+    node2 = NULL;
+    bsc_cleanup();
+    free(policy);
+    policy = NULL;
+
+    zassert_equal(bsc_init(NULL), true, NULL);
+
+    ret = bsc_node_init(&conf2, &node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    ret = bsc_node_start(node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2), true, 0);
+    wait_for_connection_to_hub(&node_ev2, node2);
+
     bsc_node_stop(node2);
     wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2);
     bsc_cleanup();
     ret = bsc_node_deinit(node2);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    node2 = NULL;
     deinit_node_ev(&node_ev2);
 
     Network_Port_Cleanup();
