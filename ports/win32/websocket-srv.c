@@ -1296,8 +1296,8 @@ BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identities(
     ssl = (ctx->conn[h].state != BSC_WEBSOCKET_STATE_IDLE && ctx->conn[h].ws)
         ? lws_get_ssl(ctx->conn[h].ws)
         : NULL;
-    bsc_mutex_unlock(&ctx->mutex);
     if (!ssl) {
+        bsc_mutex_unlock(&ctx->mutex);
         return BSC_WEBSOCKET_INVALID_OPERATION;
     }
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L
@@ -1305,6 +1305,7 @@ BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identities(
 #else
     cert = SSL_get_peer_certificate(ssl);
 #endif
+    bsc_mutex_unlock(&ctx->mutex);
     if (!cert) {
         return BSC_WEBSOCKET_INVALID_OPERATION;
     }
