@@ -211,7 +211,106 @@ static void testSchedule(void)
         BACNET_READ_PROPERTY_DATA rpdata = { 0 };
         BACNET_APPLICATION_DATA_VALUE value = { 0 };
         BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+        const BACNET_PRIMITIVE_DATA_VALUE primitive_values[] = {
+            { .tag = BACNET_APPLICATION_TAG_NULL },
+            { .tag = BACNET_APPLICATION_TAG_BOOLEAN, .type.Boolean = true },
+            {
+                .tag = BACNET_APPLICATION_TAG_UNSIGNED_INT,
+                .type.Unsigned_Int = 42,
+            },
+#if BACNET_USE_SIGNED
+            {
+                .tag = BACNET_APPLICATION_TAG_SIGNED_INT,
+                .type.Signed_Int = -42,
+            },
+#endif
+            {
+                .tag = BACNET_APPLICATION_TAG_REAL,
+                .type.Real = 30.5f,
+            },
+#if BACNET_USE_DOUBLE
+            {
+                .tag = BACNET_APPLICATION_TAG_DOUBLE,
+                .type.Double = 30.5,
+            },
+#endif
+            {
+                .tag = BACNET_APPLICATION_TAG_ENUMERATED,
+                .type.Enumerated = 7,
+            },
+        };
+        BACNET_PRIMITIVE_DATA_VALUE expected_value = { 0 };
+        BACNET_PRIMITIVE_DATA_VALUE actual_value = { 0 };
         int len;
+        size_t primitive_index;
+
+        Schedule_Out_Of_Service_Set(object_instance, true);
+        for (primitive_index = 0; primitive_index <
+             (sizeof(primitive_values) / sizeof(primitive_values[0]));
+             primitive_index++) {
+            expected_value = primitive_values[primitive_index];
+            wp_data.object_type = OBJECT_SCHEDULE;
+            wp_data.object_instance = object_instance;
+            wp_data.object_property = PROP_PRESENT_VALUE;
+            wp_data.array_index = BACNET_ARRAY_ALL;
+            wp_data.error_code = ERROR_CODE_SUCCESS;
+            wp_data.application_data_len = bacnet_primitive_value_encode(
+                wp_data.application_data, &expected_value);
+            zassert_true(wp_data.application_data_len > 0, NULL);
+            status = Schedule_Write_Property(&wp_data);
+            zassert_true(status, NULL);
+            zassert_equal(wp_data.error_code, ERROR_CODE_SUCCESS, NULL);
+
+            rpdata.object_type = OBJECT_SCHEDULE;
+            rpdata.object_instance = object_instance;
+            rpdata.object_property = PROP_PRESENT_VALUE;
+            rpdata.array_index = BACNET_ARRAY_ALL;
+            rpdata.application_data = apdu;
+            rpdata.application_data_len = sizeof(apdu);
+            len = Schedule_Read_Property(&rpdata);
+            zassert_true(len > 0, NULL);
+            len = bacnet_primitive_value_decode(
+                apdu, (uint32_t)len, &actual_value);
+            zassert_true(len > 0, NULL);
+            zassert_true(
+                bacnet_primitive_value_same(&expected_value, &actual_value),
+                NULL);
+        }
+
+        for (primitive_index = 0; primitive_index <
+             (sizeof(primitive_values) / sizeof(primitive_values[0]));
+             primitive_index++) {
+            expected_value = primitive_values[primitive_index];
+            wp_data.object_type = OBJECT_SCHEDULE;
+            wp_data.object_instance = object_instance;
+            wp_data.object_property = PROP_SCHEDULE_DEFAULT;
+            wp_data.array_index = BACNET_ARRAY_ALL;
+            wp_data.error_code = ERROR_CODE_SUCCESS;
+            wp_data.application_data_len = bacnet_primitive_value_encode(
+                wp_data.application_data, &expected_value);
+            zassert_true(wp_data.application_data_len > 0, NULL);
+            status = Schedule_Write_Property(&wp_data);
+            zassert_true(status, NULL);
+            zassert_equal(wp_data.error_code, ERROR_CODE_SUCCESS, NULL);
+
+            rpdata.object_type = OBJECT_SCHEDULE;
+            rpdata.object_instance = object_instance;
+            rpdata.object_property = PROP_SCHEDULE_DEFAULT;
+            rpdata.array_index = BACNET_ARRAY_ALL;
+            rpdata.application_data = apdu;
+            rpdata.application_data_len = sizeof(apdu);
+            len = Schedule_Read_Property(&rpdata);
+            zassert_true(len > 0, NULL);
+            len = bacnet_primitive_value_decode(
+                apdu, (uint32_t)len, &actual_value);
+            zassert_true(len > 0, NULL);
+            zassert_true(
+                bacnet_primitive_value_same(&expected_value, &actual_value),
+                NULL);
+        }
+
+        Schedule_Out_Of_Service_Set(object_instance, false);
+        zassert_false(Schedule_Out_Of_Service(object_instance), NULL);
 
         wp_data.object_type = OBJECT_SCHEDULE;
         wp_data.object_instance = object_instance;
@@ -958,10 +1057,12 @@ static void testScheduleOutOfService(void)
     Schedule_Write_Property_Internal_Callback_Set(
         testSchedule_Write_Property_Stub);
     testSchedule_Write_Property_Call_Count = 0;
+    wp_data.error_code = ERROR_CODE_SUCCESS;
     wp_data.application_data_len =
         encode_application_real(wp_data.application_data, 77.0f);
     status = Schedule_Write_Property(&wp_data);
     zassert_true(status, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_SUCCESS, NULL);
     zassert_within(
         testSchedule_Present_Value_Real(object_instance), 77.0f, 0.001f, NULL);
     zassert_equal(testSchedule_Write_Property_Call_Count, 1, NULL);
@@ -971,12 +1072,33 @@ static void testScheduleOutOfService(void)
     zassert_equal(
         testSchedule_Write_Property_Last_Data.object_instance, 1, NULL);
 
-    /* a NULL value is rejected */
-    wp_data.application_data_len =
-        encode_application_null(wp_data.application_data);
-    status = Schedule_Write_Property(&wp_data);
-    zassert_false(status, NULL);
-    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    /* NULL is a valid primitive value while Out_Of_Service is TRUE */
+    {
+        uint8_t read_apdu[64] = { 0 };
+        BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+        BACNET_PRIMITIVE_DATA_VALUE read_value = { 0 };
+        int read_len = 0;
+
+        wp_data.error_code = ERROR_CODE_SUCCESS;
+        wp_data.application_data_len =
+            encode_application_null(wp_data.application_data);
+        status = Schedule_Write_Property(&wp_data);
+        zassert_true(status, NULL);
+        zassert_equal(wp_data.error_code, ERROR_CODE_SUCCESS, NULL);
+
+        rpdata.object_type = OBJECT_SCHEDULE;
+        rpdata.object_instance = object_instance;
+        rpdata.object_property = PROP_PRESENT_VALUE;
+        rpdata.array_index = BACNET_ARRAY_ALL;
+        rpdata.application_data = read_apdu;
+        rpdata.application_data_len = sizeof(read_apdu);
+        read_len = Schedule_Read_Property(&rpdata);
+        zassert_true(read_len > 0, NULL);
+        read_len = bacnet_primitive_value_decode(
+            read_apdu, (uint32_t)read_len, &read_value);
+        zassert_true(read_len > 0, NULL);
+        zassert_equal(read_value.tag, BACNET_APPLICATION_TAG_NULL, NULL);
+    }
 
     /* returning to service resumes internal calculation */
     Schedule_Out_Of_Service_Set(object_instance, false);
