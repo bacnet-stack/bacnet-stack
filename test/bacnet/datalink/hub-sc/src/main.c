@@ -3140,6 +3140,178 @@ static void test_hub_function_identity_policy_accepts_authorized_client(void)
 
 /**
  * @brief Verify that when the hub function has an opt-in certificate
+ *  identity policy configured with VMAC enforcement enabled, a connector
+ *  presenting a client certificate whose SAN URI matches a policy entry
+ *  and whose claimed VMAC matches the authorized VMAC is accepted.
+ */
+#if !defined(CONFIG_MBEDTLS)
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(hub_test_13, test_hub_function_identity_policy_accepts_matching_vmac)
+#else
+static void test_hub_function_identity_policy_accepts_matching_vmac(void)
+#endif
+{
+    BSC_SC_RET ret;
+    BACNET_SC_UUID hubf_uuid;
+    BACNET_SC_VMAC_ADDRESS hubf_vmac;
+    BSC_HUB_FUNCTION_HANDLE hubf_h;
+    BACNET_SC_UUID hubc_uuid;
+    BACNET_SC_VMAC_ADDRESS hubc_vmac;
+    BSC_HUB_FUNCTION_HANDLE hubc_h;
+    char primary_url[128];
+    char secondary_url[128];
+    BSC_CERT_IDENTITY_ENTRY policy[1];
+
+    memset(&hubf_uuid, 0x1, sizeof(hubf_uuid));
+    memset(&hubf_vmac, 0x2, sizeof(hubf_vmac));
+    memset(&hubc_uuid, 0x3, sizeof(hubc_uuid));
+    memset(&hubc_vmac, 0x4, sizeof(hubc_vmac));
+
+    snprintf(
+        primary_url, sizeof(primary_url), "wss://%s:%d",
+        BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT);
+    snprintf(
+        secondary_url, sizeof(secondary_url), "wss://%s:%d",
+        BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT2);
+
+    init_hubc_ev(&hubc);
+    init_hubf_ev(&hubf);
+
+    ret = bsc_hub_function_start(
+        ca_cert, sizeof(ca_cert), server_cert, sizeof(server_cert), server_key,
+        sizeof(server_key), BACNET_WEBSOCKET_SERVER_PORT, BSC_NETWORK_IFACE,
+        &hubf_uuid, &hubf_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN,
+        BACNET_TIMEOUT, // connect timeout
+        BACNET_TIMEOUT, // heartbeat timeout
+        BACNET_TIMEOUT, // disconnect timeout
+        hub_function_event, NULL, &hubf_h);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+    zassert_equal(wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STARTED, hubf_h), true, 0);
+
+    memset(policy, 0, sizeof(policy));
+    policy[0].identity = "1234";
+    policy[0].uuid = hubc_uuid;
+    policy[0].vmac = hubc_vmac;
+    policy[0].vmac_required = true;
+    ret = bsc_hub_function_set_identity_policy(hubf_h, policy, 1);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+
+    ret = bsc_hub_connector_start(
+        ca_cert, sizeof(ca_cert), san_client_cert, sizeof(san_client_cert),
+        san_client_key, sizeof(san_client_key), &hubc_uuid, &hubc_vmac,
+        MAX_BVLC_LEN, MAX_NDPU_LEN,
+        BACNET_TIMEOUT, // connect timeout
+        BACNET_TIMEOUT, // heartbeat timeout
+        BACNET_TIMEOUT, // disconnect timeout
+        primary_url, secondary_url,
+        BACNET_TIMEOUT, // reconnect timeout
+        hub_connector_event, &hubc_uuid, &hubc_h);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+    zassert_equal(
+        wait_hubc_ev(&hubc, BSC_HUBC_EVENT_CONNECTED_PRIMARY, hubc_h), true, 0);
+
+    bsc_hub_connector_stop(hubc_h);
+    zassert_equal(wait_hubc_ev(&hubc, BSC_HUBC_EVENT_STOPPED, hubc_h), true, 0);
+    bsc_hub_function_stop(hubf_h);
+    zassert_equal(wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STOPPED, hubf_h), true, 0);
+    deinit_hubc_ev(&hubc);
+    deinit_hubf_ev(&hubf);
+}
+#endif
+
+/**
+ * @brief Verify that when the hub function has an opt-in certificate
+ *  identity policy configured with VMAC enforcement enabled, a connector
+ *  presenting a client certificate whose SAN URI matches a policy entry but
+ *  claiming a different VMAC than the one authorized for that entry is
+ *  rejected.
+ */
+#if !defined(CONFIG_MBEDTLS)
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(hub_test_14, test_hub_function_identity_policy_rejects_vmac_mismatch)
+#else
+static void test_hub_function_identity_policy_rejects_vmac_mismatch(void)
+#endif
+{
+    BSC_SC_RET ret;
+    BACNET_SC_UUID hubf_uuid;
+    BACNET_SC_VMAC_ADDRESS hubf_vmac;
+    BSC_HUB_FUNCTION_HANDLE hubf_h;
+    BACNET_SC_UUID hubc_uuid;
+    BACNET_SC_VMAC_ADDRESS hubc_vmac;
+    BACNET_SC_VMAC_ADDRESS authorized_vmac;
+    BSC_HUB_FUNCTION_HANDLE hubc_h;
+    char primary_url[128];
+    char secondary_url[128];
+    BSC_CERT_IDENTITY_ENTRY policy[1];
+
+    memset(&hubf_uuid, 0x1, sizeof(hubf_uuid));
+    memset(&hubf_vmac, 0x2, sizeof(hubf_vmac));
+    memset(&hubc_uuid, 0x3, sizeof(hubc_uuid));
+    memset(&hubc_vmac, 0x4, sizeof(hubc_vmac));
+    memset(&authorized_vmac, 0x5, sizeof(authorized_vmac));
+
+    snprintf(
+        primary_url, sizeof(primary_url), "wss://%s:%d",
+        BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT);
+    snprintf(
+        secondary_url, sizeof(secondary_url), "wss://%s:%d",
+        BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT2);
+
+    init_hubc_ev(&hubc);
+    init_hubf_ev(&hubf);
+
+    ret = bsc_hub_function_start(
+        ca_cert, sizeof(ca_cert), server_cert, sizeof(server_cert), server_key,
+        sizeof(server_key), BACNET_WEBSOCKET_SERVER_PORT, BSC_NETWORK_IFACE,
+        &hubf_uuid, &hubf_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN,
+        BACNET_TIMEOUT, // connect timeout
+        BACNET_TIMEOUT, // heartbeat timeout
+        BACNET_TIMEOUT, // disconnect timeout
+        hub_function_event, NULL, &hubf_h);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+    zassert_equal(wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STARTED, hubf_h), true, 0);
+
+    memset(policy, 0, sizeof(policy));
+    policy[0].identity = "1234";
+    policy[0].uuid = hubc_uuid;
+    policy[0].vmac = authorized_vmac;
+    policy[0].vmac_required = true;
+    ret = bsc_hub_function_set_identity_policy(hubf_h, policy, 1);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+
+    ret = bsc_hub_connector_start(
+        ca_cert, sizeof(ca_cert), san_client_cert, sizeof(san_client_cert),
+        san_client_key, sizeof(san_client_key), &hubc_uuid, &hubc_vmac,
+        MAX_BVLC_LEN, MAX_NDPU_LEN,
+        BACNET_TIMEOUT, // connect timeout
+        BACNET_TIMEOUT, // heartbeat timeout
+        BACNET_TIMEOUT, // disconnect timeout
+        primary_url, secondary_url,
+        BACNET_TIMEOUT, // reconnect timeout
+        hub_connector_event, &hubc_uuid, &hubc_h);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+
+    zassert_equal(
+        wait_hubc_ev_timeout(
+            &hubc, BSC_HUBC_EVENT_CONNECTED_PRIMARY, hubc_h,
+            (BACNET_TIMEOUT + 2) * 1000),
+        false, NULL);
+    zassert_not_equal(
+        bsc_hub_connector_state(hubc_h),
+        BACNET_SC_HUB_CONNECTOR_STATE_CONNECTED_TO_PRIMARY, 0);
+
+    bsc_hub_connector_stop(hubc_h);
+    zassert_equal(wait_hubc_ev(&hubc, BSC_HUBC_EVENT_STOPPED, hubc_h), true, 0);
+    bsc_hub_function_stop(hubf_h);
+    zassert_equal(wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STOPPED, hubf_h), true, 0);
+    deinit_hubc_ev(&hubc);
+    deinit_hubf_ev(&hubf);
+}
+#endif
+
+/**
+ * @brief Verify that when the hub function has an opt-in certificate
  *  identity policy configured, a connector presenting a client
  *  certificate whose SAN URI matches a policy entry, but claiming a
  *  Device UUID different from the one authorized for that entry, is
@@ -3342,6 +3514,8 @@ ZTEST_SUITE(hub_test_9, NULL, suite_setup, NULL, NULL, NULL);
 ZTEST_SUITE(hub_test_10, NULL, suite_setup, NULL, NULL, NULL);
 ZTEST_SUITE(hub_test_11, NULL, suite_setup, NULL, NULL, NULL);
 ZTEST_SUITE(hub_test_12, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(hub_test_13, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(hub_test_14, NULL, suite_setup, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
@@ -3377,6 +3551,14 @@ void test_main(void)
     ztest_test_suite(
         hub_test_12,
         ztest_unit_test(test_hub_function_identity_policy_rejects_missing_san));
+    ztest_test_suite(
+        hub_test_13,
+        ztest_unit_test(
+            test_hub_function_identity_policy_accepts_matching_vmac));
+    ztest_test_suite(
+        hub_test_14,
+        ztest_unit_test(
+            test_hub_function_identity_policy_rejects_vmac_mismatch));
 
     ztest_run_test_suite(hub_test_1);
     ztest_run_test_suite(hub_test_2);
@@ -3390,5 +3572,7 @@ void test_main(void)
     ztest_run_test_suite(hub_test_10);
     ztest_run_test_suite(hub_test_11);
     ztest_run_test_suite(hub_test_12);
+    ztest_run_test_suite(hub_test_13);
+    ztest_run_test_suite(hub_test_14);
 }
 #endif
