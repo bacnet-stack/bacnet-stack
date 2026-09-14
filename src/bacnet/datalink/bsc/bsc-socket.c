@@ -849,13 +849,15 @@ static bool bsc_cert_identity_matches(const char *san_uri, const char *identity)
 BSC_CERT_IDENTITY_ENTRY *bsc_find_cert_identity_entry_in_sans(
     const char *const *san_uris,
     size_t san_uris_num,
+    const BACNET_SC_UUID *uuid,
+    const BACNET_SC_VMAC_ADDRESS *vmac,
     BSC_CERT_IDENTITY_ENTRY *entries,
     size_t entries_num)
 {
     size_t i;
     size_t j;
 
-    if (!san_uris || !san_uris_num || !entries || !entries_num) {
+    if (!san_uris || !san_uris_num || !uuid || !entries || !entries_num) {
         return NULL;
     }
     for (i = 0; i < san_uris_num; i++) {
@@ -863,7 +865,11 @@ BSC_CERT_IDENTITY_ENTRY *bsc_find_cert_identity_entry_in_sans(
             continue;
         }
         for (j = 0; j < entries_num; j++) {
-            if (bsc_cert_identity_matches(san_uris[i], entries[j].identity)) {
+            if (bsc_cert_identity_matches(san_uris[i], entries[j].identity) &&
+                memcmp(&entries[j].uuid, uuid, sizeof(entries[j].uuid)) == 0 &&
+                (!entries[j].vmac_required || !vmac ||
+                 memcmp(&entries[j].vmac, vmac, sizeof(entries[j].vmac)) ==
+                     0)) {
                 return &entries[j];
             }
         }
@@ -871,7 +877,10 @@ BSC_CERT_IDENTITY_ENTRY *bsc_find_cert_identity_entry_in_sans(
     return NULL;
 }
 
-static BSC_CERT_IDENTITY_ENTRY *bsc_find_cert_identity_entry(BSC_SOCKET *c)
+static BSC_CERT_IDENTITY_ENTRY *bsc_find_cert_identity_entry(
+    BSC_SOCKET *c,
+    const BACNET_SC_UUID *uuid,
+    const BACNET_SC_VMAC_ADDRESS *vmac)
 {
     char san_uris[256];
     size_t identity_count = 0;
@@ -896,7 +905,8 @@ static BSC_CERT_IDENTITY_ENTRY *bsc_find_cert_identity_entry(BSC_SOCKET *c)
         uris[uri_count++] = p;
     }
     return bsc_find_cert_identity_entry_in_sans(
-        uris, uri_count, c->ctx->identity_policy, c->ctx->identity_policy_num);
+        uris, uri_count, uuid, vmac, c->ctx->identity_policy,
+        c->ctx->identity_policy_num);
 }
 
 /**
@@ -935,16 +945,11 @@ static void bsc_process_srv_awaiting_request(
         }
     } else if (dm->hdr.bvlc_function == BVLC_SC_CONNECT_REQUEST) {
         if (c->ctx->identity_policy_num) {
-            BSC_CERT_IDENTITY_ENTRY *entry = bsc_find_cert_identity_entry(c);
+            BSC_CERT_IDENTITY_ENTRY *entry = bsc_find_cert_identity_entry(
+                c, dm->payload.connect_request.uuid,
+                dm->payload.connect_request.vmac);
 
-            if (!entry ||
-                memcmp(
-                    &entry->uuid, dm->payload.connect_request.uuid,
-                    sizeof(entry->uuid)) != 0 ||
-                (entry->vmac_required &&
-                 memcmp(
-                     &entry->vmac, dm->payload.connect_request.vmac,
-                     sizeof(entry->vmac)) != 0)) {
+            if (!entry) {
                 DEBUG_PRINTF(
                     "bsc_process_srv_awaiting_request() rejected "
                     "connection, uuid %s is not authorized by the peer "

@@ -3148,21 +3148,47 @@ static void test_hub_function_identity_policy_accepts_later_bacnet_san(void)
 {
     const char *san_uris[] = {
         "bacnet://9999/ignored",
+        "bacnet://4321",
         "bacnet://1234",
-        "bacnet://4321?x=1",
+        "bacnet://1234?x=1",
     };
+    BACNET_SC_UUID claimed_uuid;
+    BACNET_SC_VMAC_ADDRESS claimed_vmac;
+    BACNET_SC_UUID other_uuid;
+    BACNET_SC_VMAC_ADDRESS other_vmac;
     BSC_CERT_IDENTITY_ENTRY policy[2];
     BSC_CERT_IDENTITY_ENTRY *match;
 
+    memset(&claimed_uuid, 0xA5, sizeof(claimed_uuid));
+    memset(&claimed_vmac, 0x5A, sizeof(claimed_vmac));
+    memset(&other_uuid, 0x10, sizeof(other_uuid));
+    memset(&other_vmac, 0x01, sizeof(other_vmac));
+
     memset(policy, 0, sizeof(policy));
     policy[0].identity = "4321";
+    policy[0].uuid = other_uuid;
+    policy[0].vmac = other_vmac;
+    policy[0].vmac_required = true;
     policy[1].identity = "1234";
+    policy[1].uuid = claimed_uuid;
+    policy[1].vmac = claimed_vmac;
+    policy[1].vmac_required = true;
 
     match = bsc_find_cert_identity_entry_in_sans(
-        san_uris, sizeof(san_uris) / sizeof(san_uris[0]), policy,
-        sizeof(policy) / sizeof(policy[0]));
+        san_uris, sizeof(san_uris) / sizeof(san_uris[0]), &claimed_uuid,
+        &claimed_vmac, policy, sizeof(policy) / sizeof(policy[0]));
     zassert_not_null(match, NULL);
     zassert_true(strcmp(match->identity, "1234") == 0, NULL);
+    zassert_true(
+        memcmp(&match->uuid, &claimed_uuid, sizeof(claimed_uuid)) == 0, NULL);
+
+    match = bsc_find_cert_identity_entry_in_sans(
+        san_uris, sizeof(san_uris) / sizeof(san_uris[0]), &other_uuid,
+        &other_vmac, policy, sizeof(policy) / sizeof(policy[0]));
+    zassert_not_null(match, NULL);
+    zassert_true(strcmp(match->identity, "4321") == 0, NULL);
+    zassert_true(
+        memcmp(&match->uuid, &other_uuid, sizeof(other_uuid)) == 0, NULL);
 }
 #endif
 

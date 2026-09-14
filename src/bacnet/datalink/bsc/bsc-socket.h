@@ -186,6 +186,8 @@ BACNET_STACK_EXPORT
 BSC_CERT_IDENTITY_ENTRY *bsc_find_cert_identity_entry_in_sans(
     const char *const *san_uris,
     size_t san_uris_num,
+    const BACNET_SC_UUID *uuid,
+    const BACNET_SC_VMAC_ADDRESS *vmac,
     BSC_CERT_IDENTITY_ENTRY *entries,
     size_t entries_num);
 
