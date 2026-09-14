@@ -3136,6 +3136,37 @@ static void test_hub_function_identity_policy_accepts_authorized_client(void)
 #endif
 
 /**
+ * @brief Verify that when the certificate has multiple BACnet SAN URIs,
+ *  the policy accepts the first matching one regardless of ordering.
+ */
+#if !defined(CONFIG_MBEDTLS)
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(hub_test_13, test_hub_function_identity_policy_accepts_later_bacnet_san)
+#else
+static void test_hub_function_identity_policy_accepts_later_bacnet_san(void)
+#endif
+{
+    const char *san_uris[] = {
+        "bacnet://9999/ignored",
+        "bacnet://1234",
+        "bacnet://4321?x=1",
+    };
+    BSC_CERT_IDENTITY_ENTRY policy[2];
+    BSC_CERT_IDENTITY_ENTRY *match;
+
+    memset(policy, 0, sizeof(policy));
+    policy[0].identity = "4321";
+    policy[1].identity = "1234";
+
+    match = bsc_find_cert_identity_entry_in_sans(
+        san_uris, sizeof(san_uris) / sizeof(san_uris[0]), policy,
+        sizeof(policy) / sizeof(policy[0]));
+    zassert_not_null(match, NULL);
+    zassert_true(strcmp(match->identity, "1234") == 0, NULL);
+}
+#endif
+
+/**
  * @brief Verify that when the hub function has an opt-in certificate
  *  identity policy configured with VMAC enforcement enabled, a connector
  *  presenting a client certificate whose SAN URI matches a policy entry
@@ -3143,7 +3174,7 @@ static void test_hub_function_identity_policy_accepts_authorized_client(void)
  */
 #if !defined(CONFIG_MBEDTLS)
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(hub_test_13, test_hub_function_identity_policy_accepts_matching_vmac)
+ZTEST(hub_test_14, test_hub_function_identity_policy_accepts_matching_vmac)
 #else
 static void test_hub_function_identity_policy_accepts_matching_vmac(void)
 #endif
@@ -3222,7 +3253,7 @@ static void test_hub_function_identity_policy_accepts_matching_vmac(void)
  */
 #if !defined(CONFIG_MBEDTLS)
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(hub_test_14, test_hub_function_identity_policy_rejects_vmac_mismatch)
+ZTEST(hub_test_15, test_hub_function_identity_policy_rejects_vmac_mismatch)
 #else
 static void test_hub_function_identity_policy_rejects_vmac_mismatch(void)
 #endif
@@ -3501,6 +3532,7 @@ ZTEST_SUITE(hub_test_11, NULL, suite_setup, NULL, NULL, NULL);
 ZTEST_SUITE(hub_test_12, NULL, suite_setup, NULL, NULL, NULL);
 ZTEST_SUITE(hub_test_13, NULL, suite_setup, NULL, NULL, NULL);
 ZTEST_SUITE(hub_test_14, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(hub_test_15, NULL, suite_setup, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
@@ -3539,9 +3571,13 @@ void test_main(void)
     ztest_test_suite(
         hub_test_13,
         ztest_unit_test(
-            test_hub_function_identity_policy_accepts_matching_vmac));
+            test_hub_function_identity_policy_accepts_later_bacnet_san));
     ztest_test_suite(
         hub_test_14,
+        ztest_unit_test(
+            test_hub_function_identity_policy_accepts_matching_vmac));
+    ztest_test_suite(
+        hub_test_15,
         ztest_unit_test(
             test_hub_function_identity_policy_rejects_vmac_mismatch));
 
@@ -3559,5 +3595,6 @@ void test_main(void)
     ztest_run_test_suite(hub_test_12);
     ztest_run_test_suite(hub_test_13);
     ztest_run_test_suite(hub_test_14);
+    ztest_run_test_suite(hub_test_15);
 }
 #endif

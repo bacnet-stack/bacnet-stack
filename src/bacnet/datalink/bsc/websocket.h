@@ -448,6 +448,13 @@ bool bws_srv_get_peer_ip_addr(
     size_t ip_str_len,
     uint16_t *port);
 
+BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identities(
+    BSC_WEBSOCKET_SRV_HANDLE sh,
+    BSC_WEBSOCKET_HANDLE h,
+    char *buf,
+    size_t buf_size,
+    size_t *identity_count);
+
 BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identity(
     BSC_WEBSOCKET_SRV_HANDLE sh,
     BSC_WEBSOCKET_HANDLE h,

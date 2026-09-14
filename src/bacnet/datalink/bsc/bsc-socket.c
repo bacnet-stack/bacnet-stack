@@ -846,26 +846,55 @@ static bool bsc_cert_identity_matches(const char *san_uri, const char *identity)
  *         disabled, the peer presented no matching cert identity, or no
  *         entry authorizes it
  */
+BSC_CERT_IDENTITY_ENTRY *bsc_find_cert_identity_entry_in_sans(
+    const char *const *san_uris,
+    size_t san_uris_num,
+    BSC_CERT_IDENTITY_ENTRY *entries,
+    size_t entries_num)
+{
+    size_t i;
+    size_t j;
+
+    if (!san_uris || !san_uris_num || !entries || !entries_num) {
+        return NULL;
+    }
+    for (i = 0; i < san_uris_num; i++) {
+        if (!san_uris[i]) {
+            continue;
+        }
+        for (j = 0; j < entries_num; j++) {
+            if (bsc_cert_identity_matches(san_uris[i], entries[j].identity)) {
+                return &entries[j];
+            }
+        }
+    }
+    return NULL;
+}
+
 static BSC_CERT_IDENTITY_ENTRY *bsc_find_cert_identity_entry(BSC_SOCKET *c)
 {
-    char san_uri[128];
-    size_t i;
+    char san_uris[256];
+    size_t identity_count = 0;
+    const char *uris[32];
+    size_t uri_count = 0;
+    char *p;
 
     if (!c->ctx->identity_policy_num) {
         return NULL;
     }
-    if (bws_srv_get_peer_cert_identity(
-            c->ctx->sh, c->wh, san_uri, sizeof(san_uri)) !=
+    if (bws_srv_get_peer_cert_identities(
+            c->ctx->sh, c->wh, san_uris, sizeof(san_uris), &identity_count) !=
         BSC_WEBSOCKET_SUCCESS) {
         return NULL;
     }
-    for (i = 0; i < c->ctx->identity_policy_num; i++) {
-        if (bsc_cert_identity_matches(
-                san_uri, c->ctx->identity_policy[i].identity)) {
-            return &c->ctx->identity_policy[i];
-        }
+    if (!identity_count) {
+        return NULL;
     }
-    return NULL;
+    for (p = san_uris; *p != '\0' && uri_count < 32; p += strlen(p) + 1) {
+        uris[uri_count++] = p;
+    }
+    return bsc_find_cert_identity_entry_in_sans(
+        uris, uri_count, c->ctx->identity_policy, c->ctx->identity_policy_num);
 }
 
 /**

@@ -101,7 +101,9 @@ hub_function_cert_identity_matches(const char *san_uri, const char *identity)
 static bool hub_function_socket_matches_policy(
     BSC_SOCKET *c, BSC_CERT_IDENTITY_ENTRY *entries, size_t entries_num)
 {
-    char san_uri[128];
+    char san_uris[256];
+    size_t identity_count = 0;
+    char *p;
     size_t i;
 
     if (!entries_num) {
@@ -110,18 +112,21 @@ static bool hub_function_socket_matches_policy(
     if (!c || !c->ctx || !entries) {
         return false;
     }
-    if (bws_srv_get_peer_cert_identity(
-            c->ctx->sh, c->wh, san_uri, sizeof(san_uri)) !=
+    if (bws_srv_get_peer_cert_identities(
+            c->ctx->sh, c->wh, san_uris, sizeof(san_uris), &identity_count) !=
         BSC_WEBSOCKET_SUCCESS) {
         return false;
     }
-    for (i = 0; i < entries_num; i++) {
-        if (hub_function_cert_identity_matches(san_uri, entries[i].identity) &&
-            memcmp(&entries[i].uuid, &c->uuid, sizeof(entries[i].uuid)) == 0 &&
-            (!entries[i].vmac_required ||
-             memcmp(&entries[i].vmac, &c->vmac, sizeof(entries[i].vmac)) ==
-                 0)) {
-            return true;
+    for (p = san_uris; *p != '\0'; p += strlen(p) + 1) {
+        for (i = 0; i < entries_num; i++) {
+            if (hub_function_cert_identity_matches(p, entries[i].identity) &&
+                memcmp(&entries[i].uuid, &c->uuid, sizeof(entries[i].uuid)) ==
+                    0 &&
+                (!entries[i].vmac_required ||
+                 memcmp(&entries[i].vmac, &c->vmac, sizeof(entries[i].vmac)) ==
+                     0)) {
+                return true;
+            }
         }
     }
     return false;

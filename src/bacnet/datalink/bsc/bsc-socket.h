@@ -182,6 +182,13 @@ typedef struct BSC_Cert_Identity_Entry {
     bool vmac_required;
 } BSC_CERT_IDENTITY_ENTRY;
 
+BACNET_STACK_EXPORT
+BSC_CERT_IDENTITY_ENTRY *bsc_find_cert_identity_entry_in_sans(
+    const char *const *san_uris,
+    size_t san_uris_num,
+    BSC_CERT_IDENTITY_ENTRY *entries,
+    size_t entries_num);
+
 struct BSC_SocketContext {
     BSC_CTX_STATE state;
     BSC_WEBSOCKET_SRV_HANDLE sh;

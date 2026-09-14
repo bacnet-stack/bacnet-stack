@@ -1301,11 +1301,12 @@ bool bws_srv_get_peer_ip_addr(
  *         presented no certificate or no matching SAN entry.
  */
 #if !defined(LWS_WITH_MBEDTLS)
-BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identity(
+BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identities(
     BSC_WEBSOCKET_SRV_HANDLE sh,
     BSC_WEBSOCKET_HANDLE h,
     char *buf,
-    size_t buf_size)
+    size_t buf_size,
+    size_t *identity_count)
 {
     BSC_WEBSOCKET_CONTEXT *ctx = (BSC_WEBSOCKET_CONTEXT *)sh;
     SSL *ssl;
@@ -1313,6 +1314,16 @@ BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identity(
     GENERAL_NAMES *san;
     int i;
     BSC_WEBSOCKET_RET ret = BSC_WEBSOCKET_INVALID_OPERATION;
+    char *p;
+    size_t used = 0;
+    GENERAL_NAME *name;
+    const unsigned char *s;
+    int slen;
+    size_t entry_len;
+
+    if (identity_count) {
+        *identity_count = 0;
+    }
 
     if (!ctx || h < 0 || !buf || !buf_size ||
         h >= bws_srv_get_max_sockets(ctx->proto)) {
@@ -1337,10 +1348,9 @@ BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identity(
     }
     san = X509_get_ext_d2i(cert, NID_subject_alt_name, NULL, NULL);
     if (san) {
+        p = buf;
         for (i = 0; i < sk_GENERAL_NAME_num(san); i++) {
-            GENERAL_NAME *name = sk_GENERAL_NAME_value(san, i);
-            const unsigned char *s;
-            int slen;
+            name = sk_GENERAL_NAME_value(san, i);
 
             if (name->type != GEN_URI) {
                 continue;
@@ -1349,10 +1359,20 @@ BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identity(
             slen = ASN1_STRING_length(name->d.uniformResourceIdentifier);
             if (slen > 9 && (size_t)slen < buf_size &&
                 memcmp(s, "bacnet://", 9) == 0 && !memchr(s, 0, (size_t)slen)) {
-                memcpy(buf, s, (size_t)slen);
-                buf[slen] = 0;
+                entry_len = (size_t)slen;
+
+                if ((used + entry_len + 1) > buf_size) {
+                    ret = BSC_WEBSOCKET_INVALID_OPERATION;
+                    break;
+                }
+                memcpy(p, s, entry_len);
+                p[entry_len] = '\0';
+                p += entry_len + 1;
+                used += entry_len + 1;
+                if (identity_count) {
+                    (*identity_count)++;
+                }
                 ret = BSC_WEBSOCKET_SUCCESS;
-                break;
             }
         }
         GENERAL_NAMES_free(san);
@@ -1361,7 +1381,40 @@ BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identity(
     ERR_clear_error();
     return ret;
 }
+
+BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identity(
+    BSC_WEBSOCKET_SRV_HANDLE sh,
+    BSC_WEBSOCKET_HANDLE h,
+    char *buf,
+    size_t buf_size)
+{
+    size_t identity_count = 0;
+    BSC_WEBSOCKET_RET ret =
+        bws_srv_get_peer_cert_identities(sh, h, buf, buf_size, &identity_count);
+
+    if (ret == BSC_WEBSOCKET_SUCCESS && identity_count == 0) {
+        return BSC_WEBSOCKET_INVALID_OPERATION;
+    }
+    return ret;
+}
 #else
+BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identities(
+    BSC_WEBSOCKET_SRV_HANDLE sh,
+    BSC_WEBSOCKET_HANDLE h,
+    char *buf,
+    size_t buf_size,
+    size_t *identity_count)
+{
+    (void)sh;
+    (void)h;
+    (void)buf;
+    (void)buf_size;
+    if (identity_count) {
+        *identity_count = 0;
+    }
+    return BSC_WEBSOCKET_INVALID_OPERATION;
+}
+
 BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identity(
     BSC_WEBSOCKET_SRV_HANDLE sh,
     BSC_WEBSOCKET_HANDLE h,
