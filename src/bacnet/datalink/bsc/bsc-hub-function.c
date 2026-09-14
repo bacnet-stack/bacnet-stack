@@ -647,10 +647,10 @@ BSC_SC_RET bsc_hub_function_set_identity_policy(
     f->ctx.identity_policy_num = entries_num;
     revalidate =
         (entries_num != 0 && f->state == BSC_HUB_FUNCTION_STATE_STARTED);
-    bws_dispatch_unlock();
     if (revalidate) {
         hub_function_revalidate_connected_sockets(f);
     }
+    bws_dispatch_unlock();
     return BSC_SC_SUCCESS;
 }
 
