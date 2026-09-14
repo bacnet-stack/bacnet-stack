@@ -668,3 +668,26 @@ void bsc_maintenance_timer(uint16_t seconds)
     bsc_update_netport_properties();
     bws_dispatch_unlock();
 }
+
+/**
+ * @brief Configure the hub function's opt-in cert identity policy. See
+ *  bsc-datalink.h for the full contract.
+ * @param entries - array of policy entries, not copied
+ * @param entries_num - number of entries, 0 disables the policy
+ * @return BACnet/SC status
+ */
+BSC_SC_RET bsc_set_hub_function_identity_policy(
+    BSC_CERT_IDENTITY_ENTRY *entries, size_t entries_num)
+{
+    BSC_SC_RET ret = BSC_SC_SUCCESS;
+
+    bws_dispatch_lock();
+    bsc_conf.identity_policy = entries;
+    bsc_conf.identity_policy_num = entries_num;
+    if (bsc_node) {
+        ret = bsc_node_set_hub_function_identity_policy(
+            bsc_node, entries, entries_num);
+    }
+    bws_dispatch_unlock();
+    return ret;
+}

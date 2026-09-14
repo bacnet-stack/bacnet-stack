@@ -803,6 +803,37 @@ BSC_SC_RET bsc_node_init(BSC_NODE_CONF *conf, BSC_NODE **node)
 }
 
 /**
+ * @brief Set or update the hub function cert identity policy for a node.
+ *        Persists into the node's configuration so it is reapplied on
+ *        every (re)start, and applies immediately if the hub function
+ *        is already running.
+ * @param node - pointer to the BACnet/SC node
+ * @param entries - array of policy entries, caller must keep it valid for
+ *                  as long as the node may use it (not copied)
+ * @param entries_num - number of entries, 0 disables the policy
+ * @return BACnet/SC status
+ */
+BSC_SC_RET bsc_node_set_hub_function_identity_policy(
+    BSC_NODE *node, BSC_CERT_IDENTITY_ENTRY *entries, size_t entries_num)
+{
+    BSC_SC_RET ret = BSC_SC_SUCCESS;
+
+    if (!node) {
+        return BSC_SC_BAD_PARAM;
+    }
+
+    bws_dispatch_lock();
+    node->conf->identity_policy = entries;
+    node->conf->identity_policy_num = entries_num;
+    if (node->hub_function) {
+        ret = bsc_hub_function_set_identity_policy(
+            node->hub_function, entries, entries_num);
+    }
+    bws_dispatch_unlock();
+    return ret;
+}
+
+/**
  * @brief Deinitialize the BACnet/SC node
  * @param node - pointer to the BACnet/SC node
  * @return BACnet/SC status
@@ -888,6 +919,19 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
             bws_dispatch_unlock();
             DEBUG_PRINTF("bsc_node_start_state() <<< ret = %d\n", ret);
             return ret;
+        }
+        if (node->conf->identity_policy_num) {
+            ret = bsc_hub_function_set_identity_policy(
+                node->hub_function, node->conf->identity_policy,
+                node->conf->identity_policy_num);
+            if (ret != BSC_SC_SUCCESS) {
+                node->state = BSC_NODE_STATE_IDLE;
+                bsc_hub_connector_stop(node->hub_connector);
+                bsc_hub_function_stop(node->hub_function);
+                bws_dispatch_unlock();
+                DEBUG_PRINTF("bsc_node_start_state() <<< ret = %d\n", ret);
+                return ret;
+            }
         }
     }
 

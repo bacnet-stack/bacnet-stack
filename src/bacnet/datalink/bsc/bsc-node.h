@@ -19,6 +19,7 @@
 #include "bacnet/datalink/bsc/bsc-conf.h"
 #include "bacnet/datalink/bsc/bsc-retcodes.h"
 #include "bacnet/datalink/bsc/bvlc-sc.h"
+#include "bacnet/datalink/bsc/bsc-socket.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/object/sc_netport.h"
 
@@ -78,11 +79,18 @@ typedef struct {
     bool hub_function_enabled;
     char *direct_connection_accept_uris; /* URIs joined ' 'space */
     size_t direct_connection_accept_uris_len;
+    /* opt-in hub function cert identity policy, NULL/0 disables it */
+    BSC_CERT_IDENTITY_ENTRY *identity_policy;
+    size_t identity_policy_num;
     BSC_NODE_EVENT_FUNC event_func;
 } BSC_NODE_CONF;
 
 BACNET_STACK_EXPORT
 BSC_SC_RET bsc_node_init(BSC_NODE_CONF *conf, BSC_NODE **node);
+
+BACNET_STACK_EXPORT
+BSC_SC_RET bsc_node_set_hub_function_identity_policy(
+    BSC_NODE *node, BSC_CERT_IDENTITY_ENTRY *entries, size_t entries_num);
 
 BACNET_STACK_EXPORT
 BSC_SC_RET bsc_node_deinit(BSC_NODE *node);
