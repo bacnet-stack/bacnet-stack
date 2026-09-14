@@ -105,6 +105,7 @@ static bool hub_function_socket_matches_policy(
     size_t identity_count = 0;
     char *p;
     size_t i;
+    size_t j;
 
     if (!entries_num) {
         return true;
@@ -117,13 +118,14 @@ static bool hub_function_socket_matches_policy(
         BSC_WEBSOCKET_SUCCESS) {
         return false;
     }
-    for (p = san_uris; *p != '\0'; p += strlen(p) + 1) {
-        for (i = 0; i < entries_num; i++) {
-            if (hub_function_cert_identity_matches(p, entries[i].identity) &&
-                memcmp(&entries[i].uuid, &c->uuid, sizeof(entries[i].uuid)) ==
+    for (p = san_uris, i = 0; i < identity_count && *p != '\0';
+         p += strlen(p) + 1, i++) {
+        for (j = 0; j < entries_num; j++) {
+            if (hub_function_cert_identity_matches(p, entries[j].identity) &&
+                memcmp(&entries[j].uuid, &c->uuid, sizeof(entries[j].uuid)) ==
                     0 &&
-                (!entries[i].vmac_required ||
-                 memcmp(&entries[i].vmac, &c->vmac, sizeof(entries[i].vmac)) ==
+                (!entries[j].vmac_required ||
+                 memcmp(&entries[j].vmac, &c->vmac, sizeof(entries[j].vmac)) ==
                      0)) {
                 return true;
             }

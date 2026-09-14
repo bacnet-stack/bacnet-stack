@@ -890,7 +890,9 @@ static BSC_CERT_IDENTITY_ENTRY *bsc_find_cert_identity_entry(BSC_SOCKET *c)
     if (!identity_count) {
         return NULL;
     }
-    for (p = san_uris; *p != '\0' && uri_count < 32; p += strlen(p) + 1) {
+    for (p = san_uris;
+         uri_count < identity_count && *p != '\0' && uri_count < 32;
+         p += strlen(p) + 1) {
         uris[uri_count++] = p;
     }
     return bsc_find_cert_identity_entry_in_sans(
