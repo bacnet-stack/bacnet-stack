@@ -3095,23 +3095,20 @@ static void test_hub_function_identity_policy_accepts_authorized_client(void)
     init_hubc_ev(&hubc);
     init_hubf_ev(&hubf);
 
-    ret = bsc_hub_function_start(
+    memset(policy, 0, sizeof(policy));
+    policy[0].identity = "1234";
+    policy[0].uuid = hubc_uuid;
+    policy[0].vmac_required = false;
+    ret = bsc_hub_function_start_with_identity_policy(
         ca_cert, sizeof(ca_cert), server_cert, sizeof(server_cert), server_key,
         sizeof(server_key), BACNET_WEBSOCKET_SERVER_PORT, BSC_NETWORK_IFACE,
         &hubf_uuid, &hubf_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN,
         BACNET_TIMEOUT, // connect timeout
         BACNET_TIMEOUT, // heartbeat timeout
         BACNET_TIMEOUT, // disconnect timeout
-        hub_function_event, NULL, &hubf_h);
+        policy, 1, hub_function_event, NULL, &hubf_h);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     zassert_equal(wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STARTED, hubf_h), true, 0);
-
-    memset(policy, 0, sizeof(policy));
-    policy[0].identity = "1234";
-    policy[0].uuid = hubc_uuid;
-    policy[0].vmac_required = false;
-    ret = bsc_hub_function_set_identity_policy(hubf_h, policy, 1);
-    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
 
     /* connector presents a client cert whose SAN URI "bacnet://1234"
      * is mapped by the policy to hubc_uuid - must be accepted. */
@@ -3177,24 +3174,21 @@ static void test_hub_function_identity_policy_accepts_matching_vmac(void)
     init_hubc_ev(&hubc);
     init_hubf_ev(&hubf);
 
-    ret = bsc_hub_function_start(
+    memset(policy, 0, sizeof(policy));
+    policy[0].identity = "1234";
+    policy[0].uuid = hubc_uuid;
+    policy[0].vmac = hubc_vmac;
+    policy[0].vmac_required = true;
+    ret = bsc_hub_function_start_with_identity_policy(
         ca_cert, sizeof(ca_cert), server_cert, sizeof(server_cert), server_key,
         sizeof(server_key), BACNET_WEBSOCKET_SERVER_PORT, BSC_NETWORK_IFACE,
         &hubf_uuid, &hubf_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN,
         BACNET_TIMEOUT, // connect timeout
         BACNET_TIMEOUT, // heartbeat timeout
         BACNET_TIMEOUT, // disconnect timeout
-        hub_function_event, NULL, &hubf_h);
+        policy, 1, hub_function_event, NULL, &hubf_h);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     zassert_equal(wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STARTED, hubf_h), true, 0);
-
-    memset(policy, 0, sizeof(policy));
-    policy[0].identity = "1234";
-    policy[0].uuid = hubc_uuid;
-    policy[0].vmac = hubc_vmac;
-    policy[0].vmac_required = true;
-    ret = bsc_hub_function_set_identity_policy(hubf_h, policy, 1);
-    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
 
     ret = bsc_hub_connector_start(
         ca_cert, sizeof(ca_cert), san_client_cert, sizeof(san_client_cert),
@@ -3261,24 +3255,21 @@ static void test_hub_function_identity_policy_rejects_vmac_mismatch(void)
     init_hubc_ev(&hubc);
     init_hubf_ev(&hubf);
 
-    ret = bsc_hub_function_start(
+    memset(policy, 0, sizeof(policy));
+    policy[0].identity = "1234";
+    policy[0].uuid = hubc_uuid;
+    policy[0].vmac = authorized_vmac;
+    policy[0].vmac_required = true;
+    ret = bsc_hub_function_start_with_identity_policy(
         ca_cert, sizeof(ca_cert), server_cert, sizeof(server_cert), server_key,
         sizeof(server_key), BACNET_WEBSOCKET_SERVER_PORT, BSC_NETWORK_IFACE,
         &hubf_uuid, &hubf_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN,
         BACNET_TIMEOUT, // connect timeout
         BACNET_TIMEOUT, // heartbeat timeout
         BACNET_TIMEOUT, // disconnect timeout
-        hub_function_event, NULL, &hubf_h);
+        policy, 1, hub_function_event, NULL, &hubf_h);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     zassert_equal(wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STARTED, hubf_h), true, 0);
-
-    memset(policy, 0, sizeof(policy));
-    policy[0].identity = "1234";
-    policy[0].uuid = hubc_uuid;
-    policy[0].vmac = authorized_vmac;
-    policy[0].vmac_required = true;
-    ret = bsc_hub_function_set_identity_policy(hubf_h, policy, 1);
-    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
 
     ret = bsc_hub_connector_start(
         ca_cert, sizeof(ca_cert), san_client_cert, sizeof(san_client_cert),
@@ -3353,24 +3344,21 @@ static void test_hub_function_identity_policy_rejects_uuid_mismatch(void)
     init_hubc_ev(&hubc);
     init_hubf_ev(&hubf);
 
-    ret = bsc_hub_function_start(
+    /* policy maps "bacnet://1234" to authorized_uuid, NOT hubc_uuid */
+    memset(policy, 0, sizeof(policy));
+    policy[0].identity = "1234";
+    policy[0].uuid = authorized_uuid;
+    policy[0].vmac_required = false;
+    ret = bsc_hub_function_start_with_identity_policy(
         ca_cert, sizeof(ca_cert), server_cert, sizeof(server_cert), server_key,
         sizeof(server_key), BACNET_WEBSOCKET_SERVER_PORT, BSC_NETWORK_IFACE,
         &hubf_uuid, &hubf_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN,
         BACNET_TIMEOUT, // connect timeout
         BACNET_TIMEOUT, // heartbeat timeout
         BACNET_TIMEOUT, // disconnect timeout
-        hub_function_event, NULL, &hubf_h);
+        policy, 1, hub_function_event, NULL, &hubf_h);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     zassert_equal(wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STARTED, hubf_h), true, 0);
-
-    /* policy maps "bacnet://1234" to authorized_uuid, NOT hubc_uuid */
-    memset(policy, 0, sizeof(policy));
-    policy[0].identity = "1234";
-    policy[0].uuid = authorized_uuid;
-    policy[0].vmac_required = false;
-    ret = bsc_hub_function_set_identity_policy(hubf_h, policy, 1);
-    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
 
     /* connector presents the SAN-bearing cert but claims hubc_uuid,
      * which does not match the policy entry mapped to that cert's
@@ -3444,23 +3432,20 @@ static void test_hub_function_identity_policy_rejects_missing_san(void)
     init_hubc_ev(&hubc);
     init_hubf_ev(&hubf);
 
-    ret = bsc_hub_function_start(
+    memset(policy, 0, sizeof(policy));
+    policy[0].identity = "1234";
+    policy[0].uuid = hubc_uuid;
+    policy[0].vmac_required = false;
+    ret = bsc_hub_function_start_with_identity_policy(
         ca_cert, sizeof(ca_cert), server_cert, sizeof(server_cert), server_key,
         sizeof(server_key), BACNET_WEBSOCKET_SERVER_PORT, BSC_NETWORK_IFACE,
         &hubf_uuid, &hubf_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN,
         BACNET_TIMEOUT, // connect timeout
         BACNET_TIMEOUT, // heartbeat timeout
         BACNET_TIMEOUT, // disconnect timeout
-        hub_function_event, NULL, &hubf_h);
+        policy, 1, hub_function_event, NULL, &hubf_h);
     zassert_equal(ret, BSC_SC_SUCCESS, NULL);
     zassert_equal(wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STARTED, hubf_h), true, 0);
-
-    memset(policy, 0, sizeof(policy));
-    policy[0].identity = "1234";
-    policy[0].uuid = hubc_uuid;
-    policy[0].vmac_required = false;
-    ret = bsc_hub_function_set_identity_policy(hubf_h, policy, 1);
-    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
 
     /* connector presents the ordinary client_cert, which has no
      * "bacnet://" SAN URI at all - must be rejected (deny-by-default). */

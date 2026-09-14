@@ -1635,6 +1635,8 @@ BSC_SC_RET bsc_init_ctx(
     BSC_WEBSOCKET_RET ret;
     BSC_SC_RET sc_ret = BSC_SC_SUCCESS;
     size_t i;
+    BSC_CERT_IDENTITY_ENTRY *identity_policy;
+    size_t identity_policy_num;
 
     DEBUG_PRINTF(
         "bsc_init_сtx() >>> ctx = %p, cfg = %p, funcs = %p, user_arg = %p\n",
@@ -1661,7 +1663,12 @@ BSC_SC_RET bsc_init_ctx(
         return BSC_SC_INVALID_OPERATION;
     }
 
+    identity_policy = ctx->identity_policy;
+    identity_policy_num = ctx->identity_policy_num;
+
     memset(ctx, 0, sizeof(*ctx));
+    ctx->identity_policy = identity_policy;
+    ctx->identity_policy_num = identity_policy_num;
     ctx->user_arg = user_arg;
     ctx->cfg = cfg;
     ctx->funcs = funcs;
