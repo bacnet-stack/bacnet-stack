@@ -127,6 +127,7 @@ static const int32_t Writable_Properties[] = {
     PROP_DESCRIPTION,
     PROP_OUT_OF_SERVICE,
     PROP_WEEKLY_SCHEDULE,
+    PROP_SCHEDULE_DEFAULT,
     PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES,
     PROP_EFFECTIVE_PERIOD,
 #if (BACNET_PROTOCOL_REVISION >= 24)
@@ -2124,6 +2125,32 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             /* set the start and end date */
             datetime_copy_date(&pObject->Start_Date, &date_range.startdate);
             datetime_copy_date(&pObject->End_Date, &date_range.enddate);
+            status = true;
+            break;
+        case PROP_SCHEDULE_DEFAULT:
+            len = bacnet_primitive_value_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &primitive_value);
+            if (len <= 0) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                if (len < 0) {
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                } else {
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                }
+                return false;
+            }
+            if (primitive_value.tag == BACNET_APPLICATION_TAG_NULL) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                return false;
+            }
+            bacnet_primitive_value_copy(
+                &pObject->Schedule_Default, &primitive_value);
+            if (pObject->Present_Value.tag == BACNET_APPLICATION_TAG_NULL) {
+                bacnet_primitive_value_copy(
+                    &pObject->Present_Value, &pObject->Schedule_Default);
+            }
             status = true;
             break;
 #if BACNET_EXCEPTION_SCHEDULE_SIZE

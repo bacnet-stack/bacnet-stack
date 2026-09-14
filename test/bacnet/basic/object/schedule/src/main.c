@@ -205,6 +205,39 @@ static void testSchedule(void)
         OBJECT_SCHEDULE, object_instance, Schedule_Property_Lists,
         Schedule_Read_Property, Schedule_Write_Property,
         skip_fail_property_list);
+
+    {
+        uint8_t apdu[64] = { 0 };
+        BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+        BACNET_APPLICATION_DATA_VALUE value = { 0 };
+        BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+        int len;
+
+        wp_data.object_type = OBJECT_SCHEDULE;
+        wp_data.object_instance = object_instance;
+        wp_data.object_property = PROP_SCHEDULE_DEFAULT;
+        wp_data.array_index = BACNET_ARRAY_ALL;
+        wp_data.error_code = ERROR_CODE_SUCCESS;
+        wp_data.application_data_len =
+            encode_application_real(wp_data.application_data, 30.5f);
+        status = Schedule_Write_Property(&wp_data);
+        zassert_true(status, NULL);
+        zassert_equal(wp_data.error_code, ERROR_CODE_SUCCESS, NULL);
+
+        rpdata.object_type = OBJECT_SCHEDULE;
+        rpdata.object_instance = object_instance;
+        rpdata.object_property = PROP_SCHEDULE_DEFAULT;
+        rpdata.array_index = BACNET_ARRAY_ALL;
+        rpdata.application_data = apdu;
+        rpdata.application_data_len = sizeof(apdu);
+        len = Schedule_Read_Property(&rpdata);
+        zassert_true(len > 0, NULL);
+        len = bacapp_decode_application_data(apdu, (uint32_t)len, &value);
+        zassert_true(len > 0, NULL);
+        zassert_equal(value.tag, BACNET_APPLICATION_TAG_REAL, NULL);
+        zassert_within(value.type.Real, 30.5f, 0.001f, NULL);
+    }
+
     Schedule_Recalculate_PV(
         object_instance, BACNET_WEEKDAY_SUNDAY, &time_of_day);
     /* targeted tests for invalid instance, invalid day of week, and NULL
