@@ -2658,6 +2658,7 @@ static void test_sc_datalink_hub_identity_policy(void)
         zassert_equal(ret, BSC_SC_SUCCESS, NULL);
         free(policy);
         policy = NULL;
+        deinit_node_ev(&node_ev2);
         Network_Port_Cleanup();
         bacfile_cleanup();
         return;
