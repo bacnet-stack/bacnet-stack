@@ -61,9 +61,9 @@ struct object_data {
     /* keyed 0..N-1, data is struct special_event_data* */
     OS_Keylist Exception_Schedule;
 #endif
-    /* 135-2024 12.24.4/12.24.9: Present_Value/Schedule_Default may be any
-       primitive datatype; Present_Value must be set to a valid value,
-       default is Schedule_Default. */
+    /* 135-2024 12.24.4/12.24.9: Present_Value and Schedule_Default
+       hold any primitive datatype (ANY), same as Weekly_Schedule and
+       Exception_Schedule time values. */
     BACNET_PRIMITIVE_DATA_VALUE Schedule_Default;
     BACNET_PRIMITIVE_DATA_VALUE Present_Value;
     /* keyed 0..N-1, data is BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE* */
@@ -127,6 +127,7 @@ static const int32_t Writable_Properties[] = {
     PROP_DESCRIPTION,
     PROP_OUT_OF_SERVICE,
     PROP_WEEKLY_SCHEDULE,
+    PROP_SCHEDULE_DEFAULT,
     PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES,
     PROP_EFFECTIVE_PERIOD,
 #if (BACNET_PROTOCOL_REVISION >= 24)
@@ -426,11 +427,10 @@ uint32_t Schedule_Create(uint32_t object_instance)
         datetime_wildcard_weekday_set(&end_date);
         datetime_copy_date(&pObject->Start_Date, &start_date);
         datetime_copy_date(&pObject->End_Date, &end_date);
-        pObject->Schedule_Default.tag = BACNET_APPLICATION_TAG_REAL;
-        pObject->Schedule_Default.type.Real = 21.0f; /* 21 C, room temp */
+        pObject->Schedule_Default.tag = BACNET_APPLICATION_TAG_NULL;
         bacnet_primitive_value_copy(
             &pObject->Present_Value, &pObject->Schedule_Default);
-        pObject->Priority_For_Writing = 16; /* lowest priority */
+        pObject->Priority_For_Writing = BACNET_MAX_PRIORITY;
         pObject->Out_Of_Service = false;
         /* add to list */
         index = Keylist_Data_Add(Object_List, object_instance, pObject);
@@ -1692,6 +1692,56 @@ static int Schedule_List_Of_Object_Property_References_Length(
 }
 
 /**
+ * @brief Determine if a member reference targets an object on this device.
+ * @param pMember [in] Member reference to check.
+ * @return true if deviceIdentifier is absent, or names this device.
+ */
+static bool Schedule_Member_Target_Is_Local(
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
+{
+    if (!pMember) {
+        return false;
+    }
+    if (pMember->deviceIdentifier.type != OBJECT_DEVICE) {
+        /* deviceIdentifier not provided - refers to an object in this
+           Device, per 135-2024 clause 21 BACnetDeviceObjectPropertyReference
+         */
+        return true;
+    }
+    if (pMember->deviceIdentifier.instance == Device_Object_Instance_Number()) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * @brief Determine if a member reference is a self-reference whose write
+ *  could re-enter Schedule_Write_Members() for this same object
+ * @param object_instance - object-instance number of this Schedule object
+ * @param pMember - member reference to check
+ * @return true if the member targets a property of this same object that
+ *  can trigger Present_Value recalculation/notification
+ */
+static bool Schedule_Reference_List_Member_Self(
+    uint32_t object_instance,
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
+{
+    if (!pMember) {
+        return false;
+    }
+    if ((pMember->objectIdentifier.type == OBJECT_SCHEDULE) &&
+        (pMember->objectIdentifier.instance == object_instance) &&
+        Schedule_Member_Target_Is_Local(pMember) &&
+        ((pMember->propertyIdentifier == PROP_PRESENT_VALUE) ||
+         (pMember->propertyIdentifier == PROP_SCHEDULE_DEFAULT))) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * @brief Add one decoded element to the List_Of_Object_Property_References
  *  BACnetLIST, or empty the list when application_data is NULL (per
  *  bacnet_list_write())
@@ -1717,6 +1767,11 @@ Schedule_List_Of_Object_Property_References_Element_Add(
         application_data, (uint32_t)application_data_len, &value);
     if (len <= 0) {
         return ERROR_CODE_INVALID_DATA_TYPE;
+    }
+    if (Schedule_Reference_List_Member_Self(object_instance, &value)) {
+        /* self-reference to a property that can re-enter
+           Schedule_Write_Members() for this same object */
+        return ERROR_CODE_VALUE_OUT_OF_RANGE;
     }
     if (Schedule_List_Of_Object_Property_References_Add(
             object_instance, &value)) {
@@ -2020,7 +2075,7 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (len <= 0) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
                 } else {
                     wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
                 }
@@ -2039,23 +2094,17 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 return false;
             }
             /* 135-2024 12.24.4: Present_Value may only be a primitive
-               datatype; bacnet_primitive_value_decode() rejects anything
-               this instance cannot store */
+               datatype; reject anything this instance cannot store. */
             len = bacnet_primitive_value_decode(
                 wp_data->application_data, wp_data->application_data_len,
                 &primitive_value);
             if (len <= 0) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
                 } else {
                     wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
                 }
-                return false;
-            }
-            if (primitive_value.tag == BACNET_APPLICATION_TAG_NULL) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
                 return false;
             }
             bacnet_primitive_value_copy(&old_value, &pObject->Present_Value);
@@ -2075,7 +2124,7 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (len <= 0) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
                 } else {
                     wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
                 }
@@ -2115,7 +2164,7 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (len <= 0) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
                 } else {
                     wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
                 }
@@ -2124,6 +2173,27 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             /* set the start and end date */
             datetime_copy_date(&pObject->Start_Date, &date_range.startdate);
             datetime_copy_date(&pObject->End_Date, &date_range.enddate);
+            status = true;
+            break;
+        case PROP_SCHEDULE_DEFAULT:
+            len = bacnet_primitive_value_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &primitive_value);
+            if (len <= 0) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                if (len < 0) {
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
+                } else {
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                }
+                return false;
+            }
+            bacnet_primitive_value_copy(
+                &pObject->Schedule_Default, &primitive_value);
+            /* Present_Value only depends on Schedule_Default while no
+               scheduled entry is active; recalculation is left to the
+               caller/poller (e.g. Schedule_Timer()) rather than being
+               forced here. */
             status = true;
             break;
 #if BACNET_EXCEPTION_SCHEDULE_SIZE
@@ -2146,7 +2216,7 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (len <= 0) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
                 } else {
                     wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
                 }
@@ -2161,7 +2231,7 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (len <= 0) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
                 } else {
                     wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
                 }
@@ -2386,30 +2456,6 @@ static bool Schedule_Special_Event_In_Effect(
     return (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) && value.type.Boolean;
 }
 #endif
-
-/**
- * @brief Determine if a member reference targets an object on this device.
- * @param pMember [in] Member reference to check.
- * @return true if deviceIdentifier is absent, or names this device.
- */
-static bool Schedule_Member_Target_Is_Local(
-    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
-{
-    if (!pMember) {
-        return false;
-    }
-    if (pMember->deviceIdentifier.type != OBJECT_DEVICE) {
-        /* deviceIdentifier not provided - refers to an object in this
-           Device, per 135-2024 clause 21 BACnetDeviceObjectPropertyReference
-         */
-        return true;
-    }
-    if (pMember->deviceIdentifier.instance == Device_Object_Instance_Number()) {
-        return true;
-    }
-
-    return false;
-}
 
 /**
  * @brief Write the current Present_Value to every member of

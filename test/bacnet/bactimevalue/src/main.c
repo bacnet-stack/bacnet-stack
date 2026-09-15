@@ -39,6 +39,8 @@ test_BACnetPrimitiveDataValue(const BACNET_PRIMITIVE_DATA_VALUE *value)
     zassert_true(len > 0, NULL);
     apdu_len = bacnet_primitive_value_decode(apdu, len, &test_value);
     zassert_true(apdu_len > 0, NULL);
+    apdu_len = bacnet_primitive_value_decode(apdu, len, NULL);
+    zassert_true(apdu_len > 0, NULL);
     status = bacnet_primitive_value_same(value, &test_value);
     zassert_true(status, NULL);
     /* apdu too short testing */
@@ -49,7 +51,13 @@ test_BACnetPrimitiveDataValue(const BACNET_PRIMITIVE_DATA_VALUE *value)
     /* negative testing */
     zassert_equal(bacnet_primitive_value_encode(apdu, NULL), 0, NULL);
     zassert_equal(
-        bacnet_primitive_value_decode(apdu, sizeof(apdu), NULL), 0, NULL);
+        bacnet_primitive_value_decode(apdu, 0, &test_value),
+        BACNET_STATUS_ERROR, NULL);
+    zassert_equal(
+        bacnet_primitive_value_decode(apdu, 0, NULL), BACNET_STATUS_ERROR,
+        NULL);
+    zassert_true(
+        bacnet_primitive_value_decode(apdu, sizeof(apdu), NULL) > 0, NULL);
     zassert_false(bacnet_primitive_value_same(NULL, value), NULL);
     zassert_false(bacnet_primitive_value_same(value, NULL), NULL);
     zassert_false(bacnet_primitive_value_same(NULL, NULL), NULL);
