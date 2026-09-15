@@ -2139,10 +2139,11 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             bacnet_primitive_value_copy(
                 &pObject->Schedule_Default, &primitive_value);
-            if (pObject->Present_Value.tag == BACNET_APPLICATION_TAG_NULL) {
-                bacnet_primitive_value_copy(
-                    &pObject->Present_Value, &pObject->Schedule_Default);
-            }
+            /* Present_Value only depends on Schedule_Default while no
+               scheduled entry is active, so let normal recalculation
+               (as Schedule_Timer() would perform) decide whether it
+               changes, rather than copying Schedule_Default directly. */
+            Schedule_Timer(wp_data->object_instance, 0);
             status = true;
             break;
 #if BACNET_EXCEPTION_SCHEDULE_SIZE

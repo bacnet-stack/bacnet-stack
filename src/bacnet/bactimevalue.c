@@ -189,51 +189,51 @@ int bacnet_primitive_value_application_decode(
     BACNET_PRIMITIVE_DATA_VALUE *value)
 {
     int len = 0;
+    BACNET_PRIMITIVE_DATA_VALUE local_value = { 0 };
 
-    if (value) {
-        switch (tag_data_type) {
-            case BACNET_APPLICATION_TAG_NULL:
-                /* nothing else to do */
-                break;
-            case BACNET_APPLICATION_TAG_BOOLEAN:
-                value->type.Boolean = decode_boolean(len_value_type);
-                break;
-            case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-                len = bacnet_unsigned_decode(
-                    apdu, apdu_size, len_value_type, &value->type.Unsigned_Int);
-                break;
+    local_value.tag = tag_data_type;
+    switch (tag_data_type) {
+        case BACNET_APPLICATION_TAG_NULL:
+            /* nothing to do */
+            break;
+        case BACNET_APPLICATION_TAG_BOOLEAN:
+            local_value.type.Boolean = decode_boolean(len_value_type);
+            break;
+        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+            len = bacnet_unsigned_decode(
+                apdu, apdu_size, len_value_type,
+                &local_value.type.Unsigned_Int);
+            break;
 #if BACNET_USE_SIGNED
-            case BACNET_APPLICATION_TAG_SIGNED_INT:
-                len = bacnet_signed_decode(
-                    apdu, apdu_size, len_value_type, &value->type.Signed_Int);
-                break;
+        case BACNET_APPLICATION_TAG_SIGNED_INT:
+            len = bacnet_signed_decode(
+                apdu, apdu_size, len_value_type, &local_value.type.Signed_Int);
+            break;
 #endif
-            case BACNET_APPLICATION_TAG_REAL:
-                len = bacnet_real_decode(
-                    apdu, apdu_size, len_value_type, &(value->type.Real));
-                break;
+        case BACNET_APPLICATION_TAG_REAL:
+            len = bacnet_real_decode(
+                apdu, apdu_size, len_value_type, &local_value.type.Real);
+            break;
 #if BACNET_USE_DOUBLE
-            case BACNET_APPLICATION_TAG_DOUBLE:
-                len = bacnet_double_decode(
-                    apdu, apdu_size, len_value_type, &(value->type.Double));
-                break;
+        case BACNET_APPLICATION_TAG_DOUBLE:
+            len = bacnet_double_decode(
+                apdu, apdu_size, len_value_type, &local_value.type.Double);
+            break;
 #endif
-            case BACNET_APPLICATION_TAG_ENUMERATED:
-                len = bacnet_enumerated_decode(
-                    apdu, apdu_size, len_value_type, &value->type.Enumerated);
-                break;
-            default:
-                break;
-        }
+        case BACNET_APPLICATION_TAG_ENUMERATED:
+            len = bacnet_enumerated_decode(
+                apdu, apdu_size, len_value_type, &local_value.type.Enumerated);
+            break;
+        default:
+            break;
     }
     if ((len == 0) && (tag_data_type != BACNET_APPLICATION_TAG_NULL) &&
         (tag_data_type != BACNET_APPLICATION_TAG_BOOLEAN) &&
         (tag_data_type != BACNET_APPLICATION_TAG_OCTET_STRING)) {
         /* indicate that we were not able to decode the value */
-        if (value) {
-            value->tag = MAX_BACNET_APPLICATION_TAG;
-        }
+        local_value.tag = MAX_BACNET_APPLICATION_TAG;
     }
+    bacnet_primitive_value_copy(value, &local_value);
 
     return len;
 }
@@ -255,22 +255,25 @@ int bacnet_primitive_value_decode(
     int apdu_len = 0;
     BACNET_TAG tag = { 0 };
 
-    if (!value) {
-        return 0;
+    if (!apdu || (apdu_size == 0)) {
+        return BACNET_STATUS_ERROR;
     }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if ((len > 0) && tag.application) {
-        value->tag = tag.number;
+        if (value) {
+            value->tag = tag.number;
+        }
         apdu_len += len;
         len = bacnet_primitive_value_application_decode(
             &apdu[apdu_len], apdu_size - apdu_len, tag.number,
             tag.len_value_type, value);
-        if ((len >= 0) && (value->tag != MAX_BACNET_APPLICATION_TAG)) {
+        if ((len >= 0) &&
+            (!value || (value->tag != MAX_BACNET_APPLICATION_TAG))) {
             apdu_len += len;
         } else {
             apdu_len = BACNET_STATUS_ERROR;
         }
-    } else if (apdu && (apdu_size > 0)) {
+    } else {
         apdu_len = BACNET_STATUS_ERROR;
     }
 
