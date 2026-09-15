@@ -245,8 +245,7 @@ int bacnet_primitive_value_application_decode(
  * @param apdu_size - number of bytes in the buffer
  * @param value - decoded value, if decoded
  *
- * @return the number of apdu bytes consumed, 0 on bad args, or
- * BACNET_STATUS_ERROR
+ * @return the number of apdu bytes consumed, or BACNET_STATUS_ERROR
  */
 int bacnet_primitive_value_decode(
     const uint8_t *apdu, uint32_t apdu_size, BACNET_PRIMITIVE_DATA_VALUE *value)
@@ -267,9 +266,13 @@ int bacnet_primitive_value_decode(
         len = bacnet_primitive_value_application_decode(
             &apdu[apdu_len], apdu_size - apdu_len, tag.number,
             tag.len_value_type, value);
-        if ((len >= 0) &&
-            (!value || (value->tag != MAX_BACNET_APPLICATION_TAG))) {
-            apdu_len += len;
+        if (len >= 0) {
+            if (value && (value->tag == MAX_BACNET_APPLICATION_TAG)) {
+                /* not a primitive value we can store */
+                apdu_len = BACNET_STATUS_ERROR;
+            } else {
+                apdu_len += len;
+            }
         } else {
             apdu_len = BACNET_STATUS_ERROR;
         }
