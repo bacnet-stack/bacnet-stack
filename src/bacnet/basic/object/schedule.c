@@ -427,11 +427,11 @@ uint32_t Schedule_Create(uint32_t object_instance)
         datetime_wildcard_weekday_set(&end_date);
         datetime_copy_date(&pObject->Start_Date, &start_date);
         datetime_copy_date(&pObject->End_Date, &end_date);
-        pObject->Schedule_Default.tag = BACNET_APPLICATION_TAG_REAL;
-        pObject->Schedule_Default.type.Real = 21.0f; /* 21 C, room temp */
+        pObject->Schedule_Default.tag = BACNET_APPLICATION_TAG_NULL;
+        pObject->Schedule_Default.type.Unsigned_Int = 0;
         bacnet_primitive_value_copy(
             &pObject->Present_Value, &pObject->Schedule_Default);
-        pObject->Priority_For_Writing = 16; /* lowest priority */
+        pObject->Priority_For_Writing = BACNET_MAX_PRIORITY;
         pObject->Out_Of_Service = false;
         /* add to list */
         index = Keylist_Data_Add(Object_List, object_instance, pObject);
