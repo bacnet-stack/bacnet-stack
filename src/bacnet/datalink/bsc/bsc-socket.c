@@ -867,9 +867,10 @@ BSC_CERT_IDENTITY_ENTRY *bsc_find_cert_identity_entry_in_sans(
         for (j = 0; j < entries_num; j++) {
             if (bsc_cert_identity_matches(san_uris[i], entries[j].identity) &&
                 memcmp(&entries[j].uuid, uuid, sizeof(entries[j].uuid)) == 0 &&
-                (!entries[j].vmac_required || !vmac ||
-                 memcmp(&entries[j].vmac, vmac, sizeof(entries[j].vmac)) ==
-                     0)) {
+                (!entries[j].vmac_required ||
+                 (vmac &&
+                  memcmp(&entries[j].vmac, vmac, sizeof(entries[j].vmac)) ==
+                      0))) {
                 return &entries[j];
             }
         }
