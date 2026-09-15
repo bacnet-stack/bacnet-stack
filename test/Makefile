@@ -104,53 +104,62 @@ env:
 	@echo "CTEST_OPTIONS=$(CTEST_OPTIONS)"
 	@echo "BUILD_DIR=$(BUILD_DIR)"
 
+# Each BACnet/SC CMake project needs its own out-of-source build dir.
+# Sharing the same build directory across different source trees causes
+# CMake cache collisions because the cache records the original source path.
 BSC_DATALINK_DIR := $(realpath ./bacnet/datalink/bsc-datalink)
+BSC_DATALINK_BUILD_DIR := $(BUILD_DIR)/bsc-datalink
 .PHONY: bsc-datalink
 bsc-datalink:
-	[ -d $(BUILD_DIR) ] || mkdir -p $(BUILD_DIR)
-	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake $(BSC_DATALINK_DIR) && cd ..
-	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake --build . $(JOBS) --clean-first && cd ..
-	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && ./test_bsc-datalink && cd ..
+	[ -d $(BSC_DATALINK_BUILD_DIR) ] || mkdir -p $(BSC_DATALINK_BUILD_DIR)
+	[ -d $(BSC_DATALINK_BUILD_DIR) ] && cd $(BSC_DATALINK_BUILD_DIR) && cmake $(BSC_DATALINK_DIR) && cd ../..
+	[ -d $(BSC_DATALINK_BUILD_DIR) ] && cd $(BSC_DATALINK_BUILD_DIR) && cmake --build . $(JOBS) --clean-first && cd ../..
+	[ -d $(BSC_DATALINK_BUILD_DIR) ] && cd $(BSC_DATALINK_BUILD_DIR) && ./test_bsc-datalink && cd ../..
 
 BSC_NODE_DIR := $(realpath ./bacnet/datalink/bsc-node)
+BSC_NODE_BUILD_DIR := $(BUILD_DIR)/bsc-node
 .PHONY: bsc-node
 bsc-node:
-	[ -d $(BUILD_DIR) ] || mkdir -p $(BUILD_DIR)
-	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake $(BSC_NODE_DIR) && cd ..
-	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake --build . $(JOBS) --clean-first && cd ..
-	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && ./test_bsc-node && cd ..
+	[ -d $(BSC_NODE_BUILD_DIR) ] || mkdir -p $(BSC_NODE_BUILD_DIR)
+	[ -d $(BSC_NODE_BUILD_DIR) ] && cd $(BSC_NODE_BUILD_DIR) && cmake $(BSC_NODE_DIR) && cd ../..
+	[ -d $(BSC_NODE_BUILD_DIR) ] && cd $(BSC_NODE_BUILD_DIR) && cmake --build . $(JOBS) --clean-first && cd ../..
+	[ -d $(BSC_NODE_BUILD_DIR) ] && cd $(BSC_NODE_BUILD_DIR) && ./test_bsc-node && cd ../..
 
 BSC_HUB_DIR := $(realpath ./bacnet/datalink/hub-sc)
+BSC_HUB_BUILD_DIR := $(BUILD_DIR)/hub-sc
 .PHONY: bsc-hub
 bsc-hub:
-	[ -d $(BUILD_DIR) ] || mkdir -p $(BUILD_DIR)
-	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake $(BSC_HUB_DIR) && cd ..
-	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake --build . $(JOBS) --clean-first && cd ..
-	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && ./test_hub-sc && cd ..
+	[ -d $(BSC_HUB_BUILD_DIR) ] || mkdir -p $(BSC_HUB_BUILD_DIR)
+	[ -d $(BSC_HUB_BUILD_DIR) ] && cd $(BSC_HUB_BUILD_DIR) && cmake $(BSC_HUB_DIR) && cd ../..
+	[ -d $(BSC_HUB_BUILD_DIR) ] && cd $(BSC_HUB_BUILD_DIR) && cmake --build . $(JOBS) --clean-first && cd ../..
+	[ -d $(BSC_HUB_BUILD_DIR) ] && cd $(BSC_HUB_BUILD_DIR) && ./test_hub-sc && cd ../..
 
 BSC_BVLC_DIR := $(realpath ./bacnet/datalink/bvlc-sc)
+BSC_BVLC_BUILD_DIR := $(BUILD_DIR)/bvlc-sc
 .PHONY: bsc-bvlc
 bsc-bvlc:
-	[ -d $(BUILD_DIR) ] || mkdir -p $(BUILD_DIR)
-	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake $(BSC_BVLC_DIR) && cd ..
-	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake --build . $(JOBS) --clean-first && cd ..
-	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && ./test_bvlc-sc && cd ..
+	[ -d $(BSC_BVLC_BUILD_DIR) ] || mkdir -p $(BSC_BVLC_BUILD_DIR)
+	[ -d $(BSC_BVLC_BUILD_DIR) ] && cd $(BSC_BVLC_BUILD_DIR) && cmake $(BSC_BVLC_DIR) && cd ../..
+	[ -d $(BSC_BVLC_BUILD_DIR) ] && cd $(BSC_BVLC_BUILD_DIR) && cmake --build . $(JOBS) --clean-first && cd ../..
+	[ -d $(BSC_BVLC_BUILD_DIR) ] && cd $(BSC_BVLC_BUILD_DIR) && ./test_bvlc-sc && cd ../..
 
 BSC_SOCKET_DIR := $(realpath ./bacnet/datalink/bsc-socket)
+BSC_SOCKET_BUILD_DIR := $(BUILD_DIR)/bsc-socket
 .PHONY: bsc-socket
 bsc-socket:
-	[ -d $(BUILD_DIR) ] || mkdir -p $(BUILD_DIR)
-	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake $(BSC_SOCKET_DIR) && cd ..
-	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake --build . $(JOBS) --clean-first && cd ..
-	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && ./test_bsc-socket && cd ..
+	[ -d $(BSC_SOCKET_BUILD_DIR) ] || mkdir -p $(BSC_SOCKET_BUILD_DIR)
+	[ -d $(BSC_SOCKET_BUILD_DIR) ] && cd $(BSC_SOCKET_BUILD_DIR) && cmake $(BSC_SOCKET_DIR) && cd ../..
+	[ -d $(BSC_SOCKET_BUILD_DIR) ] && cd $(BSC_SOCKET_BUILD_DIR) && cmake --build . $(JOBS) --clean-first && cd ../..
+	[ -d $(BSC_SOCKET_BUILD_DIR) ] && cd $(BSC_SOCKET_BUILD_DIR) && ./test_bsc-socket && cd ../..
 
 BSC_WEBSOCKET_DIR := $(realpath ./bacnet/datalink/websockets)
+BSC_WEBSOCKET_BUILD_DIR := $(BUILD_DIR)/websockets
 .PHONY: websockets
 websockets:
-	[ -d $(BUILD_DIR) ] || mkdir -p $(BUILD_DIR)
-	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake $(BSC_WEBSOCKET_DIR) && cd ..
-	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake --build . $(JOBS) --clean-first && cd ..
-	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && ./test_websockets && cd ..
+	[ -d $(BSC_WEBSOCKET_BUILD_DIR) ] || mkdir -p $(BSC_WEBSOCKET_BUILD_DIR)
+	[ -d $(BSC_WEBSOCKET_BUILD_DIR) ] && cd $(BSC_WEBSOCKET_BUILD_DIR) && cmake $(BSC_WEBSOCKET_DIR) && cd ../..
+	[ -d $(BSC_WEBSOCKET_BUILD_DIR) ] && cd $(BSC_WEBSOCKET_BUILD_DIR) && cmake --build . $(JOBS) --clean-first && cd ../..
+	[ -d $(BSC_WEBSOCKET_BUILD_DIR) ] && cd $(BSC_WEBSOCKET_BUILD_DIR) && ./test_websockets && cd ../..
 
 .PHONY: libwebsockets
 libwebsockets:
