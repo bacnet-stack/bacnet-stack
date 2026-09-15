@@ -277,7 +277,7 @@ static void testPresentValue(void)
     zassert_false(Calendar_Present_Value(instance), NULL);
     value->type.WeekNDay.month = 0xff;
 
-    value->type.WeekNDay.weekofmonth = (date.day - 1) % 7 + 1;
+    value->type.WeekNDay.weekofmonth = (date.day - 1) / 7 + 1;
     zassert_true(Calendar_Present_Value(instance), NULL);
     value->type.WeekNDay.weekofmonth++;
     if (value->type.WeekNDay.weekofmonth > 5) {

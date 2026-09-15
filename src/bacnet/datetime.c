@@ -926,6 +926,144 @@ void datetime_wildcard_weekday_set(BACNET_DATE *bdate)
     }
 }
 
+/**
+ * @brief Compare a specific date's year against a BACnetDate year octet
+ *  value, which may be 'any' (X'FF', i.e. year 1900+255)
+ * @param date - specific date to compare
+ * @param year - year octet value to compare, or 'any' wildcard
+ * @return true if the date's year matches, including wildcards
+ */
+bool datetime_year_match(const BACNET_DATE *date, uint16_t year)
+{
+    if (year == (BACNET_DATE_YEAR_EPOCH + 0xff)) {
+        return true;
+    }
+    if (!date) {
+        return false;
+    }
+
+    return (year == date->year);
+}
+
+/**
+ * @brief Compare a specific date's month against a BACnetDate or
+ *  BACnetWeekNDay month octet value, which may be odd (13), even (14),
+ *  or 'any' (X'FF')
+ * @param date - specific date to compare
+ * @param month - month octet value to compare: 1-12, 13=odd, 14=even,
+ *  or X'FF'=any
+ * @return true if the date's month matches, including special values
+ */
+bool datetime_month_match(const BACNET_DATE *date, uint8_t month)
+{
+    if (month == 0xff) {
+        return true;
+    }
+    if (!date) {
+        return false;
+    }
+
+    return (
+        (month == date->month) || ((month == 13) && (date->month % 2 == 1)) ||
+        ((month == 14) && (date->month % 2 == 0)));
+}
+
+/**
+ * @brief Compare a specific date's day-of-month against a BACnetDate day
+ *  octet value, which may be 'any' (X'FF')
+ * @param date - specific date to compare
+ * @param day - day octet value to compare, or 'any' wildcard
+ * @return true if the date's day-of-month matches, including wildcards
+ */
+bool datetime_day_match(const BACNET_DATE *date, uint8_t day)
+{
+    if (day == 0xff) {
+        return true;
+    }
+    if (!date) {
+        return false;
+    }
+
+    return (day == date->day);
+}
+
+/**
+ * @brief Compare a specific date's day-of-week against a BACnetDate or
+ *  BACnetWeekNDay day-of-week octet value, which may be 'any' (X'FF')
+ * @param date - specific date to compare, with a valid wday value
+ * @param dayofweek - day-of-week octet value to compare: 1=Monday-7=Sunday,
+ *  or X'FF'=any
+ * @return true if the date's day-of-week matches, including wildcards
+ */
+bool datetime_day_of_week_match(const BACNET_DATE *date, uint8_t dayofweek)
+{
+    if (dayofweek == 0xff) {
+        return true;
+    }
+    if (!date) {
+        return false;
+    }
+
+    return (dayofweek == date->wday);
+}
+
+/**
+ * @brief Compare a specific date's day-of-month against a BACnetWeekNDay
+ *  week-of-month octet value
+ * @param date - specific date to compare
+ * @param weekofmonth - week-of-month octet value to compare: 1=days 1-7,
+ *  2=days 8-14, 3=days 15-21, 4=days 22-28, 5=days 29-31, 6=last 7 days
+ *  of the month, or X'FF'=any week
+ * @return true if the date's day-of-month falls within the week-of-month,
+ *  including wildcards
+ */
+bool datetime_week_of_month_match(const BACNET_DATE *date, uint8_t weekofmonth)
+{
+    uint8_t day_to_end_month;
+
+    if (weekofmonth == 0xff) {
+        return true;
+    }
+    if (!date) {
+        return false;
+    }
+    switch (weekofmonth) {
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+            return (weekofmonth == ((date->day - 1) / 7 + 1));
+        case 6:
+            day_to_end_month =
+                days_per_month(date->year, date->month) - date->day;
+            return (day_to_end_month < 7);
+        default:
+            return false;
+    }
+}
+
+/**
+ * @brief Determine if a specific date matches a BACnetDate used as a date
+ *  pattern, where each octet (year, month, day, day-of-week) is evaluated
+ *  independently and an 'any' (wildcard) octet always matches
+ * @param date - specific date to compare
+ * @param pattern - BACnetDate value used as a date pattern
+ * @return true if the date matches all specified octets of the pattern
+ */
+bool datetime_date_pattern_match(
+    const BACNET_DATE *date, const BACNET_DATE *pattern)
+{
+    if (!pattern) {
+        return false;
+    }
+
+    return datetime_year_match(date, pattern->year) &&
+        datetime_month_match(date, pattern->month) &&
+        datetime_day_match(date, pattern->day) &&
+        datetime_day_of_week_match(date, pattern->wday);
+}
+
 /* Returns true if hour is a wildcard */
 bool datetime_wildcard_hour(const BACNET_TIME *btime)
 {
