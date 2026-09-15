@@ -408,6 +408,9 @@ static void testSchedule_Set_Default_Real(uint32_t object_instance, float value)
     status = Schedule_Write_Property(&wp_data);
     zassert_true(status, NULL);
     zassert_equal(wp_data.error_code, ERROR_CODE_SUCCESS, NULL);
+    /* Schedule_Write_Property() does not recalculate Present_Value
+     * itself; force the recalculation here as a poller would */
+    Schedule_Timer(object_instance, 0);
 }
 
 /* stub used to capture WriteProperty requests issued to
