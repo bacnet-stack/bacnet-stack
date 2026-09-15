@@ -428,7 +428,6 @@ uint32_t Schedule_Create(uint32_t object_instance)
         datetime_copy_date(&pObject->Start_Date, &start_date);
         datetime_copy_date(&pObject->End_Date, &end_date);
         pObject->Schedule_Default.tag = BACNET_APPLICATION_TAG_NULL;
-        pObject->Schedule_Default.type.Unsigned_Int = 0;
         bacnet_primitive_value_copy(
             &pObject->Present_Value, &pObject->Schedule_Default);
         pObject->Priority_For_Writing = BACNET_MAX_PRIORITY;
