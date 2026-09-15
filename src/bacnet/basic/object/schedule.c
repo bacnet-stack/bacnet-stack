@@ -1692,6 +1692,56 @@ static int Schedule_List_Of_Object_Property_References_Length(
 }
 
 /**
+ * @brief Determine if a member reference targets an object on this device.
+ * @param pMember [in] Member reference to check.
+ * @return true if deviceIdentifier is absent, or names this device.
+ */
+static bool Schedule_Member_Target_Is_Local(
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
+{
+    if (!pMember) {
+        return false;
+    }
+    if (pMember->deviceIdentifier.type != OBJECT_DEVICE) {
+        /* deviceIdentifier not provided - refers to an object in this
+           Device, per 135-2024 clause 21 BACnetDeviceObjectPropertyReference
+         */
+        return true;
+    }
+    if (pMember->deviceIdentifier.instance == Device_Object_Instance_Number()) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * @brief Determine if a member reference is a self-reference whose write
+ *  could re-enter Schedule_Write_Members() for this same object
+ * @param object_instance - object-instance number of this Schedule object
+ * @param pMember - member reference to check
+ * @return true if the member targets a property of this same object that
+ *  can trigger Present_Value recalculation/notification
+ */
+static bool Schedule_Reference_List_Member_Self(
+    uint32_t object_instance,
+    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
+{
+    if (!pMember) {
+        return false;
+    }
+    if ((pMember->objectIdentifier.type == OBJECT_SCHEDULE) &&
+        (pMember->objectIdentifier.instance == object_instance) &&
+        Schedule_Member_Target_Is_Local(pMember) &&
+        ((pMember->propertyIdentifier == PROP_PRESENT_VALUE) ||
+         (pMember->propertyIdentifier == PROP_SCHEDULE_DEFAULT))) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * @brief Add one decoded element to the List_Of_Object_Property_References
  *  BACnetLIST, or empty the list when application_data is NULL (per
  *  bacnet_list_write())
@@ -1717,6 +1767,11 @@ Schedule_List_Of_Object_Property_References_Element_Add(
         application_data, (uint32_t)application_data_len, &value);
     if (len <= 0) {
         return ERROR_CODE_INVALID_DATA_TYPE;
+    }
+    if (Schedule_Reference_List_Member_Self(object_instance, &value)) {
+        /* self-reference to a property that can re-enter
+           Schedule_Write_Members() for this same object */
+        return ERROR_CODE_VALUE_OUT_OF_RANGE;
     }
     if (Schedule_List_Of_Object_Property_References_Add(
             object_instance, &value)) {
@@ -2406,30 +2461,6 @@ static bool Schedule_Special_Event_In_Effect(
     return (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) && value.type.Boolean;
 }
 #endif
-
-/**
- * @brief Determine if a member reference targets an object on this device.
- * @param pMember [in] Member reference to check.
- * @return true if deviceIdentifier is absent, or names this device.
- */
-static bool Schedule_Member_Target_Is_Local(
-    const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember)
-{
-    if (!pMember) {
-        return false;
-    }
-    if (pMember->deviceIdentifier.type != OBJECT_DEVICE) {
-        /* deviceIdentifier not provided - refers to an object in this
-           Device, per 135-2024 clause 21 BACnetDeviceObjectPropertyReference
-         */
-        return true;
-    }
-    if (pMember->deviceIdentifier.instance == Device_Object_Instance_Number()) {
-        return true;
-    }
-
-    return false;
-}
 
 /**
  * @brief Write the current Present_Value to every member of

@@ -997,6 +997,87 @@ static void testScheduleWriteMembersRemoteDevice(void)
 }
 
 /**
+ * @brief Test that List_Of_Object_Property_References members naming this
+ *  same Schedule object's Present_Value or Schedule_Default are rejected,
+ *  since writing to them could re-enter Schedule_Write_Members()
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(schedule_tests, testScheduleListOfObjectPropertyReferencesSelfReference)
+#else
+static void testScheduleListOfObjectPropertyReferencesSelfReference(void)
+#endif
+{
+    uint32_t object_instance;
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    BACNET_LIST_ELEMENT_DATA list_element = { 0 };
+    bool status;
+    int err;
+
+    object_instance = Schedule_Create(BACNET_MAX_INSTANCE);
+    zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
+
+    /* WriteProperty: self-reference to Present_Value is rejected */
+    member.objectIdentifier.type = OBJECT_SCHEDULE;
+    member.objectIdentifier.instance = object_instance;
+    member.propertyIdentifier = PROP_PRESENT_VALUE;
+    member.arrayIndex = BACNET_ARRAY_ALL;
+    wp_data.object_type = OBJECT_SCHEDULE;
+    wp_data.object_instance = object_instance;
+    wp_data.object_property = PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES;
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    wp_data.application_data_len = bacapp_encode_device_obj_property_ref(
+        wp_data.application_data, &member);
+    status = Schedule_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+    zassert_equal(
+        Schedule_List_Of_Object_Property_References_Count(object_instance), 0,
+        NULL);
+
+    /* WriteProperty: self-reference to Schedule_Default is rejected */
+    member.propertyIdentifier = PROP_SCHEDULE_DEFAULT;
+    wp_data.application_data_len = bacapp_encode_device_obj_property_ref(
+        wp_data.application_data, &member);
+    status = Schedule_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+    zassert_equal(
+        Schedule_List_Of_Object_Property_References_Count(object_instance), 0,
+        NULL);
+
+    /* AddListElement: self-reference to Present_Value is rejected */
+    member.propertyIdentifier = PROP_PRESENT_VALUE;
+    list_element.object_type = OBJECT_SCHEDULE;
+    list_element.object_instance = object_instance;
+    list_element.object_property = PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES;
+    list_element.array_index = BACNET_ARRAY_ALL;
+    list_element.application_data = wp_data.application_data;
+    list_element.application_data_len = bacapp_encode_device_obj_property_ref(
+        list_element.application_data, &member);
+    err = Schedule_Add_List_Element(&list_element);
+    zassert_equal(err, BACNET_STATUS_ERROR, "err=%d", err);
+    zassert_equal(list_element.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+    zassert_equal(
+        Schedule_List_Of_Object_Property_References_Count(object_instance), 0,
+        NULL);
+
+    /* a reference to a different object is still accepted */
+    member.objectIdentifier.type = OBJECT_ANALOG_VALUE;
+    member.objectIdentifier.instance = 1;
+    wp_data.application_data_len = bacapp_encode_device_obj_property_ref(
+        wp_data.application_data, &member);
+    status = Schedule_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_equal(
+        Schedule_List_Of_Object_Property_References_Count(object_instance), 1,
+        NULL);
+
+    status = Schedule_Delete(object_instance);
+    zassert_true(status, NULL);
+}
+
+/**
  * @brief Test that Out_Of_Service decouples Present_Value from internal
  *  recalculation, per 135-2024 12.24.14(a), and that Present_Value becomes
  *  writable - triggering member writeback exactly as an internally
@@ -1180,6 +1261,8 @@ void test_main(void)
         ztest_unit_test(testScheduleWriteMembersOnValueChange),
         ztest_unit_test(testScheduleWriteEveryScheduledAction),
         ztest_unit_test(testScheduleWriteMembersRemoteDevice),
+        ztest_unit_test(
+            testScheduleListOfObjectPropertyReferencesSelfReference),
         ztest_unit_test(testScheduleOutOfService),
         ztest_unit_test(testScheduleCreateDelete));
 
