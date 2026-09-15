@@ -2102,12 +2102,12 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
                 return false;
-            } else if (
-                (len == 0) &&
-                (primitive_value.tag == MAX_BACNET_APPLICATION_TAG)) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                return false;
+            } else if (len == 0) {
+                if (primitive_value.tag == MAX_BACNET_APPLICATION_TAG) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    return false;
+                }
             }
             bacnet_primitive_value_copy(&old_value, &pObject->Present_Value);
             bacnet_primitive_value_copy(
@@ -2185,12 +2185,12 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
                 return false;
-            } else if (
-                (len == 0) &&
-                (primitive_value.tag == MAX_BACNET_APPLICATION_TAG)) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                return false;
+            } else if (len == 0) {
+                if (primitive_value.tag == MAX_BACNET_APPLICATION_TAG) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    return false;
+                }
             }
             bacnet_primitive_value_copy(
                 &pObject->Schedule_Default, &primitive_value);
