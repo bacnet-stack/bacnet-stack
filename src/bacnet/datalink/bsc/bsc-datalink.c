@@ -230,15 +230,17 @@ void bsc_cleanup(void)
             bsc_deinit_resources();
             (void)bsc_node_deinit(bsc_node);
             bsc_node_conf_cleanup(&bsc_conf);
-            /* A full datalink teardown must clear any staged policy so a
-             * later bsc_init() starts with the documented disabled default,
-             * while node-internal restarts still retain the live config.
-             */
-            bsc_identity_policy = NULL;
-            bsc_identity_policy_num = 0;
             bsc_node = NULL;
             bsc_datalink_state = BSC_DATALINK_STATE_IDLE;
         }
+    }
+    /* A full datalink teardown or cleanup while idle must clear any
+       staged policy so a later bsc_init() starts with the documented
+       disabled default, while avoiding the STOPPING case where the
+       live node/hub may still use it. */
+    if (bsc_datalink_state == BSC_DATALINK_STATE_IDLE) {
+        bsc_identity_policy = NULL;
+        bsc_identity_policy_num = 0;
     }
     bws_dispatch_unlock();
     BACNET_LOG(DEBUG_LOG_DEBUG, stderr, "bsc_cleanup() <<<\n");
