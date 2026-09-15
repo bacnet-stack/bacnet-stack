@@ -61,9 +61,9 @@ struct object_data {
     /* keyed 0..N-1, data is struct special_event_data* */
     OS_Keylist Exception_Schedule;
 #endif
-    /* 135-2024 12.24.4/12.24.9: Present_Value/Schedule_Default may be any
-       primitive datatype; Present_Value must be set to a valid value,
-       default is Schedule_Default. */
+    /* 135-2024 12.24.4/12.24.9: Present_Value and Schedule_Default
+       hold any primitive datatype (ANY), same as Weekly_Schedule and
+       Exception_Schedule time values. */
     BACNET_PRIMITIVE_DATA_VALUE Schedule_Default;
     BACNET_PRIMITIVE_DATA_VALUE Present_Value;
     /* keyed 0..N-1, data is BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE* */

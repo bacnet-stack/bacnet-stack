@@ -367,8 +367,10 @@ static int testSchedule_Read_Property_Stub(BACNET_READ_PROPERTY_DATA *rp_data)
     return encode_application_boolean(rp_data->application_data, true);
 }
 
-/* reads back PROP_PRESENT_VALUE as a Real, since there is no direct
- * Present_Value accessor for this object */
+/* reads back PROP_PRESENT_VALUE as a Real for the real-valued Present_Value
+ * tests below. For this object, Present_Value and Schedule_Default are
+ * BACNET_PRIMITIVE_DATA_VALUE values, so any single test must keep the
+ * default and matching Time_Value entries in the same primitive type. */
 static float testSchedule_Present_Value_Real(uint32_t object_instance)
 {
     uint8_t apdu[64] = { 0 };
@@ -389,6 +391,23 @@ static float testSchedule_Present_Value_Real(uint32_t object_instance)
     zassert_equal(value.tag, BACNET_APPLICATION_TAG_REAL, NULL);
 
     return value.type.Real;
+}
+
+static void testSchedule_Set_Default_Real(uint32_t object_instance, float value)
+{
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    bool status;
+
+    wp_data.object_type = OBJECT_SCHEDULE;
+    wp_data.object_instance = object_instance;
+    wp_data.object_property = PROP_SCHEDULE_DEFAULT;
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    wp_data.error_code = ERROR_CODE_SUCCESS;
+    wp_data.application_data_len =
+        encode_application_real(wp_data.application_data, value);
+    status = Schedule_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_SUCCESS, NULL);
 }
 
 /* stub used to capture WriteProperty requests issued to
@@ -428,6 +447,7 @@ static void testScheduleCalendarPresentValueUpdate(void)
 
     object_instance = Schedule_Create(BACNET_MAX_INSTANCE);
     zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
+    testSchedule_Set_Default_Real(object_instance, 0.0f);
     datetime_set_time(&test_time, 9, 0, 0, 0);
     /* Weekly_Schedule: Saturday 08:00 -> 10.0 */
     datetime_set_time(&entry.Time_Value.Time, 8, 0, 0, 0);
@@ -564,6 +584,7 @@ static void testScheduleTimerSkipsWhenClockReadFails(void)
         object_instance, &(BACNET_DATE) { 2024, 1, 1, BACNET_WEEKDAY_MONDAY },
         &(BACNET_DATE) { 2024, 12, 31, BACNET_WEEKDAY_TUESDAY });
     zassert_true(status, NULL);
+    testSchedule_Set_Default_Real(object_instance, 21.0f);
 
     datetime_set_time(&entry.Time_Value.Time, 8, 0, 0, 0);
     entry.Time_Value.Value.tag = BACNET_APPLICATION_TAG_REAL;
@@ -615,6 +636,7 @@ static void testScheduleTimerEffectivePeriod(void)
     status =
         Schedule_Effective_Period_Set(object_instance, &start_date, &end_date);
     zassert_true(status, NULL);
+    testSchedule_Set_Default_Real(object_instance, 21.0f);
     /* Weekly_Schedule: Monday 08:00 -> 10.0, distinct from Schedule_Default */
     datetime_set_time(&entry.Time_Value.Time, 8, 0, 0, 0);
     entry.Time_Value.Value.tag = BACNET_APPLICATION_TAG_REAL;
@@ -632,8 +654,8 @@ static void testScheduleTimerEffectivePeriod(void)
     zassert_within(
         testSchedule_Present_Value_Real(object_instance), 10.0f, 0.001f, NULL);
 
-    /* outside the Effective_Period: Present_Value falls back to
-     * Schedule_Default (21.0), rather than freezing the prior in-period
+    /* outside the Effective_Period: Present_Value falls back to the current
+     * Schedule_Default (REAL 21.0), rather than freezing the prior in-period
      * value */
     out_of_period.date = (BACNET_DATE) { 2024, 2, 15, BACNET_WEEKDAY_THURSDAY };
     datetime_set_time(&out_of_period.time, 9, 0, 0, 0);
@@ -676,6 +698,7 @@ static void testScheduleWriteMembersOnValueChange(void)
 
     object_instance = Schedule_Create(BACNET_MAX_INSTANCE);
     zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
+    testSchedule_Set_Default_Real(object_instance, 0.0f);
 
     /* one member reference to write Present_Value to */
     member.objectIdentifier.type = OBJECT_ANALOG_VALUE;
@@ -762,6 +785,7 @@ static void testScheduleWriteEveryScheduledAction(void)
 
     object_instance = Schedule_Create(BACNET_MAX_INSTANCE);
     zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
+    testSchedule_Set_Default_Real(object_instance, 0.0f);
     /* Write_Every_Scheduled_Action defaults to FALSE */
     zassert_false(Schedule_Write_Every_Scheduled_Action(object_instance), NULL);
 
@@ -922,6 +946,7 @@ static void testScheduleWriteMembersRemoteDevice(void)
 
     object_instance = Schedule_Create(BACNET_MAX_INSTANCE);
     zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
+    testSchedule_Set_Default_Real(object_instance, 0.0f);
 
     /* no deviceIdentifier: refers to an object in this Device */
     member.objectIdentifier.type = OBJECT_ANALOG_VALUE;
@@ -995,6 +1020,7 @@ static void testScheduleOutOfService(void)
 
     object_instance = Schedule_Create(BACNET_MAX_INSTANCE);
     zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
+    testSchedule_Set_Default_Real(object_instance, 0.0f);
     zassert_false(Schedule_Out_Of_Service(object_instance), NULL);
 
     /* one member reference to observe writeback on */
