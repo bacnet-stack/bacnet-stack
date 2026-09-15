@@ -230,6 +230,25 @@ static void bsc_cli_process_error(BSC_SOCKET *c, BACNET_ERROR_CODE reason)
 }
 
 /**
+ * @brief Immediately abort a connected socket without the graceful BVLC-SC
+ *  Disconnect-Request handshake used by bsc_disconnect(). Intended for
+ *  callers outside this module (e.g. bsc-hub-function.c) that need to
+ *  drop a peer at once, such as when it is no longer authorized.
+ * @param c - pointer to the socket
+ * @param reason - error code reported with the resulting DISCONNECTED event
+ */
+void bsc_socket_disconnect_forcefully(BSC_SOCKET *c, BACNET_ERROR_CODE reason)
+{
+    bws_dispatch_lock();
+    if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
+        bsc_cli_process_error(c, reason);
+    } else {
+        bsc_srv_process_error(c, reason);
+    }
+    bws_dispatch_unlock();
+}
+
+/**
  * @brief Prepare the error message
  * @param c - pointer to the socket
  * @param origin - pointer to the origin VMAC address

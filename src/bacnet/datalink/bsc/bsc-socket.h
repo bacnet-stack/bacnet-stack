@@ -281,6 +281,9 @@ BSC_SC_RET bsc_connect(BSC_SOCKET_CTX *ctx, BSC_SOCKET *c, char *url);
 BACNET_STACK_EXPORT
 void bsc_disconnect(BSC_SOCKET *c);
 
+BACNET_STACK_EXPORT
+void bsc_socket_disconnect_forcefully(BSC_SOCKET *c, BACNET_ERROR_CODE reason);
+
 /**
  * @brief  bsc_send() function schedules transmitting of pdu to
  *         another BACnet socket. The function may be used only

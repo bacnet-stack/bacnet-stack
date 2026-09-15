@@ -150,7 +150,11 @@ static void hub_function_revalidate_connected_sockets(BSC_HUB_FUNCTION *f)
                 "BSC-HUB: disconnecting connected peer %s because it is no "
                 "longer authorized by the identity policy\n",
                 bsc_vmac_to_string(&c->vmac));
-            bsc_disconnect(c);
+            /* Do not use the graceful disconnect path here.  A peer can
+             * continue to send data while BSC_SOCK_STATE_DISCONNECTING is
+             * waiting for its acknowledgement. */
+            bsc_socket_disconnect_forcefully(
+                c, ERROR_CODE_TLS_CLIENT_AUTHENTICATION_FAILED);
         }
     }
 }

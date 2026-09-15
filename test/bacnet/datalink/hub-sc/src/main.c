@@ -3535,6 +3535,108 @@ static void test_hub_function_identity_policy_rejects_missing_san(void)
 }
 #endif
 
+/**
+ * @brief Verify that hub_function_revalidate_connected_sockets() actually
+ *  disconnects an already-CONNECTED peer when bsc_hub_function_set_
+ *  identity_policy() is applied live with a policy that no longer
+ *  authorizes that peer's claimed UUID. The connector first connects
+ *  while no policy is enforced, then a policy mapping its cert's SAN
+ *  identity to a *different* UUID is applied, and the peer must be
+ *  dropped.
+ */
+#if !defined(CONFIG_MBEDTLS)
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(hub_test_16, test_hub_function_identity_policy_revalidates_connected_peer)
+#else
+static void test_hub_function_identity_policy_revalidates_connected_peer(void)
+#endif
+{
+    BSC_SC_RET ret;
+    BACNET_SC_UUID hubf_uuid;
+    BACNET_SC_VMAC_ADDRESS hubf_vmac;
+    BSC_HUB_FUNCTION_HANDLE hubf_h;
+    BACNET_SC_UUID hubc_uuid;
+    BACNET_SC_UUID authorized_uuid;
+    BACNET_SC_VMAC_ADDRESS hubc_vmac;
+    BSC_HUB_FUNCTION_HANDLE hubc_h;
+    char primary_url[128];
+    char secondary_url[128];
+    BSC_CERT_IDENTITY_ENTRY policy[1];
+    int waited_ms;
+
+    memset(&hubf_uuid, 0x1, sizeof(hubf_uuid));
+    memset(&hubf_vmac, 0x2, sizeof(hubf_vmac));
+    memset(&hubc_uuid, 0x3, sizeof(hubc_uuid));
+    memset(&authorized_uuid, 0x30, sizeof(authorized_uuid));
+    memset(&hubc_vmac, 0x4, sizeof(hubc_vmac));
+
+    snprintf(
+        primary_url, sizeof(primary_url), "wss://%s:%d",
+        BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT);
+    snprintf(
+        secondary_url, sizeof(secondary_url), "wss://%s:%d",
+        BACNET_WEBSOCKET_SERVER_ADDR, BACNET_WEBSOCKET_SERVER_PORT2);
+
+    init_hubc_ev(&hubc);
+    init_hubf_ev(&hubf);
+
+    /* no identity policy at start-up, so the connector's cert is accepted */
+    ret = bsc_hub_function_start(
+        ca_cert, sizeof(ca_cert), server_cert, sizeof(server_cert), server_key,
+        sizeof(server_key), BACNET_WEBSOCKET_SERVER_PORT, BSC_NETWORK_IFACE,
+        &hubf_uuid, &hubf_vmac, MAX_BVLC_LEN, MAX_NDPU_LEN,
+        BACNET_TIMEOUT, // connect timeout
+        BACNET_TIMEOUT, // heartbeat timeout
+        BACNET_TIMEOUT, // disconnect timeout
+        hub_function_event, NULL, &hubf_h);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+    zassert_equal(wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STARTED, hubf_h), true, 0);
+
+    ret = bsc_hub_connector_start(
+        ca_cert, sizeof(ca_cert), san_client_cert, sizeof(san_client_cert),
+        san_client_key, sizeof(san_client_key), &hubc_uuid, &hubc_vmac,
+        MAX_BVLC_LEN, MAX_NDPU_LEN,
+        BACNET_TIMEOUT, // connect timeout
+        BACNET_TIMEOUT, // heartbeat timeout
+        BACNET_TIMEOUT, // disconnect timeout
+        primary_url, secondary_url,
+        BACNET_TIMEOUT, // reconnect timeout
+        hub_connector_event, &hubc_uuid, &hubc_h);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+    zassert_equal(
+        wait_hubc_ev(&hubc, BSC_HUBC_EVENT_CONNECTED_PRIMARY, hubc_h), true, 0);
+
+    /* apply a live policy mapping the cert's SAN identity to a UUID other
+     * than the one the connected peer claimed - it is no longer
+     * authorized and hub_function_revalidate_connected_sockets() must
+     * disconnect it. */
+    memset(policy, 0, sizeof(policy));
+    policy[0].identity = "1234";
+    policy[0].uuid = authorized_uuid;
+    policy[0].vmac_required = false;
+    ret = bsc_hub_function_set_identity_policy(hubf_h, policy, 1);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+
+    waited_ms = 0;
+    while (waited_ms < (BACNET_TIMEOUT + 2) * 1000 &&
+           bsc_hub_connector_state(hubc_h) ==
+               BACNET_SC_HUB_CONNECTOR_STATE_CONNECTED_TO_PRIMARY) {
+        wait_sec(1);
+        waited_ms += 1000;
+    }
+    zassert_not_equal(
+        bsc_hub_connector_state(hubc_h),
+        BACNET_SC_HUB_CONNECTOR_STATE_CONNECTED_TO_PRIMARY, 0);
+
+    bsc_hub_connector_stop(hubc_h);
+    zassert_equal(wait_hubc_ev(&hubc, BSC_HUBC_EVENT_STOPPED, hubc_h), true, 0);
+    bsc_hub_function_stop(hubf_h);
+    zassert_equal(wait_hubf_ev(&hubf, BSC_HUBF_EVENT_STOPPED, hubf_h), true, 0);
+    deinit_hubc_ev(&hubc);
+    deinit_hubf_ev(&hubf);
+}
+#endif
+
 #if defined(CONFIG_ZTEST_NEW_API)
 static void *suite_setup(void)
 {
@@ -3559,6 +3661,7 @@ ZTEST_SUITE(hub_test_12, NULL, suite_setup, NULL, NULL, NULL);
 ZTEST_SUITE(hub_test_13, NULL, suite_setup, NULL, NULL, NULL);
 ZTEST_SUITE(hub_test_14, NULL, suite_setup, NULL, NULL, NULL);
 ZTEST_SUITE(hub_test_15, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(hub_test_16, NULL, suite_setup, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
@@ -3606,6 +3709,10 @@ void test_main(void)
         hub_test_15,
         ztest_unit_test(
             test_hub_function_identity_policy_rejects_vmac_mismatch));
+    ztest_test_suite(
+        hub_test_16,
+        ztest_unit_test(
+            test_hub_function_identity_policy_revalidates_connected_peer));
 
     ztest_run_test_suite(hub_test_1);
     ztest_run_test_suite(hub_test_2);
@@ -3622,5 +3729,6 @@ void test_main(void)
     ztest_run_test_suite(hub_test_13);
     ztest_run_test_suite(hub_test_14);
     ztest_run_test_suite(hub_test_15);
+    ztest_run_test_suite(hub_test_16);
 }
 #endif
