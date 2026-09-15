@@ -241,8 +241,6 @@ void bsc_node_conf_cleanup(BSC_NODE_CONF *bsc_conf)
     if (bsc_conf->key) {
         free(bsc_conf->key);
     }
-    bsc_conf->identity_policy = NULL;
-    bsc_conf->identity_policy_num = 0;
 }
 
 /**

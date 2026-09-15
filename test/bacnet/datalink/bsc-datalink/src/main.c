@@ -1954,8 +1954,6 @@ static void test_sc_datalink(void)
     conf2.direct_connection_accept_uris = NULL;
     conf2.direct_connection_accept_uris_len = 0;
     conf2.event_func = node_event2;
-    conf2.identity_policy = NULL;
-    conf2.identity_policy_num = 0;
 
     conf3.ca_cert_chain = ca_cert;
     conf3.ca_cert_chain_size = sizeof(ca_cert);
@@ -1985,8 +1983,6 @@ static void test_sc_datalink(void)
     conf3.direct_connection_accept_uris = NULL;
     conf3.direct_connection_accept_uris_len = 0;
     conf3.event_func = node_event3;
-    conf3.identity_policy = NULL;
-    conf3.identity_policy_num = 0;
 
 #ifdef ZEPHYR_PLATFORM
     init_zephyr_env();
@@ -2215,8 +2211,6 @@ static void test_sc_datalink_properties(void)
     conf2.direct_connection_accept_uris = NULL;
     conf2.direct_connection_accept_uris_len = 0;
     conf2.event_func = node_event2;
-    conf2.identity_policy = NULL;
-    conf2.identity_policy_num = 0;
 
     conf3.ca_cert_chain = ca_cert;
     conf3.ca_cert_chain_size = sizeof(ca_cert);
@@ -2246,14 +2240,10 @@ static void test_sc_datalink_properties(void)
     conf3.direct_connection_accept_uris = NULL;
     conf3.direct_connection_accept_uris_len = 0;
     conf3.event_func = node_event3;
-    conf3.identity_policy = NULL;
-    conf3.identity_policy_num = 0;
     conf4 = conf3;
     conf4.local_uuid = &uuid4;
     conf4.local_vmac = vmac4;
     conf4.event_func = node_event4;
-    conf4.identity_policy = NULL;
-    conf4.identity_policy_num = 0;
 
     ret = bsc_node_init(&conf2, &node2);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
@@ -2529,8 +2519,6 @@ static void test_sc_datalink_failed_requests(void)
     conf2.direct_connection_accept_uris = NULL;
     conf2.direct_connection_accept_uris_len = 0;
     conf2.event_func = node_event2;
-    conf2.identity_policy = NULL;
-    conf2.identity_policy_num = 0;
 
     ret = bsc_node_init(&conf2, &node2);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
@@ -2716,8 +2704,6 @@ static void test_sc_datalink_hub_identity_policy(void)
     conf2.direct_connection_accept_uris = NULL;
     conf2.direct_connection_accept_uris_len = 0;
     conf2.event_func = node_event2;
-    conf2.identity_policy = NULL;
-    conf2.identity_policy_num = 0;
 
     ret = bsc_node_init(&conf2, &node2);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);

@@ -52,6 +52,12 @@ static uint8_t
     bsc_fifo_buf[BSC_NEXT_POWER_OF_TWO(BSC_CONF_DATALINK_RX_BUFFER_SIZE)];
 static BSC_NODE *bsc_node = NULL;
 static BSC_NODE_CONF bsc_conf;
+/* opt-in hub function cert identity policy, staged here (rather than in
+   BSC_NODE_CONF) so it can be set before bsc_init() creates the node and
+   is applied to the node via bsc_node_set_hub_function_identity_policy()
+   once it exists */
+static BSC_CERT_IDENTITY_ENTRY *bsc_identity_policy = NULL;
+static size_t bsc_identity_policy_num = 0;
 static BSC_DATALINK_STATE bsc_datalink_state = BSC_DATALINK_STATE_IDLE;
 static BSC_EVENT *bsc_event = NULL;
 static BSC_EVENT *bsc_data_event = NULL;
@@ -173,6 +179,10 @@ bool bsc_init(const char *ifname)
     bsc_datalink_state = BSC_DATALINK_STATE_STARTING;
     r = bsc_node_init(&bsc_conf, &bsc_node);
     if (r == BSC_SC_SUCCESS) {
+        if (bsc_identity_policy_num) {
+            (void)bsc_node_set_hub_function_identity_policy(
+                bsc_node, bsc_identity_policy, bsc_identity_policy_num);
+        }
         r = bsc_node_start(bsc_node);
         if (r == BSC_SC_SUCCESS) {
             bws_dispatch_unlock();
@@ -224,8 +234,8 @@ void bsc_cleanup(void)
              * later bsc_init() starts with the documented disabled default,
              * while node-internal restarts still retain the live config.
              */
-            bsc_conf.identity_policy = NULL;
-            bsc_conf.identity_policy_num = 0;
+            bsc_identity_policy = NULL;
+            bsc_identity_policy_num = 0;
             bsc_node = NULL;
             bsc_datalink_state = BSC_DATALINK_STATE_IDLE;
         }
@@ -699,12 +709,12 @@ BSC_SC_RET bsc_set_hub_function_identity_policy(
         ret = bsc_node_set_hub_function_identity_policy(
             bsc_node, entries, entries_num);
         if (ret == BSC_SC_SUCCESS) {
-            bsc_conf.identity_policy = entries;
-            bsc_conf.identity_policy_num = entries_num;
+            bsc_identity_policy = entries;
+            bsc_identity_policy_num = entries_num;
         }
     } else {
-        bsc_conf.identity_policy = entries;
-        bsc_conf.identity_policy_num = entries_num;
+        bsc_identity_policy = entries;
+        bsc_identity_policy_num = entries_num;
     }
     bws_dispatch_unlock();
     return ret;

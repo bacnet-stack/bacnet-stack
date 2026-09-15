@@ -46,6 +46,12 @@ struct BSC_Node {
     BACNET_SC_FAILED_CONNECTION_REQUEST *failed;
     BACNET_SC_DIRECT_CONNECTION_STATUS *direct_status;
     BACNET_SC_HUB_FUNCTION_CONNECTION_STATUS *hub_status;
+    /* opt-in hub function cert identity policy, kept out of BSC_NODE_CONF
+       so it always defaults to disabled regardless of caller-supplied
+       conf and is only ever changed via bsc_node_set_hub_function_
+       identity_policy() */
+    BSC_CERT_IDENTITY_ENTRY *identity_policy;
+    size_t identity_policy_num;
 };
 
 #if defined(BSC_CONF_NODES_NUM) && (BSC_CONF_NODES_NUM < 1)
@@ -830,12 +836,12 @@ BSC_SC_RET bsc_node_set_hub_function_identity_policy(
         ret = bsc_hub_function_set_identity_policy(
             node->hub_function, entries, entries_num);
         if (ret == BSC_SC_SUCCESS) {
-            node->conf->identity_policy = entries;
-            node->conf->identity_policy_num = entries_num;
+            node->identity_policy = entries;
+            node->identity_policy_num = entries_num;
         }
     } else {
-        node->conf->identity_policy = entries;
-        node->conf->identity_policy_num = entries_num;
+        node->identity_policy = entries;
+        node->identity_policy_num = entries_num;
     }
     bws_dispatch_unlock();
     return ret;
@@ -928,10 +934,10 @@ static BSC_SC_RET bsc_node_start_state(BSC_NODE *node, BSC_NODE_STATE state)
             DEBUG_PRINTF("bsc_node_start_state() <<< ret = %d\n", ret);
             return ret;
         }
-        if (node->conf->identity_policy_num) {
+        if (node->identity_policy_num) {
             ret = bsc_hub_function_set_identity_policy(
-                node->hub_function, node->conf->identity_policy,
-                node->conf->identity_policy_num);
+                node->hub_function, node->identity_policy,
+                node->identity_policy_num);
             if (ret != BSC_SC_SUCCESS) {
                 node->state = BSC_NODE_STATE_IDLE;
                 bsc_hub_connector_stop(node->hub_connector);

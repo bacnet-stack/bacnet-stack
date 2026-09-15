@@ -79,9 +79,6 @@ typedef struct {
     bool hub_function_enabled;
     char *direct_connection_accept_uris; /* URIs joined ' 'space */
     size_t direct_connection_accept_uris_len;
-    /* opt-in hub function cert identity policy, NULL/0 disables it */
-    BSC_CERT_IDENTITY_ENTRY *identity_policy;
-    size_t identity_policy_num;
     BSC_NODE_EVENT_FUNC event_func;
 } BSC_NODE_CONF;
 

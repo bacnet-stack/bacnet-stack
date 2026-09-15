@@ -1604,8 +1604,6 @@ static void test_node_start_stop(void)
     conf.direct_connection_accept_uris = NULL;
     conf.direct_connection_accept_uris_len = 0;
     conf.event_func = node_event;
-    conf.identity_policy = NULL;
-    conf.identity_policy_num = 0;
 
     init_node_ev(&node_ev);
     ret = bsc_node_init(NULL, NULL);
@@ -1723,8 +1721,6 @@ static void test_node_duplicated_vmac(void)
     conf.direct_connection_accept_uris = NULL;
     conf.direct_connection_accept_uris_len = 0;
     conf.event_func = node_event;
-    conf.identity_policy = NULL;
-    conf.identity_policy_num = 0;
 
     conf2.ca_cert_chain = ca_cert;
     conf2.ca_cert_chain_size = sizeof(ca_cert);
@@ -1754,8 +1750,6 @@ static void test_node_duplicated_vmac(void)
     conf2.direct_connection_accept_uris = NULL;
     conf2.direct_connection_accept_uris_len = 0;
     conf2.event_func = node_event2;
-    conf2.identity_policy = NULL;
-    conf2.identity_policy_num = 0;
 
     init_node_ev(&node_ev);
     init_node_ev(&node_ev2);
@@ -1914,8 +1908,6 @@ static void test_node_send(void)
     conf.direct_connection_accept_uris = NULL;
     conf.direct_connection_accept_uris_len = 0;
     conf.event_func = node_event;
-    conf.identity_policy = NULL;
-    conf.identity_policy_num = 0;
 
     conf2.ca_cert_chain = ca_cert;
     conf2.ca_cert_chain_size = sizeof(ca_cert);
@@ -1945,12 +1937,8 @@ static void test_node_send(void)
     conf2.direct_connection_accept_uris = NULL;
     conf2.direct_connection_accept_uris_len = 0;
     conf2.event_func = node_event2;
-    conf2.identity_policy = NULL;
-    conf2.identity_policy_num = 0;
     conf3 = conf2;
     conf3.event_func = node_event3;
-    conf3.identity_policy = NULL;
-    conf3.identity_policy_num = 0;
     conf3.local_uuid = &node_uuid3;
     conf3.local_vmac = node_vmac3;
 
@@ -2159,8 +2147,6 @@ static void test_node_local_hub_function(void)
     conf.direct_connection_accept_uris = NULL;
     conf.direct_connection_accept_uris_len = 0;
     conf.event_func = node_event;
-    conf.identity_policy = NULL;
-    conf.identity_policy_num = 0;
 
     conf2.ca_cert_chain = ca_cert;
     conf2.ca_cert_chain_size = sizeof(ca_cert);
@@ -2190,12 +2176,8 @@ static void test_node_local_hub_function(void)
     conf2.direct_connection_accept_uris = NULL;
     conf2.direct_connection_accept_uris_len = 0;
     conf2.event_func = node_event2;
-    conf2.identity_policy = NULL;
-    conf2.identity_policy_num = 0;
     conf3 = conf2;
     conf3.event_func = node_event3;
-    conf3.identity_policy = NULL;
-    conf3.identity_policy_num = 0;
     conf3.local_uuid = &node_uuid3;
     conf3.local_vmac = node_vmac3;
 
@@ -2379,8 +2361,6 @@ static void test_node_direct_connection(void)
     conf.direct_connection_accept_uris = NULL;
     conf.direct_connection_accept_uris_len = 0;
     conf.event_func = node_event;
-    conf.identity_policy = NULL;
-    conf.identity_policy_num = 0;
 
     snprintf(
         uris, sizeof(uris), "wss://%s:%d wss://%s:%d", BACNET_LOCALHOST,
@@ -2414,8 +2394,6 @@ static void test_node_direct_connection(void)
     conf2.direct_connection_accept_uris = uris;
     conf2.direct_connection_accept_uris_len = strlen(uris);
     conf2.event_func = node_event2;
-    conf2.identity_policy = NULL;
-    conf2.identity_policy_num = 0;
 
     conf3.ca_cert_chain = ca_cert;
     conf3.ca_cert_chain_size = sizeof(ca_cert);
@@ -2445,8 +2423,6 @@ static void test_node_direct_connection(void)
     conf3.direct_connection_accept_uris = NULL;
     conf3.direct_connection_accept_uris_len = 0;
     conf3.event_func = node_event3;
-    conf3.identity_policy = NULL;
-    conf3.identity_policy_num = 0;
 
     init_node_ev(&node_ev);
     init_node_ev(&node_ev2);
@@ -3088,8 +3064,6 @@ static void test_node_direct_connection_unsupported(void)
     conf.direct_connection_accept_uris = NULL;
     conf.direct_connection_accept_uris_len = 0;
     conf.event_func = node_event;
-    conf.identity_policy = NULL;
-    conf.identity_policy_num = 0;
 
     snprintf(
         uris, sizeof(uris), "wss://%s:%d wss://%s:%d", BACNET_LOCALHOST,
@@ -3123,8 +3097,6 @@ static void test_node_direct_connection_unsupported(void)
     conf2.direct_connection_accept_uris = uris;
     conf2.direct_connection_accept_uris_len = strlen(uris);
     conf2.event_func = node_event2;
-    conf2.identity_policy = NULL;
-    conf2.identity_policy_num = 0;
 
     conf3.ca_cert_chain = ca_cert;
     conf3.ca_cert_chain_size = sizeof(ca_cert);
@@ -3154,8 +3126,6 @@ static void test_node_direct_connection_unsupported(void)
     conf3.direct_connection_accept_uris = NULL;
     conf3.direct_connection_accept_uris_len = 0;
     conf3.event_func = node_event3;
-    conf3.identity_policy = NULL;
-    conf3.identity_policy_num = 0;
 
     init_node_ev(&node_ev);
     init_node_ev(&node_ev2);
@@ -3299,8 +3269,6 @@ static void test_node_bad_cases(void)
     conf.direct_connection_accept_uris = NULL;
     conf.direct_connection_accept_uris_len = 0;
     conf.event_func = node_event;
-    conf.identity_policy = NULL;
-    conf.identity_policy_num = 0;
 
     init_node_ev(&node_ev);
     ret = bsc_node_init(&conf, &node);
@@ -3404,8 +3372,6 @@ static void test_node_bad_cases(void)
     conf.direct_connection_accept_uris = NULL;
     conf.direct_connection_accept_uris_len = 0;
     conf.event_func = node_event;
-    conf.identity_policy = NULL;
-    conf.identity_policy_num = 0;
     ret = bsc_node_init(&conf, &node);
     zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
     ret = bsc_node_start(node);
