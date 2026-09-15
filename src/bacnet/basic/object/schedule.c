@@ -53,6 +53,13 @@ struct object_data {
     BACNET_CHARACTER_CSTRING Object_Name;
     BACNET_CHARACTER_CSTRING Description;
     /* Effective Period: Start and End Date */
+    /* For BACnet date ranges used in Effective_Period,
+       BACnet addenda clarified that the start date and end date
+       must be either:
+       * A fully specified date, or
+       * A completely unspecified date (all fields wildcarded)
+       Partial wildcards, such as specifying a month and day
+       while wildcarding only the year, are not permitted in a date range. */
     BACNET_DATE Start_Date;
     BACNET_DATE End_Date;
     /* Properties concerning Present Value */
@@ -213,6 +220,51 @@ static void Schedule_Invalidate_Active_Time_Value(struct object_data *pObject)
     if (pObject) {
         pObject->Active_Time_Value = NULL;
     }
+}
+
+/**
+ * @brief Determine if a date is either fully specified or completely
+ *  unspecified (all fields wildcarded), per the BACnet addenda clarification
+ *  for date ranges used in Effective_Period (see struct object_data)
+ * @param bdate - date to check
+ * @return true if the date is fully specified or completely unspecified
+ */
+static bool Schedule_Effective_Period_Date_Valid(const BACNET_DATE *bdate)
+{
+    bool year, month, day, weekday;
+
+    if (!bdate) {
+        return false;
+    }
+    year = datetime_wildcard_year(bdate);
+    month = datetime_wildcard_month(bdate);
+    day = datetime_wildcard_day(bdate);
+    weekday = datetime_wildcard_weekday(bdate);
+    if (year && month && day && weekday) {
+        /* completely unspecified date */
+        return true;
+    }
+    if (!year && !month && !day) {
+        /* fully specified date (weekday may be wildcarded or computed) */
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * @brief Determine if a start/end date pair is a valid Effective_Period,
+ *  per the BACnet addenda clarification for date ranges (see comment on
+ *  Start_Date/End_Date in struct object_data)
+ * @param start_date - start date of the effective period
+ * @param end_date - end date of the effective period
+ * @return true if both dates are valid
+ */
+static bool Schedule_Effective_Period_Valid(
+    const BACNET_DATE *start_date, const BACNET_DATE *end_date)
+{
+    return Schedule_Effective_Period_Date_Valid(start_date) &&
+        Schedule_Effective_Period_Date_Valid(end_date);
 }
 
 /**
@@ -418,13 +470,11 @@ uint32_t Schedule_Create(uint32_t object_instance)
             Schedule_Free_Object(pObject);
             return BACNET_MAX_INSTANCE;
         }
-        /* whole year, change as necessary */
-        datetime_set_date(&start_date, 0, 1, 1);
-        datetime_wildcard_year_set(&start_date);
-        datetime_wildcard_weekday_set(&start_date);
-        datetime_set_date(&end_date, 0, 12, 31);
-        datetime_wildcard_year_set(&end_date);
-        datetime_wildcard_weekday_set(&end_date);
+        /* default to a completely unspecified Effective_Period, since a
+           partial wildcard is not a valid date range (see struct
+           object_data comment); change as necessary */
+        datetime_date_wildcard_set(&start_date);
+        datetime_date_wildcard_set(&end_date);
         datetime_copy_date(&pObject->Start_Date, &start_date);
         datetime_copy_date(&pObject->End_Date, &end_date);
         pObject->Schedule_Default.tag = BACNET_APPLICATION_TAG_NULL;
@@ -1448,7 +1498,9 @@ static BACNET_ERROR_CODE Schedule_Exception_Schedule_Element_Write(
  * @param object_instance - object-instance number of the object
  * @param start_date - start date of the effective period
  * @param end_date - end date of the effective period
- * @return true if the effective period was set, and false if not
+ * @return true if the effective period was set, and false if not (either
+ *  the object was not found, or start_date/end_date is not fully specified
+ *  or fully wildcarded)
  */
 bool Schedule_Effective_Period_Set(
     uint32_t object_instance,
@@ -1457,6 +1509,9 @@ bool Schedule_Effective_Period_Set(
 {
     struct object_data *pObject;
 
+    if (!Schedule_Effective_Period_Valid(start_date, end_date)) {
+        return false;
+    }
     pObject = Object_Data(object_instance);
     if (pObject) {
         datetime_copy_date(&pObject->Start_Date, start_date);
@@ -2168,6 +2223,12 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 } else {
                     wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
                 }
+                return false;
+            }
+            if (!Schedule_Effective_Period_Valid(
+                    &date_range.startdate, &date_range.enddate)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 return false;
             }
             /* set the start and end date */
