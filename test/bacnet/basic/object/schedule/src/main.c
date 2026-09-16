@@ -45,6 +45,9 @@ static void testSchedule(void)
                                             };
     BACNET_DATE start_date = { 2023, 1, 1, 0 }, test_start_date = { 0 };
     BACNET_DATE end_date = { 2023, 12, 31, 0 }, test_end_date = { 0 };
+    BACNET_DATE partial_wildcard_date = { 0 };
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    BACNET_DATE_RANGE date_range = { 0 };
     BACNET_TIME time_of_day = { 0 };
     size_t tv = 0, day = 0, i = 0;
     int diff;
@@ -200,11 +203,53 @@ static void testSchedule(void)
     zassert_true(status, NULL);
     status = Schedule_In_Effective_Period(object_instance, &end_date);
     zassert_true(status, NULL);
+    /* a partial wildcard (year wildcarded, month/day specified) is not a
+     * valid Effective_Period date per the BACnet addenda clarification,
+     * and the previously configured range shall be left unchanged */
+    partial_wildcard_date = end_date;
+    datetime_wildcard_year_set(&partial_wildcard_date);
+    status = Schedule_Effective_Period_Set(
+        object_instance, &start_date, &partial_wildcard_date);
+    zassert_false(status, NULL);
+    status = Schedule_Effective_Period_Set(
+        object_instance, &partial_wildcard_date, &end_date);
+    zassert_false(status, NULL);
+    status = Schedule_Effective_Period(
+        object_instance, &test_start_date, &test_end_date);
+    zassert_true(status, NULL);
+    diff = datetime_compare_date(&start_date, &test_start_date);
+    zassert_equal(diff, 0, NULL);
+    diff = datetime_compare_date(&end_date, &test_end_date);
+    zassert_equal(diff, 0, NULL);
     /* general purpose test */
     bacnet_object_properties_read_write_test(
         OBJECT_SCHEDULE, object_instance, Schedule_Property_Lists,
         Schedule_Read_Property, Schedule_Write_Property,
         skip_fail_property_list);
+    /* PROP_EFFECTIVE_PERIOD write with a partial-wildcard date is rejected
+     * with an error, and the stored range is left unchanged */
+    date_range.startdate = start_date;
+    date_range.enddate = end_date;
+    datetime_wildcard_year_set(&date_range.enddate);
+    wp_data.object_type = OBJECT_SCHEDULE;
+    wp_data.object_instance = object_instance;
+    wp_data.object_property = PROP_EFFECTIVE_PERIOD;
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    wp_data.error_code = ERROR_CODE_SUCCESS;
+    wp_data.application_data_len =
+        bacnet_daterange_encode(wp_data.application_data, &date_range);
+    zassert_true(wp_data.application_data_len > 0, NULL);
+    status = Schedule_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+    status = Schedule_Effective_Period(
+        object_instance, &test_start_date, &test_end_date);
+    zassert_true(status, NULL);
+    diff = datetime_compare_date(&start_date, &test_start_date);
+    zassert_equal(diff, 0, NULL);
+    diff = datetime_compare_date(&end_date, &test_end_date);
+    zassert_equal(diff, 0, NULL);
 
     {
         uint8_t apdu[64] = { 0 };
