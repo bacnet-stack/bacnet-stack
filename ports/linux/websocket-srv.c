@@ -1398,6 +1398,78 @@ BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identity(
     }
     return ret;
 }
+
+BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identity_at(
+    BSC_WEBSOCKET_SRV_HANDLE sh,
+    BSC_WEBSOCKET_HANDLE h,
+    size_t index,
+    char *buf,
+    size_t buf_size)
+{
+    BSC_WEBSOCKET_CONTEXT *ctx = (BSC_WEBSOCKET_CONTEXT *)sh;
+    SSL *ssl;
+    X509 *cert;
+    GENERAL_NAMES *san;
+    int i;
+    BSC_WEBSOCKET_RET ret = BSC_WEBSOCKET_INVALID_OPERATION;
+    GENERAL_NAME *name;
+    const unsigned char *s;
+    int slen;
+    size_t found = 0;
+
+    if (!ctx || h < 0 || !buf || !buf_size ||
+        h >= bws_srv_get_max_sockets(ctx->proto)) {
+        return BSC_WEBSOCKET_BAD_PARAM;
+    }
+
+    pthread_mutex_lock(ctx->mutex);
+    ssl = (ctx->conn[h].state != BSC_WEBSOCKET_STATE_IDLE && ctx->conn[h].ws)
+        ? lws_get_ssl(ctx->conn[h].ws)
+        : NULL;
+    if (!ssl) {
+        pthread_mutex_unlock(ctx->mutex);
+        return BSC_WEBSOCKET_INVALID_OPERATION;
+    }
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+    cert = SSL_get1_peer_certificate(ssl);
+#else
+    cert = SSL_get_peer_certificate(ssl);
+#endif
+    pthread_mutex_unlock(ctx->mutex);
+    if (!cert) {
+        return BSC_WEBSOCKET_INVALID_OPERATION;
+    }
+    san = X509_get_ext_d2i(cert, NID_subject_alt_name, NULL, NULL);
+    if (san) {
+        for (i = 0; i < sk_GENERAL_NAME_num(san); i++) {
+            name = sk_GENERAL_NAME_value(san, i);
+
+            if (name->type != GEN_URI) {
+                continue;
+            }
+            s = ASN1_STRING_get0_data(name->d.uniformResourceIdentifier);
+            slen = ASN1_STRING_length(name->d.uniformResourceIdentifier);
+            if (slen > 9 && memcmp(s, "bacnet://", 9) == 0 &&
+                !memchr(s, 0, (size_t)slen)) {
+                if (found == index) {
+                    if ((size_t)slen >= buf_size) {
+                        ret = BSC_WEBSOCKET_BAD_PARAM;
+                    } else {
+                        memcpy(buf, s, (size_t)slen);
+                        buf[slen] = '\0';
+                        ret = BSC_WEBSOCKET_SUCCESS;
+                    }
+                    break;
+                }
+                found++;
+            }
+        }
+        GENERAL_NAMES_free(san);
+    }
+    X509_free(cert);
+    ERR_clear_error();
+    return ret;
+}
 #else
 BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identities(
     BSC_WEBSOCKET_SRV_HANDLE sh,
@@ -1424,6 +1496,21 @@ BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identity(
 {
     (void)sh;
     (void)h;
+    (void)buf;
+    (void)buf_size;
+    return BSC_WEBSOCKET_INVALID_OPERATION;
+}
+
+BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identity_at(
+    BSC_WEBSOCKET_SRV_HANDLE sh,
+    BSC_WEBSOCKET_HANDLE h,
+    size_t index,
+    char *buf,
+    size_t buf_size)
+{
+    (void)sh;
+    (void)h;
+    (void)index;
     (void)buf;
     (void)buf_size;
     return BSC_WEBSOCKET_INVALID_OPERATION;

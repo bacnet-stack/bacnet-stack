@@ -461,5 +461,16 @@ BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identity(
     char *buf,
     size_t buf_size);
 
+/* returns the 'index'-th "bacnet://" SAN URI entry (0-based, counting only
+ * such entries) with no cap on how many entries the peer cert may have in
+ * aggregate; BSC_WEBSOCKET_INVALID_OPERATION once index is past the last
+ * one, doubling as the caller's end-of-enumeration sentinel */
+BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identity_at(
+    BSC_WEBSOCKET_SRV_HANDLE sh,
+    BSC_WEBSOCKET_HANDLE h,
+    size_t index,
+    char *buf,
+    size_t buf_size);
+
 bool bws_srv_cert_identity_supported(void);
 #endif

@@ -854,16 +854,10 @@ static bool bsc_cert_identity_matches(const char *san_uri, const char *identity)
 }
 
 /**
- * @brief Look up the peer certificate identity policy entry, if any,
- *        that authorizes the current socket's underlying TLS peer
- *        certificate. This is an opt-in check (see
- *        bsc_hub_function_set_identity_policy()); it is skipped entirely
- *        when no policy is configured, preserving the AB.7.4 default
- *        behavior.
- * @param c - pointer to the socket
- * @return pointer to the matching policy entry, or NULL if the policy is
- *         disabled, the peer presented no matching cert identity, or no
- *         entry authorizes it
+ * @brief Search a list of SAN URI strings for one that matches the given
+ *        uuid/vmac against a list of identity policy entries. Used both
+ *        directly by unit tests and by bsc_find_cert_identity_entry().
+ * @return pointer to the matching policy entry, or NULL if none match
  */
 BSC_CERT_IDENTITY_ENTRY *bsc_find_cert_identity_entry_in_sans(
     const char *const *san_uris,
@@ -897,36 +891,49 @@ BSC_CERT_IDENTITY_ENTRY *bsc_find_cert_identity_entry_in_sans(
     return NULL;
 }
 
-static BSC_CERT_IDENTITY_ENTRY *bsc_find_cert_identity_entry(
+/**
+ * @brief Look up the peer certificate identity policy entry, if any,
+ *        that authorizes the current socket's underlying TLS peer
+ *        certificate. This is an opt-in check (see
+ *        bsc_hub_function_set_identity_policy()); it is skipped entirely
+ *        when no policy is configured, preserving the AB.7.4 default
+ *        behavior. Shared by both initial Connect-Request authorization
+ *        and live revalidation of an already-connected socket.
+ * @param c - pointer to the socket
+ * @param uuid - peer's uuid, from a Connect-Request or an already
+ *        connected socket
+ * @param vmac - peer's vmac, from a Connect-Request or an already
+ *        connected socket
+ * @return pointer to the matching policy entry, or NULL if the policy is
+ *         disabled, the peer presented no matching cert identity, or no
+ *         entry authorizes it
+ */
+BSC_CERT_IDENTITY_ENTRY *bsc_find_cert_identity_entry(
     BSC_SOCKET *c,
     const BACNET_SC_UUID *uuid,
     const BACNET_SC_VMAC_ADDRESS *vmac)
 {
-    char san_uris[256];
-    size_t identity_count = 0;
-    const char *uris[32];
-    size_t uri_count = 0;
-    char *p;
+    char san_uri[256];
+    const char *san_uri_ptr = san_uri;
+    size_t index;
+    BSC_CERT_IDENTITY_ENTRY *match;
 
     if (!c->ctx->identity_policy_num) {
         return NULL;
     }
-    if (bws_srv_get_peer_cert_identities(
-            c->ctx->sh, c->wh, san_uris, sizeof(san_uris), &identity_count) !=
-        BSC_WEBSOCKET_SUCCESS) {
-        return NULL;
+    /* fetch one SAN URI at a time - no cap on how many the cert may have */
+    for (index = 0; bws_srv_get_peer_cert_identity_at(
+                        c->ctx->sh, c->wh, index, san_uri, sizeof(san_uri)) ==
+         BSC_WEBSOCKET_SUCCESS;
+         index++) {
+        match = bsc_find_cert_identity_entry_in_sans(
+            &san_uri_ptr, 1, uuid, vmac, c->ctx->identity_policy,
+            c->ctx->identity_policy_num);
+        if (match) {
+            return match;
+        }
     }
-    if (!identity_count) {
-        return NULL;
-    }
-    for (p = san_uris;
-         uri_count < identity_count && *p != '\0' && uri_count < 32;
-         p += strlen(p) + 1) {
-        uris[uri_count++] = p;
-    }
-    return bsc_find_cert_identity_entry_in_sans(
-        uris, uri_count, uuid, vmac, c->ctx->identity_policy,
-        c->ctx->identity_policy_num);
+    return NULL;
 }
 
 /**

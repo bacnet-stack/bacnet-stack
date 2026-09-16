@@ -191,6 +191,14 @@ BSC_CERT_IDENTITY_ENTRY *bsc_find_cert_identity_entry_in_sans(
     BSC_CERT_IDENTITY_ENTRY *entries,
     size_t entries_num);
 
+/* shared by both initial Connect-Request authorization and live
+ * identity-policy revalidation of an already-connected socket */
+BACNET_STACK_EXPORT
+BSC_CERT_IDENTITY_ENTRY *bsc_find_cert_identity_entry(
+    BSC_SOCKET *c,
+    const BACNET_SC_UUID *uuid,
+    const BACNET_SC_VMAC_ADDRESS *vmac);
+
 struct BSC_SocketContext {
     BSC_CTX_STATE state;
     BSC_WEBSOCKET_SRV_HANDLE sh;

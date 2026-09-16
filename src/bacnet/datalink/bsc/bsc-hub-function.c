@@ -83,57 +83,6 @@ static BSC_SOCKET_CTX_FUNCS bsc_hub_function_ctx_funcs = {
     hub_function_context_event, hub_function_failed_request
 };
 
-static bool
-hub_function_cert_identity_matches(const char *san_uri, const char *identity)
-{
-    const char *instance;
-    size_t instance_len;
-
-    if (!san_uri || !identity || strncmp(san_uri, "bacnet://", 9) != 0) {
-        return false;
-    }
-    instance = san_uri + 9;
-    instance_len = strcspn(instance, "/?");
-    return (strlen(identity) == instance_len) &&
-        (strncmp(instance, identity, instance_len) == 0);
-}
-
-static bool hub_function_socket_matches_policy(
-    BSC_SOCKET *c, BSC_CERT_IDENTITY_ENTRY *entries, size_t entries_num)
-{
-    char san_uris[256];
-    size_t identity_count = 0;
-    char *p;
-    size_t i;
-    size_t j;
-
-    if (!entries_num) {
-        return true;
-    }
-    if (!c || !c->ctx || !entries) {
-        return false;
-    }
-    if (bws_srv_get_peer_cert_identities(
-            c->ctx->sh, c->wh, san_uris, sizeof(san_uris), &identity_count) !=
-        BSC_WEBSOCKET_SUCCESS) {
-        return false;
-    }
-    for (p = san_uris, i = 0; i < identity_count && *p != '\0';
-         p += strlen(p) + 1, i++) {
-        for (j = 0; j < entries_num; j++) {
-            if (hub_function_cert_identity_matches(p, entries[j].identity) &&
-                memcmp(&entries[j].uuid, &c->uuid, sizeof(entries[j].uuid)) ==
-                    0 &&
-                (!entries[j].vmac_required ||
-                 memcmp(&entries[j].vmac, &c->vmac, sizeof(entries[j].vmac)) ==
-                     0)) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
 static void hub_function_revalidate_connected_sockets(BSC_HUB_FUNCTION *f)
 {
     size_t i;
@@ -144,8 +93,7 @@ static void hub_function_revalidate_connected_sockets(BSC_HUB_FUNCTION *f)
     for (i = 0; i < sizeof(f->sock) / sizeof(BSC_SOCKET); i++) {
         BSC_SOCKET *c = &f->sock[i];
         if (c->state == BSC_SOCK_STATE_CONNECTED &&
-            !hub_function_socket_matches_policy(
-                c, f->ctx.identity_policy, f->ctx.identity_policy_num)) {
+            !bsc_find_cert_identity_entry(c, &c->uuid, &c->vmac)) {
             DEBUG_PRINTF(
                 "BSC-HUB: disconnecting connected peer %s because it is no "
                 "longer authorized by the identity policy\n",
