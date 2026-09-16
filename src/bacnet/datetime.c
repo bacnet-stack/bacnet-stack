@@ -946,9 +946,8 @@ bool datetime_year_match(const BACNET_DATE *date, uint16_t year)
 }
 
 /**
- * @brief Compare a specific date's month against a BACnetDate or
- *  BACnetWeekNDay month octet value, which may be odd (13), even (14),
- *  or 'any' (X'FF')
+ * @brief Compare a specific date's month against a BACnetDate month octet
+ *  value, which may be odd (13), even (14), or 'any' (X'FF')
  * @param date - specific date to compare
  * @param month - month octet value to compare: 1-12, 13=odd, 14=even,
  *  or X'FF'=any
@@ -1047,6 +1046,8 @@ bool datetime_week_of_month_match(const BACNET_DATE *date, uint8_t weekofmonth)
  * @brief Determine if a specific date matches a BACnetDate used as a date
  *  pattern, where each octet (year, month, day, day-of-week) is evaluated
  *  independently and an 'any' (wildcard) octet always matches
+ * @note day-of-week octet is ignored as it may be valid or invalid
+ *  for the specific date
  * @param date - specific date to compare
  * @param pattern - BACnetDate value used as a date pattern
  * @return true if the date matches all specified octets of the pattern
@@ -1060,8 +1061,7 @@ bool datetime_date_pattern_match(
 
     return datetime_year_match(date, pattern->year) &&
         datetime_month_match(date, pattern->month) &&
-        datetime_day_match(date, pattern->day) &&
-        datetime_day_of_week_match(date, pattern->wday);
+        datetime_day_match(date, pattern->day);
 }
 
 /* Returns true if hour is a wildcard */
