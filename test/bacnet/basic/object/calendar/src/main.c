@@ -279,10 +279,11 @@ static void testPresentValue(void)
 
     value->type.WeekNDay.weekofmonth = (date.day - 1) / 7 + 1;
     zassert_true(Calendar_Present_Value(instance), NULL);
-    value->type.WeekNDay.weekofmonth++;
-    if (value->type.WeekNDay.weekofmonth > 5) {
-        value->type.WeekNDay.weekofmonth = 1;
-    }
+    /* week 6 means "last 7 days of month", which can overlap with week
+       5, so pick a week bucket unrelated to the current date instead
+       of incrementing (which could wrap into a matching week 6) */
+    value->type.WeekNDay.weekofmonth =
+        (value->type.WeekNDay.weekofmonth == 1) ? 2 : 1;
     zassert_false(Calendar_Present_Value(instance), NULL);
     value->type.WeekNDay.weekofmonth = 0xff;
 
