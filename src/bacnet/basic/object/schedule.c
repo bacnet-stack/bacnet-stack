@@ -246,7 +246,7 @@ static bool Schedule_Effective_Period_Date_Valid(const BACNET_DATE *bdate)
     }
     if (!year && !month && !day) {
         /* fully specified date (weekday may be wildcarded or computed) */
-        if (!datetime_is_valid(bdate->year, bdate->month, bdate->day)) {
+        if (!datetime_date_is_valid(bdate)) {
             return false;
         }
         return true;
