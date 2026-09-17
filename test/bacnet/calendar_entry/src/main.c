@@ -289,7 +289,8 @@ static void test_BACnetCalendarEntry_DateRange_Match(void)
 
 /**
  * @brief Test bacapp_date_in_calendar_entry() for the WeekNDay choice,
- *  including unspecified (wildcard) octets and each week-of-month value.
+ *  including unspecified (wildcard) octets, each supported week-of-month
+ *  value (1-6), and unsupported week-of-month values (7-9).
  */
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(BACnetCalendarEntry_tests, test_BACnetCalendarEntry_WeekNDay_Match)
@@ -328,6 +329,33 @@ static void test_BACnetCalendarEntry_WeekNDay_Match(void)
     datetime_set_date(&date, 2024, 2, 15);
     zassert_false(bacapp_date_in_calendar_entry(&date, &entry), NULL);
 
+    /* week-of-month 3: days numbered 15-21 */
+    entry.type.WeekNDay.weekofmonth = 3;
+    datetime_set_date(&date, 2024, 2, 15);
+    zassert_true(bacapp_date_in_calendar_entry(&date, &entry), NULL);
+    datetime_set_date(&date, 2024, 2, 21);
+    zassert_true(bacapp_date_in_calendar_entry(&date, &entry), NULL);
+    datetime_set_date(&date, 2024, 2, 22);
+    zassert_false(bacapp_date_in_calendar_entry(&date, &entry), NULL);
+
+    /* week-of-month 4: days numbered 22-28 */
+    entry.type.WeekNDay.weekofmonth = 4;
+    datetime_set_date(&date, 2024, 2, 22);
+    zassert_true(bacapp_date_in_calendar_entry(&date, &entry), NULL);
+    datetime_set_date(&date, 2024, 2, 28);
+    zassert_true(bacapp_date_in_calendar_entry(&date, &entry), NULL);
+    datetime_set_date(&date, 2024, 2, 29);
+    zassert_false(bacapp_date_in_calendar_entry(&date, &entry), NULL);
+
+    /* week-of-month 5: days numbered 29-31 (January 2024 has 31 days) */
+    entry.type.WeekNDay.weekofmonth = 5;
+    datetime_set_date(&date, 2024, 1, 29);
+    zassert_true(bacapp_date_in_calendar_entry(&date, &entry), NULL);
+    datetime_set_date(&date, 2024, 1, 31);
+    zassert_true(bacapp_date_in_calendar_entry(&date, &entry), NULL);
+    datetime_set_date(&date, 2024, 1, 28);
+    zassert_false(bacapp_date_in_calendar_entry(&date, &entry), NULL);
+
     /* week-of-month 6: last 7 days of the month (Feb 2024 has 29 days) */
     entry.type.WeekNDay.weekofmonth = 6;
     datetime_set_date(&date, 2024, 2, 23);
@@ -335,6 +363,16 @@ static void test_BACnetCalendarEntry_WeekNDay_Match(void)
     datetime_set_date(&date, 2024, 2, 29);
     zassert_true(bacapp_date_in_calendar_entry(&date, &entry), NULL);
     datetime_set_date(&date, 2024, 2, 22);
+    zassert_false(bacapp_date_in_calendar_entry(&date, &entry), NULL);
+
+    /* week-of-month 7-9: unsupported values never match, even a date
+       that would otherwise fall within days 1-7 */
+    datetime_set_date(&date, 2024, 2, 1);
+    entry.type.WeekNDay.weekofmonth = 7;
+    zassert_false(bacapp_date_in_calendar_entry(&date, &entry), NULL);
+    entry.type.WeekNDay.weekofmonth = 8;
+    zassert_false(bacapp_date_in_calendar_entry(&date, &entry), NULL);
+    entry.type.WeekNDay.weekofmonth = 9;
     zassert_false(bacapp_date_in_calendar_entry(&date, &entry), NULL);
 
     /* month match: specific month */
