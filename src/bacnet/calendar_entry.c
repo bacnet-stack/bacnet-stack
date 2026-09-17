@@ -12,7 +12,6 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/bactimevalue.h"
 #include "bacnet/datetime.h"
-#include "bacnet/basic/sys/days.h"
 
 /*
  * @brief Encode the BACnetCalendarEntry complex data
@@ -222,85 +221,6 @@ int bacnet_calendar_entry_context_decode(
 }
 
 /**
- * @brief Compare a month to a BACnetDate value month
- * @param date - BACnetDate with a month value to compare
- * @param month - month to compare
- * @return true if the same month including special values, else false
- */
-static bool month_match(const BACNET_DATE *date, uint8_t month)
-{
-    if (month == 0xff) {
-        return true;
-    }
-    if (!date) {
-        return false;
-    }
-
-    return (
-        (month == date->month) || ((month == 13) && (date->month % 2 == 1)) ||
-        ((month == 14) && (date->month % 2 == 0)));
-}
-
-/**
- * @brief Compare a week of the month to a BACnetDate value
- * @param date - BACnetDate value to compare
- * @param weekofmonth - week of the month to compare
- * @return true if the same week of the month including special values
- */
-static bool weekofmonth_match(const BACNET_DATE *date, uint8_t weekofmonth)
-{
-    bool st = false;
-    uint8_t day_to_end_month;
-
-    switch (weekofmonth) {
-        case 1:
-        case 2:
-        case 3:
-        case 4:
-        case 5:
-            if (date) {
-                st = (weekofmonth == (date->day - 1) % 7 + 1);
-            }
-            break;
-        case 6:
-        case 7:
-        case 8:
-        case 9:
-            if (date) {
-                day_to_end_month =
-                    days_per_month(date->year, date->month) - date->day;
-                st = ((weekofmonth - 6) == day_to_end_month % 7);
-            }
-            break;
-        case 0xff:
-            st = true;
-            break;
-        default:
-            break;
-    }
-
-    return st;
-}
-
-/**
- * @brief Compare a day of the week to a BACnetDate value
- * @param date - BACnetDate value to compare
- * @param dayofweek - day of the week to compare
- * @return true if the same day of the week including special values
- */
-static bool dayofweek_match(const BACNET_DATE *date, uint8_t dayofweek)
-{
-    if (dayofweek == 0xff) {
-        return true;
-    }
-    if (!date) {
-        return false;
-    }
-
-    return (dayofweek == date->wday);
-}
-
-/**
  * @brief Determine if a BACnetCalendarEntry includes a BACnetDate value
  * @param date - BACnetDate value to compare
  * @param entry - BACnetCalendarEntry value to compare
@@ -314,7 +234,10 @@ bool bacapp_date_in_calendar_entry(
     }
     switch (entry->tag) {
         case BACNET_CALENDAR_DATE:
-            if (datetime_compare_date(date, &entry->type.Date) == 0) {
+            /* Date used as a date pattern - each octet (year, month, day,
+               day-of-week) is evaluated independently, and unspecified
+               (wildcard) octets always match. */
+            if (datetime_date_pattern_match(date, &entry->type.Date)) {
                 return true;
             }
             break;
@@ -327,9 +250,12 @@ bool bacapp_date_in_calendar_entry(
             }
             break;
         case BACNET_CALENDAR_WEEK_N_DAY:
-            if (month_match(date, entry->type.WeekNDay.month) &&
-                weekofmonth_match(date, entry->type.WeekNDay.weekofmonth) &&
-                dayofweek_match(date, entry->type.WeekNDay.dayofweek)) {
+            if (datetime_weeknday_month_match(
+                    date, entry->type.WeekNDay.month) &&
+                datetime_week_of_month_match(
+                    date, entry->type.WeekNDay.weekofmonth) &&
+                datetime_day_of_week_match(
+                    date, entry->type.WeekNDay.dayofweek)) {
                 return true;
             }
             break;
@@ -365,7 +291,7 @@ bool bacnet_calendar_entry_same(
                         &value1->type.DateRange.startdate,
                         &value2->type.DateRange.startdate) == 0) &&
                 (datetime_compare_date(
-                     &value2->type.DateRange.enddate,
+                     &value1->type.DateRange.enddate,
                      &value2->type.DateRange.enddate) == 0);
         case BACNET_CALENDAR_WEEK_N_DAY:
             return (value1->type.WeekNDay.month ==
