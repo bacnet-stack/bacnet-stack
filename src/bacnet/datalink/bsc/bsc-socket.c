@@ -916,16 +916,24 @@ BSC_CERT_IDENTITY_ENTRY *bsc_find_cert_identity_entry(
     char san_uri[256];
     const char *san_uri_ptr = san_uri;
     size_t index;
+    BSC_WEBSOCKET_RET wret;
     BSC_CERT_IDENTITY_ENTRY *match;
 
     if (!c->ctx->identity_policy_num) {
         return NULL;
     }
     /* fetch one SAN URI at a time - no cap on how many the cert may have */
-    for (index = 0; bws_srv_get_peer_cert_identity_at(
-                        c->ctx->sh, c->wh, index, san_uri, sizeof(san_uri)) ==
-         BSC_WEBSOCKET_SUCCESS;
-         index++) {
+    for (index = 0;; index++) {
+        wret = bws_srv_get_peer_cert_identity_at(
+            c->ctx->sh, c->wh, index, san_uri, sizeof(san_uri));
+        if (wret == BSC_WEBSOCKET_BAD_PARAM) {
+            /* entry at this index is too long for san_uri, skip and keep
+               enumerating instead of treating it as end-of-list */
+            continue;
+        }
+        if (wret != BSC_WEBSOCKET_SUCCESS) {
+            break;
+        }
         match = bsc_find_cert_identity_entry_in_sans(
             &san_uri_ptr, 1, uuid, vmac, c->ctx->identity_policy,
             c->ctx->identity_policy_num);
