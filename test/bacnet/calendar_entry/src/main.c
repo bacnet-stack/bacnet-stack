@@ -242,21 +242,17 @@ static void test_BACnetCalendarEntry_Date_Match(void)
     datetime_set_date(&date, 2030, 1, 2);
     zassert_false(bacapp_date_in_calendar_entry(&date, &entry), NULL);
 
-    /* date pattern: odd months, any day, any year */
+    /* odd(13)/even(14) month values are only meaningful for WeekNDay;
+       for a Date choice, month is exact (1-12) or 'any' (0xff), so 13/14
+       never match a real date */
     entry.type.Date.year = 2155;
     entry.type.Date.month = 13;
     entry.type.Date.day = 0xff;
     entry.type.Date.wday = 0xff;
     datetime_set_date(&date, 2024, 3, 15);
-    zassert_true(bacapp_date_in_calendar_entry(&date, &entry), NULL);
-    datetime_set_date(&date, 2024, 4, 15);
     zassert_false(bacapp_date_in_calendar_entry(&date, &entry), NULL);
-
-    /* date pattern: even months, any day, any year */
     entry.type.Date.month = 14;
     datetime_set_date(&date, 2024, 4, 15);
-    zassert_true(bacapp_date_in_calendar_entry(&date, &entry), NULL);
-    datetime_set_date(&date, 2024, 3, 15);
     zassert_false(bacapp_date_in_calendar_entry(&date, &entry), NULL);
 
     /* NULL entry is rejected */
@@ -347,6 +343,20 @@ static void test_BACnetCalendarEntry_WeekNDay_Match(void)
     datetime_set_date(&date, 2024, 2, 1);
     zassert_true(bacapp_date_in_calendar_entry(&date, &entry), NULL);
     datetime_set_date(&date, 2024, 3, 1);
+    zassert_false(bacapp_date_in_calendar_entry(&date, &entry), NULL);
+
+    /* month match: odd(13) months */
+    entry.type.WeekNDay.month = 13;
+    datetime_set_date(&date, 2024, 3, 15);
+    zassert_true(bacapp_date_in_calendar_entry(&date, &entry), NULL);
+    datetime_set_date(&date, 2024, 4, 15);
+    zassert_false(bacapp_date_in_calendar_entry(&date, &entry), NULL);
+
+    /* month match: even(14) months */
+    entry.type.WeekNDay.month = 14;
+    datetime_set_date(&date, 2024, 4, 15);
+    zassert_true(bacapp_date_in_calendar_entry(&date, &entry), NULL);
+    datetime_set_date(&date, 2024, 3, 15);
     zassert_false(bacapp_date_in_calendar_entry(&date, &entry), NULL);
 }
 

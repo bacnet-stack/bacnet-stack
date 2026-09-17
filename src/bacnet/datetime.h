@@ -229,7 +229,9 @@ void datetime_wildcard_weekday_set(BACNET_DATE *bdate);
 BACNET_STACK_EXPORT
 bool datetime_year_match(const BACNET_DATE *date, uint16_t year);
 BACNET_STACK_EXPORT
-bool datetime_month_match(const BACNET_DATE *date, uint8_t month);
+bool datetime_weeknday_month_match(const BACNET_DATE *date, uint8_t month);
+BACNET_STACK_EXPORT
+bool datetime_date_month_match(const BACNET_DATE *date, uint8_t month);
 BACNET_STACK_EXPORT
 bool datetime_day_match(const BACNET_DATE *date, uint8_t day);
 BACNET_STACK_EXPORT

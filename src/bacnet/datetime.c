@@ -946,14 +946,14 @@ bool datetime_year_match(const BACNET_DATE *date, uint16_t year)
 }
 
 /**
- * @brief Compare a specific date's month against a BACnetDate month octet
- *  value, which may be odd (13), even (14), or 'any' (X'FF')
+ * @brief Compare a specific date's month against a BACnetWeekNDay month
+ *  octet value, which may be odd (13), even (14), or 'any' (X'FF')
  * @param date - specific date to compare
  * @param month - month octet value to compare: 1-12, 13=odd, 14=even,
  *  or X'FF'=any
  * @return true if the date's month matches, including special values
  */
-bool datetime_month_match(const BACNET_DATE *date, uint8_t month)
+bool datetime_weeknday_month_match(const BACNET_DATE *date, uint8_t month)
 {
     if (month == 0xff) {
         return true;
@@ -965,6 +965,25 @@ bool datetime_month_match(const BACNET_DATE *date, uint8_t month)
     return (
         (month == date->month) || ((month == 13) && (date->month % 2 == 1)) ||
         ((month == 14) && (date->month % 2 == 0)));
+}
+
+/**
+ * @brief Compare a specific date's month against a BACnetDate month octet
+ *  value, which is either an exact month (1-12) or 'any' (X'FF')
+ * @param date - specific date to compare
+ * @param month - month octet value to compare: 1-12, or X'FF'=any
+ * @return true if the date's month matches, including wildcards
+ */
+bool datetime_date_month_match(const BACNET_DATE *date, uint8_t month)
+{
+    if (month == 0xff) {
+        return true;
+    }
+    if (!date) {
+        return false;
+    }
+
+    return (month == date->month);
 }
 
 /**
@@ -1062,7 +1081,7 @@ bool datetime_date_pattern_match(
     }
 
     return datetime_year_match(date, pattern->year) &&
-        datetime_month_match(date, pattern->month) &&
+        datetime_date_month_match(date, pattern->month) &&
         datetime_day_match(date, pattern->day) &&
         datetime_day_of_week_match(date, pattern->wday);
 }

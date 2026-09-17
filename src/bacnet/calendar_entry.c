@@ -250,7 +250,8 @@ bool bacapp_date_in_calendar_entry(
             }
             break;
         case BACNET_CALENDAR_WEEK_N_DAY:
-            if (datetime_month_match(date, entry->type.WeekNDay.month) &&
+            if (datetime_weeknday_month_match(
+                    date, entry->type.WeekNDay.month) &&
                 datetime_week_of_month_match(
                     date, entry->type.WeekNDay.weekofmonth) &&
                 datetime_day_of_week_match(
