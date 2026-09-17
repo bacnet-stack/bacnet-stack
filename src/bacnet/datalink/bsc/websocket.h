@@ -441,25 +441,36 @@ extern void bws_dispatch_unlock_dbg(char *f, int line);
 #define bws_dispatch_unlock() bws_dispatch_unlock_dbg(__FILE__, __LINE__)
 #endif
 
-/**
- * @brief bws_srv_get_peer_ip_addr() gets ipv4 or ipv6 address as ANSI string
- *        and port of remote peer.
- *
- * @param sh - websocket server handle.
- * @param h - websocket handle.
- * @param ip_str - buffer to store null terminated string of ip address.
- * @param ip_str_len - size of ip_str buffer
- * @param  port- pointer to store port of a remote node.
- *
- * @return true if function succeeded otherwise returns false
- *         if peer's address information can't be retrieved from
- *         underlying websocket library.
- */
-
 bool bws_srv_get_peer_ip_addr(
     BSC_WEBSOCKET_SRV_HANDLE sh,
     BSC_WEBSOCKET_HANDLE h,
     uint8_t *ip_str,
     size_t ip_str_len,
     uint16_t *port);
+
+BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identities(
+    BSC_WEBSOCKET_SRV_HANDLE sh,
+    BSC_WEBSOCKET_HANDLE h,
+    char *buf,
+    size_t buf_size,
+    size_t *identity_count);
+
+BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identity(
+    BSC_WEBSOCKET_SRV_HANDLE sh,
+    BSC_WEBSOCKET_HANDLE h,
+    char *buf,
+    size_t buf_size);
+
+/* returns the 'index'-th "bacnet://" SAN URI entry (0-based, counting only
+ * such entries) with no cap on how many entries the peer cert may have in
+ * aggregate; BSC_WEBSOCKET_INVALID_OPERATION once index is past the last
+ * one, doubling as the caller's end-of-enumeration sentinel */
+BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identity_at(
+    BSC_WEBSOCKET_SRV_HANDLE sh,
+    BSC_WEBSOCKET_HANDLE h,
+    size_t index,
+    char *buf,
+    size_t buf_size);
+
+bool bws_srv_cert_identity_supported(void);
 #endif

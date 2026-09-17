@@ -2581,6 +2581,221 @@ static void test_sc_datalink_failed_requests(void)
     bacfile_cleanup();
 }
 
+/**
+ * @brief Verify the documented bsc_init() path can opt into the hub
+ *  function's cert identity policy via bsc_set_hub_function_identity_policy(),
+ *  that a live hub applies the policy immediately, and that disabling it
+ *  is honored too - closing the gap where only test code could reach
+ *  bsc_hub_function_set_identity_policy() directly.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(test_datalink_5, test_sc_datalink_hub_identity_policy)
+#else
+static void test_sc_datalink_hub_identity_policy(void)
+#endif
+{
+    BSC_NODE_CONF conf2;
+    BACNET_SC_UUID uuid1;
+    BACNET_SC_VMAC_ADDRESS vmac1;
+    BACNET_SC_UUID uuid2;
+    BACNET_SC_VMAC_ADDRESS vmac2;
+    BACNET_SC_UUID unrelated_uuid;
+    char primary_url2[128];
+    char secondary_url2[128];
+    BSC_SC_RET ret;
+    BSC_NODE *node2;
+    BSC_CERT_IDENTITY_ENTRY *policy = NULL;
+    BACNET_SC_HUB_CONNECTION_STATUS *st1;
+    BACNET_SC_HUB_CONNECTION_STATUS *st2;
+    bool connected;
+    uint32_t elapsed_ms;
+
+#ifdef ZEPHYR_PLATFORM
+    init_zephyr_env();
+#endif
+
+    memset(&uuid1, 0x61, sizeof(uuid1));
+    memset(&vmac1, 0x62, sizeof(vmac1));
+    memset(&uuid2, 0x63, sizeof(uuid2));
+    memset(&vmac2, 0x64, sizeof(vmac2));
+    memset(&unrelated_uuid, 0x99, sizeof(unrelated_uuid));
+
+    snprintf(
+        primary_url2, sizeof(primary_url2), "wss://%s:%d", BACNET_LOCALHOST,
+        BACNET_CLOSED_PORT);
+    snprintf(
+        secondary_url2, sizeof(secondary_url2), "wss://%s:%d", BACNET_LOCALHOST,
+        SC_NETPORT_HUB_SERVER_PORT);
+
+    bacfile_init();
+    /* node1 (the bsc_init() datalink under test) is the hub function
+       itself here - it does not connect out anywhere, so primary/failover
+       URLs are NULL, matching test_sc_datalink_failed_requests. */
+    netport_object_init(
+        SC_DATALINK_INSTANCE, ca_cert, sizeof(ca_cert), server_cert,
+        sizeof(server_cert), server_key, sizeof(server_key),
+        BSC_DATALINK_HUB_IFACE, BSC_DATALINK_DIRECT_IFACE, &uuid1, &vmac1, NULL,
+        NULL, true, true, true);
+
+    init_node_ev(&node_ev2);
+
+    /* reject invalid staged policy inputs before the first start, and
+       avoid exercising live policy enforcement when the backend cannot
+       extract peer certificate identities. */
+    ret = bsc_set_hub_function_identity_policy(NULL, 1);
+    zassert_equal(ret, BSC_SC_BAD_PARAM, NULL);
+
+    if (!bws_srv_cert_identity_supported()) {
+        policy = calloc(1, sizeof(*policy));
+        zassert_not_null(policy, NULL);
+        memset(policy, 0, sizeof(*policy));
+        policy[0].identity = "not-a-real-identity";
+        policy[0].uuid = unrelated_uuid;
+        policy[0].vmac_required = false;
+        ret = bsc_set_hub_function_identity_policy(policy, 1);
+        zassert_equal(ret, BSC_SC_INVALID_OPERATION, NULL);
+        ret = bsc_set_hub_function_identity_policy(NULL, 0);
+        zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+        free(policy);
+        policy = NULL;
+        deinit_node_ev(&node_ev2);
+        Network_Port_Cleanup();
+        bacfile_cleanup();
+        return;
+    }
+
+    /* stage a policy that maps an unrelated identity/uuid - no real peer
+       can satisfy it - before bsc_init() starts the hub function. */
+    policy = calloc(1, sizeof(*policy));
+    zassert_not_null(policy, NULL);
+    memset(policy, 0, sizeof(*policy));
+    policy[0].identity = "not-a-real-identity";
+    policy[0].uuid = unrelated_uuid;
+    policy[0].vmac_required = false;
+    ret = bsc_set_hub_function_identity_policy(policy, 1);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+
+    zassert_equal(bsc_init(NULL), true, NULL);
+
+    conf2.ca_cert_chain = ca_cert;
+    conf2.ca_cert_chain_size = sizeof(ca_cert);
+    conf2.cert_chain = client_cert;
+    conf2.cert_chain_size = sizeof(client_cert);
+    conf2.key = CLIENT_KEY;
+    conf2.key_size = sizeof(CLIENT_KEY);
+    conf2.local_uuid = &uuid2;
+    conf2.local_vmac = vmac2;
+    conf2.max_local_bvlc_len = MAX_BVLC_LEN;
+    conf2.max_local_npdu_len = MAX_NDPU_LEN;
+    conf2.connect_timeout_s = BACNET_TIMEOUT;
+    conf2.heartbeat_timeout_s = BACNET_TIMEOUT;
+    conf2.disconnect_timeout_s = BACNET_TIMEOUT;
+    conf2.reconnnect_timeout_s = BACNET_TIMEOUT;
+    conf2.address_resolution_timeout_s = BACNET_TIMEOUT;
+    conf2.address_resolution_freshness_timeout_s = BACNET_TIMEOUT;
+    conf2.primaryURL = primary_url2;
+    conf2.failoverURL = secondary_url2;
+    conf2.hub_server_port = 0;
+    conf2.direct_server_port = 0;
+    conf2.direct_iface = BSC_NETWORK_IFACE;
+    conf2.hub_iface = BSC_NETWORK_IFACE;
+    conf2.direct_connect_accept_enable = false;
+    conf2.direct_connect_initiate_enable = true;
+    conf2.hub_function_enabled = false;
+    conf2.direct_connection_accept_uris = NULL;
+    conf2.direct_connection_accept_uris_len = 0;
+    conf2.event_func = node_event2;
+
+    ret = bsc_node_init(&conf2, &node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    ret = bsc_node_start(node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2), true, 0);
+
+    /* the live hub must reject node2 - the policy matches no real peer */
+    connected = false;
+    elapsed_ms = 0;
+    call_maintenance_timer(1, 0);
+    while (elapsed_ms < (uint32_t)(BACNET_TIMEOUT + 2) * 1000) {
+        bsc_event_timedwait(node_ev2.e, WAIT_EVENT_MS);
+        call_maintenance_timer(0, WAIT_EVENT_MS);
+        elapsed_ms += WAIT_EVENT_MS;
+        st1 = bsc_node_hub_connector_status(node2, true);
+        st2 = bsc_node_hub_connector_status(node2, false);
+        if ((st1 && st1->State == BACNET_SC_CONNECTION_STATE_CONNECTED) ||
+            (st2 && st2->State == BACNET_SC_CONNECTION_STATE_CONNECTED)) {
+            connected = true;
+            break;
+        }
+    }
+    zassert_equal(connected, false, NULL);
+
+    /* allow the peer in first, then apply a restrictive policy live and
+       verify the active connection is torn down without restarting the
+       hub. */
+    ret = bsc_set_hub_function_identity_policy(NULL, 0);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+    wait_for_connection_to_hub(&node_ev2, node2);
+
+    ret = bsc_set_hub_function_identity_policy(policy, 1);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+    connected = true;
+    elapsed_ms = 0;
+    call_maintenance_timer(1, 0);
+    while (elapsed_ms < (uint32_t)(BACNET_TIMEOUT + 2) * 1000) {
+        bsc_event_timedwait(node_ev2.e, WAIT_EVENT_MS);
+        call_maintenance_timer(0, WAIT_EVENT_MS);
+        elapsed_ms += WAIT_EVENT_MS;
+        st1 = bsc_node_hub_connector_status(node2, true);
+        st2 = bsc_node_hub_connector_status(node2, false);
+        if ((!st1 || st1->State != BACNET_SC_CONNECTION_STATE_CONNECTED) &&
+            (!st2 || st2->State != BACNET_SC_CONNECTION_STATE_CONNECTED)) {
+            connected = false;
+            break;
+        }
+    }
+    zassert_equal(connected, false, NULL);
+
+    /* disabling the policy on the already-running hub must let the same
+       peer back in, without needing a restart */
+    ret = bsc_set_hub_function_identity_policy(NULL, 0);
+    zassert_equal(ret, BSC_SC_SUCCESS, NULL);
+    wait_for_connection_to_hub(&node_ev2, node2);
+
+    /* a caller may release the staged policy after a full datalink cleanup;
+       the next hub start must default to disabled, not reuse the stale
+       pointer from the previous run. */
+    bsc_node_stop(node2);
+    wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2);
+    bsc_node_deinit(node2);
+    node2 = NULL;
+    bsc_cleanup();
+    free(policy);
+    policy = NULL;
+
+    zassert_equal(bsc_init(NULL), true, NULL);
+
+    ret = bsc_node_init(&conf2, &node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    ret = bsc_node_start(node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    zassert_equal(
+        wait_node_ev(&node_ev2, BSC_NODE_EVENT_STARTED, node2), true, 0);
+    wait_for_connection_to_hub(&node_ev2, node2);
+
+    bsc_node_stop(node2);
+    wait_specific_node_ev(&node_ev2, BSC_NODE_EVENT_STOPPED, node2);
+    bsc_cleanup();
+    ret = bsc_node_deinit(node2);
+    zassert_equal(ret == BSC_SC_SUCCESS, true, 0);
+    node2 = NULL;
+    deinit_node_ev(&node_ev2);
+
+    Network_Port_Cleanup();
+    bacfile_cleanup();
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 static void *suite_setup(void)
 {
@@ -2592,6 +2807,7 @@ ZTEST_SUITE(test_datalink_1, NULL, suite_setup, NULL, NULL, NULL);
 ZTEST_SUITE(test_datalink_2, NULL, suite_setup, NULL, NULL, NULL);
 ZTEST_SUITE(test_datalink_3, NULL, suite_setup, NULL, NULL, NULL);
 ZTEST_SUITE(test_datalink_4, NULL, suite_setup, NULL, NULL, NULL);
+ZTEST_SUITE(test_datalink_5, NULL, suite_setup, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
@@ -2605,10 +2821,13 @@ void test_main(void)
         test_datalink_3, ztest_unit_test(test_sc_datalink_properties));
     ztest_test_suite(
         test_datalink_4, ztest_unit_test(test_sc_datalink_failed_requests));
+    ztest_test_suite(
+        test_datalink_5, ztest_unit_test(test_sc_datalink_hub_identity_policy));
 
     ztest_run_test_suite(test_datalink_1);
     ztest_run_test_suite(test_datalink_2);
     ztest_run_test_suite(test_datalink_3);
     ztest_run_test_suite(test_datalink_4);
+    ztest_run_test_suite(test_datalink_5);
 }
 #endif
