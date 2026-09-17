@@ -222,6 +222,14 @@ static void test_BACnetCalendarEntry_Date_Match(void)
     date.wday = 2;
     zassert_false(bacapp_date_in_calendar_entry(&date, &entry), NULL);
 
+    /* day-of-week contradicting an otherwise fully specified date
+       is a non-match per IC135-2012-6 */
+    datetime_set_date(&date, 2024, 1, 31);
+    date.wday = 3;
+    zassert_true(bacapp_date_in_calendar_entry(&date, &entry), NULL);
+    date.wday = 4;
+    zassert_false(bacapp_date_in_calendar_entry(&date, &entry), NULL);
+
     /* date pattern: any year, specific month/day, e.g. 1-Jan every year */
     entry.type.Date.year = 2155;
     entry.type.Date.month = 1;

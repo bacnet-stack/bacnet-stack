@@ -1044,10 +1044,12 @@ bool datetime_week_of_month_match(const BACNET_DATE *date, uint8_t weekofmonth)
 
 /**
  * @brief Determine if a specific date matches a BACnetDate used as a date
- *  pattern, where each octet (year, month, day, day-of-week) is evaluated
+ *  pattern, where year, month, day, and day-of-week octets are evaluated
  *  independently and an 'any' (wildcard) octet always matches
- * @note day-of-week octet is ignored as it may be valid or invalid
- *  for the specific date
+ * @note if day-of-week is specified (1-7) it is required to match; per
+ *  IC135-2012-6 the day-of-week octet participates in the pattern match
+ *  and is not ignored, so a day-of-week that contradicts an otherwise
+ *  fully specified date results in a non-match
  * @param date - specific date to compare
  * @param pattern - BACnetDate value used as a date pattern
  * @return true if the date matches all specified octets of the pattern
@@ -1061,7 +1063,8 @@ bool datetime_date_pattern_match(
 
     return datetime_year_match(date, pattern->year) &&
         datetime_month_match(date, pattern->month) &&
-        datetime_day_match(date, pattern->day);
+        datetime_day_match(date, pattern->day) &&
+        datetime_day_of_week_match(date, pattern->wday);
 }
 
 /* Returns true if hour is a wildcard */
