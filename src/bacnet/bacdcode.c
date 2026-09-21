@@ -5927,13 +5927,15 @@ int bacnet_constructed_value_decode(
     uint32_t len_value,
     BACNET_CONSTRUCTED_VALUE_TYPE *value)
 {
-    if (len_value <= apdu_size) {
-        if (value) {
-            value->data_len = len_value;
-            memcpy(value->data, apdu, len_value);
-        }
-    } else {
+    if (len_value > apdu_size) {
         return BACNET_STATUS_ERROR;
+    }
+    if (value) {
+        if (len_value > sizeof(value->data)) {
+            return BACNET_STATUS_ERROR;
+        }
+        value->data_len = (uint16_t)len_value;
+        memcpy(value->data, apdu, len_value);
     }
 
     return (int)len_value;

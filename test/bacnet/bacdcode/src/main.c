@@ -2681,8 +2681,10 @@ static void test_bacnet_constructed_value(void)
 #endif
 {
     uint8_t apdu[50] = { 0 };
+    uint8_t oversized_apdu[BACNET_CONSTRUCTED_VALUE_SIZE + 1] = { 0 };
     BACNET_CONSTRUCTED_VALUE_TYPE value = { 0 }, test_value = { 0 };
-    int apdu_len = 0, null_len = 0, test_len = 0;
+    BACNET_CONSTRUCTED_VALUE_TYPE oversized_value = { 0 };
+    int apdu_len = 0, null_len = 0, test_len = 0, oversized_len = 0;
     uint8_t tag_number = 0;
     bool status = false;
 
@@ -2700,6 +2702,12 @@ static void test_bacnet_constructed_value(void)
     zassert_true(status, NULL);
     status = bacnet_constructed_value_copy(&value, &test_value);
     zassert_true(status, NULL);
+
+    oversized_len = bacnet_constructed_value_decode(
+        oversized_apdu, sizeof(oversized_apdu), sizeof(oversized_apdu),
+        &oversized_value);
+    zassert_equal(oversized_len, BACNET_STATUS_ERROR, NULL);
+    zassert_equal(oversized_value.data_len, 0, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
