@@ -424,7 +424,10 @@ int bacnet_timer_value_decode(
                     /* constructed-value[1] ABSTRACT-SYNTAX.&Type */
                     value->tag = BACNET_APPLICATION_TAG_ABSTRACT_SYNTAX;
 #if defined(BACNET_TIMER_VALUE_CONSTRUCTED_VALUE)
+                    /* find the matching closing tag to learn the length
+                       Must start with the opening tag */
                     len = bacnet_enclosed_data_length(apdu, apdu_size);
+                    /* constructed value */
                     len = bacnet_constructed_value_decode(
                         &apdu[apdu_len], apdu_size - apdu_len, len,
                         &value->type.Constructed_Value);

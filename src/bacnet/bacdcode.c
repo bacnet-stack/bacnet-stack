@@ -5969,17 +5969,9 @@ int bacnet_constructed_value_context_decode(
     apdu_len += len;
     /* constructed value */
     len = bacnet_constructed_value_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, len_value, NULL);
+        &apdu[apdu_len], apdu_size - apdu_len, len_value, value);
     if (len < 0) {
         return BACNET_STATUS_ERROR;
-    }
-    if (value) {
-        if (len <= sizeof(value->data)) {
-            len = bacnet_constructed_value_decode(
-                &apdu[apdu_len], apdu_size - apdu_len, len_value, value);
-        } else {
-            return BACNET_STATUS_ERROR;
-        }
     }
     apdu_len += len;
     if (!bacnet_is_closing_tag_number(
