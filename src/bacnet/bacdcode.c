@@ -5898,6 +5898,9 @@ int bacnet_constructed_value_context_encode(
             apdu += len;
         }
         len = value->data_len;
+        if (len > sizeof(value->data)) {
+            len = sizeof(value->data);
+        }
         if (apdu) {
             memcpy(apdu, value->data, len);
         }
