@@ -5881,7 +5881,8 @@ int decode_context_date(
  * @param apdu  buffer to be encoded, or NULL for length
  * @param tag_value - context tag number to encapsulate the value
  * @param value The value to be encoded.
- * @return the number of apdu bytes encoded
+ * @return returns the number of apdu bytes consumed,
+ *  or 0 if apdu_size is too small to fit the data
  */
 int bacnet_constructed_value_context_encode(
     uint8_t *apdu,
@@ -5892,6 +5893,9 @@ int bacnet_constructed_value_context_encode(
     int apdu_len = 0;
 
     if (value) {
+        if (value->data_len > sizeof(value->data)) {
+            return 0;
+        }
         len = encode_opening_tag(apdu, tag_value);
         apdu_len += len;
         if (apdu) {
@@ -5927,13 +5931,15 @@ int bacnet_constructed_value_decode(
     uint32_t len_value,
     BACNET_CONSTRUCTED_VALUE_TYPE *value)
 {
-    if (len_value <= apdu_size) {
-        if (value) {
-            value->data_len = len_value;
-            memcpy(value->data, apdu, len_value);
-        }
-    } else {
+    if (len_value > apdu_size) {
         return BACNET_STATUS_ERROR;
+    }
+    if (value) {
+        if (len_value > sizeof(value->data)) {
+            return BACNET_STATUS_ERROR;
+        }
+        value->data_len = (uint16_t)len_value;
+        memcpy(value->data, apdu, len_value);
     }
 
     return (int)len_value;
@@ -5967,17 +5973,9 @@ int bacnet_constructed_value_context_decode(
     apdu_len += len;
     /* constructed value */
     len = bacnet_constructed_value_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, len_value, NULL);
+        &apdu[apdu_len], apdu_size - apdu_len, len_value, value);
     if (len < 0) {
         return BACNET_STATUS_ERROR;
-    }
-    if (value) {
-        if (len <= sizeof(value->data)) {
-            len = bacnet_constructed_value_decode(
-                &apdu[apdu_len], apdu_size - apdu_len, len_value, value);
-        } else {
-            return BACNET_STATUS_ERROR;
-        }
     }
     apdu_len += len;
     if (!bacnet_is_closing_tag_number(
