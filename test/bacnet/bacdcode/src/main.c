@@ -2700,6 +2700,10 @@ static void test_bacnet_constructed_value(void)
     zassert_true(status, NULL);
     status = bacnet_constructed_value_copy(&value, &test_value);
     zassert_true(status, NULL);
+    /* negative test for decoding an oversized constructed value */
+    test_len = bacnet_constructed_value_decode(
+        apdu, sizeof(apdu), sizeof(apdu), &test_value);
+    zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
     /* negative testing for decoding an oversized constructed value */
     while (--apdu_len) {
         test_len = bacnet_constructed_value_context_decode(
