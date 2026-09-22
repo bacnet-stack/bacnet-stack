@@ -1160,7 +1160,18 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_SIGNED_INT);
             if (status) {
-                datetime_utc_offset_minutes_set(value.type.Signed_Int);
+                if ((value.type.Signed_Int < (12 * 60)) &&
+                    (value.type.Signed_Int > (-12 * 60))) {
+                    status =
+                        datetime_utc_offset_minutes_set(value.type.Signed_Int);
+                    if (!status) {
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                    }
+                } else {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_OBJECT_TYPE:

@@ -113,6 +113,10 @@ int16_t datetime_utc_offset_minutes(void)
  * @brief Set the UTC offset in minutes
  * @param minutes [in] The UTC offset in minutes
  * @return true if successful, false on error
+ * @note BACnet UTC Offset is inverse of common practice.
+ * If your UTC offset is -5hours of GMT,
+ * then BACnet UTC offset is +5hours.
+ * BACnet UTC offset is expressed in minutes.
  */
 bool datetime_utc_offset_minutes_set(int16_t minutes)
 {
