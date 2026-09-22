@@ -5881,7 +5881,8 @@ int decode_context_date(
  * @param apdu  buffer to be encoded, or NULL for length
  * @param tag_value - context tag number to encapsulate the value
  * @param value The value to be encoded.
- * @return the number of apdu bytes encoded
+ * @return returns the number of apdu bytes consumed,
+ *  or 0 if apdu_size is too small to fit the data
  */
 int bacnet_constructed_value_context_encode(
     uint8_t *apdu,
@@ -5892,15 +5893,15 @@ int bacnet_constructed_value_context_encode(
     int apdu_len = 0;
 
     if (value) {
+        if (value->data_len > sizeof(value->data)) {
+            return 0;
+        }
         len = encode_opening_tag(apdu, tag_value);
         apdu_len += len;
         if (apdu) {
             apdu += len;
         }
         len = value->data_len;
-        if (len > sizeof(value->data)) {
-            len = sizeof(value->data);
-        }
         if (apdu) {
             memcpy(apdu, value->data, len);
         }

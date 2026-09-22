@@ -2708,11 +2708,11 @@ static void test_bacnet_constructed_value(void)
             test_len, BACNET_STATUS_ERROR, "apdu_len=%d test_len=%d", apdu_len,
             test_len);
     }
-    /* negative test for encoding */
+    /* negative test for encoding a chunk too big */
     value.data_len = MAX_APDU + 1;
     apdu_len =
         bacnet_constructed_value_context_encode(apdu, tag_number, &value);
-    zassert_equal(apdu_len, sizeof(apdu), NULL);
+    zassert_equal(apdu_len, 0, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
