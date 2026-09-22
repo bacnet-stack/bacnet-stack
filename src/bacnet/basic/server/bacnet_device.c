@@ -2399,7 +2399,11 @@ void Device_UTC_Offset_Set(int16_t offset)
 
 bool Device_Daylight_Savings_Status(void)
 {
-    return datetime_dst_enabled();
+    bool dst_active = false;
+
+    datetime_local(NULL, NULL, NULL, &dst_active);
+
+    return dst_active;
 }
 
 #if defined(BACNET_TIME_MASTER)
