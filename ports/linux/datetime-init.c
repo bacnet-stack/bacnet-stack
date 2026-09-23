@@ -45,14 +45,22 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
     time(&rawtime);
     timeinfo = localtime(&rawtime);
     /* fixme: only set the time if off by some amount */
-    timeinfo->tm_year = bdate->year - 1900;
-    timeinfo->tm_mon = bdate->month - 1;
-    timeinfo->tm_mday = bdate->day;
-    timeinfo->tm_hour = btime->hour;
-    timeinfo->tm_min = btime->min;
-    timeinfo->tm_sec = btime->sec;
+    if (bdate) {
+        timeinfo->tm_year = bdate->year - 1900;
+        timeinfo->tm_mon = bdate->month - 1;
+        timeinfo->tm_mday = bdate->day;
+    }
+    if (btime) {
+        timeinfo->tm_hour = btime->hour;
+        timeinfo->tm_min = btime->min;
+        timeinfo->tm_sec = btime->sec;
+    }
     tv_inp.tv_sec = mktime(timeinfo);
-    tv_inp.tv_usec = btime->hundredths * 10000;
+    if (btime) {
+        tv_inp.tv_usec = btime->hundredths * 10000;
+    } else {
+        tv_inp.tv_usec = 0;
+    }
     if (gettimeofday(&tv_sys, NULL) == 0) {
         if (utc) {
             Time_Offset = time_difference(tv_inp, tv_sys) -
@@ -73,7 +81,8 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
  * @param utc_time - the BACnet Date and Time structure to hold UTC time
  * @param local_time - the BACnet Date and Time structure to hold local time
  * @param utc_offset_minutes - number of minutes offset from UTC
- * For example, -6*60 represents 6.00 hours behind UTC/GMT
+ * For example, -6*60 represents 6.00 hours behind UTC/GMT.
+ * Positive = EAST of UTC
  * @param true if DST is enabled and active
  * @return true if local time was retrieved
  */
@@ -106,6 +115,7 @@ bool datetime_local(
          *   int    tm_wday  Day of week [0,6] (Sunday =0).
          *   int    tm_yday  Day of year [0,365].
          *   int    tm_isdst Daylight Savings flag.
+         *   long   tm_gmtoff offset from UTC in seconds
          */
         datetime_set_date(
             bdate, (uint16_t)tblock->tm_year + 1900,
@@ -126,10 +136,20 @@ bool datetime_local(
         }
         /* note: timezone is declared in <time.h> stdlib. */
         if (utc_offset_minutes) {
-            /* timezone is set to the difference, in seconds,
+#if defined(__time_gmtoff) || defined(_DEFAULT_SOURCE) || defined(__linux__)
+            /* tm_gmtoff is set to the difference, in seconds,
                 between Coordinated Universal Time (UTC) and
-                local standard time */
+                local standard time. Positive = EAST of UTC */
+            *utc_offset_minutes = -tblock->tm_gmtoff / 60;
+#else
+            /* Fallback: Must call tzset() first to populate
+               external 'timezone' variable */
+            tzset();
+            /* timezone is set to the difference, in seconds,
+               between Coordinated Universal Time (UTC) and
+               local standard time. Positive = WEST of UTC. */
             *utc_offset_minutes = timezone / 60;
+#endif
         }
     }
 

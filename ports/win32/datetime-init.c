@@ -126,18 +126,26 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
     struct timeval tv_inp, tv_sys;
     struct tm *timeinfo = NULL;
     struct tm newtime = { 0 };
+
     if (!datetime_time(&newtime, &timeinfo)) {
         return;
     }
-    /* fixme: only set the time if off by some amount */
-    timeinfo->tm_year = bdate->year - 1900;
-    timeinfo->tm_mon = bdate->month - 1;
-    timeinfo->tm_mday = bdate->day;
-    timeinfo->tm_hour = btime->hour;
-    timeinfo->tm_min = btime->min;
-    timeinfo->tm_sec = btime->sec;
+    if (bdate) {
+        timeinfo->tm_year = bdate->year - 1900;
+        timeinfo->tm_mon = bdate->month - 1;
+        timeinfo->tm_mday = bdate->day;
+    }
+    if (btime) {
+        timeinfo->tm_hour = btime->hour;
+        timeinfo->tm_min = btime->min;
+        timeinfo->tm_sec = btime->sec;
+    }
     tv_inp.tv_sec = mktime(timeinfo);
-    tv_inp.tv_usec = btime->hundredths * 10000;
+    if (btime) {
+        tv_inp.tv_usec = btime->hundredths * 10000;
+    } else {
+        tv_inp.tv_usec = 0;
+    }
     if (gettimeofday(&tv_sys, NULL) == 0) {
         if (utc) {
             Time_Offset = time_difference(tv_inp, tv_sys) -

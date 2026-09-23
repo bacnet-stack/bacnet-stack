@@ -770,10 +770,10 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_BIT_STRING bit_string = { 0 };
     BACNET_CHARACTER_STRING char_string = { 0 };
     BACNET_OCTET_STRING octet_string = { 0 };
-    BACNET_DATE bdate;
-    BACNET_TIME btime;
-    int16_t utc_offset_minutes;
-    bool dst_active;
+    BACNET_DATE bdate = { 0 };
+    BACNET_TIME btime = { 0 };
+    int16_t utc_offset_minutes = 0;
+    bool dst_active = false;
     uint32_t i = 0;
     uint32_t count = 0;
     uint8_t *apdu = NULL;
@@ -1171,6 +1171,7 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    status = false;
                 }
             }
             break;

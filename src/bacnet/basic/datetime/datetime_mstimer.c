@@ -238,22 +238,20 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
     BACNET_DATE_TIME local_time = { 0 };
     const int32_t dst_adjust_minutes = 60L;
 
+    datetime_copy(&local_time, &BACnet_Date_Time);
     if (utc) {
-        if (bdate && btime) {
-            datetime_copy_date(&local_time.date, bdate);
-            datetime_copy_time(&local_time.time, btime);
-            datetime_add_minutes(&local_time, UTC_Offset_Minutes);
-            if (datetime_dst_active(&DST_Range, &local_time, DST_Enabled)) {
-                datetime_add_minutes(&local_time, dst_adjust_minutes);
-            }
-            datetime_copy(&BACnet_Date_Time, &local_time);
-            mstimer_restart(&Date_Timer);
+        datetime_copy_date(&local_time.date, bdate);
+        datetime_copy_time(&local_time.time, btime);
+        datetime_add_minutes(&local_time, UTC_Offset_Minutes);
+        if (datetime_dst_active(&DST_Range, &local_time, DST_Enabled)) {
+            datetime_add_minutes(&local_time, dst_adjust_minutes);
         }
     } else {
-        datetime_copy_date(&BACnet_Date_Time.date, bdate);
-        datetime_copy_time(&BACnet_Date_Time.time, btime);
-        mstimer_restart(&Date_Timer);
+        datetime_copy_date(&local_time.date, bdate);
+        datetime_copy_time(&local_time.time, btime);
     }
+    datetime_copy(&BACnet_Date_Time, &local_time);
+    mstimer_restart(&Date_Timer);
 }
 
 /**

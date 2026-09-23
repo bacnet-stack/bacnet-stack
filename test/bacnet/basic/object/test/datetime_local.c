@@ -46,14 +46,10 @@ bool datetime_local(
 
 void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
 {
-    if (bdate) {
-        datetime_copy_date(&BACnet_Date, bdate);
-    } else {
+    datetime_copy_date(&BACnet_Date, bdate);
+    datetime_copy_time(&BACnet_Time, btime);
+    if (!bdate && !btime) {
         datetime_date_wildcard_set(&BACnet_Date);
-    }
-    if (btime) {
-        datetime_copy_time(&BACnet_Time, btime);
-    } else {
         datetime_time_wildcard_set(&BACnet_Time);
     }
     (void)utc;
