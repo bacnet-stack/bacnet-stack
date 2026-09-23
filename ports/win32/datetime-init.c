@@ -38,7 +38,7 @@ long int timezone;
 int gettimeofday(struct timeval *tp, void *tzp);
 #endif
 
-static int32_t Time_Offset; /* Time offset in ms */
+static time_t Time_Offset; /* Time offset in seconds */
 
 /**
  * @brief Wrapper for localtime that works across different compilers.
@@ -107,11 +107,11 @@ static bool datetime_time(struct tm *newtime, struct tm **tblock)
 
 /**
  * @brief Calculate the time offset from the system clock.
- * @return Time offset in ms
+ * @return Time offset in seconds
  */
-static int32_t time_difference(struct timeval t0, struct timeval t1)
+static time_t time_difference(struct timeval t0, struct timeval t1)
 {
-    return (t0.tv_sec - t1.tv_sec) * 1000 + (t0.tv_usec - t1.tv_usec) / 1000;
+    return (t0.tv_sec - t1.tv_sec) + (t0.tv_usec - t1.tv_usec) / 1000000;
 }
 
 /**
@@ -149,16 +149,16 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
     if (gettimeofday(&tv_sys, NULL) == 0) {
         if (utc) {
             Time_Offset = time_difference(tv_inp, tv_sys) -
-                (timezone - timeinfo->tm_isdst * 3600) * 1000;
+                (timezone - timeinfo->tm_isdst * 3600);
 
         } else {
             Time_Offset = time_difference(tv_inp, tv_sys);
         }
         debug_log_fprintf(
             DEBUG_LOG_INFO, stderr,
-            "TimeSync offset = %d at %02d:%02d:%02d.%03d\n", Time_Offset,
-            tv_sys.tv_sec / 3600, (tv_sys.tv_sec / 60) % 60, tv_sys.tv_sec % 60,
-            tv_inp.tv_usec / 1000);
+            "TimeSync offset = %ld seconds at %02d:%02d:%02d.%03d\n",
+            (long)Time_Offset, tv_sys.tv_sec / 3600, (tv_sys.tv_sec / 60) % 60,
+            tv_sys.tv_sec % 60, tv_inp.tv_usec / 1000);
     }
     return;
 }
@@ -303,21 +303,12 @@ bool datetime_local(
     struct tm *tblock = NULL;
     struct tm newtime = { 0 };
     struct timeval tv = { 0 };
-    int32_t to = 0;
+    time_t to = 0;
     time_t seconds = 0;
 
     if (gettimeofday(&tv, NULL) == 0) {
         to = Time_Offset;
-        tv.tv_sec += (to / 1000);
-        tv.tv_usec += (to % 1000) * 1000;
-        while (tv.tv_usec >= 1000000) {
-            tv.tv_sec++;
-            tv.tv_usec -= 1000000;
-        }
-        while (tv.tv_usec < 0) {
-            tv.tv_sec--;
-            tv.tv_usec += 1000000;
-        }
+        tv.tv_sec += to;
         seconds = tv.tv_sec;
         if (datetime_localtime(&newtime, &seconds, &tblock)) {
             datetime_from_tm(
