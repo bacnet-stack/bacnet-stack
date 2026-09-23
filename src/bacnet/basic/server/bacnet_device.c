@@ -3149,6 +3149,10 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
     BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
     uint32_t object_instance = 0;
     int result = 0;
+    BACNET_DATE bdate = { 0 };
+    BACNET_TIME btime = { 0 };
+    int16_t utc_offset_minutes = 0;
+    bool dst_active = false;
 #if defined(BACNET_TIME_MASTER)
     uint32_t minutes = 0;
 #endif
@@ -3416,7 +3420,9 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (status) {
                 status = datetime_time_is_valid(&value.type.Time);
                 if (status) {
-                    datetime_timesync(NULL, &value.type.Time, false);
+                    datetime_local(
+                        &bdate, &btime, &utc_offset_minutes, &dst_active);
+                    datetime_timesync(&bdate, &value.type.Time, false);
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -3429,7 +3435,9 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (status) {
                 status = datetime_date_is_valid(&value.type.Date);
                 if (status) {
-                    datetime_timesync(&value.type.Date, NULL, false);
+                    datetime_local(
+                        &bdate, &btime, &utc_offset_minutes, &dst_active);
+                    datetime_timesync(&value.type.Date, &btime, false);
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
