@@ -926,8 +926,7 @@ elseif(APPLE)
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/bsc-event.c>
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-cli.c>
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-srv.c>
-    $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-global.c>
-    ports/bsd/stdbool.h)
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-global.c>)
 
   if(BACDL_ETHERNET)
     FIND_PATH(PCAP_INCLUDE pcap.h)
@@ -981,8 +980,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/bsc-event.c>
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-cli.c>
     $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-srv.c>
-    $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-global.c>
-    ports/bsd/stdbool.h)
+    $<$<BOOL:${BACDL_BSC}>:ports/bsd/websocket-global.c>)
 
   if(BACDL_ETHERNET)
     FIND_PATH(PCAP_INCLUDE pcap.h)
