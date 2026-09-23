@@ -139,8 +139,10 @@ bool datetime_local(
 #if defined(__time_gmtoff) || defined(_DEFAULT_SOURCE) || defined(__linux__)
             /* tm_gmtoff is set to the difference, in seconds,
                 between Coordinated Universal Time (UTC) and
-                local standard time. Positive = EAST of UTC */
-            *utc_offset_minutes = -tblock->tm_gmtoff / 60;
+                local standard time. Positive = EAST of UTC.
+                tm_gmtoff includes the active daylight-saving adjustment */
+            *utc_offset_minutes =
+                -(tblock->tm_gmtoff - ((tblock->tm_isdst > 0) ? 3600 : 0)) / 60;
 #else
             /* Fallback: Must call tzset() first to populate
                external 'timezone' variable */
