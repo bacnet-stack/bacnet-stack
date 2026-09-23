@@ -1,12 +1,10 @@
 /**
  * @file
+ * @brief System time library header file.
+ * @details This library provides functions for getting/setting the system time.
  * @author Steve Karg
  * @date 2009
- * @brief System time library header file.
- *
- * @section DESCRIPTION
- *
- * This library provides functions for getting and setting the system time.
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 #include <stdio.h>
 #include <stdlib.h>
