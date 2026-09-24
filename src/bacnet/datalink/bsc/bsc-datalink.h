@@ -13,6 +13,7 @@
 #include "bacnet/npdu.h"
 #include "bacnet/datalink/bsc/bvlc-sc.h"
 #include "bacnet/datalink/bsc/bsc-retcodes.h"
+#include "bacnet/datalink/bsc/bsc-socket.h"
 
 /**
  * @brief Blocking thread-safe bsc_init() function
@@ -172,5 +173,26 @@ void bsc_disconnect_direct(BACNET_SC_VMAC_ADDRESS *dest);
 
 BACNET_STACK_EXPORT
 void bsc_maintenance_timer(uint16_t seconds);
+
+/**
+ * @brief Configure the hub function's opt-in cert identity policy, which
+ *        binds a Connect-Request's claimed Device UUID/VMAC to the peer
+ *        certificate's SAN URI identity (see bsc-socket.h). Disabled by
+ *        default (entries_num == 0). Can be called before bsc_init() to
+ *        stage the policy for the first start, or after bsc_init() to
+ *        apply it immediately; either way it persists across internal
+ *        hub function restarts.
+ * @param entries [in] array of policy entries. The caller must keep this
+ *        array valid for as long as BACnet/SC datalink may use it (no
+ *        internal copy is made), the same lifetime contract as
+ *        SC_Primary_Hub_URI/SC_Failover_Hub_URI.
+ * @param entries_num [in] number of entries in the array, 0 disables the
+ *        policy.
+ * @return BSC_SC_SUCCESS on success, otherwise any retcode from
+ *         BSC_SC_RET enum.
+ */
+BACNET_STACK_EXPORT
+BSC_SC_RET bsc_set_hub_function_identity_policy(
+    BSC_CERT_IDENTITY_ENTRY *entries, size_t entries_num);
 
 #endif

@@ -83,6 +83,30 @@ static BSC_SOCKET_CTX_FUNCS bsc_hub_function_ctx_funcs = {
     hub_function_context_event, hub_function_failed_request
 };
 
+static void hub_function_revalidate_connected_sockets(BSC_HUB_FUNCTION *f)
+{
+    size_t i;
+
+    if (!f || !f->ctx.identity_policy_num) {
+        return;
+    }
+    for (i = 0; i < sizeof(f->sock) / sizeof(BSC_SOCKET); i++) {
+        BSC_SOCKET *c = &f->sock[i];
+        if (c->state == BSC_SOCK_STATE_CONNECTED &&
+            !bsc_find_cert_identity_entry(c, &c->uuid, &c->vmac)) {
+            DEBUG_PRINTF(
+                "BSC-HUB: disconnecting connected peer %s because it is no "
+                "longer authorized by the identity policy\n",
+                bsc_vmac_to_string(&c->vmac));
+            /* Do not use the graceful disconnect path here.  A peer can
+             * continue to send data while BSC_SOCK_STATE_DISCONNECTING is
+             * waiting for its acknowledgement. */
+            bsc_socket_disconnect_forcefully(
+                c, ERROR_CODE_TLS_CLIENT_AUTHENTICATION_FAILED);
+        }
+    }
+}
+
 /**
  * @brief Allocate a hub function
  * @return pointer to the hub function
@@ -424,7 +448,7 @@ static void hub_function_context_event(BSC_SOCKET_CTX *ctx, BSC_CTX_EVENT ev)
  * @param h - pointer to the hub function handle
  * @return BACnet/SC status
  */
-BSC_SC_RET bsc_hub_function_start(
+BSC_SC_RET bsc_hub_function_start_with_identity_policy(
     uint8_t *ca_cert_chain,
     size_t ca_cert_chain_size,
     uint8_t *cert_chain,
@@ -440,6 +464,8 @@ BSC_SC_RET bsc_hub_function_start(
     unsigned int connect_timeout_s,
     unsigned int heartbeat_timeout_s,
     unsigned int disconnect_timeout_s,
+    BSC_CERT_IDENTITY_ENTRY *entries,
+    size_t entries_num,
     BSC_HUB_EVENT_FUNC event_func,
     void *user_arg,
     BSC_HUB_FUNCTION_HANDLE *h)
@@ -452,11 +478,15 @@ BSC_SC_RET bsc_hub_function_start(
     if (!ca_cert_chain || !ca_cert_chain_size || !cert_chain ||
         !cert_chain_size || !key || !key_size || !local_uuid || !local_vmac ||
         !max_local_npdu_len || !max_local_bvlc_len || !connect_timeout_s ||
-        !heartbeat_timeout_s || !disconnect_timeout_s || !event_func || !h) {
+        !heartbeat_timeout_s || !disconnect_timeout_s || !event_func || !h ||
+        (entries_num && !entries)) {
         ret = BSC_SC_BAD_PARAM;
         DEBUG_PRINTF(
             "BSC-HUB: start failed. err=%s\n", bsc_return_code_to_string(ret));
         return ret;
+    }
+    if (entries_num && !bws_srv_cert_identity_supported()) {
+        return BSC_SC_INVALID_OPERATION;
     }
     *h = NULL;
     bws_dispatch_lock();
@@ -471,6 +501,8 @@ BSC_SC_RET bsc_hub_function_start(
     }
     f->user_arg = user_arg;
     f->event_func = event_func;
+    f->ctx.identity_policy = entries;
+    f->ctx.identity_policy_num = entries_num;
     bsc_init_ctx_cfg(
         BSC_SOCKET_CTX_ACCEPTOR, &f->cfg, BSC_WEBSOCKET_HUB_PROTOCOL, port,
         iface, ca_cert_chain, ca_cert_chain_size, cert_chain, cert_chain_size,
@@ -494,6 +526,84 @@ BSC_SC_RET bsc_hub_function_start(
     bws_dispatch_unlock();
     DEBUG_PRINTF_VERBOSE("bsc_hub_function_start() << ret = %d\n", ret);
     return ret;
+}
+
+BSC_SC_RET bsc_hub_function_start(
+    uint8_t *ca_cert_chain,
+    size_t ca_cert_chain_size,
+    uint8_t *cert_chain,
+    size_t cert_chain_size,
+    uint8_t *key,
+    size_t key_size,
+    int port,
+    char *iface,
+    const BACNET_SC_UUID *local_uuid,
+    BACNET_SC_VMAC_ADDRESS *local_vmac,
+    uint16_t max_local_bvlc_len,
+    uint16_t max_local_npdu_len,
+    unsigned int connect_timeout_s,
+    unsigned int heartbeat_timeout_s,
+    unsigned int disconnect_timeout_s,
+    BSC_HUB_EVENT_FUNC event_func,
+    void *user_arg,
+    BSC_HUB_FUNCTION_HANDLE *h)
+{
+    return bsc_hub_function_start_with_identity_policy(
+        ca_cert_chain, ca_cert_chain_size, cert_chain, cert_chain_size, key,
+        key_size, port, iface, local_uuid, local_vmac, max_local_bvlc_len,
+        max_local_npdu_len, connect_timeout_s, heartbeat_timeout_s,
+        disconnect_timeout_s, NULL, 0, event_func, user_arg, h);
+}
+
+/**
+ * @brief bsc_hub_function_set_identity_policy() configures an opt-in,
+ * disabled-by-default local authorization policy that binds a
+ * Connect-Request's claimed Device UUID/VMAC to the peer certificate
+ * identity presented during the TLS handshake (see
+ * BSC_CERT_IDENTITY_ENTRY). When entries_num is 0 (the default), no
+ * identity binding is enforced and the hub function follows the AB.7.4
+ * default behavior of accepting any Connect-Request whose certificate
+ * passes standard chain validation, regardless of claimed UUID/VMAC or
+ * certificate SAN content. When entries_num is non-zero, a
+ * Connect-Request is rejected unless its peer certificate carries a
+ * "bacnet://<instance>" SAN URI matching an entry whose uuid (and vmac,
+ * if vmac_required) equals the claimed values.
+ *
+ * @param h - hub function handle returned by bsc_hub_function_start().
+ * @param entries - pointer to an array of policy entries. The caller
+ *                  retains ownership; the array must remain valid for as
+ *                  long as it is set on the hub function.
+ * @param entries_num - number of entries in the array, or 0 to disable.
+ *
+ * @return BSC_SC_SUCCESS on success, BSC_SC_BAD_PARAM for invalid
+ *         parameters, or BSC_SC_INVALID_OPERATION if entries_num is
+ *         non-zero but the underlying TLS backend cannot extract peer
+ *         certificate identities (see bws_srv_cert_identity_supported()).
+ */
+BSC_SC_RET bsc_hub_function_set_identity_policy(
+    BSC_HUB_FUNCTION_HANDLE h,
+    BSC_CERT_IDENTITY_ENTRY *entries,
+    size_t entries_num)
+{
+    BSC_HUB_FUNCTION *f = (BSC_HUB_FUNCTION *)h;
+    bool revalidate = false;
+
+    if (!f || (entries_num && !entries)) {
+        return BSC_SC_BAD_PARAM;
+    }
+    if (entries_num && !bws_srv_cert_identity_supported()) {
+        return BSC_SC_INVALID_OPERATION;
+    }
+    bws_dispatch_lock();
+    f->ctx.identity_policy = entries;
+    f->ctx.identity_policy_num = entries_num;
+    revalidate =
+        (entries_num != 0 && f->state == BSC_HUB_FUNCTION_STATE_STARTED);
+    if (revalidate) {
+        hub_function_revalidate_connected_sockets(f);
+    }
+    bws_dispatch_unlock();
+    return BSC_SC_SUCCESS;
 }
 
 /**

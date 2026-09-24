@@ -19,6 +19,7 @@
 #include "bacnet/datalink/bsc/bsc-conf.h"
 #include "bacnet/datalink/bsc/bsc-retcodes.h"
 #include "bacnet/datalink/bsc/bvlc-sc.h"
+#include "bacnet/datalink/bsc/bsc-socket.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/object/sc_netport.h"
 
@@ -83,6 +84,10 @@ typedef struct {
 
 BACNET_STACK_EXPORT
 BSC_SC_RET bsc_node_init(BSC_NODE_CONF *conf, BSC_NODE **node);
+
+BACNET_STACK_EXPORT
+BSC_SC_RET bsc_node_set_hub_function_identity_policy(
+    BSC_NODE *node, BSC_CERT_IDENTITY_ENTRY *entries, size_t entries_num);
 
 BACNET_STACK_EXPORT
 BSC_SC_RET bsc_node_deinit(BSC_NODE *node);
