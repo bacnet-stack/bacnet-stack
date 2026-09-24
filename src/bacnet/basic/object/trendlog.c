@@ -31,6 +31,11 @@
 #define MAX_TREND_LOGS 8
 #endif
 
+/* Deepness of each object */
+#ifndef TL_MAX_ENTRIES
+#define TL_MAX_ENTRIES 1000
+#endif
+
 static TL_DATA_REC Logs_Records[MAX_NUM_DEVICES][MAX_TREND_LOGS]
                                [TL_MAX_ENTRIES];
 #ifdef BAC_ROUTING

@@ -68,8 +68,6 @@ typedef struct tl_data_record {
 #define TL_T_START_WILD 1 /* Start time is wild carded */
 #define TL_T_STOP_WILD 2 /* Stop Time is wild carded */
 
-#define TL_MAX_ENTRIES 1000 /* Entries per datalog */
-
 /* Structure containing config and status info for a Trend Log */
 
 typedef struct tl_log_info {
