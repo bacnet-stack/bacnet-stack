@@ -12,6 +12,7 @@
 #include <string.h>
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/av.h>
+#include <bacnet/bacapp.h>
 #include <bacnet/proplist.h>
 #include <property_test.h>
 
@@ -253,6 +254,207 @@ static void testAnalog_Value_Writable_Properties(void)
     Analog_Value_Delete(instance);
     Analog_Value_Cleanup();
 }
+#if defined(BACNET_OBJECT_ANALOG_VALUE_COMMANDABLE)
+static uint32_t Test_Callback_Count;
+static float Test_Callback_Value;
+
+static void
+test_av_write_callback(uint32_t object_instance, float old_value, float value)
+{
+    (void)object_instance;
+    (void)old_value;
+    Test_Callback_Count++;
+    Test_Callback_Value = value;
+}
+
+static bool test_av_write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
+    uint32_t instance,
+    BACNET_PROPERTY_ID property,
+    const BACNET_APPLICATION_DATA_VALUE *value,
+    uint8_t priority)
+{
+    memset(wp_data, 0, sizeof(*wp_data));
+    wp_data->object_type = OBJECT_ANALOG_VALUE;
+    wp_data->object_instance = instance;
+    wp_data->object_property = property;
+    wp_data->array_index = BACNET_ARRAY_ALL;
+    wp_data->priority = priority;
+    wp_data->application_data_len =
+        bacapp_encode_application_data(wp_data->application_data, value);
+    return Analog_Value_Write_Property(wp_data);
+}
+
+static int test_av_read(
+    uint32_t instance,
+    BACNET_PROPERTY_ID property,
+    BACNET_ARRAY_INDEX array_index,
+    uint8_t *apdu,
+    size_t apdu_size,
+    BACNET_READ_PROPERTY_DATA *rpdata)
+{
+    memset(rpdata, 0, sizeof(*rpdata));
+    rpdata->object_type = OBJECT_ANALOG_VALUE;
+    rpdata->object_instance = instance;
+    rpdata->object_property = property;
+    rpdata->array_index = array_index;
+    rpdata->application_data = apdu;
+    rpdata->application_data_len = apdu_size;
+    return Analog_Value_Read_Property(rpdata);
+}
+
+/**
+ * @brief Test the commandable (priority array) Analog Value
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(av_tests, testAnalog_Value_Commandable)
+#else
+static void testAnalog_Value_Commandable(void)
+#endif
+{
+    BACNET_WRITE_PROPERTY_DATA wp_data;
+    BACNET_READ_PROPERTY_DATA rpdata;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    uint32_t instance;
+    int len;
+    bool status;
+
+    Analog_Value_Init();
+    instance = Analog_Value_Create(BACNET_MAX_INSTANCE);
+    zassert_not_equal(instance, BACNET_MAX_INSTANCE, NULL);
+    Analog_Value_Write_Present_Value_Callback_Set(test_av_write_callback);
+    Test_Callback_Count = 0;
+    zassert_equal(Analog_Value_Present_Value_Priority(instance), 0, NULL);
+
+    /* relinquish default drives the present value */
+    zassert_true(Analog_Value_Relinquish_Default_Set(instance, 21.0f), NULL);
+    zassert_false(
+        islessgreater(Analog_Value_Present_Value(instance), 21.0f), NULL);
+    zassert_equal(Test_Callback_Count, 1, NULL);
+
+    /* the highest priority command wins */
+    zassert_true(
+        Analog_Value_Present_Value_Priority_Set(instance, 30.0f, 8), NULL);
+    zassert_true(
+        Analog_Value_Present_Value_Priority_Set(instance, 10.0f, 5), NULL);
+    zassert_false(
+        islessgreater(Analog_Value_Present_Value(instance), 10.0f), NULL);
+    zassert_equal(Analog_Value_Present_Value_Priority(instance), 5, NULL);
+    zassert_false(Analog_Value_Priority_Array_Relinquished(instance, 8), NULL);
+    zassert_true(Analog_Value_Priority_Array_Relinquished(instance, 9), NULL);
+    zassert_false(
+        islessgreater(Analog_Value_Priority_Array_Value(instance, 8), 30.0f),
+        NULL);
+    /* a lower priority command does not change the present value */
+    zassert_true(
+        Analog_Value_Present_Value_Priority_Set(instance, 50.0f, 16), NULL);
+    zassert_false(
+        islessgreater(Analog_Value_Present_Value(instance), 10.0f), NULL);
+    /* invalid priorities */
+    zassert_false(
+        Analog_Value_Present_Value_Priority_Set(instance, 1.0f, 0), NULL);
+    zassert_false(
+        Analog_Value_Present_Value_Priority_Set(instance, 1.0f, 6), NULL);
+    zassert_false(
+        Analog_Value_Present_Value_Priority_Set(instance, 1.0f, 17), NULL);
+    /* relinquish falls back through the array */
+    zassert_true(Analog_Value_Present_Value_Relinquish(instance, 5), NULL);
+    zassert_false(
+        islessgreater(Analog_Value_Present_Value(instance), 30.0f), NULL);
+    zassert_true(Analog_Value_Present_Value_Relinquish(instance, 8), NULL);
+    zassert_true(Analog_Value_Present_Value_Relinquish(instance, 16), NULL);
+    zassert_false(
+        islessgreater(Analog_Value_Present_Value(instance), 21.0f), NULL);
+    zassert_false(islessgreater(Test_Callback_Value, 21.0f), NULL);
+
+    /* WriteProperty: REAL at priority 9 */
+    value.tag = BACNET_APPLICATION_TAG_REAL;
+    value.type.Real = 42.0f;
+    status = test_av_write(&wp_data, instance, PROP_PRESENT_VALUE, &value, 9);
+    zassert_true(status, NULL);
+    zassert_equal(Analog_Value_Present_Value_Priority(instance), 9, NULL);
+    zassert_false(
+        islessgreater(Analog_Value_Present_Value(instance), 42.0f), NULL);
+    /* WriteProperty: priority 6 is reserved */
+    status = test_av_write(&wp_data, instance, PROP_PRESENT_VALUE, &value, 6);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_WRITE_ACCESS_DENIED, NULL);
+    /* WriteProperty: priority 16 (also what an absent priority decodes to) */
+    value.type.Real = 7.0f;
+    status = test_av_write(
+        &wp_data, instance, PROP_PRESENT_VALUE, &value, BACNET_MAX_PRIORITY);
+    zassert_true(status, NULL);
+    zassert_false(Analog_Value_Priority_Array_Relinquished(instance, 16), NULL);
+
+    /* ReadProperty: Priority_Array[0] is the size */
+    len = test_av_read(
+        instance, PROP_PRIORITY_ARRAY, 0, apdu, sizeof(apdu), &rpdata);
+    zassert_true(len > 0, NULL);
+    len = bacapp_decode_application_data(apdu, len, &value);
+    zassert_true(len > 0, NULL);
+    zassert_equal(value.tag, BACNET_APPLICATION_TAG_UNSIGNED_INT, NULL);
+    zassert_equal(value.type.Unsigned_Int, BACNET_MAX_PRIORITY, NULL);
+    /* ReadProperty: Priority_Array[9] is the REAL, [1] is NULL */
+    len = test_av_read(
+        instance, PROP_PRIORITY_ARRAY, 9, apdu, sizeof(apdu), &rpdata);
+    len = bacapp_decode_application_data(apdu, len, &value);
+    zassert_equal(value.tag, BACNET_APPLICATION_TAG_REAL, NULL);
+    zassert_false(islessgreater(value.type.Real, 42.0f), NULL);
+    len = test_av_read(
+        instance, PROP_PRIORITY_ARRAY, 1, apdu, sizeof(apdu), &rpdata);
+    len = bacapp_decode_application_data(apdu, len, &value);
+    zassert_equal(value.tag, BACNET_APPLICATION_TAG_NULL, NULL);
+    /* ReadProperty: Priority_Array[17] is an error */
+    len = test_av_read(
+        instance, PROP_PRIORITY_ARRAY, 17, apdu, sizeof(apdu), &rpdata);
+    zassert_equal(len, BACNET_STATUS_ERROR, NULL);
+    zassert_equal(rpdata.error_code, ERROR_CODE_INVALID_ARRAY_INDEX, NULL);
+#if (BACNET_PROTOCOL_REVISION >= 17)
+    len = test_av_read(
+        instance, PROP_CURRENT_COMMAND_PRIORITY, BACNET_ARRAY_ALL, apdu,
+        sizeof(apdu), &rpdata);
+    len = bacapp_decode_application_data(apdu, len, &value);
+    zassert_equal(value.tag, BACNET_APPLICATION_TAG_UNSIGNED_INT, NULL);
+    zassert_equal(value.type.Unsigned_Int, 9, NULL);
+#endif
+
+    /* WriteProperty: NULL relinquishes */
+    value.tag = BACNET_APPLICATION_TAG_NULL;
+    status = test_av_write(&wp_data, instance, PROP_PRESENT_VALUE, &value, 9);
+    zassert_true(status, NULL);
+    zassert_true(Analog_Value_Priority_Array_Relinquished(instance, 9), NULL);
+    status = test_av_write(
+        &wp_data, instance, PROP_PRESENT_VALUE, &value, BACNET_MAX_PRIORITY);
+    zassert_true(status, NULL);
+    zassert_equal(Analog_Value_Present_Value_Priority(instance), 0, NULL);
+    /* WriteProperty: priority 0 is out of range */
+    status = test_av_write(&wp_data, instance, PROP_PRESENT_VALUE, &value, 0);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+
+    /* WriteProperty: Relinquish_Default */
+    value.tag = BACNET_APPLICATION_TAG_REAL;
+    value.type.Real = 18.5f;
+    status = test_av_write(
+        &wp_data, instance, PROP_RELINQUISH_DEFAULT, &value,
+        BACNET_NO_PRIORITY);
+    zassert_true(status, NULL);
+    zassert_false(
+        islessgreater(Analog_Value_Present_Value(instance), 18.5f), NULL);
+
+    /* legacy setter without a priority writes where the value resolves */
+    zassert_true(
+        Analog_Value_Present_Value_Set(instance, 19.0f, BACNET_NO_PRIORITY),
+        NULL);
+    zassert_false(
+        islessgreater(Analog_Value_Relinquish_Default(instance), 19.0f), NULL);
+
+    Analog_Value_Write_Present_Value_Callback_Set(NULL);
+    zassert_true(Analog_Value_Delete(instance), NULL);
+}
+#endif
+
 /**
  * @}
  */
@@ -262,10 +464,18 @@ ZTEST_SUITE(av_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
+#if defined(BACNET_OBJECT_ANALOG_VALUE_COMMANDABLE)
+    ztest_test_suite(
+        av_tests, ztest_unit_test(testAnalog_Value),
+        ztest_unit_test(testAnalog_Value_APIs),
+        ztest_unit_test(testAnalog_Value_Writable_Properties),
+        ztest_unit_test(testAnalog_Value_Commandable));
+#else
     ztest_test_suite(
         av_tests, ztest_unit_test(testAnalog_Value),
         ztest_unit_test(testAnalog_Value_APIs),
         ztest_unit_test(testAnalog_Value_Writable_Properties));
+#endif
 
     ztest_run_test_suite(av_tests);
 }

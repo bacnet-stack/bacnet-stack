@@ -36,7 +36,13 @@ struct object_data {
     bool Write_Enabled : 1;
     bool Out_Of_Service : 1;
     bool Changed : 1;
+    /* when commandable, the resolved value of the priority array */
     float Present_Value;
+#if defined(BACNET_OBJECT_ANALOG_VALUE_COMMANDABLE)
+    float Priority_Array[BACNET_MAX_PRIORITY];
+    uint16_t Priority_Active_Bits;
+    float Relinquish_Default;
+#endif
     float Min_Pres_Value;
     float Max_Pres_Value;
     float Prior_Value;
@@ -93,6 +99,13 @@ static const int32_t Analog_Value_Properties_Optional[] = {
     PROP_COV_INCREMENT,
     PROP_MIN_PRES_VALUE,
     PROP_MAX_PRES_VALUE,
+#if defined(BACNET_OBJECT_ANALOG_VALUE_COMMANDABLE)
+    PROP_PRIORITY_ARRAY,
+    PROP_RELINQUISH_DEFAULT,
+#if (BACNET_PROTOCOL_REVISION >= 17)
+    PROP_CURRENT_COMMAND_PRIORITY,
+#endif
+#endif
 #if defined(INTRINSIC_REPORTING)
     PROP_TIME_DELAY,
     PROP_NOTIFICATION_CLASS,
@@ -127,6 +140,9 @@ static const int32_t Writable_Properties[] = {
     /* unordered list of always writable properties */
     PROP_OUT_OF_SERVICE, PROP_UNITS, PROP_COV_INCREMENT, PROP_MIN_PRES_VALUE,
     PROP_MAX_PRES_VALUE, PROP_OBJECT_NAME, PROP_DESCRIPTION,
+#if defined(BACNET_OBJECT_ANALOG_VALUE_COMMANDABLE)
+    PROP_RELINQUISH_DEFAULT,
+#endif
 #if defined(INTRINSIC_REPORTING)
     PROP_TIME_DELAY, PROP_NOTIFICATION_CLASS, PROP_HIGH_LIMIT, PROP_LOW_LIMIT,
     PROP_DEADBAND, PROP_LIMIT_ENABLE, PROP_EVENT_ENABLE, PROP_NOTIFY_TYPE,
@@ -306,6 +322,222 @@ static void Analog_Value_COV_Detect(struct object_data *pObject, float value)
     }
 }
 
+#if defined(BACNET_OBJECT_ANALOG_VALUE_COMMANDABLE)
+/**
+ * @brief Resolve the present-value from the priority array, or from
+ *  relinquish-default when every slot is relinquished, and notify
+ *  COV detection and the write callback when it changes.
+ * @param object_instance - object-instance number of the object
+ * @param pObject - pointer to the object data
+ */
+static void Analog_Value_Command_Resolve(
+    uint32_t object_instance, struct object_data *pObject)
+{
+    float old_value, new_value;
+    unsigned p;
+
+    new_value = pObject->Relinquish_Default;
+    for (p = 0; p < BACNET_MAX_PRIORITY; p++) {
+        if (BIT_CHECK(pObject->Priority_Active_Bits, p)) {
+            new_value = pObject->Priority_Array[p];
+            break;
+        }
+    }
+    old_value = pObject->Present_Value;
+    Analog_Value_COV_Detect(pObject, new_value);
+    pObject->Present_Value = new_value;
+    if (islessgreater(old_value, new_value) && !pObject->Out_Of_Service &&
+        Analog_Value_Write_Present_Value_Callback) {
+        Analog_Value_Write_Present_Value_Callback(
+            object_instance, old_value, new_value);
+    }
+}
+
+/**
+ * @brief Command the present-value at a priority 1..16 (6 is reserved)
+ * @param object_instance - object-instance number of the object
+ * @param value - floating point analog value
+ * @param priority - priority 1..16
+ * @return true if the object exists, the priority is valid, and the
+ *  value is within Min_Pres_Value..Max_Pres_Value
+ */
+bool Analog_Value_Present_Value_Priority_Set(
+    uint32_t object_instance, float value, unsigned priority)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject && (priority >= BACNET_MIN_PRIORITY) &&
+        (priority <= BACNET_MAX_PRIORITY) && (priority != 6) &&
+        isgreaterequal(value, pObject->Min_Pres_Value) &&
+        islessequal(value, pObject->Max_Pres_Value)) {
+        pObject->Priority_Array[priority - 1] = value;
+        BIT_SET(pObject->Priority_Active_Bits, priority - 1);
+        Analog_Value_Command_Resolve(object_instance, pObject);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Relinquish the command at a priority 1..16 (6 is reserved)
+ * @param object_instance - object-instance number of the object
+ * @param priority - priority 1..16
+ * @return true if the object exists and the priority is valid
+ */
+bool Analog_Value_Present_Value_Relinquish(
+    uint32_t object_instance, unsigned priority)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject && (priority >= BACNET_MIN_PRIORITY) &&
+        (priority <= BACNET_MAX_PRIORITY) && (priority != 6)) {
+        BIT_CLEAR(pObject->Priority_Active_Bits, priority - 1);
+        pObject->Priority_Array[priority - 1] = 0.0f;
+        Analog_Value_Command_Resolve(object_instance, pObject);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Determine the priority the present-value is resolved from
+ * @param object_instance - object-instance number of the object
+ * @return active priority 1..16, or 0 if every slot is relinquished
+ */
+unsigned Analog_Value_Present_Value_Priority(uint32_t object_instance)
+{
+    unsigned p;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        for (p = 0; p < BACNET_MAX_PRIORITY; p++) {
+            if (BIT_CHECK(pObject->Priority_Active_Bits, p)) {
+                return p + 1;
+            }
+        }
+    }
+
+    return 0;
+}
+
+/**
+ * @brief Determine if a priority-array slot is relinquished
+ * @param object_instance - object-instance number of the object
+ * @param priority - priority-array index value 1..16
+ * @return true if the slot is relinquished (or the object is unknown)
+ */
+bool Analog_Value_Priority_Array_Relinquished(
+    uint32_t object_instance, unsigned priority)
+{
+    bool status = true;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject && (priority >= BACNET_MIN_PRIORITY) &&
+        (priority <= BACNET_MAX_PRIORITY)) {
+        status = !BIT_CHECK(pObject->Priority_Active_Bits, priority - 1);
+    }
+
+    return status;
+}
+
+/**
+ * @brief Get the value of a priority-array slot
+ * @param object_instance - object-instance number of the object
+ * @param priority - priority-array index value 1..16
+ * @return value of the slot, or 0.0 if relinquished or unknown
+ */
+float Analog_Value_Priority_Array_Value(
+    uint32_t object_instance, unsigned priority)
+{
+    float value = 0.0f;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject && (priority >= BACNET_MIN_PRIORITY) &&
+        (priority <= BACNET_MAX_PRIORITY) &&
+        BIT_CHECK(pObject->Priority_Active_Bits, priority - 1)) {
+        value = pObject->Priority_Array[priority - 1];
+    }
+
+    return value;
+}
+
+/**
+ * @brief Get the relinquish-default value
+ * @param object_instance - object-instance number of the object
+ * @return relinquish-default value, or 0.0 if the object is unknown
+ */
+float Analog_Value_Relinquish_Default(uint32_t object_instance)
+{
+    float value = 0.0f;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject) {
+        value = pObject->Relinquish_Default;
+    }
+
+    return value;
+}
+
+/**
+ * @brief Set the relinquish-default value
+ * @param object_instance - object-instance number of the object
+ * @param value - relinquish-default value
+ * @return true if the object exists and the value is within
+ *  Min_Pres_Value..Max_Pres_Value
+ */
+bool Analog_Value_Relinquish_Default_Set(uint32_t object_instance, float value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject && isgreaterequal(value, pObject->Min_Pres_Value) &&
+        islessequal(value, pObject->Max_Pres_Value)) {
+        pObject->Relinquish_Default = value;
+        Analog_Value_Command_Resolve(object_instance, pObject);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Encode a Priority_Array element
+ * @param object_instance [in] BACnet object instance number
+ * @param index [in] array index requested: 0 to N-1
+ * @param apdu [out] Buffer for the encoding, or NULL for length only
+ * @return The length of the apdu encoded, or BACNET_STATUS_ERROR
+ */
+static int Analog_Value_Priority_Array_Encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX index, uint8_t *apdu)
+{
+    int apdu_len = BACNET_STATUS_ERROR;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (pObject && (index < BACNET_MAX_PRIORITY)) {
+        if (BIT_CHECK(pObject->Priority_Active_Bits, index)) {
+            apdu_len =
+                encode_application_real(apdu, pObject->Priority_Array[index]);
+        } else {
+            apdu_len = encode_application_null(apdu);
+        }
+    }
+
+    return apdu_len;
+}
+#endif
+
 /**
  * For a given object instance-number, sets the present-value at a given
  * priority 1..16.
@@ -322,12 +554,31 @@ bool Analog_Value_Present_Value_Set(
     bool status = false;
     struct object_data *pObject;
 
-    (void)priority;
     pObject = Analog_Value_Object(object_instance);
     if (pObject) {
+#if defined(BACNET_OBJECT_ANALOG_VALUE_COMMANDABLE)
+        if ((priority >= BACNET_MIN_PRIORITY) &&
+            (priority <= BACNET_MAX_PRIORITY)) {
+            /* command the given priority */
+            status = Analog_Value_Present_Value_Priority_Set(
+                object_instance, value, priority);
+        } else {
+            /* no priority: write where the value currently resolves from */
+            priority = Analog_Value_Present_Value_Priority(object_instance);
+            if (priority) {
+                status = Analog_Value_Present_Value_Priority_Set(
+                    object_instance, value, priority);
+            } else {
+                status =
+                    Analog_Value_Relinquish_Default_Set(object_instance, value);
+            }
+        }
+#else
+        (void)priority;
         Analog_Value_COV_Detect(pObject, value);
         pObject->Present_Value = value;
         status = true;
+#endif
     }
 
     return status;
@@ -1333,6 +1584,36 @@ int Analog_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             real_value = Analog_Value_Present_Value(rpdata->object_instance);
             apdu_len = encode_application_real(&apdu[0], real_value);
             break;
+#if defined(BACNET_OBJECT_ANALOG_VALUE_COMMANDABLE)
+        case PROP_PRIORITY_ARRAY:
+            apdu_len = bacnet_array_encode(
+                rpdata->object_instance, rpdata->array_index,
+                Analog_Value_Priority_Array_Encode, BACNET_MAX_PRIORITY, apdu,
+                rpdata->application_data_len);
+            if (apdu_len == BACNET_STATUS_ABORT) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+            } else if (apdu_len == BACNET_STATUS_ERROR) {
+                rpdata->error_class = ERROR_CLASS_PROPERTY;
+                rpdata->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+            }
+            break;
+        case PROP_RELINQUISH_DEFAULT:
+            apdu_len = encode_application_real(
+                &apdu[0], CurrentAV->Relinquish_Default);
+            break;
+#if (BACNET_PROTOCOL_REVISION >= 17)
+        case PROP_CURRENT_COMMAND_PRIORITY: {
+            unsigned priority =
+                Analog_Value_Present_Value_Priority(rpdata->object_instance);
+            if (priority) {
+                apdu_len = encode_application_unsigned(&apdu[0], priority);
+            } else {
+                apdu_len = encode_application_null(&apdu[0]);
+            }
+        } break;
+#endif
+#endif
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
             bitstring_set_bit(
@@ -1501,6 +1782,21 @@ static bool Analog_Value_Present_Value_Write(
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
         } else if (pObject->Write_Enabled || pObject->Out_Of_Service) {
+#if defined(BACNET_OBJECT_ANALOG_VALUE_COMMANDABLE)
+            (void)old_value;
+            /* note: an absent priority is decoded as 16 */
+            if ((priority < BACNET_MIN_PRIORITY) ||
+                (priority > BACNET_MAX_PRIORITY)) {
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            } else if (Analog_Value_Present_Value_Priority_Set(
+                           object_instance, value, priority)) {
+                status = true;
+            } else {
+                *error_class = ERROR_CLASS_PROPERTY;
+                *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            }
+#else
             if (isgreaterequal(value, pObject->Min_Pres_Value) &&
                 islessequal(value, pObject->Max_Pres_Value)) {
                 old_value = pObject->Present_Value;
@@ -1522,6 +1818,7 @@ static bool Analog_Value_Present_Value_Write(
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
+#endif
         } else {
             *error_class = ERROR_CLASS_PROPERTY;
             *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
@@ -1533,6 +1830,47 @@ static bool Analog_Value_Present_Value_Write(
 
     return status;
 }
+#if defined(BACNET_OBJECT_ANALOG_VALUE_COMMANDABLE)
+/**
+ * @brief Relinquish a command written by a BACnet client (NULL value)
+ * @param object_instance - object-instance number of the object
+ * @param priority - priority 1..16 from the request
+ * @param error_class - the BACnet error class
+ * @param error_code - BACnet Error code
+ * @return true if the command was relinquished
+ */
+static bool Analog_Value_Present_Value_Relinquish_Write(
+    uint32_t object_instance,
+    unsigned priority,
+    BACNET_ERROR_CLASS *error_class,
+    BACNET_ERROR_CODE *error_code)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Analog_Value_Object(object_instance);
+    if (!pObject) {
+        *error_class = ERROR_CLASS_OBJECT;
+        *error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    } else if (priority == 6) {
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+    } else if (!pObject->Write_Enabled && !pObject->Out_Of_Service) {
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+    } else if (
+        (priority < BACNET_MIN_PRIORITY) || (priority > BACNET_MAX_PRIORITY)) {
+        /* note: an absent priority is decoded as 16 */
+        *error_class = ERROR_CLASS_PROPERTY;
+        *error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+    } else {
+        status =
+            Analog_Value_Present_Value_Relinquish(object_instance, priority);
+    }
+
+    return status;
+}
+#endif
 
 /**
  * @brief WriteProperty handler for this object.  For the given WriteProperty
@@ -1578,7 +1916,32 @@ bool Analog_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     wp_data->priority, &wp_data->error_class,
                     &wp_data->error_code);
             }
+#if defined(BACNET_OBJECT_ANALOG_VALUE_COMMANDABLE)
+            else {
+                status = write_property_type_valid(
+                    wp_data, &value, BACNET_APPLICATION_TAG_NULL);
+                if (status) {
+                    status = Analog_Value_Present_Value_Relinquish_Write(
+                        wp_data->object_instance, wp_data->priority,
+                        &wp_data->error_class, &wp_data->error_code);
+                }
+            }
+#endif
             break;
+#if defined(BACNET_OBJECT_ANALOG_VALUE_COMMANDABLE)
+        case PROP_RELINQUISH_DEFAULT:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            if (status) {
+                status = Analog_Value_Relinquish_Default_Set(
+                    wp_data->object_instance, value.type.Real);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
+#endif
         case PROP_OBJECT_NAME:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
