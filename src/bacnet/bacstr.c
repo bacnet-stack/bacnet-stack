@@ -1423,6 +1423,11 @@ bool bacnet_character_cstring_set(
     if (!char_string) {
         return false;
     }
+    if (value && (value == char_string->buffer)) {
+        /* already referencing (or owning) this exact string: freeing
+           it first would leave a dangling reference */
+        return true;
+    }
     if (value) {
         length = strlen(value);
         if (length > MAX_CHARACTER_STRING_BYTES) {
