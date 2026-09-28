@@ -683,13 +683,16 @@ static bool Multistate_Value_Present_Value_Write(
     if (pObject) {
         max_states = state_name_list_count(pObject->State_List);
         if ((value >= 1) && (value <= max_states)) {
+#if defined(BACNET_OBJECT_MULTISTATE_VALUE_COMMANDABLE)
             if (priority == 6) {
                 /* Command priority 6 is reserved for use by Minimum On/Off
                     algorithm and may not be used for other purposes in any
                     object. */
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            } else if (!pObject->Write_Enabled && !pObject->Out_Of_Service) {
+#else
+            if (!pObject->Write_Enabled && !pObject->Out_Of_Service) {
+#endif
                 *error_class = ERROR_CLASS_PROPERTY;
                 *error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             } else {
