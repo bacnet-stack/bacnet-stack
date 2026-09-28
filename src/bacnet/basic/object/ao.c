@@ -422,7 +422,7 @@ bool Analog_Output_Priority_Array_Relinquished(
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+    if (pObject && (priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
         if (pObject->Relinquished[priority - 1]) {
             status = true;
         }
@@ -444,7 +444,7 @@ float Analog_Output_Priority_Array_Value(
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+    if (pObject && (priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
         real_value = pObject->Priority_Array[priority - 1];
     }
 
