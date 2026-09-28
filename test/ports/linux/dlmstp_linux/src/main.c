@@ -21,8 +21,9 @@
 
 /**
  * @brief B3 - dlmstp_receive() must never copy more than max_pdu bytes
- *  into the caller's buffer, even though the queued packet may hold up
- *  to DLMSTP_MPDU_MAX bytes.
+ *  into the caller's buffer. When the queued packet exceeds max_pdu it
+ *  must be discarded: return 0 and leave the caller's buffer untouched,
+ *  rather than silently truncating it.
  */
 static void test_dlmstp_receive_respects_max_pdu(void)
 {
@@ -32,6 +33,7 @@ static void test_dlmstp_receive_respects_max_pdu(void)
         uint8_t buf[8];
         uint8_t guard;
     } out;
+    uint8_t expected_buf[8];
     BACNET_ADDRESS src = { 0 };
     uint16_t pdu_len;
     unsigned i;
@@ -44,6 +46,7 @@ static void test_dlmstp_receive_respects_max_pdu(void)
     }
     memset(&out, 0, sizeof(out));
     out.guard = 0x5A;
+    memcpy(expected_buf, out.buf, sizeof(expected_buf));
 
     mstp_port.InputBuffer = input;
     mstp_port.DataLength = sizeof(input);
@@ -52,8 +55,12 @@ static void test_dlmstp_receive_respects_max_pdu(void)
 
     pdu_len = dlmstp_receive(&src, out.buf, sizeof(out.buf), 0);
 
-    zassert_equal(pdu_len, sizeof(out.buf), NULL);
-    zassert_equal(memcmp(out.buf, input, sizeof(out.buf)), 0, NULL);
+    zassert_equal(
+        pdu_len, 0, "oversized NPDU must be discarded, not truncated");
+    zassert_equal(
+        memcmp(out.buf, expected_buf, sizeof(out.buf)), 0,
+        "dlmstp_receive() must not modify the caller's buffer when the "
+        "queued PDU exceeds max_pdu");
     zassert_equal(
         out.guard, 0x5A, "dlmstp_receive() overran the caller's buffer");
 
