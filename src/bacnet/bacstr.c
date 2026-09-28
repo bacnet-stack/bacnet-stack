@@ -297,7 +297,7 @@ bool bitstring_same(
     if (bitstring1 && bitstring2) {
         bytes_used = (int)(bitstring1->bits_used / 8);
         if ((bitstring1->bits_used == bitstring2->bits_used) &&
-            (bytes_used <= MAX_BITSTRING_BYTES)) {
+            (bitstring1->bits_used <= bitstring_bits_capacity(bitstring1))) {
             /* compare fully used bytes */
             for (i = 0; i < bytes_used; i++) {
                 if (bitstring1->value[i] != bitstring2->value[i]) {
