@@ -1679,8 +1679,10 @@ size_t bvlc_sc_encode_proprietary_message(
     offs += sizeof(vendor_id);
     memcpy(&pdu[offs], &proprietary_function, sizeof(proprietary_function));
     offs += sizeof(proprietary_function);
-    memcpy(&pdu[offs], proprietary_data, proprietary_data_len);
-    offs += proprietary_data_len;
+    if (proprietary_data_len > 0) {
+        memcpy(&pdu[offs], proprietary_data, proprietary_data_len);
+        offs += proprietary_data_len;
+    }
     return (unsigned int)offs;
 }
 
