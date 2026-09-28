@@ -342,6 +342,94 @@ static void test_BBMD_NAT_Anti_Loop_Forward(void)
     test_cleanup();
 }
 
+/**
+ * @brief Test that the BBMD NAT anti-loop check in bbmd_fdt_forward_npdu()
+ *  only skips the FDT peer whose forward address equals the NAT global
+ *  address, and still forwards to every other live FDT peer. (bug B2)
+ */
+static void test_BBMD_NAT_Anti_Loop_Forward_FDT(void)
+{
+    uint8_t pdu[MAX_APDU] = { 0 };
+    int npdu_len = 0;
+    int apdu_len = 0;
+    int pdu_len = 0;
+    BACNET_ADDRESS dest = { 0 };
+    BACNET_NPDU_DATA npdu_data = { 0 };
+    uint8_t mtu[MAX_APDU] = { 0 };
+    int mtu_len = 0;
+    BACNET_ADDRESS src = { 0 };
+    BACNET_IP_ADDRESS fd_A = { 0 };
+    BACNET_IP_ADDRESS fd_B_is_global = { 0 };
+    BACNET_IP_ADDRESS fd_C = { 0 };
+    BACNET_IP_ADDRESS global_address = { 0 };
+    bool status = false;
+
+    test_setup();
+    /* build an Original-Broadcast-NPDU as received from a 3rd party device */
+    dest.net = BACNET_BROADCAST_NETWORK;
+    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    npdu_len = npdu_encode_pdu(&pdu[0], &dest, &TD.BACnet_Address, &npdu_data);
+    apdu_len = iam_encode_apdu(
+        &pdu[npdu_len], TD.Device_ID, MAX_APDU, SEGMENTATION_NONE,
+        BACNET_VENDOR_ID);
+    pdu_len = npdu_len + apdu_len;
+    mtu_len =
+        bvlc_encode_original_broadcast(&mtu[0], sizeof(mtu), &pdu[0], pdu_len);
+    assert(mtu_len > 0);
+
+    /* no BDT peers - isolate this test to the FDT forwarding path */
+    bvlc_bdt_list_clear();
+
+    /* configure the FDT: foreign device B's forward address equals the
+       NAT global address; foreign devices A and C are ordinary peers */
+    bvlc_address_set(&fd_A, 192, 168, 1, 40);
+    fd_A.port = 0xBAC0U;
+    bvlc_address_set(&fd_B_is_global, 203, 0, 113, 6);
+    fd_B_is_global.port = 0xBAC0U;
+    bvlc_address_set(&fd_C, 192, 168, 1, 50);
+    fd_C.port = 0xBAC0U;
+    bvlc_address_copy(&global_address, &fd_B_is_global);
+
+    bvlc_foreign_device_table_valid_clear(bvlc_fdt_list());
+    status = bvlc_foreign_device_table_entry_add(bvlc_fdt_list(), &fd_A, 60);
+    assert(status);
+    status = bvlc_foreign_device_table_entry_add(
+        bvlc_fdt_list(), &fd_B_is_global, 60);
+    assert(status);
+    status = bvlc_foreign_device_table_entry_add(bvlc_fdt_list(), &fd_C, 60);
+    assert(status);
+
+    /* Case 1: NAT handling disabled - every live FDT peer is forwarded */
+    bvlc_disable_nat();
+    Test_Sent_Message_Count = 0;
+    (void)bvlc_bbmd_enabled_handler(&TD.BIP_Addr, &src, &mtu[0], mtu_len);
+    assert(Test_Sent_Message_Count == 3);
+    status = test_sent_message_dest_contains(&fd_A);
+    assert(status);
+    status = test_sent_message_dest_contains(&fd_B_is_global);
+    assert(status);
+    status = test_sent_message_dest_contains(&fd_C);
+    assert(status);
+
+    /* Case 2: NAT handling enabled - only the peer whose forward address
+       equals the NAT global address is skipped, to avoid a forwarding
+       loop through the NAT router; all other peers are still forwarded */
+    bvlc_set_global_address_for_nat(&global_address);
+    Test_Sent_Message_Count = 0;
+    (void)bvlc_bbmd_enabled_handler(&TD.BIP_Addr, &src, &mtu[0], mtu_len);
+    assert(Test_Sent_Message_Count == 2);
+    status = test_sent_message_dest_contains(&fd_A);
+    assert(status);
+    status = test_sent_message_dest_contains(&fd_B_is_global);
+    assert(!status);
+    status = test_sent_message_dest_contains(&fd_C);
+    assert(status);
+
+    bvlc_disable_nat();
+    bvlc_foreign_device_table_valid_clear(bvlc_fdt_list());
+    test_cleanup();
+}
+
 static void test_BBMD_Result(void)
 {
     int result = 0;
@@ -390,6 +478,7 @@ int main(void)
     test_Initiate_Original_Broadcast_NPDU();
     test_Initiate_Original_Broadcast_NPDU_Uses_Broadcast_Port();
     test_BBMD_NAT_Anti_Loop_Forward();
+    test_BBMD_NAT_Anti_Loop_Forward_FDT();
 
     return 0;
 }
