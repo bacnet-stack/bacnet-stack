@@ -286,7 +286,8 @@ static size_t record_count(const char *records, size_t size)
         if (records >= end) {
             break;
         }
-        len = bacnet_strnlen(records, MAX_OCTET_STRING_BYTES);
+        len = bacnet_strnlen(
+            records, BACNET_MIN(MAX_OCTET_STRING_BYTES, (size_t)(end - records)));
         if (len > 0) {
             count++;
             records = records + len + 1;
@@ -318,7 +319,8 @@ static char *record_by_index(char *records, size_t index, size_t size)
         if (records >= end) {
             break;
         }
-        len = bacnet_strnlen(records, MAX_OCTET_STRING_BYTES);
+        len = bacnet_strnlen(
+            records, BACNET_MIN(MAX_OCTET_STRING_BYTES, (size_t)(end - records)));
         if (len > 0) {
             if (index == count) {
                 return records;
@@ -395,7 +397,11 @@ bool bacfile_ramfs_write_record_data(
         if (fileSeekRecord < fileRecordCount) {
             /* find the old record length */
             record = record_by_index(pFile->data, fileSeekRecord, pFile->size);
-            record_len = bacnet_strnlen(record, MAX_OCTET_STRING_BYTES);
+            record_len = bacnet_strnlen(
+                record,
+                BACNET_MIN(
+                    MAX_OCTET_STRING_BYTES,
+                    pFile->size - (size_t)(record - pFile->data)));
             tail_record_len = pFile->size - (record - pFile->data) - record_len;
             /* save tail data (excluding old record's null terminator) before
                realloc (may be lost if buffer shrinks) */
@@ -479,7 +485,11 @@ bool bacfile_ramfs_read_record_data(
         /* seek to the start record */
         record = record_by_index(pFile->data, fileSeekRecord, pFile->size);
         if (record) {
-            record_len = bacnet_strnlen(record, MAX_OCTET_STRING_BYTES);
+            record_len = bacnet_strnlen(
+                record,
+                BACNET_MIN(
+                    MAX_OCTET_STRING_BYTES,
+                    pFile->size - (size_t)(record - pFile->data)));
             if ((record_len > 0) && (record_len <= fileDataLen)) {
                 /* copy the record data */
                 memcpy(fileData, record, record_len);
@@ -502,6 +512,7 @@ void bacfile_ramfs_deinit(void)
         do {
             pFile = Keylist_Data_Pop(File_List);
             if (pFile) {
+                free(pFile->data);
                 free(pFile);
             }
         } while (pFile);
