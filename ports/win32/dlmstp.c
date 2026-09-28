@@ -262,7 +262,6 @@ uint16_t dlmstp_receive(
     uint16_t pdu_len = 0;
     DWORD wait_status = 0;
 
-    (void)max_pdu;
     /* see if there is a packet available, and a place
        to put the reply (if necessary) and process it */
     WaitForSingleObject(Receive_Packet_Mutex, INFINITE);
@@ -276,11 +275,14 @@ uint16_t dlmstp_receive(
                         src, &Receive_Packet.address,
                         sizeof(Receive_Packet.address));
                 }
-                if (pdu) {
-                    memmove(
-                        pdu, &Receive_Packet.pdu, sizeof(Receive_Packet.pdu));
-                }
                 pdu_len = Receive_Packet.pdu_len;
+                if (pdu) {
+                    /* bounds check - do not overflow the caller's buffer */
+                    if (pdu_len > max_pdu) {
+                        pdu_len = max_pdu;
+                    }
+                    memmove(pdu, &Receive_Packet.pdu, pdu_len);
+                }
             }
             Receive_Packet.ready = false;
         }
