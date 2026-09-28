@@ -42,7 +42,7 @@ pre-commit --version
 ```
 
 This ensures that your code complies with our coding conventions and saves time
-during code review.
+during code review. Keep changes consistent with `.clang-format`.
 
 ## CI Expectations (.github/workflows)
 
@@ -52,12 +52,42 @@ The workflows include:
 - Build verification across OS platforms (Linux, macOS, Windows, Raspberry Pi)
 - Build variations across embedded microcontrollers (ESP32, STM32/AT91, xmega/AVR, etc.)
 - Build for C standards: gnu89 (C89+extensions), gnu99, gnu11, gnu17
-- Lint validation using clang-build, cppcheck, and flawfinder
+- Lint validation using scan-build, cppcheck, and flawfinder
 - pre-commit using clang-format and other tools to enforce code style
 - CodeQL static analysis
 
 Contributions that break the build or introduce new warnings will not be
-merged.
+merged. Existing unit tests must continue to pass. Add tests under `test/` for
+new functionality when practical. Follow the existing test layout and register
+new test directories with CMake. See the [unit testing README](test/README.md)
+for test conventions, framework details, and instructions for running tests.
+
+## Code and Platform Guidelines
+
+Keep code compatible with the supported C standards listed above; do not
+introduce language features that break older supported standards unless
+required. Declare local variables at the start of a function or block, before
+executable statements, to follow the project's C89 style. Initialize variables
+when a meaningful default is available, and ensure every variable is assigned
+before it is read; do not rely on implicit initialization. Preserve existing
+SPDX license identifiers in source and header files. Header files under
+`src/bacnet/` typically use `MIT`; most C source files use
+`GPL-2.0-or-later WITH GCC-exception-2.0`, while some use MIT or Apache-2.0.
+Consult maintainers before changing a file's license identifier.
+
+The core library must remain portable across supported operating systems and
+embedded platforms. Keep operating-system-specific headers and code out of
+core library files; platform-specific implementations belong in `ports/`.
+Include `bacnet/bacdef.h` first in project headers. It includes
+`bacnet/basic/sys/platform.h`, the shared libc and compiler portability layer;
+put reusable compatibility abstractions there rather than duplicating them
+throughout the codebase. Use `bacnet/config.h` as the central location for
+project configuration defines. Product-specific settings can be supplied in a
+local `bacnet-config.h` or through the build configuration, as documented in
+`config.h`.
+
+The application layer uses standard C structures with function pointers and
+callbacks for its object-oriented patterns.
 
 ## Naming Conventions
 
@@ -135,7 +165,7 @@ typedef enum BACnetAuthenticationDisableReason {
 ```
 
 Most BACnet enumerations have a text equivalent in bactext.c module
-that is used for EPICS and logging. For example:
+that is used for EPICS, printing, logging, and parsing. For example:
 ```c
 static INDTEXT_DATA bactext_audit_level_names[] = {
     /* BACnetAuditLevel enumerations */

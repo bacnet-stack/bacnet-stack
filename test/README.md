@@ -2,6 +2,25 @@
 
 CMake and C99 are used for the verification and validation testing.
 
+## Unit Test Conventions
+
+The `test/` folder structure follows the `src/` folder structure. Place tests
+for a library module under the corresponding path in `test/`; when adding a
+new test directory, register it in `test/CMakeLists.txt` and follow a nearby
+test directory's layout.
+
+Use the `src/` directory as the include root for library headers. Include them
+with the `bacnet/` prefix, such as `#include <bacnet/cov.h>`, rather than using
+relative paths.
+
+The tests use the customized Zephyr `ztest` framework in `test/ztest/`, which
+also provides FFF mocking macros. Include `<zephyr/ztest.h>` and use the
+`zassert_*` macros for assertions. These macros accept a format string and
+arguments for failure details; pass `NULL` when no message is needed. Support
+both ztest APIs with `#if defined(CONFIG_ZTEST_NEW_API)` where applicable, and
+use existing tests as examples. Tests may also use standard `assert()` when
+appropriate.
+
 ## Testing in the Github workflow pipeline with Makefile
 
 The Makefile 'test' recipe is used for the CMake recipe used in the pipeline.
@@ -25,7 +44,7 @@ results of running the test.
   can be viewed in a browser starting at test/build/lcoverage/index.html
 * The CTest extension can also be used to run the tests.
 
-## Validation and Unit testing with ctest or ztest
+## Validation and Unit Testing with CTest or ztest
 
 * The ctest suite is used from cmake managing the tests. Add new test
   files following the src/bacnet folder structure into the CMakeLists.txt
