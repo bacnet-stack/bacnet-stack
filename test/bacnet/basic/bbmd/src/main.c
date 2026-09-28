@@ -271,6 +271,7 @@ static void test_BBMD_NAT_Anti_Loop_Forward(void)
     BACNET_IP_ADDRESS peer_C = { 0 };
     BACNET_IP_ADDRESS global_address = { 0 };
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt = NULL;
+    bool status = false;
 
     test_setup();
     /* build an Original-Broadcast-NPDU as received from a 3rd party device */
@@ -315,9 +316,12 @@ static void test_BBMD_NAT_Anti_Loop_Forward(void)
     Test_Sent_Message_Count = 0;
     (void)bvlc_bbmd_enabled_handler(&TD.BIP_Addr, &src, &mtu[0], mtu_len);
     assert(Test_Sent_Message_Count == 3);
-    assert(test_sent_message_dest_contains(&peer_A));
-    assert(test_sent_message_dest_contains(&peer_B_is_global));
-    assert(test_sent_message_dest_contains(&peer_C));
+    status = test_sent_message_dest_contains(&peer_A);
+    assert(status);
+    status = test_sent_message_dest_contains(&peer_B_is_global);
+    assert(status);
+    status = test_sent_message_dest_contains(&peer_C);
+    assert(status);
 
     /* Case 2: NAT handling enabled - only the peer whose forward address
        equals the NAT global address is skipped, to avoid a forwarding
@@ -326,9 +330,12 @@ static void test_BBMD_NAT_Anti_Loop_Forward(void)
     Test_Sent_Message_Count = 0;
     (void)bvlc_bbmd_enabled_handler(&TD.BIP_Addr, &src, &mtu[0], mtu_len);
     assert(Test_Sent_Message_Count == 2);
-    assert(test_sent_message_dest_contains(&peer_A));
-    assert(!test_sent_message_dest_contains(&peer_B_is_global));
-    assert(test_sent_message_dest_contains(&peer_C));
+    status = test_sent_message_dest_contains(&peer_A);
+    assert(status);
+    status = test_sent_message_dest_contains(&peer_B_is_global);
+    assert(!status);
+    status = test_sent_message_dest_contains(&peer_C);
+    assert(status);
 
     bvlc_disable_nat();
     bvlc_bdt_list_clear();
