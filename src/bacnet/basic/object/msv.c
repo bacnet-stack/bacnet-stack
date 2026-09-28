@@ -30,7 +30,7 @@ struct object_data {
     bool Out_Of_Service : 1;
     bool Change_Of_Value : 1;
     bool Write_Enabled : 1;
-    uint8_t Present_Value;
+    uint32_t Present_Value;
     uint8_t Reliability;
     BACNET_CHARACTER_CSTRING Object_Name;
     OS_Keylist State_List;
@@ -1008,9 +1008,15 @@ bool Multistate_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
-                status = Multistate_Value_Present_Value_Write(
-                    wp_data->object_instance, value.type.Enumerated,
-                    &wp_data->error_class, &wp_data->error_code);
+                status = false;
+                if (value.type.Unsigned_Int <= UINT32_MAX) {
+                    status = Multistate_Value_Present_Value_Write(
+                        wp_data->object_instance, value.type.Unsigned_Int,
+                        &wp_data->error_class, &wp_data->error_code);
+                } else {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_OBJECT_NAME:

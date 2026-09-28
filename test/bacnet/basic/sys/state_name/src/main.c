@@ -288,11 +288,13 @@ static void testStateNameListWrite(void)
     zassert_equal(error_code, ERROR_CODE_SUCCESS, NULL);
     zassert_equal(state_name_list_count(list), count + 3, NULL);
 
-    /* value is written on auto-expand, intermediate elements are NULL */
+    /* value is written on auto-expand, intermediate elements are empty */
     name = Keylist_Data(list, count + 1);
-    zassert_is_null(name, NULL);
+    zassert_not_null(name, NULL);
+    zassert_equal(strlen(name), 0, NULL);
     name = Keylist_Data(list, count + 2);
-    zassert_is_null(name, NULL);
+    zassert_not_null(name, NULL);
+    zassert_equal(strlen(name), 0, NULL);
     name = Keylist_Data(list, count + 3);
     zassert_not_null(name, NULL);
     zassert_equal(strcmp(name, test_name), 0, NULL);
@@ -300,6 +302,36 @@ static void testStateNameListWrite(void)
     /* invalid data type (empty application data) */
     error_code = state_name_list_write_resizable(list, 1, count + 3, apdu, 0);
     zassert_equal(error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+
+    /* resize to zero elements is rejected, list is unchanged */
+    count = state_name_list_count(list);
+    error_code = state_name_list_write_resizable(list, 0, 0, NULL, 0);
+    zassert_equal(error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+    zassert_equal(state_name_list_count(list), count, NULL);
+
+    /* resize beyond the maximum is rejected, list is unchanged */
+    error_code = state_name_list_write_resizable(
+        list, 0, BACNET_STATE_NAME_LIST_MAX + 1, NULL, 0);
+    zassert_equal(error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+    error_code =
+        state_name_list_write_resizable(list, 0, 4294967295UL, NULL, 0);
+    zassert_equal(error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+    zassert_equal(state_name_list_count(list), count, NULL);
+
+    /* resize to exactly the maximum is accepted */
+    error_code = state_name_list_write_resizable(
+        list, 0, BACNET_STATE_NAME_LIST_MAX, NULL, 0);
+    zassert_equal(error_code, ERROR_CODE_SUCCESS, NULL);
+    zassert_equal(
+        state_name_list_count(list), BACNET_STATE_NAME_LIST_MAX, NULL);
+
+    /* auto-expand by index beyond the maximum is rejected */
+    error_code = state_name_list_write_resizable(
+        list, BACNET_STATE_NAME_LIST_MAX + 1, BACNET_STATE_NAME_LIST_MAX, apdu,
+        apdu_len);
+    zassert_equal(error_code, ERROR_CODE_INVALID_ARRAY_INDEX, NULL);
+    zassert_equal(
+        state_name_list_count(list), BACNET_STATE_NAME_LIST_MAX, NULL);
 
     /* cleanup */
     status = state_name_list_init(list, NULL);

@@ -1376,6 +1376,11 @@ int TL_encode_by_position(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
 
     /* From here on in we only have a starting point and a positive count */
 
+    if ((pRequest->Range.RefIndex == 0) || (pRequest->Count <= 0)) {
+        /* list positions are numbered from 1, so there is nothing to
+           return for position 0 or for an empty range */
+        return (0);
+    }
     if (pRequest->Range.RefIndex >
         CurrentLog->ulRecordCount) { /* Nothing to return as we are past the
                                       end of the list */
@@ -1758,7 +1763,9 @@ int TL_encode_entry(uint8_t *apdu, int iLog, int iEntry)
 
     /* Convert from BACnet 1 based to 0 based array index and then
      * handle wrap around of the circular buffer */
-
+    if (iEntry < 1) {
+        return 0;
+    }
     if (LogInfo[iLog].ulRecordCount < TL_MAX_ENTRIES) {
         pSource = &Logs[iLog][(iEntry - 1) % TL_MAX_ENTRIES];
     } else {

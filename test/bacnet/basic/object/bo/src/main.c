@@ -85,6 +85,29 @@ static void testBinaryOutput_Writable_Properties(void)
     Binary_Output_Cleanup();
 }
 /**
+ * @brief Test that the priority-array accessors do not dereference NULL
+ *  for an unknown object instance
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bo_tests, testBinaryOutput_Priority_Array_Unknown_Instance)
+#else
+static void testBinaryOutput_Priority_Array_Unknown_Instance(void)
+#endif
+{
+    const uint32_t invalid_instance = 999;
+
+    Binary_Output_Init();
+
+    zassert_false(
+        Binary_Output_Priority_Array_Relinquished(invalid_instance, 1), NULL);
+    zassert_equal(
+        Binary_Output_Priority_Array_Value(invalid_instance, 1),
+        BINARY_INACTIVE, NULL);
+
+    Binary_Output_Cleanup();
+}
+
+/**
  * @brief Test that changes to Present_Value (priority-array),
  *  Relinquish_Default, and Status_Flags (Out_Of_Service, Reliability/Fault)
  *  set the Change_Of_Value flag when the observable value actually changes,
@@ -175,6 +198,7 @@ void test_main(void)
     ztest_test_suite(
         bo_tests, ztest_unit_test(testBinaryOutput),
         ztest_unit_test(testBinaryOutput_Writable_Properties),
+        ztest_unit_test(testBinaryOutput_Priority_Array_Unknown_Instance),
         ztest_unit_test(testBinaryOutput_COV));
 
     ztest_run_test_suite(bo_tests);
