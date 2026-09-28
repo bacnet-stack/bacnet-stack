@@ -376,11 +376,11 @@ static inline fixedpt fixedpt_exp(fixedpt fp)
     if (k < 0) {
         shift = (unsigned int)(-k >> FIXEDPT_FBITS);
         k = (shift < FIXEDPT_BITS) ? (fixedpt)((fixedptu)FIXEDPT_ONE >> shift)
-                                    : 0;
+                                   : 0;
     } else {
         shift = (unsigned int)(k >> FIXEDPT_FBITS);
         k = (shift < FIXEDPT_BITS) ? (fixedpt)((fixedptu)FIXEDPT_ONE << shift)
-                                    : 0;
+                                   : 0;
     }
     return (fixedpt_mul(k, xp));
 }

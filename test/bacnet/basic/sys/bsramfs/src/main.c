@@ -147,11 +147,12 @@ static void test_BSRAMFS_invalid_positions(void)
     static char rec_data[] = "First record.\0Second record.";
     /* static storage: bacfile_sramfs_add() stores the pointer for the
        lifetime of the program, so this cannot be a stack variable */
-    static struct bacnet_file_sramfs_data stream_file = { sizeof(raw_data),
-                                                   (char *)raw_data,
-                                                   "invalid_stream.txt", NULL };
-    static struct bacnet_file_sramfs_data record_file = { sizeof(rec_data), rec_data,
-                                                   "invalid_record.txt", NULL };
+    static struct bacnet_file_sramfs_data stream_file = {
+        sizeof(raw_data), (char *)raw_data, "invalid_stream.txt", NULL
+    };
+    static struct bacnet_file_sramfs_data record_file = {
+        sizeof(rec_data), rec_data, "invalid_record.txt", NULL
+    };
     uint8_t read_buf[64] = { 0 };
     size_t len = 0;
     bool status = false;
