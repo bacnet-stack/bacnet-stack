@@ -289,7 +289,7 @@ static size_t record_count(const char *records, size_t size)
         len = bacnet_strnlen(
             records,
             BACNET_MIN(MAX_OCTET_STRING_BYTES, (size_t)(end - records)));
-        if (len > 0) {
+        if ((len > 0) && ((size_t)len < (size_t)(end - records))) {
             count++;
             records = records + len + 1;
         }
@@ -323,7 +323,7 @@ static char *record_by_index(char *records, size_t index, size_t size)
         len = bacnet_strnlen(
             records,
             BACNET_MIN(MAX_OCTET_STRING_BYTES, (size_t)(end - records)));
-        if (len > 0) {
+        if ((len > 0) && ((size_t)len < (size_t)(end - records))) {
             if (index == count) {
                 return records;
             }
