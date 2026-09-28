@@ -418,6 +418,19 @@ static void testCharacterStringAnsiHelpers(void)
     zassert_equal(
         strcmp(characterstring_value_const(&bacnet_string), value), 0, NULL);
 
+    /* setting an owned (duplicated) string to its own value must not
+       free it and leave a dangling reference */
+    status = bacnet_character_cstring_strndup(
+        &ansi_string, "owned-value", MAX_CHARACTER_STRING_BYTES);
+    zassert_true(status, NULL);
+    status = bacnet_character_cstring_set(
+        &ansi_string, bacnet_character_cstring_value_const(&ansi_string));
+    zassert_true(status, NULL);
+    zassert_equal(
+        strcmp(
+            bacnet_character_cstring_value_const(&ansi_string), "owned-value"),
+        0, NULL);
+
     bacnet_character_cstring_set(&ansi_string, NULL);
     zassert_is_null(bacnet_character_cstring_value_const(&ansi_string), NULL);
     zassert_equal(bacnet_character_cstring_length(&ansi_string), 0, NULL);
