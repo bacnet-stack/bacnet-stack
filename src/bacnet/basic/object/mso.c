@@ -1424,6 +1424,13 @@ bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->application_data_len);
             if (wp_data->error_code == ERROR_CODE_SUCCESS) {
                 status = true;
+            } else if (wp_data->error_code == ERROR_CODE_UNKNOWN_OBJECT) {
+                wp_data->error_class = ERROR_CLASS_OBJECT;
+            } else if (
+                wp_data->error_code == ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY) {
+                wp_data->error_class = ERROR_CLASS_RESOURCES;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
             }
             break;
         default:
