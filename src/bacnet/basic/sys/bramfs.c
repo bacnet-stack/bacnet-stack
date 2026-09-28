@@ -361,6 +361,7 @@ bool bacfile_ramfs_write_record_data(
     struct file_data *pFile;
     char *record;
     size_t record_len;
+    size_t record_offset;
     size_t tail_record_len;
     char *tail_data = NULL;
     size_t tail_data_len = 0;
@@ -399,6 +400,7 @@ bool bacfile_ramfs_write_record_data(
         if (fileSeekRecord < fileRecordCount) {
             /* find the old record length */
             record = record_by_index(pFile->data, fileSeekRecord, pFile->size);
+            record_offset = (size_t)(record - pFile->data);
             record_len = bacnet_strnlen(
                 record,
                 BACNET_MIN(
@@ -427,8 +429,8 @@ bool bacfile_ramfs_write_record_data(
             }
             pFile->data = record;
             pFile->size = new_size;
-            /* find the old record position after a realloc */
-            record = record_by_index(pFile->data, fileSeekRecord, pFile->size);
+            /* The old record may be truncated by a shrinking realloc. */
+            record = pFile->data + record_offset;
             /* restore tail data to new position (after new record + null
                terminator) */
             if (tail_data && tail_data_len > 0) {
