@@ -367,11 +367,13 @@ uint16_t dlmstp_receive(
             }
             pdu_len = pkt->pdu_len;
             if (pdu) {
-                /* bounds check - do not overflow the caller's buffer */
+                /* bounds check - discard oversized PDU rather than
+                   truncating it into the caller's buffer */
                 if (pdu_len > max_pdu) {
-                    pdu_len = max_pdu;
+                    pdu_len = 0;
+                } else {
+                    memmove(pdu, &pkt->pdu, pdu_len);
                 }
-                memmove(pdu, &pkt->pdu, pdu_len);
             }
         }
         pkt->ready = false;
