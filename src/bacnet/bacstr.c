@@ -292,6 +292,7 @@ bool bitstring_same(
     int i; /* loop counter */
     int bytes_used = 0;
     uint8_t compare_mask = 0;
+    unsigned partial_bits = 0;
 
     if (bitstring1 && bitstring2) {
         bytes_used = (int)(bitstring1->bits_used / 8);
@@ -303,14 +304,20 @@ bool bitstring_same(
                     return false;
                 }
             }
-            /* compare only the relevant bits of last partly used byte */
-            compare_mask = 0xFF >> (8 - (bitstring1->bits_used % 8));
-            if ((bitstring1->value[bytes_used] & compare_mask) !=
-                (bitstring2->value[bytes_used] & compare_mask)) {
-                return false;
-            } else {
-                return true;
+            /* compare only the relevant bits of last partly used byte,
+               if any - bits_used may be an exact multiple of 8, in
+               which case there is no partial byte to compare, and
+               bytes_used may equal MAX_BITSTRING_BYTES, in which case
+               value[bytes_used] would be out of bounds */
+            partial_bits = bitstring1->bits_used % 8;
+            if (partial_bits > 0) {
+                compare_mask = (uint8_t)(0xFF >> (8 - partial_bits));
+                if ((bitstring1->value[bytes_used] & compare_mask) !=
+                    (bitstring2->value[bytes_used] & compare_mask)) {
+                    return false;
+                }
             }
+            return true;
         }
     }
 
