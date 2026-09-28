@@ -1097,7 +1097,7 @@ void bip_cleanup(void)
         close(BIP_Socket);
     }
 
-    if (BIP_Broadcast_Socket != -1 && BIP_Broadcast_Socket != BIP_Socket) {
+    if ((BIP_Broadcast_Socket != -1) && (BIP_Broadcast_Socket != BIP_Socket)) {
         close(BIP_Broadcast_Socket);
     }
     BIP_Socket = -1;
