@@ -9,6 +9,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 /* BACnet Stack defines - first */
@@ -54,6 +55,22 @@ static int BBMD_Result;
 static BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY BBMD_Table_Entry;
 #endif
 static uint32_t Network_Port_Instance = 1;
+
+static bool dlenv_parse_uint16(
+    const char *text, uint16_t maximum, uint16_t *value)
+{
+    char *end = NULL;
+    long parsed;
+
+    errno = 0;
+    parsed = strtol(text, &end, 0);
+    if (errno == ERANGE || end == text || *end != '\0' || parsed < 0 ||
+        parsed > maximum) {
+        return false;
+    }
+    *value = (uint16_t)parsed;
+    return true;
+}
 
 /**
  * @brief Enabled debug printing of BACnet/IPv4 DL
@@ -386,7 +403,14 @@ static void dlenv_network_port_bip_init(uint32_t instance)
     }
     pEnv = getenv("BACNET_IP_PORT");
     if (pEnv) {
-        bip_set_port((uint16_t)strtol(pEnv, NULL, 0));
+        uint16_t port;
+        if (dlenv_parse_uint16(pEnv, UINT16_MAX, &port)) {
+            bip_set_port(port);
+        } else {
+            debug_log_fprintf(
+                DEBUG_LOG_ERROR, stderr,
+                "Invalid BACNET_IP_PORT value: %s\n", pEnv);
+        }
     } else {
         /* BIP_Port is statically initialized to 0xBAC0,
          * so if it is different, then it was programmatically altered,
@@ -520,7 +544,14 @@ void dlenv_network_port_mstp_init(uint32_t instance)
     }
     pEnv = getenv("BACNET_MSTP_MAC");
     if (pEnv) {
-        mac_address = strtol(pEnv, NULL, 0);
+        uint16_t parsed_mac;
+        if (dlenv_parse_uint16(pEnv, 127, &parsed_mac)) {
+            mac_address = parsed_mac;
+        } else {
+            debug_log_fprintf(
+                DEBUG_LOG_ERROR, stderr,
+                "Invalid BACNET_MSTP_MAC value: %s\n", pEnv);
+        }
     }
     debug_log_fprintf(
         DEBUG_LOG_DEBUG, stderr,
