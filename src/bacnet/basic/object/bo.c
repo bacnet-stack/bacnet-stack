@@ -370,7 +370,7 @@ bool Binary_Output_Priority_Array_Relinquished(
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+    if (pObject && (priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
         if (!BIT_CHECK(pObject->Priority_Active_Bits, priority - 1)) {
             status = true;
         }
@@ -392,7 +392,7 @@ Binary_Output_Priority_Array_Value(uint32_t object_instance, unsigned priority)
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+    if (pObject && (priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
         if (BIT_CHECK(pObject->Priority_Array, priority - 1)) {
             value = BINARY_ACTIVE;
         }
