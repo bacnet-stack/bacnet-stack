@@ -144,11 +144,10 @@ uint16_t dlmstp_receive(
                         sizeof(Receive_Packet.address));
                 }
                 pdu_len = Receive_Packet.pdu_len;
-                if (pdu) {
-                    /* bounds check - do not overflow the caller's buffer */
-                    if (pdu_len > max_pdu) {
-                        pdu_len = max_pdu;
-                    }
+                if (pdu_len > max_pdu) {
+                    /* PDU is too large - drop it rather than truncate */
+                    pdu_len = 0;
+                } else if (pdu) {
                     memmove(pdu, &Receive_Packet.pdu, pdu_len);
                 }
             }
