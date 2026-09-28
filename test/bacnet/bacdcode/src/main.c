@@ -909,12 +909,8 @@ ZTEST(bacdcode_tests, testBACDCodeUnsigned)
 static void testBACDCodeUnsigned(void)
 #endif
 {
-#ifdef UINT64_MAX
-    const unsigned max_bits = 64;
-#else
-    const unsigned max_bits = 32;
-#endif
     BACNET_UNSIGNED_INTEGER value;
+    const unsigned max_bits = sizeof(value) * 8;
     int i;
 
     for (i = 0; i < max_bits; i++) {
