@@ -381,9 +381,16 @@ uint16_t dlmstp_receive(
     pkt = (DLMSTP_PACKET *)Ringbuf_Peek(&Receive_Queue);
     if (!pkt && (timeout > 0)) {
         get_abstime(&abstime, timeout);
-        pthread_cond_timedwait(
-            &Receive_Packet_Flag, &Receive_Packet_Mutex, &abstime);
-        pkt = (DLMSTP_PACKET *)Ringbuf_Peek(&Receive_Queue);
+        /* guard against spurious wakeups - keep waiting on the same
+           deadline until a packet arrives or the wait times out/errors */
+        while (!pkt) {
+            if (pthread_cond_timedwait(
+                    &Receive_Packet_Flag, &Receive_Packet_Mutex, &abstime) !=
+                0) {
+                break;
+            }
+            pkt = (DLMSTP_PACKET *)Ringbuf_Peek(&Receive_Queue);
+        }
     }
 
     /* see if there is a packet available, and a place
