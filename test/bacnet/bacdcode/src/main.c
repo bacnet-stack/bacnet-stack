@@ -941,11 +941,7 @@ static void testBACnetUnsigned(void)
     BACNET_UNSIGNED_INTEGER value = 0, test_value = 0;
     int len_value = 0, apdu_len = 0, test_len = 0, null_len = 0;
     unsigned i;
-#ifdef UINT64_MAX
-    const unsigned max_bits = 64;
-#else
-    const unsigned max_bits = 32;
-#endif
+    const unsigned max_bits = sizeof(value) * 8;
 
     for (i = 0; i < max_bits; i++) {
         value = ((BACNET_UNSIGNED_INTEGER)1 << i);
