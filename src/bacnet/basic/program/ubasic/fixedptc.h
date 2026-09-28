@@ -98,7 +98,7 @@ typedef __uint128_t fixedptud;
     ((fixedpt)(((double)(R)) *                   \
                (((fixedptd)1 << FIXEDPT_FBITS) + \
                 ((double)(R) >= 0.0 ? 0.5 : -0.5))))
-#define fixedpt_fromint(I) ((fixedptd)(I) << FIXEDPT_FBITS)
+#define fixedpt_fromint(I) ((fixedptd)(I) * ((fixedptd)1 << FIXEDPT_FBITS))
 #define fixedpt_toint(F) ((F) >> FIXEDPT_FBITS)
 #define fixedpt_add(A, B) ((A) + (B))
 #define fixedpt_sub(A, B) ((A) - (B))
@@ -127,7 +127,7 @@ static inline fixedpt fixedpt_mul(fixedpt A, fixedpt B)
 /* Divides two fixedpt numbers, returns the result. */
 static inline fixedpt fixedpt_div(fixedpt A, fixedpt B)
 {
-    return (((fixedptd)A << FIXEDPT_FBITS) / (fixedptd)B);
+    return (((fixedptd)A * ((fixedptd)1 << FIXEDPT_FBITS)) / (fixedptd)B);
 }
 
 /*
@@ -222,7 +222,7 @@ static inline void fixedpt_str(fixedpt A, char *str, int max_dec)
     }
     str[slen++] = '.';
 
-    fr = (fixedpt_fracpart(A) << FIXEDPT_WBITS) & mask;
+    fr = ((fixedptud)fixedpt_fracpart(A) << FIXEDPT_WBITS) & mask;
     do {
         fr = (fr & mask) * 10;
         str[slen++] = '0' + (fr >> FIXEDPT_BITS) % 10;
@@ -336,6 +336,7 @@ static inline fixedpt fixedpt_tan(fixedpt A)
 static inline fixedpt fixedpt_exp(fixedpt fp)
 {
     fixedpt xabs, k, z, R, xp;
+    unsigned int shift;
     const fixedpt LN2 = fixedpt_rconst(0.69314718055994530942);
     const fixedpt LN2_INV = fixedpt_rconst(1.4426950408889634074);
     const fixedpt EXP_P[5] = {
@@ -373,9 +374,13 @@ static inline fixedpt fixedpt_exp(fixedpt fp)
                                     z, EXP_P[3] + fixedpt_mul(z, EXP_P[4])))));
     xp = FIXEDPT_ONE + fixedpt_div(fixedpt_mul(fp, FIXEDPT_TWO), R - fp);
     if (k < 0) {
-        k = FIXEDPT_ONE >> (-k >> FIXEDPT_FBITS);
+        shift = (unsigned int)(-k >> FIXEDPT_FBITS);
+        k = (shift < FIXEDPT_BITS) ? (fixedpt)((fixedptu)FIXEDPT_ONE >> shift)
+                                    : 0;
     } else {
-        k = FIXEDPT_ONE << (k >> FIXEDPT_FBITS);
+        shift = (unsigned int)(k >> FIXEDPT_FBITS);
+        k = (shift < FIXEDPT_BITS) ? (fixedpt)((fixedptu)FIXEDPT_ONE << shift)
+                                    : 0;
     }
     return (fixedpt_mul(k, xp));
 }
