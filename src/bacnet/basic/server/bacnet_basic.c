@@ -44,7 +44,7 @@ static struct mstimer BACnet_Object_Timer;
 /* task timer for TSM timeouts */
 static struct mstimer BACnet_TSM_Timer;
 #endif
-#if defined(BACNET_ADDRESS_CACHE_TIMER)
+#if defined(BACNET_ADDRESS_CACHE)
 /* task timer for address binding timeouts */
 static struct mstimer BACnet_Address_Timer;
 #endif
@@ -258,7 +258,8 @@ void bacnet_basic_init(void)
 #if (MAX_TSM_TRANSACTIONS)
     mstimer_set(&BACnet_TSM_Timer, 50UL);
 #endif
-#if defined(BACNET_ADDRESS_CACHE_TIMER)
+#if defined(BACNET_ADDRESS_CACHE)
+    address_init();
     mstimer_set(&BACnet_Address_Timer, 60UL * 1000UL);
 #endif
     Device_Write_Property_Store_Callback_Set(bacnet_basic_write_property_store);
@@ -321,7 +322,7 @@ void bacnet_basic_task(void)
         tsm_timer_milliseconds(elapsed_milliseconds);
     }
 #endif
-#if defined(BACNET_ADDRESS_CACHE_TIMER)
+#if defined(BACNET_ADDRESS_CACHE)
     /* age the dynamic address bindings shared by COV, notifications, etc. */
     if (mstimer_expired(&BACnet_Address_Timer)) {
         mstimer_reset(&BACnet_Address_Timer);
