@@ -17,6 +17,7 @@
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
+#include "bacnet/basic/binding/address.h"
 #include "bacnet/datalink/datalink.h"
 /* BACnet Stack basic objects */
 #include "bacnet/basic/object/device.h"
@@ -39,6 +40,12 @@
 static struct mstimer BACnet_Task_Timer;
 /* task timer for object functionality */
 static struct mstimer BACnet_Object_Timer;
+#if (MAX_TSM_TRANSACTIONS)
+/* task timer for TSM timeouts */
+static struct mstimer BACnet_TSM_Timer;
+#endif
+/* task timer for address binding timeouts */
+static struct mstimer BACnet_Address_Timer;
 /* uptimer for BACnet task */
 static unsigned long BACnet_Uptime_Seconds;
 /* packet counter for BACnet task */
@@ -246,6 +253,10 @@ void bacnet_basic_init(void)
     if (mstimer_interval(&BACnet_Object_Timer) == 0) {
         mstimer_set(&BACnet_Object_Timer, 100UL);
     }
+#if (MAX_TSM_TRANSACTIONS)
+    mstimer_set(&BACnet_TSM_Timer, 50UL);
+#endif
+    mstimer_set(&BACnet_Address_Timer, 60UL * 1000UL);
     Device_Write_Property_Store_Callback_Set(bacnet_basic_write_property_store);
     Device_Init(NULL);
     /* initialize user data in this thread */
@@ -299,6 +310,22 @@ void bacnet_basic_task(void)
         mstimer_restart(&BACnet_Object_Timer);
         Device_Timer(elapsed_milliseconds);
     }
+#if (MAX_TSM_TRANSACTIONS)
+    if (mstimer_expired(&BACnet_TSM_Timer)) {
+        mstimer_reset(&BACnet_TSM_Timer);
+        elapsed_milliseconds = mstimer_interval(&BACnet_TSM_Timer);
+        tsm_timer_milliseconds(elapsed_milliseconds);
+    }
+#endif
+#if (BACNET_COV_SUBSCRIPTIONS_SIZE > 0)
+    /* COV requires address cache maintenance for confirmed COV service */
+    if (mstimer_expired(&BACnet_Address_Timer)) {
+        mstimer_reset(&BACnet_Address_Timer);
+        elapsed_milliseconds = mstimer_interval(&BACnet_Address_Timer);
+        elapsed_seconds = elapsed_milliseconds / 1000;
+        address_cache_timer(elapsed_seconds);
+    }
+#endif
     /* handle the messaging */
     pdu_len = datalink_receive(&src, &PDUBuffer[0], sizeof(PDUBuffer), 0);
     if (pdu_len) {
