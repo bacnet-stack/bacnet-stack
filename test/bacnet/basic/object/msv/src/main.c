@@ -227,6 +227,7 @@ static void testMultistateValue_PresentValueRange(void)
     zassert_true(status, NULL);
     zassert_equal(Multistate_Value_Present_Value(object_instance), 257, NULL);
 
+#ifdef UINT64_MAX
     /* a 64-bit value whose low 32 bits alias a valid state (2^32 + 2) must
        be rejected, not silently truncated and accepted */
     wp_data.application_data_len = encode_application_unsigned(
@@ -237,6 +238,9 @@ static void testMultistateValue_PresentValueRange(void)
     zassert_equal(wp_data.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
     /* present-value must remain unchanged, not wrapped to 2 */
     zassert_equal(Multistate_Value_Present_Value(object_instance), 257, NULL);
+#else
+#warning "UINT64_MAX not supported! skipping 64-bit overflow check"
+#endif
 
     status = Multistate_Value_Delete(object_instance);
     zassert_true(status, NULL);
