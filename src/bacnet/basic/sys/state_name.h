@@ -12,6 +12,12 @@
 /* BACnet utilities */
 #include "bacnet/basic/sys/keylist.h"
 
+/* maximum number of elements in a resizable state name list,
+   which bounds the Number_Of_States of multistate objects */
+#ifndef BACNET_STATE_NAME_LIST_MAX
+#define BACNET_STATE_NAME_LIST_MAX 255
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
