@@ -283,7 +283,7 @@ static bool test_av_write(
     wp_data->array_index = BACNET_ARRAY_ALL;
     wp_data->priority = priority;
     wp_data->application_data_len =
-        bacapp_encode_application_data(wp_data->application_data, &value);
+        bacapp_encode_application_data(wp_data->application_data, value);
     return Analog_Value_Write_Property(wp_data);
 }
 
