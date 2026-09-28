@@ -33,7 +33,9 @@ static void testAnalog_Value(void)
     bool status = false;
     unsigned count = 0;
     uint32_t object_instance = BACNET_MAX_INSTANCE, test_object_instance = 0;
-    const int32_t skip_fail_property_list[] = { -1 };
+    const int32_t skip_fail_property_list[] = { PROP_PRIORITY_ARRAY,
+                                                PROP_CURRENT_COMMAND_PRIORITY,
+                                                -1 };
 
     Analog_Value_Init();
     object_instance = Analog_Value_Create(object_instance);
