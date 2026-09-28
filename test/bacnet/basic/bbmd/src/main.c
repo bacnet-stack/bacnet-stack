@@ -36,6 +36,11 @@ static uint8_t Test_Sent_Message_Length;
 static uint8_t Test_Sent_Message_Buffer[MAX_APDU];
 static uint16_t Test_Sent_Message_Buffer_Length;
 static BACNET_IP_ADDRESS Test_Sent_Message_Dest;
+/* tracks every destination sent to, for tests that forward to many peers */
+#define TEST_SENT_MESSAGE_DEST_MAX 16
+static BACNET_IP_ADDRESS
+    Test_Sent_Message_Dest_List[TEST_SENT_MESSAGE_DEST_MAX];
+static unsigned Test_Sent_Message_Count;
 
 /* network stub functions */
 /**
@@ -82,6 +87,11 @@ int bip_send_mpdu(
     Test_Sent_Message_Type = message_type;
     Test_Sent_Message_Length = message_length;
     bvlc_address_copy(&Test_Sent_Message_Dest, dest);
+    if (Test_Sent_Message_Count < TEST_SENT_MESSAGE_DEST_MAX) {
+        bvlc_address_copy(
+            &Test_Sent_Message_Dest_List[Test_Sent_Message_Count], dest);
+    }
+    Test_Sent_Message_Count++;
     if ((header_len == 4) && (mtu_len >= 4)) {
         memcpy(&Test_Sent_Message_Buffer[0], &mtu[4], mtu_len - 4);
         Test_Sent_Message_Buffer_Length = mtu_len - 4;
@@ -90,6 +100,30 @@ int bip_send_mpdu(
     }
 
     return 0;
+}
+
+/**
+ * @brief Check whether a destination address was sent to since the
+ *  message counters were last reset.
+ *
+ * @param addr - destination address to look for
+ * @return true if a message was sent to addr
+ */
+static bool test_sent_message_dest_contains(const BACNET_IP_ADDRESS *addr)
+{
+    unsigned i = 0;
+    unsigned count = Test_Sent_Message_Count;
+
+    if (count > TEST_SENT_MESSAGE_DEST_MAX) {
+        count = TEST_SENT_MESSAGE_DEST_MAX;
+    }
+    for (i = 0; i < count; i++) {
+        if (!bvlc_address_different(&Test_Sent_Message_Dest_List[i], addr)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /** Return the Object Instance number for our (single) Device Object.
@@ -133,6 +167,8 @@ static void test_setup(void)
     bvlc_address_set(&IUT.BIP_Broadcast_Addr, 255, 255, 255, 255);
     bvlc_address_set(&IUT.BIP_Addr, 192, 168, 1, 10);
     IUT.Device_ID = 54321;
+
+    Test_Sent_Message_Count = 0;
 }
 
 static void test_cleanup(void)
@@ -214,6 +250,91 @@ static void test_Initiate_Original_Broadcast_NPDU_Uses_Broadcast_Port(void)
     test_cleanup();
 }
 
+/**
+ * @brief Test that the BBMD NAT anti-loop check in bbmd_bdt_forward_npdu()
+ *  only skips the BDT peer whose forward address equals the NAT global
+ *  address, and still forwards to every other BDT peer. (bug B2)
+ */
+static void test_BBMD_NAT_Anti_Loop_Forward(void)
+{
+    uint8_t pdu[MAX_APDU] = { 0 };
+    int npdu_len = 0;
+    int apdu_len = 0;
+    int pdu_len = 0;
+    BACNET_ADDRESS dest = { 0 };
+    BACNET_NPDU_DATA npdu_data = { 0 };
+    uint8_t mtu[MAX_APDU] = { 0 };
+    int mtu_len = 0;
+    BACNET_ADDRESS src = { 0 };
+    BACNET_IP_ADDRESS peer_A = { 0 };
+    BACNET_IP_ADDRESS peer_B_is_global = { 0 };
+    BACNET_IP_ADDRESS peer_C = { 0 };
+    BACNET_IP_ADDRESS global_address = { 0 };
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt = NULL;
+
+    test_setup();
+    /* build an Original-Broadcast-NPDU as received from a 3rd party device */
+    dest.net = BACNET_BROADCAST_NETWORK;
+    npdu_encode_npdu_data(&npdu_data, false, MESSAGE_PRIORITY_NORMAL);
+    npdu_len = npdu_encode_pdu(&pdu[0], &dest, &TD.BACnet_Address, &npdu_data);
+    apdu_len = iam_encode_apdu(
+        &pdu[npdu_len], TD.Device_ID, MAX_APDU, SEGMENTATION_NONE,
+        BACNET_VENDOR_ID);
+    pdu_len = npdu_len + apdu_len;
+    mtu_len =
+        bvlc_encode_original_broadcast(&mtu[0], sizeof(mtu), &pdu[0], pdu_len);
+    assert(mtu_len > 0);
+
+    /* configure the BDT: peer B's forward address equals the NAT global
+       address; peers A and C are ordinary remote BBMDs */
+    bvlc_address_set(&peer_A, 192, 168, 1, 20);
+    peer_A.port = 0xBAC0U;
+    bvlc_address_set(&peer_B_is_global, 203, 0, 113, 5);
+    peer_B_is_global.port = 0xBAC0U;
+    bvlc_address_set(&peer_C, 192, 168, 1, 30);
+    peer_C.port = 0xBAC0U;
+    bvlc_address_copy(&global_address, &peer_B_is_global);
+
+    bvlc_bdt_list_clear();
+    bdt = bvlc_bdt_list();
+    bdt[0].valid = true;
+    bvlc_address_copy(&bdt[0].dest_address, &peer_A);
+    bvlc_broadcast_distribution_mask_set(
+        &bdt[0].broadcast_mask, 255, 255, 255, 255);
+    bdt[1].valid = true;
+    bvlc_address_copy(&bdt[1].dest_address, &peer_B_is_global);
+    bvlc_broadcast_distribution_mask_set(
+        &bdt[1].broadcast_mask, 255, 255, 255, 255);
+    bdt[2].valid = true;
+    bvlc_address_copy(&bdt[2].dest_address, &peer_C);
+    bvlc_broadcast_distribution_mask_set(
+        &bdt[2].broadcast_mask, 255, 255, 255, 255);
+
+    /* Case 1: NAT handling disabled - every valid BDT peer is forwarded */
+    bvlc_disable_nat();
+    Test_Sent_Message_Count = 0;
+    (void)bvlc_bbmd_enabled_handler(&TD.BIP_Addr, &src, &mtu[0], mtu_len);
+    assert(Test_Sent_Message_Count == 3);
+    assert(test_sent_message_dest_contains(&peer_A));
+    assert(test_sent_message_dest_contains(&peer_B_is_global));
+    assert(test_sent_message_dest_contains(&peer_C));
+
+    /* Case 2: NAT handling enabled - only the peer whose forward address
+       equals the NAT global address is skipped, to avoid a forwarding
+       loop through the NAT router; all other peers are still forwarded */
+    bvlc_set_global_address_for_nat(&global_address);
+    Test_Sent_Message_Count = 0;
+    (void)bvlc_bbmd_enabled_handler(&TD.BIP_Addr, &src, &mtu[0], mtu_len);
+    assert(Test_Sent_Message_Count == 2);
+    assert(test_sent_message_dest_contains(&peer_A));
+    assert(!test_sent_message_dest_contains(&peer_B_is_global));
+    assert(test_sent_message_dest_contains(&peer_C));
+
+    bvlc_disable_nat();
+    bvlc_bdt_list_clear();
+    test_cleanup();
+}
+
 static void test_BBMD_Result(void)
 {
     int result = 0;
@@ -261,6 +382,7 @@ int main(void)
     test_BBMD_Result();
     test_Initiate_Original_Broadcast_NPDU();
     test_Initiate_Original_Broadcast_NPDU_Uses_Broadcast_Port();
+    test_BBMD_NAT_Anti_Loop_Forward();
 
     return 0;
 }
