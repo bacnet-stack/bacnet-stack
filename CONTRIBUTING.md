@@ -69,7 +69,9 @@ introduce language features that break older supported standards unless
 required. Declare local variables at the start of a function or block, before
 executable statements, to follow the project's C89 style. Initialize variables
 when a meaningful default is available, and ensure every variable is assigned
-before it is read; do not rely on implicit initialization. Preserve existing
+before it is read; do not rely on implicit initialization. Use explicit
+parentheses around each independent comparison in compound `if` conditions,
+even when operator precedence makes them optional. Preserve existing
 SPDX license identifiers in source and header files. Header files under
 `src/bacnet/` typically use `MIT`; most C source files use
 `GPL-2.0-or-later WITH GCC-exception-2.0`, while some use MIT or Apache-2.0.

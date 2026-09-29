@@ -3478,24 +3478,40 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
-                /* FIXME: bounds check? */
-                apdu_retries_set((uint8_t)value.type.Unsigned_Int);
+                if (value.type.Unsigned_Int <= UINT8_MAX) {
+                    apdu_retries_set((uint8_t)value.type.Unsigned_Int);
+                } else {
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_APDU_TIMEOUT:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
-                /* FIXME: bounds check? */
-                apdu_timeout_set((uint16_t)value.type.Unsigned_Int);
+                if (value.type.Unsigned_Int <= UINT16_MAX) {
+                    apdu_timeout_set((uint16_t)value.type.Unsigned_Int);
+                } else {
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_VENDOR_IDENTIFIER:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
-                /* FIXME: bounds check? */
-                Device_Set_Vendor_Identifier((uint16_t)value.type.Unsigned_Int);
+                if (value.type.Unsigned_Int <= UINT16_MAX) {
+                    Device_Set_Vendor_Identifier(
+                        (uint16_t)value.type.Unsigned_Int);
+                } else {
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_SYSTEM_STATUS:
