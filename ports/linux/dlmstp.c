@@ -366,14 +366,11 @@ uint16_t dlmstp_receive(
                 memmove(src, &pkt->address, sizeof(pkt->address));
             }
             pdu_len = pkt->pdu_len;
-            if (pdu) {
-                /* bounds check - discard oversized PDU rather than
-                   truncating it into the caller's buffer */
-                if (pdu_len > max_pdu) {
-                    pdu_len = 0;
-                } else {
-                    memmove(pdu, &pkt->pdu, pdu_len);
-                }
+            if (pdu_len > max_pdu) {
+                /* PDU is too large - drop it rather than truncate */
+                pdu_len = 0;
+            } else if (pdu) {
+                memmove(pdu, &pkt->pdu, pdu_len);
             }
         }
         pkt->ready = false;
