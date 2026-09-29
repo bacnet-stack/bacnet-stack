@@ -62,6 +62,17 @@ new functionality when practical. Follow the existing test layout and register
 new test directories with CMake. See the [unit testing README](test/README.md)
 for test conventions, framework details, and instructions for running tests.
 
+## Local Build Guidance
+
+The `apps/Makefile` manages the shared library and the applications built under
+`apps/`. The Makefile in the repository root provides most, but not all, build
+targets and configures the project include paths for those targets. Use the
+appropriate root-level target when one exists, such as `make mstp` for MS/TP
+applications including `router-mstp`; otherwise use the corresponding target
+from `apps/Makefile`. Invoking an application Makefile directly from a deeper
+subdirectory is not self-contained and can fail before compilation with a
+missing header such as `bacnet/bacdef.h`.
+
 ## Code and Platform Guidelines
 
 Keep code compatible with the supported C standards listed above; do not
