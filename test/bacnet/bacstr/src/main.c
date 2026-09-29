@@ -122,6 +122,7 @@ static void testBitString(void)
         zassert_false(bitstring_same(&bit_string, &bit_string3), NULL);
     }
     /* An over-capacity partial byte must not be compared. */
+#if (MAX_BITSTRING_BYTES * 8 + 1) <= UINT8_MAX
     bitstring_init(&bit_string);
     bitstring_init(&bit_string2);
     zassert_true(
@@ -133,6 +134,7 @@ static void testBitString(void)
             &bit_string2, (uint8_t)(MAX_BITSTRING_BYTES * 8 + 1)),
         NULL);
     zassert_false(bitstring_same(&bit_string, &bit_string2), NULL);
+#endif
     status = bitstring_init_ascii(&bit_string, "1111000010100101");
     zassert_true(status, NULL);
     status = bitstring_init_ascii(&bit_string2, "1110000010101111");
