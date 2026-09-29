@@ -1594,9 +1594,10 @@ static void testUnsignedContextDecodes(void)
 {
     uint8_t context_tag = 0;
     BACNET_UNSIGNED_INTEGER value = 0;
+    const unsigned max_bits = sizeof(value) * 8;
     unsigned i, j;
 
-    for (i = 0; i < 64; i++) {
+    for (i = 0; i < max_bits; i++) {
         value = ((BACNET_UNSIGNED_INTEGER)1 << i);
         for (j = 0; j < 8; j++) {
             context_tag = BIT(j);
