@@ -1059,8 +1059,10 @@ static void testScheduleListOfObjectPropertyReferencesSelfReference(void)
     BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
     BACNET_LIST_ELEMENT_DATA list_element = { 0 };
+    uint8_t malformed_list[22] = { 0 };
     bool status;
     int err;
+    size_t i;
 
     object_instance = Schedule_Create(BACNET_MAX_INSTANCE);
     zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
@@ -1074,6 +1076,20 @@ static void testScheduleListOfObjectPropertyReferencesSelfReference(void)
     wp_data.object_instance = object_instance;
     wp_data.object_property = PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES;
     wp_data.array_index = BACNET_ARRAY_ALL;
+
+    /* A non-empty malformed list must fail instead of looping forever when
+     * its element decoder reports zero bytes consumed. */
+    for (i = 0; i < sizeof(malformed_list); i++) {
+        wp_data.application_data[i] = malformed_list[i];
+    }
+    wp_data.application_data_len = sizeof(malformed_list);
+    status = Schedule_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    zassert_equal(
+        Schedule_List_Of_Object_Property_References_Count(object_instance), 0,
+        NULL);
+
     wp_data.application_data_len = bacapp_encode_device_obj_property_ref(
         wp_data.application_data, &member);
     status = Schedule_Write_Property(&wp_data);
