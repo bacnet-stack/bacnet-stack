@@ -79,19 +79,20 @@ Keep code compatible with the supported C standards listed above; do not
 introduce language features that break older supported standards unless
 required. Declare local variables at the start of a function or block, before
 executable statements, to follow the project's C89 style. Initialize variables
-when a meaningful default is available, and ensure every variable is assigned
-before it is read; do not rely on implicit initialization. Use explicit
-parentheses around each independent comparison in compound `if` conditions,
-even when operator precedence makes them optional. Preserve existing
-SPDX license identifiers in source and header files. Header files under
-`src/bacnet/` typically use `MIT`; most C source files use
+meaningful default is available, and ensure every variable is assigned before
+it is read; do not rely on implicit initialization. Use explicit parentheses
+around each independent comparison in compound `if` conditions, even when
+operator precedence makes them optional. Prefer `if`/`else` blocks over ternary
+operators when they make the control flow clearer and easier to read. Preserve
+existing SPDX license identifiers in source and header files. Header files
+under `src/bacnet/` typically use `MIT`; most C source files use
 `GPL-2.0-or-later WITH GCC-exception-2.0`, while some use MIT or Apache-2.0.
 Consult maintainers before changing a file's license identifier.
 
 The core library must remain portable across supported operating systems and
-embedded platforms. Keep operating-system-specific headers and code out of
-core library files; platform-specific implementations belong in `ports/`.
-Include `bacnet/bacdef.h` first in project headers. It includes
+embedded platforms. Keep operating-system-specific headers and code out of core
+library files; platform-specific implementations belong in `ports/`. Include
+`bacnet/bacdef.h` first in project headers. It includes
 `bacnet/basic/sys/platform.h`, the shared libc and compiler portability layer;
 put reusable compatibility abstractions there rather than duplicating them
 throughout the codebase. Use `bacnet/config.h` as the central location for
