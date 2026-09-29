@@ -1090,6 +1090,19 @@ static void testScheduleListOfObjectPropertyReferencesSelfReference(void)
         Schedule_List_Of_Object_Property_References_Count(object_instance), 0,
         NULL);
 
+    /* A correctly tagged but truncated reference must fail instead of
+     * repeating forever when its element decoder returns an error. */
+    wp_data.application_data_len = bacapp_encode_device_obj_property_ref(
+        wp_data.application_data, &member);
+    zassert_true(wp_data.application_data_len > 1, NULL);
+    wp_data.application_data_len--;
+    status = Schedule_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_ABORT_OTHER, NULL);
+    zassert_equal(
+        Schedule_List_Of_Object_Property_References_Count(object_instance), 0,
+        NULL);
+
     wp_data.application_data_len = bacapp_encode_device_obj_property_ref(
         wp_data.application_data, &member);
     status = Schedule_Write_Property(&wp_data);
