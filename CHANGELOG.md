@@ -17,6 +17,9 @@ The git repositories are hosted at the following sites:
 ### Security
 ### Fixed
 
+* Fixed Network Port object IPv4 to use the actual IPv4 settings
+  instead of 0.0.0.0 due to calling dlenv_network_port_bip_init()
+  before calling datalink_init(). (#1491)
 * Fixed the CharacterString Value object changed flag that was able to
   be cleared by writing an unchanged value to it. (#1484)
 
