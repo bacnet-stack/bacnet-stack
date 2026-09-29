@@ -6279,11 +6279,13 @@ BACNET_ERROR_CODE bacnet_list_write(
                 apdu_len += len;
                 count++;
             } else if (len == 0) {
-                /* end of list - it fits! */
+                /* a non-empty list element must consume input */
+                error_code = ERROR_CODE_INVALID_DATA_TYPE;
                 break;
             } else {
                 /* bad decode */
                 error_code = ERROR_CODE_ABORT_OTHER;
+                break;
             }
         }
         if (error_code == ERROR_CODE_SUCCESS) {
@@ -6300,12 +6302,20 @@ BACNET_ERROR_CODE bacnet_list_write(
             while (apdu_len < apdu_size) {
                 len = decode_function(
                     object_instance, &apdu[apdu_len], apdu_size - apdu_len);
-                error_code =
-                    add_function(object_instance, &apdu[apdu_len], len);
-                if (error_code != ERROR_CODE_SUCCESS) {
+                if (len < 0) {
+                    error_code = ERROR_CODE_ABORT_OTHER;
                     break;
+                } else if (len == 0) {
+                    error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                    break;
+                } else {
+                    error_code =
+                        add_function(object_instance, &apdu[apdu_len], len);
+                    if (error_code != ERROR_CODE_SUCCESS) {
+                        break;
+                    }
+                    apdu_len += len;
                 }
-                apdu_len += len;
             }
         }
     } else {

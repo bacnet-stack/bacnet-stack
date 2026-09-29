@@ -101,6 +101,8 @@ static void test_network_port_name_description_write(void)
     zassert_true(status, NULL);
     zassert_true(characterstring_length(&object_name) > 0, NULL);
     zassert_true(strstr(object_name.value, "NETWORK-PORT-"), NULL);
+
+    Network_Port_Cleanup();
 }
 
 /**
@@ -763,6 +765,7 @@ static void test_network_port_pending_param(void)
 #endif /* BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
 #endif /* BACDL_BSC */
+    Network_Port_Cleanup();
     return;
 }
 
@@ -901,6 +904,7 @@ static void test_network_port_sc_direct_connect_accept_uri(void)
 
 #endif /* BACDL_BSC && BSC_CONF_HUB_CONNECTORS_NUM!=0 */
 
+    Network_Port_Cleanup();
     return;
 }
 
@@ -965,6 +969,7 @@ static void test_network_port_sc_certificates(void)
 
 #endif /* BACDL_BSC */
 
+    Network_Port_Cleanup();
     return;
 }
 
@@ -1207,6 +1212,7 @@ static void test_network_port_sc_status_encode_decode(void)
 
 #endif /* BACDL_BSC */
 
+    Network_Port_Cleanup();
     return;
 }
 

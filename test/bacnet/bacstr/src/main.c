@@ -121,6 +121,20 @@ static void testBitString(void)
         zassert_false(bitstring_same(&bit_string, &bit_string2), NULL);
         zassert_false(bitstring_same(&bit_string, &bit_string3), NULL);
     }
+    /* An over-capacity partial byte must not be compared. */
+#if (MAX_BITSTRING_BYTES * 8 + 1) <= UINT8_MAX
+    bitstring_init(&bit_string);
+    bitstring_init(&bit_string2);
+    zassert_true(
+        bitstring_bits_used_set(
+            &bit_string, (uint8_t)(MAX_BITSTRING_BYTES * 8 + 1)),
+        NULL);
+    zassert_true(
+        bitstring_bits_used_set(
+            &bit_string2, (uint8_t)(MAX_BITSTRING_BYTES * 8 + 1)),
+        NULL);
+    zassert_false(bitstring_same(&bit_string, &bit_string2), NULL);
+#endif
     status = bitstring_init_ascii(&bit_string, "1111000010100101");
     zassert_true(status, NULL);
     status = bitstring_init_ascii(&bit_string2, "1110000010101111");
@@ -417,6 +431,19 @@ static void testCharacterStringAnsiHelpers(void)
     zassert_true(status, NULL);
     zassert_equal(
         strcmp(characterstring_value_const(&bacnet_string), value), 0, NULL);
+
+    /* setting an owned (duplicated) string to its own value must not
+       free it and leave a dangling reference */
+    status = bacnet_character_cstring_strndup(
+        &ansi_string, "owned-value", MAX_CHARACTER_STRING_BYTES);
+    zassert_true(status, NULL);
+    status = bacnet_character_cstring_set(
+        &ansi_string, bacnet_character_cstring_value_const(&ansi_string));
+    zassert_true(status, NULL);
+    zassert_equal(
+        strcmp(
+            bacnet_character_cstring_value_const(&ansi_string), "owned-value"),
+        0, NULL);
 
     bacnet_character_cstring_set(&ansi_string, NULL);
     zassert_is_null(bacnet_character_cstring_value_const(&ansi_string), NULL);

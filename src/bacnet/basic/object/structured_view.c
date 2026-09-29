@@ -468,16 +468,20 @@ static void Subordinate_List_Element_Remove(OS_Keylist list, KEY key)
  */
 static void Subordinate_List_Purge(struct object_data *pObject)
 {
-    KEY key = 0;
-    int count = 0;
+    BACNET_SUBORDINATE_DATA *element;
 
     if (pObject) {
-        count = Keylist_Count(pObject->Subordinate_List);
-        while (count > 0) {
-            Subordinate_List_Element_Remove(pObject->Subordinate_List, key);
-            key++;
-            count--;
-        }
+        /* keys are not guaranteed to be contiguous once elements have
+           been removed, so pop entries instead of iterating by index */
+        do {
+            element = Keylist_Data_Pop(pObject->Subordinate_List);
+            if (element) {
+                if (element->Annotation) {
+                    free(element->Annotation);
+                }
+                free(element);
+            }
+        } while (element);
     }
 }
 

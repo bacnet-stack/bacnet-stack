@@ -1022,7 +1022,7 @@ static void my_routing_npdu_handler(
                  * so we just silently drop this network layer message,
                  * since only routers can handle it (even if for our DNET) */
             }
-        } else if ((apdu_offset > 0) && (apdu_offset <= pdu_len)) {
+        } else if ((apdu_offset > 0) && (apdu_offset < pdu_len)) {
             if ((dest.net == 0) || (dest.net == BACNET_BROADCAST_NETWORK) ||
                 (npdu_data.hop_count > 1)) {
                 /* only handle the version that we know how to handle */

@@ -246,6 +246,17 @@ static void testMultistateValue_PresentValueRange(void)
 #warning "UINT64_MAX not supported! skipping 64-bit overflow check"
 #endif
 
+    /* State_Text element of the wrong datatype is a property error */
+    wp_data.object_property = PROP_STATE_TEXT;
+    wp_data.array_index = 1;
+    wp_data.error_class = ERROR_CLASS_OBJECT;
+    wp_data.application_data_len =
+        encode_application_real(wp_data.application_data, 1.0f);
+    status = Multistate_Value_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+
     status = Multistate_Value_Delete(object_instance);
     zassert_true(status, NULL);
 }
