@@ -122,10 +122,10 @@ BACNET_IFACE - set this value to dotted IP address (Windows) of
     interface on Windows, the applications will choose it, and this
     setting will not be needed.
 
-BACNET_IP_PORT - UDP/IP port number (0..65534) used for BACnet/IP
+BACNET_IP_PORT - UDP/IP port number (0..65535) used for BACnet/IP
     communications.  Default is 47808 (0xBAC0).
 
-BACNET_BBMD_PORT - UDP/IP port number (0..65534) used for Foreign
+BACNET_BBMD_PORT - UDP/IP port number (0..65535) used for Foreign
     Device Registration.  Defaults to 47808 (0xBAC0).
 
 BACNET_BBMD_TIMETOLIVE - number of seconds used in Foreign Device

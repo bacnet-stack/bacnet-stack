@@ -1424,6 +1424,8 @@ bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->application_data_len);
             if (wp_data->error_code == ERROR_CODE_SUCCESS) {
                 status = true;
+            } else {
+                wp_data->error_class = bacerror_code_class(wp_data->error_code);
             }
             break;
         default:

@@ -22,8 +22,8 @@ ZTEST(memcopy_tests, test_memcopy)
 static void test_memcopy(void)
 #endif
 {
-    char *data1 = "Joshua";
-    char *data2 = "Anna";
+    char data1[] = "Joshua";
+    char data2[] = "Anna";
     char buffer[480] = "";
     char big_buffer[480] = "";
     size_t len = 0;

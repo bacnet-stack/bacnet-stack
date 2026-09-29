@@ -618,6 +618,7 @@ static void test_BVLC_Write_Broadcast_Distribution_Table_Message(
     status =
         bvlc_broadcast_distribution_table_entry_forward_address(NULL, NULL);
     zassert_false(status, NULL);
+    free(test_bdt_list);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -701,6 +702,7 @@ static void test_BVLC_Read_Foreign_Device_Table_Ack_Message(
     for (i = 0; i < count; i++) {
         test_BVLC_Foreign_Device_Table_Entry(&fdt_list[i], &test_fdt_list[i]);
     }
+    free(test_fdt_list);
 }
 
 static int test_BVLC_Foreign_Device_Table_Setup(
