@@ -17,6 +17,8 @@ The git repositories are hosted at the following sites:
 ### Security
 ### Fixed
 
+* Fixed the basic Analog Output object to reserve priority 6 and reject
+  writes to it. (#1492)
 * Fixed Network Port object IPv4 to use the actual IPv4 settings
   instead of 0.0.0.0 due to calling dlenv_network_port_bip_init()
   before calling datalink_init(). (#1491)
