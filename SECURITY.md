@@ -28,6 +28,30 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories)
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
+[GHSA-gh4p-3vmc-6mqw](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-gh4p-3vmc-6mqw)
+Patched versions: 1.4.7, 1.5.3, 1.6.2, 1.7.0
+Pull Request: [#1518](https://github.com/bacnet-stack/bacnet-stack/pull/1518).
+
+BACnet Schedule list WriteProperty can enter a zero-progress CPU loop
+[GHSA-9g5v-8wwr-pr5g](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-9g5v-8wwr-pr5g)
+Patched versions: 1.4.7, 1.5.3, 1.6.2, 1.7.0
+Pull Request: [#1535](https://github.com/bacnet-stack/bacnet-stack/pull/1535).
+
+Off-by-one out-of-bounds read in router-mstp NPDU handler
+[GHSA-wgjm-9rv6-ph6j](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-wgjm-9rv6-ph6j)
+Patched versions: 1.4.7, 1.5.3, 1.6.2, 1.7.0
+Pull Request: [#1534](https://github.com/bacnet-stack/bacnet-stack/pull/1534).
+
+Stack buffer overflow in bacnet_constructed_value_decode() via Timer object WriteProperty (build-flag-gated)
+[GHSA-6272-3rw9-xr2j](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-6272-3rw9-xr2j)
+Patched versions: 1.4.7, 1.5.3, 1.6.2, 1.7.0
+Pull Request: [#1510](https://github.com/bacnet-stack/bacnet-stack/pull/1510).
+
+BACnet/SC hub: unauthenticated peer acceptance and unbound identity claims enable node preemption and fabricated device data
+[GHSA-gv5j-fc8m-6gj7](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-gv5j-fc8m-6gj7)
+Patched versions: 1.4.7, 1.5.3, 1.6.2, 1.7.0
+Pull Request: [#1503](https://github.com/bacnet-stack/bacnet-stack/pull/1503).
+
 Signed Integer Overflow in bacnet_enclosed_data_length() Leads to Heap Memory Corruption
 [GHSA-g68j-34rj-cmhv](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-g68j-34rj-cmhv)
 Patched versions: 1.4.6, 1.5.2, 1.6.1, 1.7.0
@@ -73,26 +97,31 @@ Structured View subordinate-list[0] WriteProperty allows unbounded synchronous r
 Patched versions: 1.6.1, 1.7.0
 Pull Request: [#1437](https://github.com/bacnet-stack/bacnet-stack/pull/1437).
 
+[CVE-2026-102612](https://www.cve.org/CVERecord?id=CVE-2026-102612) -
 BACnet/SC hub never requires a client cert, so any host joins the mesh unauthenticated
 [GHSA-92q2-p4vr-fvmp](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-92q2-p4vr-fvmp).
 Patched versions: 1.4.6, 1.5.2, 1.6.1, 1.7.0
 Pull Request: [#1436](https://github.com/bacnet-stack/bacnet-stack/pull/1436).
 
+[CVE-2026-97692](https://www.cve.org/CVERecord?id=CVE-2026-97692) -
 Trailing MORE bit on the last BACnet/SC header option walks the option list past the end of the message, causing a pre-auth out-of-bounds read escalating to an out-of-bounds write into global memory
 [GHSA-gr74-333w-7wg8](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-gr74-333w-7wg8).
 Patched versions: 1.4.6, 1.5.2, 1.6.1, 1.7.0
 Pull Request: [#1435](https://github.com/bacnet-stack/bacnet-stack/pull/1435).
 
+[CVE-2026-102537](https://www.cve.org/CVERecord?id=CVE-2026-102537) -
 bacnet-stack BACnet/SC node always accepts a self-signed hub cert, so an attacker can MITM it
 [GHSA-jgm4-2wg9-jwfg](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-jgm4-2wg9-jwfg).
 Patched versions: 1.4.6, 1.5.2, 1.6.1, 1.7.0
 Pull Request: [#1434](https://github.com/bacnet-stack/bacnet-stack/pull/1434).
 
+[CVE-2026-100403](https://www.cve.org/CVERecord?id=CVE-2026-100403) -
 BACnet/SC hub grows its WebSocket reassembly buffer without limit, so a peer can exhaust its memory
 [GHSA-4vgv-v5ph-rmxr](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-4vgv-v5ph-rmxr).
 Patched versions: 1.4.6, 1.5.2, 1.6.1, 1.7.0
 Pull Request: [#1433](https://github.com/bacnet-stack/bacnet-stack/pull/1433).
 
+[CVE-2026-82414](https://www.cve.org/CVERecord?id=CVE-2026-82414) -
 MS/TP COBS decode overflow
 [GHSA-8456-m9x4-j6mc](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-8456-m9x4-j6mc).
 Patched versions: 1.4.6, 1.5.2, 1.6.1, 1.7.0

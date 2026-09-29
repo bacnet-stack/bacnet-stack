@@ -13,10 +13,22 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [Unreleased] - 2026-09-12
+## [Unreleased] - 2026-09-29
 
 ### Security
 
+* Secured router MS/TP NPDU parsing to reject packets without APDU data. (#1534)
+* Secured BACnet list writes to reject zero-byte elements and decode errors.
+  This prevents loops when list data is malformed or truncated. (#1535)
+* Secured WriteProperty of State_Text[0] (array size) or State_Text[N] to any
+  multistate object (MSV, MSO, MSI) by rejecting a new size of 0 or
+  above BACNET_STATE_NAME_LIST_MAX (default 255) with VALUE_OUT_OF_RANGE,
+  by rejecting an auto-expanding element write beyond the maximum with
+  INVALID_ARRAY_INDEX, and by initializing new elements to an empty
+  string instead of NULL so they can always be read back.(#1518)
+* Secured buffer handling in bacnet_constructed_value_context_encode
+  to prevent overrun. Fixed buffer overrun in bacnet_constructed_value_decode
+  and validate using tests for oversized APDU. (#1510)
 * Secured the Linux/BSD/Windows websocket by enforcing TLS client-certificate
   verification in BACnet/SC. (#1503)
 * Secured the apps/ptransfer demo by moving ConfirmedPrivateTransfer
@@ -68,6 +80,21 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added AGENTS.md file which references CONTRIBUTING.md file.
+* Added vendor, scratch, and workspace directories to .gitignore file.
+* Added function to set Device object UTC offset in minutes with validation.
+  Updated daylight savings status retrieval to use local datetime function.
+  Adjusted UTC offset calculation to account for daylight saving time. Changed
+  Time_Offset and time_difference() to use time_t in seconds to handle larger
+  date range from host clock. Added missing SPDX-License-Identifier to
+  ports/../datetime-init.c modules. Updated Device_Write_Property_Local to
+  utilize local datetime for time synchronization. (#1511)
+* Added support for PROP_SCHEDULE_DEFAULT in Schedule_Write_Property
+  Schedule_Write_Property handles NULL and primitive values correctly
+  for present-value and schedule-default properties.
+  Changed Schedule_Default initialization to use NULL tag and Priority to 16.
+  Added self-reference checks for Present_Value and Schedule_Default in
+  Schedule_Write_Property. (#1507)
 * Added priority array support to the Binary Value object. Implementation
   is gated with BACNET_OBJECT_BINARY_VALUE_COMMANDABLE namespace. (#1490)(#1500)
 * Added What-Is-Network-Number support to h_routed_npdu(). (#1489)
@@ -170,6 +197,70 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed BACnet/IP socket cleanup to avoid closing the same socket twice on
+  Linux, BSD, and Windows. (#1533)
+* Fixed datalink environment parsing to reject out-of-range port and MS/TP MAC
+  address values. (#1532)
+* Fixed non-commandable Multistate Value Present_Value priority writes.
+* Fixed Device WriteProperty range checks for APDU retries, APDU timeout, and
+  vendor identifier. (#1531)
+* Fixed Linux and BSD MS/TP time handling at the nanosecond boundary. (#1530)
+* Fixed the error class for State_Text write errors in Multistate Input,
+  Multistate Output, and Multistate Value objects. (#1529)
+* Fixed use-after-free when a C string was set to its own value. (#1528)
+* Fixed a global buffer overflow in the memcopy unit test by using arrays
+  for test data. (#1525)
+* Fixed RAM file system scans to stop at the remaining buffer size and at
+  unterminated records. Fixed cleanup to free record data. (#1525)
+* Fixed the static RAM file system test to keep registered data for the
+  program lifetime. (#1525)
+* Fixed VMAC cleanup to release old lists and entries. Fixed VMAC add failure
+  handling to release an allocated entry. (#1525)
+* Fixed Network Port unit tests to release keylists after each test. (#1525)
+* Fixed Structured View cleanup to remove all subordinate list entries. (#1525)
+* Fixed BVLC unit tests to release allocated BDT and FDT test arrays. (#1525)
+* Fixed BIT and _BV macros to use unsigned shifts. (#1525)
+* Fixed bit-string comparison to prevent an out-of-bounds read at the end of
+  the bit string. (#1525)
+* Fixed BACnet data-code tests to use valid shift counts and buffer sizes for
+  values up to 64 bits. (#1525)
+* Fixed BACnet data-code tests to avoid signed integer overflow at the limits
+  of the signed integer range. (#1525)
+* Fixed fixed-point conversion and division to avoid signed left-shift
+  undefined behavior. (#1525)
+* Fixed fixed-point exponent handling to limit the shift count and use an
+  unsigned value. (#1525)
+* Fixed BACnet/SC encoding and unit tests to avoid NULL pointers with
+  zero-length memcpy and memcmp calls. (#1525)
+* Fixed bit-string writes to reject values that exceed the configured capacity
+  limit. (#1525)
+* Fixed MS/TP reception to reject oversized PDUs and wait correctly for queued
+  packets. Fixed the MS/TP thread to prevent a busy loop when the station MAC
+  is greater than 127. Added Linux MS/TP unit tests. (#1521)
+* Fixed MSV and MS-Input Present_Value width and write-range validation. (#1522)
+* Fixed inverted NAT anti-loop check in BBMD BDT/FDT forwarding. (#1520)
+* Fixed bacnet_basic_task() to run the TSM and address-cache timers. (#1524)
+* Fixed Analog Output and Binary Output priority-array accessors to guard
+  against NULL when the object instance is unknown. (#1523)
+* Fixed decoding of COBS frames in-place at offset 0. Previously any
+  payload whose encoded+decoded length exceeded the input buffer
+  was rejected as BadCRC, even though the encoded frame itself fit
+  comfortably in the buffer. (#1519)
+* Fixed basic Trend Log object by rejecting ReadRange by-position RefIndex 0
+  and non-positive count, and guard against an entry index below 1 as a
+  defense-in-depth measure. (#1517)
+* Fixed TrendLog TL_MAX_ENTRIES to be able to be overridden and provide
+  a default value. (#1514)
+* Fixed the Effective_Period property value to be a fully specified date
+  or completely unspecified date, and added validation for Effective_Period
+  date ranges when set or written. Fixed calendar entry date matching logic
+  to handle patterns and unspecified fields. Validate effective period date
+  in Schedule_Effective_Period_Date_Valid function and fix BACnetWeekNDay
+  pattern matching logic in datetime module. Fixed weekofmonth logic in
+  Calendar_Present_Value test to avoid incorrect wrapping. Fixed date
+  pattern matching to include day-of-week validation per IC135-2012-6 and
+  update tests for accurate contradiction handling. Fixed date matching
+  functions between BACnetDate and BACnetWeekNDay options. (#1508)
 * Fixed the Averaging object to be integrated into the BACnet device
   server ReadProperty configuration for sampled references. (#1501)
 * Fixed the Relinquish_Default COV trigger in Output objects. (#1496)
@@ -226,6 +317,9 @@ The git repositories are hosted at the following sites:
 
 ### Removed
 
+* Removed the ports/bsd/stdbool.h file because it was picked up by every
+  file that includes <stdbool.h> due to ports/bsd being on on the include path.
+  Modern compilers no longer need this standard C99 header file. (#1512)
 * Removed unused application value conversion functions for primitive
   data values. (#1502)
 * Removed unnecessary platform include from bacapp.c
