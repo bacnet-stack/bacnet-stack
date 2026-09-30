@@ -457,7 +457,10 @@ static size_t apdu_packet(const uint8_t *apdu, size_t apdu_len)
 
 static size_t npdu_packet(const uint8_t *npdu, size_t npdu_len)
 {
+    BACNET_ADDRESS destination = { 0 };
+    BACNET_NPDU_DATA npdu_data = { 0 };
     size_t packet_len = 0;
+    int decoded_len = 0;
 
     if (!npdu || (npdu_len == 0)) {
         return 0;
@@ -468,6 +471,12 @@ static size_t npdu_packet(const uint8_t *npdu, size_t npdu_len)
     }
     memcpy(&MTU_Buffer[packet_len], npdu, npdu_len);
     packet_len += npdu_len;
+    decoded_len = bacnet_npdu_decode(
+        npdu, (uint16_t)npdu_len, &destination, NULL, &npdu_data);
+    if ((decoded_len > 0) && (destination.net == BACNET_BROADCAST_NETWORK) &&
+        (destination.len == 0)) {
+        memset(MTU_Buffer, 0xFF, 6);
+    }
     encode_unsigned16(&MTU_Buffer[12], packet_len - 14);
     write_received_packet(MTU_Buffer, packet_len);
 
