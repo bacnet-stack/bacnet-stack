@@ -17,6 +17,7 @@
 #if !defined(LWS_WITH_MBEDTLS)
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
+#include <openssl/x509v3.h>
 #include <openssl/pem.h>
 #include <openssl/err.h>
 #endif
@@ -109,6 +110,13 @@ static BSC_WEBSOCKET_CONTEXT bws_direct_ctx[BSC_CONF_WEBSOCKET_SERVERS_NUM] = {
     0
 };
 
+/**
+ * @brief Initialize the recursive mutex used to guard websocket server state.
+ *
+ * @param mutex - mutex to initialize.
+ *
+ * @return true if initialization succeeded, false otherwise.
+ */
 static bool bws_mutex_init(pthread_mutex_t *mutex)
 {
     pthread_mutexattr_t attr;
@@ -131,6 +139,14 @@ static bool bws_mutex_init(pthread_mutex_t *mutex)
     return true;
 }
 
+/**
+ * @brief Allocate a server context for the requested BACnet/SC websocket
+ *        protocol.
+ *
+ * @param proto - protocol for which a server context should be created.
+ *
+ * @return newly allocated context, or NULL if none is available.
+ */
 static BSC_WEBSOCKET_CONTEXT *bws_alloc_server_ctx(BSC_WEBSOCKET_PROTOCOL proto)
 {
     int i;
@@ -166,6 +182,13 @@ static BSC_WEBSOCKET_CONTEXT *bws_alloc_server_ctx(BSC_WEBSOCKET_PROTOCOL proto)
     return NULL;
 }
 
+/**
+ * @brief Map a libwebsockets close code to the BACnet websocket error code.
+ *
+ * @param ctx - server context containing the connection.
+ * @param h - websocket handle for the peer being closed.
+ * @param err_code - libwebsockets close reason.
+ */
 static void bws_set_disconnect_reason(
     BSC_WEBSOCKET_CONTEXT *ctx, BSC_WEBSOCKET_HANDLE h, uint16_t err_code)
 {
@@ -222,6 +245,11 @@ static void bws_set_disconnect_reason(
     }
 }
 
+/**
+ * @brief Release state associated with a websocket server context.
+ *
+ * @param ctx - server context to free.
+ */
 static void bws_free_server_ctx(BSC_WEBSOCKET_CONTEXT *ctx)
 {
     pthread_mutex_lock(&bws_global_mutex);
@@ -238,6 +266,13 @@ static void bws_free_server_ctx(BSC_WEBSOCKET_CONTEXT *ctx)
 }
 
 #if DEBUG_ENABLED == 1
+/**
+ * @brief Validate that a context pointer belongs to a known server instance.
+ *
+ * @param ctx - context pointer to check.
+ *
+ * @return true if the pointer is valid, false otherwise.
+ */
 static bool bws_validate_ctx_pointer(BSC_WEBSOCKET_CONTEXT *ctx)
 {
     bool is_validated = false;
@@ -266,6 +301,13 @@ static bool bws_validate_ctx_pointer(BSC_WEBSOCKET_CONTEXT *ctx)
 }
 #endif
 
+/**
+ * @brief Return the maximum number of sockets supported by a protocol.
+ *
+ * @param proto - protocol whose socket limit is requested.
+ *
+ * @return maximum socket count for the protocol.
+ */
 static int bws_srv_get_max_sockets(BSC_WEBSOCKET_PROTOCOL proto)
 {
     int max = 0;
@@ -277,6 +319,13 @@ static int bws_srv_get_max_sockets(BSC_WEBSOCKET_PROTOCOL proto)
     return max;
 }
 
+/**
+ * @brief Allocate the next available connection slot for a server context.
+ *
+ * @param ctx - server context whose connections are to be allocated.
+ *
+ * @return connection handle, or BSC_WEBSOCKET_INVALID_HANDLE if full.
+ */
 static BSC_WEBSOCKET_HANDLE bws_srv_alloc_connection(BSC_WEBSOCKET_CONTEXT *ctx)
 {
     int i;
@@ -296,6 +345,12 @@ static BSC_WEBSOCKET_HANDLE bws_srv_alloc_connection(BSC_WEBSOCKET_CONTEXT *ctx)
     return BSC_WEBSOCKET_INVALID_HANDLE;
 }
 
+/**
+ * @brief Release and reset a server connection slot.
+ *
+ * @param ctx - server context containing the connection.
+ * @param h - websocket handle to release.
+ */
 static void
 bws_srv_free_connection(BSC_WEBSOCKET_CONTEXT *ctx, BSC_WEBSOCKET_HANDLE h)
 {
@@ -316,6 +371,14 @@ bws_srv_free_connection(BSC_WEBSOCKET_CONTEXT *ctx, BSC_WEBSOCKET_HANDLE h)
     DEBUG_PRINTF("bws_srv_free_connection() <<<\n");
 }
 
+/**
+ * @brief Find the connection handle associated with a libwebsockets socket.
+ *
+ * @param ctx - server context to search.
+ * @param ws - libwebsockets socket pointer to match.
+ *
+ * @return matching connection handle, or BSC_WEBSOCKET_INVALID_HANDLE.
+ */
 static BSC_WEBSOCKET_HANDLE
 bws_find_connnection(BSC_WEBSOCKET_CONTEXT *ctx, struct lws *ws)
 {
@@ -379,6 +442,17 @@ static bool bws_srv_load_ca_certs(SSL_CTX *ssl_ctx, BSC_WEBSOCKET_CONTEXT *ctx)
 }
 #endif
 
+/**
+ * @brief Handle libwebsockets callbacks for a websocket server connection.
+ *
+ * @param wsi - websocket instance that generated the callback.
+ * @param reason - callback reason.
+ * @param user - userdata associated with the libwebsockets context.
+ * @param in - callback payload or close data.
+ * @param len - size of the callback payload.
+ *
+ * @return 0 on success or a negative error status to abort the callback.
+ */
 static int bws_srv_websocket_event(
     struct lws *wsi,
     enum lws_callback_reasons reason,
@@ -666,6 +740,13 @@ static int bws_srv_websocket_event(
     return ret;
 }
 
+/**
+ * @brief Run the libwebsockets service loop for a server context.
+ *
+ * @param arg - pointer to the BSC_WEBSOCKET_CONTEXT for this server.
+ *
+ * @return NULL when the worker exits.
+ */
 static void *bws_srv_worker(void *arg)
 {
     BSC_WEBSOCKET_CONTEXT *ctx = (BSC_WEBSOCKET_CONTEXT *)arg;
@@ -779,6 +860,25 @@ static void *bws_srv_worker(void *arg)
     return NULL;
 }
 
+/**
+ * @brief Start a BACnet/SC websocket server instance on the requested port.
+ *
+ * @param proto - protocol type for the server.
+ * @param port - port number on which to listen.
+ * @param iface - interface name to bind; NULL binds to all interfaces.
+ * @param ca_cert - CA certificate bytes used to validate client certs.
+ * @param ca_cert_size - size of ca_cert in bytes.
+ * @param cert - server certificate bytes.
+ * @param cert_size - size of cert in bytes.
+ * @param key - private key bytes.
+ * @param key_size - size of key in bytes.
+ * @param timeout_s - socket timeout in seconds.
+ * @param dispatch_func - function called for websocket events.
+ * @param dispatch_func_user_param - user data passed to the dispatch callback.
+ * @param sh - receives the server handle on success.
+ *
+ * @return BSC_WEBSOCKET_SUCCESS on start, or an error code otherwise.
+ */
 BSC_WEBSOCKET_RET bws_srv_start(
     BSC_WEBSOCKET_PROTOCOL proto,
     int port,
@@ -925,6 +1025,14 @@ BSC_WEBSOCKET_RET bws_srv_start(
     return BSC_WEBSOCKET_SUCCESS;
 }
 
+/**
+ * @brief Stop a running websocket server instance.
+ *
+ * @param sh - server handle to stop.
+ *
+ * @return BSC_WEBSOCKET_SUCCESS on shutdown initiation, or an error code
+ *         if the server is not active.
+ */
 BSC_WEBSOCKET_RET bws_srv_stop(BSC_WEBSOCKET_SRV_HANDLE sh)
 {
     BSC_WEBSOCKET_CONTEXT *ctx = (BSC_WEBSOCKET_CONTEXT *)sh;
@@ -958,6 +1066,12 @@ BSC_WEBSOCKET_RET bws_srv_stop(BSC_WEBSOCKET_SRV_HANDLE sh)
     return BSC_WEBSOCKET_SUCCESS;
 }
 
+/**
+ * @brief Start disconnection of a peer associated with a server handle.
+ *
+ * @param sh - server handle.
+ * @param h - websocket handle to disconnect.
+ */
 void bws_srv_disconnect(BSC_WEBSOCKET_SRV_HANDLE sh, BSC_WEBSOCKET_HANDLE h)
 {
     BSC_WEBSOCKET_CONTEXT *ctx = (BSC_WEBSOCKET_CONTEXT *)sh;
@@ -983,6 +1097,12 @@ void bws_srv_disconnect(BSC_WEBSOCKET_SRV_HANDLE sh, BSC_WEBSOCKET_HANDLE h)
     DEBUG_PRINTF("bws_srv_disconnect() <<<\n");
 }
 
+/**
+ * @brief Request that a queued send be processed for the given websocket.
+ *
+ * @param sh - server handle.
+ * @param h - websocket handle that should send its queued data.
+ */
 void bws_srv_send(BSC_WEBSOCKET_SRV_HANDLE sh, BSC_WEBSOCKET_HANDLE h)
 {
     BSC_WEBSOCKET_CONTEXT *ctx = (BSC_WEBSOCKET_CONTEXT *)sh;
@@ -1006,6 +1126,17 @@ void bws_srv_send(BSC_WEBSOCKET_SRV_HANDLE sh, BSC_WEBSOCKET_HANDLE h)
     DEBUG_PRINTF("bws_srv_send() <<<\n");
 }
 
+/**
+ * @brief Send application data over a websocket connection when writable.
+ *
+ * @param sh - server handle.
+ * @param h - websocket handle for the peer.
+ * @param payload - data to send.
+ * @param payload_size - length of payload in bytes.
+ *
+ * @return BSC_WEBSOCKET_SUCCESS on send, or an error code if the send is not
+ *         valid or the connection is no longer active.
+ */
 BSC_WEBSOCKET_RET bws_srv_dispatch_send(
     BSC_WEBSOCKET_SRV_HANDLE sh,
     BSC_WEBSOCKET_HANDLE h,
@@ -1077,6 +1208,20 @@ BSC_WEBSOCKET_RET bws_srv_dispatch_send(
     return ret;
 }
 
+/**
+ * @brief bws_srv_get_peer_ip_addr() gets ipv4 or ipv6 address as ANSI string
+ *        and port of remote peer.
+ *
+ * @param sh - websocket server handle.
+ * @param h - websocket handle.
+ * @param ip_str - buffer to store null terminated string of ip address.
+ * @param ip_str_len - size of ip_str buffer
+ * @param  port- pointer to store port of a remote node.
+ *
+ * @return true if function succeeded otherwise returns false
+ *         if peer's address information can't be retrieved from
+ *         underlying websocket library.
+ */
 bool bws_srv_get_peer_ip_addr(
     BSC_WEBSOCKET_SRV_HANDLE sh,
     BSC_WEBSOCKET_HANDLE h,
@@ -1124,4 +1269,261 @@ bool bws_srv_get_peer_ip_addr(
     }
 
     return false;
+}
+
+/**
+ * @brief bws_srv_get_peer_cert_identity() looks for a Subject Alternative
+ *        Name URI entry of the form "bacnet://<instance>[...]" (135-2024
+ *        Clause 17.3.3 / Annex Q.8) on the TLS certificate presented by the
+ *        peer of an accepted websocket connection, and copies it, NUL
+ *        terminated, into buf.
+ * @note Per Annex AB.7.4, this identity is not used by default as a
+ *       BACnet/SC connection criteria; it is intended only for an
+ *       installation-enabled, local authorization policy.
+ *
+ * @param sh - websocket server handle.
+ * @param h - websocket handle.
+ * @param buf - buffer to receive the NUL terminated SAN URI string.
+ * @param buf_size - size of buf in bytes.
+ *
+ * @return BSC_WEBSOCKET_SUCCESS if a "bacnet://" SAN URI entry was found
+ *         and copied into buf, BSC_WEBSOCKET_BAD_PARAM for invalid
+ *         parameters, or BSC_WEBSOCKET_INVALID_OPERATION if the peer
+ *         presented no certificate or no matching SAN entry.
+ */
+#if !defined(LWS_WITH_MBEDTLS)
+BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identities(
+    BSC_WEBSOCKET_SRV_HANDLE sh,
+    BSC_WEBSOCKET_HANDLE h,
+    char *buf,
+    size_t buf_size,
+    size_t *identity_count)
+{
+    BSC_WEBSOCKET_CONTEXT *ctx = (BSC_WEBSOCKET_CONTEXT *)sh;
+    SSL *ssl;
+    X509 *cert;
+    GENERAL_NAMES *san;
+    int i;
+    BSC_WEBSOCKET_RET ret = BSC_WEBSOCKET_INVALID_OPERATION;
+    char *p;
+    size_t used = 0;
+    GENERAL_NAME *name;
+    const unsigned char *s;
+    int slen;
+    size_t entry_len;
+
+    if (identity_count) {
+        *identity_count = 0;
+    }
+
+    if (!ctx || h < 0 || !buf || !buf_size ||
+        h >= bws_srv_get_max_sockets(ctx->proto)) {
+        return BSC_WEBSOCKET_BAD_PARAM;
+    }
+
+    pthread_mutex_lock(ctx->mutex);
+    ssl = (ctx->conn[h].state != BSC_WEBSOCKET_STATE_IDLE && ctx->conn[h].ws)
+        ? lws_get_ssl(ctx->conn[h].ws)
+        : NULL;
+    if (!ssl) {
+        pthread_mutex_unlock(ctx->mutex);
+        return BSC_WEBSOCKET_INVALID_OPERATION;
+    }
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+    cert = SSL_get1_peer_certificate(ssl);
+#else
+    cert = SSL_get_peer_certificate(ssl);
+#endif
+    pthread_mutex_unlock(ctx->mutex);
+    if (!cert) {
+        return BSC_WEBSOCKET_INVALID_OPERATION;
+    }
+    san = X509_get_ext_d2i(cert, NID_subject_alt_name, NULL, NULL);
+    if (san) {
+        p = buf;
+        for (i = 0; i < sk_GENERAL_NAME_num(san); i++) {
+            name = sk_GENERAL_NAME_value(san, i);
+
+            if (name->type != GEN_URI) {
+                continue;
+            }
+            s = ASN1_STRING_get0_data(name->d.uniformResourceIdentifier);
+            slen = ASN1_STRING_length(name->d.uniformResourceIdentifier);
+            if (slen > 9 && (size_t)slen < buf_size &&
+                memcmp(s, "bacnet://", 9) == 0 && !memchr(s, 0, (size_t)slen)) {
+                entry_len = (size_t)slen;
+
+                if ((used + entry_len + 1) > buf_size) {
+                    ret = BSC_WEBSOCKET_INVALID_OPERATION;
+                    break;
+                }
+                memcpy(p, s, entry_len);
+                p[entry_len] = '\0';
+                p += entry_len + 1;
+                used += entry_len + 1;
+                if (identity_count) {
+                    (*identity_count)++;
+                }
+                ret = BSC_WEBSOCKET_SUCCESS;
+            }
+        }
+        GENERAL_NAMES_free(san);
+    }
+    X509_free(cert);
+    ERR_clear_error();
+    return ret;
+}
+
+BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identity(
+    BSC_WEBSOCKET_SRV_HANDLE sh,
+    BSC_WEBSOCKET_HANDLE h,
+    char *buf,
+    size_t buf_size)
+{
+    size_t identity_count = 0;
+    BSC_WEBSOCKET_RET ret =
+        bws_srv_get_peer_cert_identities(sh, h, buf, buf_size, &identity_count);
+
+    if (ret == BSC_WEBSOCKET_SUCCESS && identity_count == 0) {
+        return BSC_WEBSOCKET_INVALID_OPERATION;
+    }
+    return ret;
+}
+
+BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identity_at(
+    BSC_WEBSOCKET_SRV_HANDLE sh,
+    BSC_WEBSOCKET_HANDLE h,
+    size_t index,
+    char *buf,
+    size_t buf_size)
+{
+    BSC_WEBSOCKET_CONTEXT *ctx = (BSC_WEBSOCKET_CONTEXT *)sh;
+    SSL *ssl;
+    X509 *cert;
+    GENERAL_NAMES *san;
+    int i;
+    BSC_WEBSOCKET_RET ret = BSC_WEBSOCKET_INVALID_OPERATION;
+    GENERAL_NAME *name;
+    const unsigned char *s;
+    int slen;
+    size_t found = 0;
+
+    if (!ctx || h < 0 || !buf || !buf_size ||
+        h >= bws_srv_get_max_sockets(ctx->proto)) {
+        return BSC_WEBSOCKET_BAD_PARAM;
+    }
+
+    pthread_mutex_lock(ctx->mutex);
+    ssl = (ctx->conn[h].state != BSC_WEBSOCKET_STATE_IDLE && ctx->conn[h].ws)
+        ? lws_get_ssl(ctx->conn[h].ws)
+        : NULL;
+    if (!ssl) {
+        pthread_mutex_unlock(ctx->mutex);
+        return BSC_WEBSOCKET_INVALID_OPERATION;
+    }
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+    cert = SSL_get1_peer_certificate(ssl);
+#else
+    cert = SSL_get_peer_certificate(ssl);
+#endif
+    pthread_mutex_unlock(ctx->mutex);
+    if (!cert) {
+        return BSC_WEBSOCKET_INVALID_OPERATION;
+    }
+    san = X509_get_ext_d2i(cert, NID_subject_alt_name, NULL, NULL);
+    if (san) {
+        for (i = 0; i < sk_GENERAL_NAME_num(san); i++) {
+            name = sk_GENERAL_NAME_value(san, i);
+
+            if (name->type != GEN_URI) {
+                continue;
+            }
+            s = ASN1_STRING_get0_data(name->d.uniformResourceIdentifier);
+            slen = ASN1_STRING_length(name->d.uniformResourceIdentifier);
+            if (slen > 9 && memcmp(s, "bacnet://", 9) == 0 &&
+                !memchr(s, 0, (size_t)slen)) {
+                if (found == index) {
+                    if ((size_t)slen >= buf_size) {
+                        ret = BSC_WEBSOCKET_BAD_PARAM;
+                    } else {
+                        memcpy(buf, s, (size_t)slen);
+                        buf[slen] = '\0';
+                        ret = BSC_WEBSOCKET_SUCCESS;
+                    }
+                    break;
+                }
+                found++;
+            }
+        }
+        GENERAL_NAMES_free(san);
+    }
+    X509_free(cert);
+    ERR_clear_error();
+    return ret;
+}
+#else
+BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identities(
+    BSC_WEBSOCKET_SRV_HANDLE sh,
+    BSC_WEBSOCKET_HANDLE h,
+    char *buf,
+    size_t buf_size,
+    size_t *identity_count)
+{
+    (void)sh;
+    (void)h;
+    (void)buf;
+    (void)buf_size;
+    if (identity_count) {
+        *identity_count = 0;
+    }
+    return BSC_WEBSOCKET_INVALID_OPERATION;
+}
+
+BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identity(
+    BSC_WEBSOCKET_SRV_HANDLE sh,
+    BSC_WEBSOCKET_HANDLE h,
+    char *buf,
+    size_t buf_size)
+{
+    (void)sh;
+    (void)h;
+    (void)buf;
+    (void)buf_size;
+    return BSC_WEBSOCKET_INVALID_OPERATION;
+}
+
+BSC_WEBSOCKET_RET bws_srv_get_peer_cert_identity_at(
+    BSC_WEBSOCKET_SRV_HANDLE sh,
+    BSC_WEBSOCKET_HANDLE h,
+    size_t index,
+    char *buf,
+    size_t buf_size)
+{
+    (void)sh;
+    (void)h;
+    (void)index;
+    (void)buf;
+    (void)buf_size;
+    return BSC_WEBSOCKET_INVALID_OPERATION;
+}
+#endif
+
+/**
+ * @brief bws_srv_cert_identity_supported() reports whether the underlying
+ *        TLS backend of this port implements bws_srv_get_peer_cert_identity().
+ *        Some backends (e.g. mbedTLS) do not yet support extracting the
+ *        peer certificate's SAN entries, in which case
+ *        bws_srv_get_peer_cert_identity() always fails and callers must not
+ *        rely on it to authorize peers.
+ *
+ * @return true if bws_srv_get_peer_cert_identity() is implemented by this
+ *         port's TLS backend, false otherwise.
+ */
+bool bws_srv_cert_identity_supported(void)
+{
+#if !defined(LWS_WITH_MBEDTLS)
+    return true;
+#else
+    return false;
+#endif
 }

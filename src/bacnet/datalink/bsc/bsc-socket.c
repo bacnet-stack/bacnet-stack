@@ -230,6 +230,25 @@ static void bsc_cli_process_error(BSC_SOCKET *c, BACNET_ERROR_CODE reason)
 }
 
 /**
+ * @brief Immediately abort a connected socket without the graceful BVLC-SC
+ *  Disconnect-Request handshake used by bsc_disconnect(). Intended for
+ *  callers outside this module (e.g. bsc-hub-function.c) that need to
+ *  drop a peer at once, such as when it is no longer authorized.
+ * @param c - pointer to the socket
+ * @param reason - error code reported with the resulting DISCONNECTED event
+ */
+void bsc_socket_disconnect_forcefully(BSC_SOCKET *c, BACNET_ERROR_CODE reason)
+{
+    bws_dispatch_lock();
+    if (c->ctx->cfg->type == BSC_SOCKET_CTX_INITIATOR) {
+        bsc_cli_process_error(c, reason);
+    } else {
+        bsc_srv_process_error(c, reason);
+    }
+    bws_dispatch_unlock();
+}
+
+/**
  * @brief Prepare the error message
  * @param c - pointer to the socket
  * @param origin - pointer to the origin VMAC address
@@ -810,6 +829,122 @@ void bsc_socket_maintenance_timer(uint16_t seconds)
 }
 
 /**
+ * @brief Check whether a peer certificate's "bacnet://<instance>[...]"
+ *        SAN URI (see bws_srv_get_peer_cert_identity()) matches a policy
+ *        entry's device instance identity, ignoring any path or query
+ *        suffix on the URI.
+ * @param san_uri - SAN URI string as returned by
+ *                  bws_srv_get_peer_cert_identity()
+ * @param identity - decimal device instance string from a
+ *                    BSC_CERT_IDENTITY_ENTRY
+ * @return true if they match
+ */
+static bool bsc_cert_identity_matches(const char *san_uri, const char *identity)
+{
+    const char *instance;
+    size_t instance_len;
+
+    if (!san_uri || !identity || strncmp(san_uri, "bacnet://", 9) != 0) {
+        return false;
+    }
+    instance = san_uri + 9;
+    instance_len = strcspn(instance, "/?");
+    return (strlen(identity) == instance_len) &&
+        (strncmp(instance, identity, instance_len) == 0);
+}
+
+/**
+ * @brief Search a list of SAN URI strings for one that matches the given
+ *        uuid/vmac against a list of identity policy entries. Used both
+ *        directly by unit tests and by bsc_find_cert_identity_entry().
+ * @return pointer to the matching policy entry, or NULL if none match
+ */
+BSC_CERT_IDENTITY_ENTRY *bsc_find_cert_identity_entry_in_sans(
+    const char *const *san_uris,
+    size_t san_uris_num,
+    const BACNET_SC_UUID *uuid,
+    const BACNET_SC_VMAC_ADDRESS *vmac,
+    BSC_CERT_IDENTITY_ENTRY *entries,
+    size_t entries_num)
+{
+    size_t i;
+    size_t j;
+
+    if (!san_uris || !san_uris_num || !uuid || !entries || !entries_num) {
+        return NULL;
+    }
+    for (i = 0; i < san_uris_num; i++) {
+        if (!san_uris[i]) {
+            continue;
+        }
+        for (j = 0; j < entries_num; j++) {
+            if (bsc_cert_identity_matches(san_uris[i], entries[j].identity) &&
+                memcmp(&entries[j].uuid, uuid, sizeof(entries[j].uuid)) == 0 &&
+                (!entries[j].vmac_required ||
+                 (vmac &&
+                  memcmp(&entries[j].vmac, vmac, sizeof(entries[j].vmac)) ==
+                      0))) {
+                return &entries[j];
+            }
+        }
+    }
+    return NULL;
+}
+
+/**
+ * @brief Look up the peer certificate identity policy entry, if any,
+ *        that authorizes the current socket's underlying TLS peer
+ *        certificate. This is an opt-in check (see
+ *        bsc_hub_function_set_identity_policy()); it is skipped entirely
+ *        when no policy is configured, preserving the AB.7.4 default
+ *        behavior. Shared by both initial Connect-Request authorization
+ *        and live revalidation of an already-connected socket.
+ * @param c - pointer to the socket
+ * @param uuid - peer's uuid, from a Connect-Request or an already
+ *        connected socket
+ * @param vmac - peer's vmac, from a Connect-Request or an already
+ *        connected socket
+ * @return pointer to the matching policy entry, or NULL if the policy is
+ *         disabled, the peer presented no matching cert identity, or no
+ *         entry authorizes it
+ */
+BSC_CERT_IDENTITY_ENTRY *bsc_find_cert_identity_entry(
+    BSC_SOCKET *c,
+    const BACNET_SC_UUID *uuid,
+    const BACNET_SC_VMAC_ADDRESS *vmac)
+{
+    char san_uri[256];
+    const char *san_uri_ptr = san_uri;
+    size_t index;
+    BSC_WEBSOCKET_RET wret;
+    BSC_CERT_IDENTITY_ENTRY *match;
+
+    if (!c->ctx->identity_policy_num) {
+        return NULL;
+    }
+    /* fetch one SAN URI at a time - no cap on how many the cert may have */
+    for (index = 0;; index++) {
+        wret = bws_srv_get_peer_cert_identity_at(
+            c->ctx->sh, c->wh, index, san_uri, sizeof(san_uri));
+        if (wret == BSC_WEBSOCKET_BAD_PARAM) {
+            /* entry at this index is too long for san_uri, skip and keep
+               enumerating instead of treating it as end-of-list */
+            continue;
+        }
+        if (wret != BSC_WEBSOCKET_SUCCESS) {
+            break;
+        }
+        match = bsc_find_cert_identity_entry_in_sans(
+            &san_uri_ptr, 1, uuid, vmac, c->ctx->identity_policy,
+            c->ctx->identity_policy_num);
+        if (match) {
+            return match;
+        }
+    }
+    return NULL;
+}
+
+/**
  * @brief Process the server awaiting request state
  * @param c - pointer to the socket
  * @param dm - pointer to the decoded message
@@ -844,6 +979,48 @@ static void bsc_process_srv_awaiting_request(
                 c->ctx, c, NULL, NULL, error_code, err_desc);
         }
     } else if (dm->hdr.bvlc_function == BVLC_SC_CONNECT_REQUEST) {
+        if (c->ctx->identity_policy_num) {
+            BSC_CERT_IDENTITY_ENTRY *entry = bsc_find_cert_identity_entry(
+                c, dm->payload.connect_request.uuid,
+                dm->payload.connect_request.vmac);
+
+            if (!entry) {
+                DEBUG_PRINTF(
+                    "bsc_process_srv_awaiting_request() rejected "
+                    "connection, uuid %s is not authorized by the peer "
+                    "certificate identity\n",
+                    bsc_uuid_to_string(dm->payload.connect_request.uuid));
+                uclass = ERROR_CLASS_SECURITY;
+                ucode = ERROR_CODE_TLS_CLIENT_AUTHENTICATION_FAILED;
+                message_id = dm->hdr.message_id;
+                if (c->ctx->funcs->failed_request) {
+                    c->ctx->funcs->failed_request(
+                        c->ctx, c, dm->payload.connect_request.vmac,
+                        dm->payload.connect_request.uuid,
+                        ERROR_CODE_TLS_CLIENT_AUTHENTICATION_FAILED, NULL);
+                }
+                len = bvlc_sc_encode_result(
+                    TX_BUF_PTR(c), TX_BUF_BYTES_AVAIL(c), message_id, NULL,
+                    NULL, BVLC_SC_CONNECT_REQUEST, 1, NULL, &uclass, &ucode,
+                    NULL);
+                if (len) {
+                    TX_BUF_UPDATE(c, len);
+                    c->state = BSC_SOCK_STATE_ERROR_FLUSH_TX;
+                    c->reason = ERROR_CODE_TLS_CLIENT_AUTHENTICATION_FAILED;
+                    bws_srv_send(c->ctx->sh, c->wh);
+                } else {
+                    DEBUG_PRINTF(
+                        "bsc_process_srv_awaiting_request() sending of "
+                        "nack result message failed, err = "
+                        "BSC_SC_NO_RESOURCES\n");
+                    bsc_srv_process_error(
+                        c, ERROR_CODE_TLS_CLIENT_AUTHENTICATION_FAILED);
+                }
+                DEBUG_PRINTF_VERBOSE(
+                    "bsc_process_srv_awaiting_request() <<<\n");
+                return;
+            }
+        }
         existing = c->ctx->funcs->find_connection_for_uuid(
             dm->payload.connect_request.uuid, c->ctx->user_arg);
 
@@ -1529,6 +1706,8 @@ BSC_SC_RET bsc_init_ctx(
     BSC_WEBSOCKET_RET ret;
     BSC_SC_RET sc_ret = BSC_SC_SUCCESS;
     size_t i;
+    BSC_CERT_IDENTITY_ENTRY *identity_policy;
+    size_t identity_policy_num;
 
     DEBUG_PRINTF(
         "bsc_init_сtx() >>> ctx = %p, cfg = %p, funcs = %p, user_arg = %p\n",
@@ -1555,7 +1734,12 @@ BSC_SC_RET bsc_init_ctx(
         return BSC_SC_INVALID_OPERATION;
     }
 
+    identity_policy = ctx->identity_policy;
+    identity_policy_num = ctx->identity_policy_num;
+
     memset(ctx, 0, sizeof(*ctx));
+    ctx->identity_policy = identity_policy;
+    ctx->identity_policy_num = identity_policy_num;
     ctx->user_arg = user_arg;
     ctx->cfg = cfg;
     ctx->funcs = funcs;

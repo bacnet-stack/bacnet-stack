@@ -166,6 +166,39 @@ struct BSC_SocketContextFuncs {
         const char *error_desc);
 };
 
+/**
+ * An operator-configured, opt-in entry binding a BACnet/SC peer
+ * certificate identity (a "bacnet://<instance>" SAN URI, see 135-2024
+ * Clause 17.3.3) to the Device UUID/VMAC it is authorized to claim in a
+ * Connect-Request. Not part of the AB.7.4 default connection criteria;
+ * only enforced when a socket context has a non-empty identity policy.
+ */
+typedef struct BSC_Cert_Identity_Entry {
+    /* decimal device instance, i.e. the text after "bacnet://" and before
+     * any '/' or '?' in the peer cert's SAN URI */
+    const char *identity;
+    BACNET_SC_UUID uuid;
+    BACNET_SC_VMAC_ADDRESS vmac;
+    bool vmac_required;
+} BSC_CERT_IDENTITY_ENTRY;
+
+BACNET_STACK_EXPORT
+BSC_CERT_IDENTITY_ENTRY *bsc_find_cert_identity_entry_in_sans(
+    const char *const *san_uris,
+    size_t san_uris_num,
+    const BACNET_SC_UUID *uuid,
+    const BACNET_SC_VMAC_ADDRESS *vmac,
+    BSC_CERT_IDENTITY_ENTRY *entries,
+    size_t entries_num);
+
+/* shared by both initial Connect-Request authorization and live
+ * identity-policy revalidation of an already-connected socket */
+BACNET_STACK_EXPORT
+BSC_CERT_IDENTITY_ENTRY *bsc_find_cert_identity_entry(
+    BSC_SOCKET *c,
+    const BACNET_SC_UUID *uuid,
+    const BACNET_SC_VMAC_ADDRESS *vmac);
+
 struct BSC_SocketContext {
     BSC_CTX_STATE state;
     BSC_WEBSOCKET_SRV_HANDLE sh;
@@ -175,6 +208,10 @@ struct BSC_SocketContext {
     BSC_CONTEXT_CFG *cfg;
     bool deinit_in_progress;
     void *user_arg;
+    /* identity_policy_num == 0 (default) disables identity binding
+     * enforcement entirely, preserving AB.7.4 default behavior */
+    BSC_CERT_IDENTITY_ENTRY *identity_policy;
+    size_t identity_policy_num;
 };
 
 /* max_local_bvlc_len - The maximum BVLC message size int bytes that can be */
@@ -251,6 +288,9 @@ BSC_SC_RET bsc_connect(BSC_SOCKET_CTX *ctx, BSC_SOCKET *c, char *url);
 
 BACNET_STACK_EXPORT
 void bsc_disconnect(BSC_SOCKET *c);
+
+BACNET_STACK_EXPORT
+void bsc_socket_disconnect_forcefully(BSC_SOCKET *c, BACNET_ERROR_CODE reason);
 
 /**
  * @brief  bsc_send() function schedules transmitting of pdu to
