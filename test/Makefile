@@ -57,7 +57,7 @@ TEST_FILTER ?= test_device
 test-filter:
 	[ -d $(BUILD_DIR) ] || mkdir -p $(BUILD_DIR)
 	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake .. && cd ..
-	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && ctest --clean-first --output-on-failure -R $(TEST_FILTER) && cd ..
+	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && ctest --output-on-failure -R $(TEST_FILTER) && cd ..
 
 .PHONY: test
 test:

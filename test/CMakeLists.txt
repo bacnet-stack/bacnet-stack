@@ -252,6 +252,7 @@ endif()
 enable_testing()
 foreach(testdir IN ITEMS ${testdirs})
   get_filename_component(basename ${testdir} NAME)
+  set(test_fixture test_${basename}_fixture)
   add_subdirectory(${testdir})
   add_test(build_${basename}
     "${CMAKE_COMMAND}"
@@ -260,8 +261,8 @@ foreach(testdir IN ITEMS ${testdirs})
     --target test_${basename}
     )
   add_test(test_${basename} ${testdir}/test_${basename})
-  set_tests_properties(test_${basename}  PROPERTIES FIXTURES_REQUIRED test_fixture)
-  set_tests_properties(build_${basename} PROPERTIES FIXTURES_SETUP    test_fixture)
+  set_tests_properties(test_${basename}  PROPERTIES FIXTURES_REQUIRED ${test_fixture})
+  set_tests_properties(build_${basename} PROPERTIES FIXTURES_SETUP    ${test_fixture})
 endforeach()
 
 message(STATUS "BACNET: using cmake:....................\"${CMAKE_VERSION}\"")
