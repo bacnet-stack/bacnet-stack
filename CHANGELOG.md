@@ -17,6 +17,8 @@ The git repositories are hosted at the following sites:
 ### Security
 ### Fixed
 
+* Fixed the basic Multistate Output object to reserve priority 6 and reject
+  writes to it. (#1493)
 * Fixed the basic Analog Output object to reserve priority 6 and reject
   writes to it. (#1492)
 * Fixed Network Port object IPv4 to use the actual IPv4 settings
