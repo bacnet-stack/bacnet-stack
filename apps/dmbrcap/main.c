@@ -27,6 +27,7 @@
 
 /* define our Data Link Type for libPCAP */
 #define DLT_CAPTURE_TYPE (1)
+#define DLT_IEEE802_15_4 (104)
 
 static uint8_t MTU_Buffer[1501];
 static uint8_t Input_Buffer[1501];
@@ -174,7 +175,7 @@ static void filename_create_new(void)
  * version information, timezone, timestamp accuracy, snapshot length,
  * and data link type.
  */
-static void write_global_header(void)
+static void write_global_header(uint32_t network)
 {
     uint32_t magic_number = 0xa1b2c3d4; /* magic number */
     uint16_t version_major = 2; /* major version number */
@@ -182,8 +183,6 @@ static void write_global_header(void)
     int32_t thiszone = 0; /* GMT to local correction */
     uint32_t sigfigs = 0; /* accuracy of timestamps */
     uint32_t snaplen = 65535; /* max length of captured packet, in octets */
-    uint32_t network = DLT_CAPTURE_TYPE; /* data link type */
-
     /* create a new file. */
     (void)data_write_header(&magic_number, sizeof(magic_number), 1);
     (void)data_write_header(&version_major, sizeof(version_major), 1);
@@ -495,6 +494,7 @@ static void print_usage(const char *filename)
     printf(" [--pcap <filename>]");
     printf(" [--npdu <hex-ASCII>]");
     printf(" [--apdu <hex-ASCII>]");
+    printf(" [--wpan <hex-ASCII>]");
     printf(" [--version][--help]\n");
 }
 
@@ -518,6 +518,11 @@ static void print_help(const char *filename)
         "%s --apdu <hex-ASCII>\n"
         "write one capture packet containing an Ethernet/SNAP header,\n"
         "a default NPDU header, and the APDU bytes.\n",
+        filename);
+    printf("\n");
+    printf(
+        "%s --wpan <hex-ASCII>\n"
+        "write one raw IEEE 802.15.4 packet using PCAP link type 104.\n",
         filename);
     printf("\n");
     printf(
@@ -547,8 +552,10 @@ int main(int argc, char *argv[])
     const char *output_filename = NULL;
     bool npdu_mode = false;
     bool apdu_mode = false;
+    bool wpan_mode = false;
     size_t packet_len = 0;
     size_t hex_len = 0;
+    uint32_t capture_type = DLT_CAPTURE_TYPE;
     int hex_arg_start = 0;
     int argi = 0;
 
@@ -577,14 +584,16 @@ int main(int argc, char *argv[])
             continue;
         }
         if ((strcmp(argv[argi], "--npdu") == 0) ||
-            (strcmp(argv[argi], "--apdu") == 0)) {
+            (strcmp(argv[argi], "--apdu") == 0) ||
+            (strcmp(argv[argi], "--wpan") == 0)) {
             if (++argi >= argc) {
                 print_usage(filename);
                 return 1;
             }
             hex_arg_start = argi;
             npdu_mode = (strcmp(argv[argi - 1], "--npdu") == 0);
-            apdu_mode = !npdu_mode;
+            apdu_mode = (strcmp(argv[argi - 1], "--apdu") == 0);
+            wpan_mode = (strcmp(argv[argi - 1], "--wpan") == 0);
             break;
         }
         output_filename = argv[argi];
@@ -617,7 +626,7 @@ int main(int argc, char *argv[])
         return 0;
     }
     /* packet mode: ASCII hex input -> PCAP capture file */
-    if (npdu_mode || apdu_mode) {
+    if (npdu_mode || apdu_mode || wpan_mode) {
         if (pcap_filename || output_filename) {
             print_usage(filename);
             return 1;
@@ -635,7 +644,10 @@ int main(int argc, char *argv[])
         atexit(cleanup);
         mstimer_init();
         filename_create_new();
-        write_global_header();
+        if (wpan_mode) {
+            capture_type = DLT_IEEE802_15_4;
+        }
+        write_global_header(capture_type);
         if (apdu_mode) {
             packet_len = apdu_packet(Input_Buffer, packet_len);
         } else {
@@ -660,7 +672,7 @@ int main(int argc, char *argv[])
     atexit(cleanup);
     mstimer_init();
     filename_create_new();
-    write_global_header();
+    write_global_header(DLT_CAPTURE_TYPE);
     while (backup_file_packet() > 0) {
         Backup_File_Packet_Counter++;
     }

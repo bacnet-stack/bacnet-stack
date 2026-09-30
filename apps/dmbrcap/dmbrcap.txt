@@ -13,3 +13,8 @@ a default NPDU header, use:
 
     dmbrcap --apdu "10 0c 00 01"
     dmbrcap --apdu 10 0c 00 01
+
+To generate a capture containing a raw IEEE 802.15.4 packet, use:
+
+    dmbrcap --wpan "01 20 ff ff 00 ff 10 00 c4 02 0d 34 a1 22 05 91 03 21 56"
+    dmbrcap --wpan 01 20 ff ff 00 ff 10 00 c4 02 0d 34 a1 22 05 91 03 21 56
