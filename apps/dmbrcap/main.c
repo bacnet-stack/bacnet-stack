@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <string.h>
 #include <errno.h>
 #include <time.h>
@@ -28,6 +29,7 @@
 #define DLT_CAPTURE_TYPE (1)
 
 static uint8_t MTU_Buffer[1501];
+static uint8_t Input_Buffer[1501];
 static char Capture_Filename[64] = "dmbr_20260209012345.cap";
 static FILE *Capture_File_Handle = NULL; /* stream pointer */
 static FILE *Backup_File_Handle = NULL; /* stream pointer */
@@ -36,6 +38,66 @@ static long Backup_File_Packet_Counter;
 /* reverse mode: PCAP capture file -> BACnet binary backup file */
 static FILE *Pcap_File_Handle = NULL; /* stream pointer */
 static FILE *Restore_File_Handle = NULL; /* stream pointer */
+
+/**
+ * @brief Convert a string of ASCII hex to binary.
+ * @param buffer [out] Buffer to store the binary data.
+ * @param buffer_size [in] Size of the buffer.
+ * @param ascii_hex [in] String of ASCII hex.
+ * @return Number of bytes converted, or 0 if the string is invalid.
+ */
+static size_t
+ascii_hex_to_binary(uint8_t *buffer, size_t buffer_size, const char *ascii_hex)
+{
+    size_t length = 0;
+    unsigned value = 0;
+    unsigned nibbles = 0;
+    size_t index = 0;
+
+    if (!buffer || !ascii_hex) {
+        return 0;
+    }
+    while (ascii_hex[index] != '\0') {
+        if (isxdigit((unsigned char)ascii_hex[index])) {
+            value <<= 4;
+            if (isdigit((unsigned char)ascii_hex[index])) {
+                value |= (unsigned)(ascii_hex[index] - '0');
+            } else {
+                value |= (unsigned)(tolower((unsigned char)ascii_hex[index]) -
+                                    'a' + 10);
+            }
+            nibbles++;
+            if (nibbles == 2) {
+                if (length >= buffer_size) {
+                    return 0;
+                }
+                buffer[length++] = (uint8_t)value;
+                value = 0;
+                nibbles = 0;
+            }
+        } else if (
+            !isspace((unsigned char)ascii_hex[index]) &&
+            (ascii_hex[index] != ':') && (ascii_hex[index] != '-')) {
+            return 0;
+        }
+        index++;
+    }
+    if (nibbles != 0) {
+        return 0;
+    }
+
+    return length;
+}
+
+static size_t bacnet_ethernet_header(uint8_t *packet)
+{
+    memset(packet, 0xFF, 12);
+    packet[14] = 0x82;
+    packet[15] = 0x82;
+    packet[16] = 0x03;
+
+    return 17;
+}
 
 /**
  * @brief Write data to the capture file.
@@ -332,29 +394,8 @@ static size_t backup_file_packet(void)
     int decoded_len = 0;
     uint8_t apdu[1500] = { 0 };
 
-    /* Ethernet SNAP Encoding*/
-    /* dest MAC */
-    MTU_Buffer[0] = 0xFF;
-    MTU_Buffer[1] = 0xFF;
-    MTU_Buffer[2] = 0xFF;
-    MTU_Buffer[3] = 0xFF;
-    MTU_Buffer[4] = 0xFF;
-    MTU_Buffer[5] = 0xFF;
-    /* source MAC */
-    MTU_Buffer[6] = 0xFF;
-    MTU_Buffer[7] = 0xFF;
-    MTU_Buffer[8] = 0xFF;
-    MTU_Buffer[9] = 0xFF;
-    MTU_Buffer[10] = 0xFF;
-    MTU_Buffer[11] = 0xFF;
-    /* length - 12, 13 */
-    /* Logical-Link Control SNAP */
-    /* DSAP for SNAP */
-    MTU_Buffer[14] = 0x82;
-    /* SSAP for SNAP */
-    MTU_Buffer[15] = 0x82;
-    /* Control Field for SNAP */
-    MTU_Buffer[16] = 0x03;
+    /* Ethernet SNAP encoding */
+    (void)bacnet_ethernet_header(MTU_Buffer);
     /* BACnet NPDU */
     len = npdu_encode_pdu(&MTU_Buffer[17], NULL, NULL, &npdu_data);
     packet_len = 17 + len;
@@ -389,6 +430,29 @@ static size_t backup_file_packet(void)
             packet_len = 0;
         }
     }
+
+    return packet_len;
+}
+
+static size_t apdu_packet(const uint8_t *apdu, size_t apdu_len)
+{
+    BACNET_NPDU_DATA npdu_data = { 0 };
+    size_t packet_len = 0;
+    size_t npdu_len = 0;
+
+    if (!apdu || (apdu_len == 0)) {
+        return 0;
+    }
+    packet_len = bacnet_ethernet_header(MTU_Buffer);
+    npdu_len = npdu_encode_pdu(&MTU_Buffer[packet_len], NULL, NULL, &npdu_data);
+    packet_len += npdu_len;
+    if ((packet_len + apdu_len) > sizeof(MTU_Buffer)) {
+        return 0;
+    }
+    memcpy(&MTU_Buffer[packet_len], apdu, apdu_len);
+    packet_len += apdu_len;
+    encode_unsigned16(&MTU_Buffer[12], packet_len - 14);
+    write_received_packet(MTU_Buffer, packet_len);
 
     return packet_len;
 }
@@ -429,6 +493,8 @@ static void print_usage(const char *filename)
 {
     printf("Usage: %s <filename>", filename);
     printf(" [--pcap <filename>]");
+    printf(" [--npdu <hex-ASCII>]");
+    printf(" [--apdu <hex-ASCII>]");
     printf(" [--version][--help]\n");
 }
 
@@ -441,6 +507,17 @@ static void print_help(const char *filename)
     printf(
         "%s <filename>\n"
         "convert a backup file into a capture file.\n",
+        filename);
+    printf("\n");
+    printf(
+        "%s --npdu <hex-ASCII>\n"
+        "write one capture packet containing the raw NPDU bytes.\n",
+        filename);
+    printf("\n");
+    printf(
+        "%s --apdu <hex-ASCII>\n"
+        "write one capture packet containing an Ethernet/SNAP header,\n"
+        "a default NPDU header, and the APDU bytes.\n",
         filename);
     printf("\n");
     printf(
@@ -468,6 +545,10 @@ int main(int argc, char *argv[])
     const char *filename = NULL;
     const char *pcap_filename = NULL;
     const char *output_filename = NULL;
+    const char *hex_ascii = NULL;
+    bool npdu_mode = false;
+    bool apdu_mode = false;
+    size_t packet_len = 0;
     int argi = 0;
 
     /* decode any command line parameters */
@@ -492,6 +573,17 @@ int main(int argc, char *argv[])
             if (argi < argc) {
                 pcap_filename = argv[argi];
             }
+            continue;
+        }
+        if ((strcmp(argv[argi], "--npdu") == 0) ||
+            (strcmp(argv[argi], "--apdu") == 0)) {
+            if (++argi >= argc) {
+                print_usage(filename);
+                return 1;
+            }
+            hex_ascii = argv[argi];
+            npdu_mode = (strcmp(argv[argi - 1], "--npdu") == 0);
+            apdu_mode = !npdu_mode;
             continue;
         }
         output_filename = argv[argi];
@@ -522,6 +614,33 @@ int main(int argc, char *argv[])
         }
 
         return 0;
+    }
+    /* packet mode: ASCII hex input -> PCAP capture file */
+    if (npdu_mode || apdu_mode) {
+        if (pcap_filename || output_filename) {
+            print_usage(filename);
+            return 1;
+        }
+        packet_len =
+            ascii_hex_to_binary(Input_Buffer, sizeof(Input_Buffer), hex_ascii);
+        if (packet_len == 0) {
+            fprintf(stderr, "dmbrcap: invalid or empty hex input\n");
+            return 1;
+        }
+        atexit(cleanup);
+        mstimer_init();
+        filename_create_new();
+        write_global_header();
+        if (apdu_mode) {
+            packet_len = apdu_packet(Input_Buffer, packet_len);
+        } else {
+            write_received_packet(Input_Buffer, packet_len);
+        }
+        if (packet_len > 0) {
+            fprintf(stdout, "%s: wrote 1 packet\n", filename);
+            return 0;
+        }
+        return 1;
     }
     /* forward mode: BACnet binary backup file -> PCAP capture file */
     if (output_filename) {
