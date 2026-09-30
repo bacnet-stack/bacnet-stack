@@ -265,7 +265,7 @@ The git repositories are hosted at the following sites:
   server ReadProperty configuration for sampled references. (#1501)
 * Fixed the Relinquish_Default COV trigger in Output objects. (#1496)
 * Fixed the gateway2 app to not announce virtual network as a network. (#1495)
-* Fixed the basic Write Property Multiple to reject priority 0. (#1494)
+* Fixed the Write Property Multiple to reject priority 0. (#1494)
 * Fixed the basic Multistate Output object to reserve priority 6 and reject
   writes to it. (#1493)
 * Fixed the basic Analog Output object to reserve priority 6 and reject
