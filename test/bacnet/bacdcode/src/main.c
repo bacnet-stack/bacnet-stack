@@ -2154,6 +2154,51 @@ static void test_bacnet_enclosed_data_length(void)
     zassert_equal(test_len, BACNET_STATUS_ERROR, "test_len=%d", test_len);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, test_bacnet_constructed_value)
+#else
+static void test_bacnet_constructed_value(void)
+#endif
+{
+    uint8_t apdu[MAX_APDU + 2] = { 0 };
+    BACNET_CONSTRUCTED_VALUE_TYPE value = { 0 }, test_value = { 0 };
+    int apdu_len = 0, null_len = 0, test_len = 0;
+    uint8_t tag_number = 0;
+    bool status = false;
+
+    value.data_len = MAX_APDU;
+    null_len =
+        bacnet_constructed_value_context_encode(NULL, tag_number, &value);
+    apdu_len =
+        bacnet_constructed_value_context_encode(apdu, tag_number, &value);
+    zassert_equal(apdu_len, null_len, NULL);
+    test_len = bacnet_constructed_value_context_decode(
+        apdu, apdu_len, tag_number, &test_value);
+    zassert_equal(apdu_len, test_len, NULL);
+    zassert_equal(value.data_len, test_value.data_len, NULL);
+    status = bacnet_constructed_value_same(&value, &test_value);
+    zassert_true(status, NULL);
+    status = bacnet_constructed_value_copy(&value, &test_value);
+    zassert_true(status, NULL);
+    /* negative test for decoding an oversized constructed value */
+    test_len = bacnet_constructed_value_decode(
+        apdu, sizeof(apdu), sizeof(apdu), &test_value);
+    zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+    /* negative testing for decoding an oversized constructed value */
+    while (--apdu_len) {
+        test_len = bacnet_constructed_value_context_decode(
+            apdu, apdu_len, tag_number, &test_value);
+        zassert_equal(
+            test_len, BACNET_STATUS_ERROR, "apdu_len=%d test_len=%d", apdu_len,
+            test_len);
+    }
+    /* negative test for encoding a chunk too big */
+    value.data_len = MAX_APDU + 1;
+    apdu_len =
+        bacnet_constructed_value_context_encode(apdu, tag_number, &value);
+    zassert_equal(apdu_len, 0, NULL);
+}
+
 /**
  * @}
  */

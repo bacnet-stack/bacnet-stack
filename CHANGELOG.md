@@ -18,9 +18,15 @@ The git repositories are hosted at the following sites:
 
 * Secured the Linux/BSD/Windows websocket by enforcing TLS client-certificate
   verification in BACnet/SC. (#1503)
+* Secured buffer handling in bacnet_constructed_value_context_encode
+  to prevent overrun. Fixed buffer overrun in bacnet_constructed_value_decode
+  and validate using tests for oversized APDU. (#1510)
 
 ### Fixed
 
+* Fixed basic Trend Log object by rejecting ReadRange by-position RefIndex 0
+  and non-positive count, and guard against an entry index below 1 as a
+  defense-in-depth measure. (#1517)
 * Fixed the Relinquish_Default COV trigger in Output objects. (#1496)
 * Fixed the Write Property Multiple to reject priority 0. (#1494)
 * Fixed the basic Multistate Output object to reserve priority 6 and reject
