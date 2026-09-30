@@ -3,7 +3,7 @@ K.5.18 BIBB - Device Management-Backup and Restore-B (DM-BR-B)
 This tool generates a Wireshark PCAP format file from a CreateObject services
 encoded backup file.
 
-To generate a capture containing one raw NPDU packet, use:
+To generate an Ethernet/SNAP capture containing one NPDU packet, use:
 
     dmbrcap --npdu "01 00 0c 0a"
     dmbrcap --npdu 01 00 0c 0a

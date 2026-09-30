@@ -90,9 +90,9 @@ ascii_hex_to_binary(uint8_t *buffer, size_t buffer_size, const char *ascii_hex)
     return length;
 }
 
-static size_t bacnet_ethernet_header(uint8_t *packet)
+static size_t bacnet_ethernet_header(uint8_t *packet, uint8_t mac_value)
 {
-    memset(packet, 0xFF, 12);
+    memset(packet, mac_value, 12);
     packet[14] = 0x82;
     packet[15] = 0x82;
     packet[16] = 0x03;
@@ -394,7 +394,7 @@ static size_t backup_file_packet(void)
     uint8_t apdu[1500] = { 0 };
 
     /* Ethernet SNAP encoding */
-    (void)bacnet_ethernet_header(MTU_Buffer);
+    (void)bacnet_ethernet_header(MTU_Buffer, 0xFF);
     /* BACnet NPDU */
     len = npdu_encode_pdu(&MTU_Buffer[17], NULL, NULL, &npdu_data);
     packet_len = 17 + len;
@@ -442,7 +442,7 @@ static size_t apdu_packet(const uint8_t *apdu, size_t apdu_len)
     if (!apdu || (apdu_len == 0)) {
         return 0;
     }
-    packet_len = bacnet_ethernet_header(MTU_Buffer);
+    packet_len = bacnet_ethernet_header(MTU_Buffer, 0xFF);
     npdu_len = npdu_encode_pdu(&MTU_Buffer[packet_len], NULL, NULL, &npdu_data);
     packet_len += npdu_len;
     if ((packet_len + apdu_len) > sizeof(MTU_Buffer)) {
@@ -450,6 +450,25 @@ static size_t apdu_packet(const uint8_t *apdu, size_t apdu_len)
     }
     memcpy(&MTU_Buffer[packet_len], apdu, apdu_len);
     packet_len += apdu_len;
+    encode_unsigned16(&MTU_Buffer[12], packet_len - 14);
+    write_received_packet(MTU_Buffer, packet_len);
+
+    return packet_len;
+}
+
+static size_t npdu_packet(const uint8_t *npdu, size_t npdu_len)
+{
+    size_t packet_len = 0;
+
+    if (!npdu || (npdu_len == 0)) {
+        return 0;
+    }
+    packet_len = bacnet_ethernet_header(MTU_Buffer, 0x00);
+    if ((packet_len + npdu_len) > sizeof(MTU_Buffer)) {
+        return 0;
+    }
+    memcpy(&MTU_Buffer[packet_len], npdu, npdu_len);
+    packet_len += npdu_len;
     encode_unsigned16(&MTU_Buffer[12], packet_len - 14);
     write_received_packet(MTU_Buffer, packet_len);
 
@@ -511,7 +530,7 @@ static void print_help(const char *filename)
     printf("\n");
     printf(
         "%s --npdu <hex-ASCII>\n"
-        "write one capture packet containing the raw NPDU bytes.\n",
+        "write one Ethernet/SNAP capture packet containing the NPDU bytes.\n",
         filename);
     printf("\n");
     printf(
@@ -650,6 +669,8 @@ int main(int argc, char *argv[])
         write_global_header(capture_type);
         if (apdu_mode) {
             packet_len = apdu_packet(Input_Buffer, packet_len);
+        } else if (npdu_mode) {
+            packet_len = npdu_packet(Input_Buffer, packet_len);
         } else {
             write_received_packet(Input_Buffer, packet_len);
         }
