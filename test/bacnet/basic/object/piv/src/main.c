@@ -48,6 +48,12 @@ static void testPositiveInteger_Value(void)
     zassert_true(status, NULL);
     status = PositiveInteger_Value_Valid_Instance(object_instance - 1);
     zassert_false(status, NULL);
+    status = PositiveInteger_Value_Units_Set(object_instance, UNITS_VOLTS);
+    zassert_true(status, NULL);
+    zassert_equal(
+        PositiveInteger_Value_Units(object_instance), UNITS_VOLTS, NULL);
+    status = PositiveInteger_Value_Units_Set(object_instance + 1, UNITS_VOLTS);
+    zassert_false(status, NULL);
     index = PositiveInteger_Value_Instance_To_Index(object_instance);
     zassert_equal(index, 0, NULL);
     test_object_instance = PositiveInteger_Value_Index_To_Instance(index);

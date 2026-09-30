@@ -445,6 +445,50 @@ bool PositiveInteger_Value_Description_Set(
 }
 
 /**
+ * For a given object instance-number, returns the units property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  units property value
+ */
+BACNET_ENGINEERING_UNITS
+PositiveInteger_Value_Units(uint32_t object_instance)
+{
+    BACNET_ENGINEERING_UNITS units = UNITS_NO_UNITS;
+    POSITIVEINTEGER_VALUE_DESCR *pObject = NULL;
+
+    pObject = PositiveInteger_Value_Object(object_instance);
+    if (pObject) {
+        units = pObject->Units;
+    }
+
+    return units;
+}
+
+/**
+ * For a given object instance-number, sets the units property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param units - units property value
+ *
+ * @return true if the units property value was set
+ */
+bool PositiveInteger_Value_Units_Set(
+    uint32_t object_instance, BACNET_ENGINEERING_UNITS units)
+{
+    bool status = false;
+    POSITIVEINTEGER_VALUE_DESCR *pObject = NULL;
+
+    pObject = PositiveInteger_Value_Object(object_instance);
+    if (pObject) {
+        pObject->Units = units;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * Writes the description property value for a given Positive Integer Value
  * object.
  *
@@ -565,7 +609,7 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 
         case PROP_UNITS:
             apdu_len = encode_application_enumerated(
-                &apdu[0], (uint32_t)pObject->Units);
+                &apdu[0], PositiveInteger_Value_Units(rpdata->object_instance));
             break;
             /* BACnet Testing Observed Incident oi00109
                     Positive Integer Value / Units returned wrong datatype -
@@ -678,7 +722,8 @@ bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 if (value.type.Enumerated <= UINT16_MAX) {
-                    pObject->Units = (uint16_t)value.type.Enumerated;
+                    PositiveInteger_Value_Units_Set(
+                        wp_data->object_instance, value.type.Enumerated);
                 } else {
                     status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
