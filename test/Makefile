@@ -10,6 +10,7 @@
 all: test
 
 BUILD_DIR=build
+BSC_BUILD_DIR=$(BUILD_DIR)/bsc
 
 CTEST_OPTIONS := --quiet --output-on-failure
 CTEST_OPTIONS += --output-junit test-results.xml
@@ -98,6 +99,7 @@ env:
 
 BSC_DATALINK_DIR := $(realpath ./bacnet/datalink/bsc-datalink)
 .PHONY: bsc-datalink
+bsc-datalink: BUILD_DIR := $(BSC_BUILD_DIR)/datalink
 bsc-datalink:
 	[ -d $(BUILD_DIR) ] || mkdir -p $(BUILD_DIR)
 	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake $(BSC_DATALINK_DIR) && cd ..
@@ -106,6 +108,7 @@ bsc-datalink:
 
 BSC_NODE_DIR := $(realpath ./bacnet/datalink/bsc-node)
 .PHONY: bsc-node
+bsc-node: BUILD_DIR := $(BSC_BUILD_DIR)/node
 bsc-node:
 	[ -d $(BUILD_DIR) ] || mkdir -p $(BUILD_DIR)
 	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake $(BSC_NODE_DIR) && cd ..
@@ -114,6 +117,7 @@ bsc-node:
 
 BSC_HUB_DIR := $(realpath ./bacnet/datalink/hub-sc)
 .PHONY: bsc-hub
+bsc-hub: BUILD_DIR := $(BSC_BUILD_DIR)/hub
 bsc-hub:
 	[ -d $(BUILD_DIR) ] || mkdir -p $(BUILD_DIR)
 	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake $(BSC_HUB_DIR) && cd ..
@@ -122,6 +126,7 @@ bsc-hub:
 
 BSC_BVLC_DIR := $(realpath ./bacnet/datalink/bvlc-sc)
 .PHONY: bsc-bvlc
+bsc-bvlc: BUILD_DIR := $(BSC_BUILD_DIR)/bvlc
 bsc-bvlc:
 	[ -d $(BUILD_DIR) ] || mkdir -p $(BUILD_DIR)
 	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake $(BSC_BVLC_DIR) && cd ..
@@ -130,6 +135,7 @@ bsc-bvlc:
 
 BSC_SOCKET_DIR := $(realpath ./bacnet/datalink/bsc-socket)
 .PHONY: bsc-socket
+bsc-socket: BUILD_DIR := $(BSC_BUILD_DIR)/socket
 bsc-socket:
 	[ -d $(BUILD_DIR) ] || mkdir -p $(BUILD_DIR)
 	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake $(BSC_SOCKET_DIR) && cd ..
@@ -137,8 +143,9 @@ bsc-socket:
 	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && ./test_bsc-socket && cd ..
 
 BSC_WEBSOCKET_DIR := $(realpath ./bacnet/datalink/websockets)
-.PHONY: websockets
-websockets:
+.PHONY: test-websockets
+test-websockets: BUILD_DIR := $(BSC_BUILD_DIR)/websockets
+test-websockets:
 	[ -d $(BUILD_DIR) ] || mkdir -p $(BUILD_DIR)
 	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake $(BSC_WEBSOCKET_DIR) && cd ..
 	[ -d $(BUILD_DIR) ] && cd $(BUILD_DIR) && cmake --build . $(JOBS) --clean-first && cd ..
@@ -155,7 +162,7 @@ libwebsockets:
 	bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32 -DCMAKE_POLICY_VERSION_MINIMUM=3.5;make'
 	sudo bash -c 'cd libwebsockets;cd build;make install'
 
-test-bsc: bsc-datalink bsc-node bsc-hub bsc-bvlc bsc-socket websockets
+test-bsc: bsc-datalink bsc-node bsc-hub bsc-bvlc bsc-socket test-websockets
 
 .PHONY: clean
 clean:
