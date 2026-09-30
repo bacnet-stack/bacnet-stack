@@ -27,7 +27,7 @@
 
 /* define our Data Link Type for libPCAP */
 #define DLT_CAPTURE_TYPE (1)
-#define DLT_IEEE802_15_4 (104)
+#define DLT_IEEE802_15_4 (195)
 
 static uint8_t MTU_Buffer[1501];
 static uint8_t Input_Buffer[1501];
@@ -522,7 +522,7 @@ static void print_help(const char *filename)
     printf("\n");
     printf(
         "%s --wpan <hex-ASCII>\n"
-        "write one raw IEEE 802.15.4 packet using PCAP link type 104.\n",
+        "write one raw IEEE 802.15.4 packet using PCAP link type 195.\n",
         filename);
     printf("\n");
     printf(
