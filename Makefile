@@ -616,6 +616,11 @@ test-bsc:
 	$(MAKE) -s -C test clean
 	$(MAKE) -s -j -C test test-bsc
 
+.PHONY: test-websockets
+test-websockets:
+	$(MAKE) -s -C test clean
+	$(MAKE) -s -j -C test test-websockets
+
 # Zephyr unit testing with twister
 # expects zephyr to be installed in ../zephyr in Workspace
 # expects ZEPHYR_BASE to be set. E.g. source ../zephyr/zephyr-env.sh
