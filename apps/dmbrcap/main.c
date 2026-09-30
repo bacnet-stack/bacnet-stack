@@ -22,6 +22,7 @@
 #include "bacnet/create_object.h"
 #include "bacnet/datetime.h"
 #include "bacnet/npdu.h"
+#include "bacnet/version.h"
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/sys/filename.h"
 
@@ -587,7 +588,7 @@ int main(int argc, char *argv[])
             return 0;
         }
         if (strcmp(argv[argi], "--version") == 0) {
-            printf("dmbrcap 1.0.0\n");
+            printf("%s %s\n", filename, BACNET_VERSION_TEXT);
             printf("Copyright (C) 2026 by Steve Karg\n"
                    "This is free software; see the source for copying "
                    "conditions.\n"

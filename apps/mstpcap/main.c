@@ -1012,7 +1012,7 @@ int main(int argc, char *argv[])
             return 0;
         }
         if (strcmp(argv[argi], "--version") == 0) {
-            printf("mstpcap %s\n", BACNET_VERSION_TEXT);
+            printf("%s %s\n", filename, BACNET_VERSION_TEXT);
             printf("Copyright (C) 2011-2016 by Steve Karg\n"
                    "This is free software; see the source for copying "
                    "conditions.\n"
