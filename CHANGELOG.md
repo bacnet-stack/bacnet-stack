@@ -17,6 +17,7 @@ The git repositories are hosted at the following sites:
 ### Security
 ### Fixed
 
+* Fixed the Relinquish_Default COV trigger in Output objects. (#1496)
 * Fixed the Write Property Multiple to reject priority 0. (#1494)
 * Fixed the basic Multistate Output object to reserve priority 6 and reject
   writes to it. (#1493)
