@@ -6,8 +6,10 @@ encoded backup file.
 To generate a capture containing one raw NPDU packet, use:
 
     dmbrcap --npdu "01 00 0c 0a"
+    dmbrcap --npdu 01 00 0c 0a
 
 To generate a capture containing one APDU packet with BACnet Ethernet/SNAP and
 a default NPDU header, use:
 
     dmbrcap --apdu "10 0c 00 01"
+    dmbrcap --apdu 10 0c 00 01

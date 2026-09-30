@@ -545,10 +545,11 @@ int main(int argc, char *argv[])
     const char *filename = NULL;
     const char *pcap_filename = NULL;
     const char *output_filename = NULL;
-    const char *hex_ascii = NULL;
     bool npdu_mode = false;
     bool apdu_mode = false;
     size_t packet_len = 0;
+    size_t hex_len = 0;
+    int hex_arg_start = 0;
     int argi = 0;
 
     /* decode any command line parameters */
@@ -581,10 +582,10 @@ int main(int argc, char *argv[])
                 print_usage(filename);
                 return 1;
             }
-            hex_ascii = argv[argi];
+            hex_arg_start = argi;
             npdu_mode = (strcmp(argv[argi - 1], "--npdu") == 0);
             apdu_mode = !npdu_mode;
-            continue;
+            break;
         }
         output_filename = argv[argi];
     }
@@ -621,11 +622,15 @@ int main(int argc, char *argv[])
             print_usage(filename);
             return 1;
         }
-        packet_len =
-            ascii_hex_to_binary(Input_Buffer, sizeof(Input_Buffer), hex_ascii);
-        if (packet_len == 0) {
-            fprintf(stderr, "dmbrcap: invalid or empty hex input\n");
-            return 1;
+        for (argi = hex_arg_start; argi < argc; argi++) {
+            hex_len = ascii_hex_to_binary(
+                &Input_Buffer[packet_len], sizeof(Input_Buffer) - packet_len,
+                argv[argi]);
+            if (hex_len == 0) {
+                fprintf(stderr, "dmbrcap: invalid or empty hex input\n");
+                return 1;
+            }
+            packet_len += hex_len;
         }
         atexit(cleanup);
         mstimer_init();
