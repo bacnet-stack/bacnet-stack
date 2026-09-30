@@ -18,6 +18,7 @@
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
 #include "bacnet/basic/sys/mstimer.h"
+#include "bacnet/basic/sys/filename.h"
 #include "bacnet/datalink/crc.h"
 #include "bacnet/version.h"
 /* OS specific include*/
@@ -238,7 +239,9 @@ int main(int argc, char *argv[])
     uint8_t crc8 = 0xff;
     uint16_t crc16 = 0xffff;
     unsigned i = 0;
+    const char *filename;
 
+    filename = filename_remove_path(argv[0]);
     /* initialize our interface */
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
         printf(
@@ -256,7 +259,7 @@ int main(int argc, char *argv[])
         return 0;
     }
     if ((argc > 1) && (strcmp(argv[1], "--version") == 0)) {
-        printf("mstpcap %s\r\n", BACNET_VERSION_TEXT);
+        printf("%s %s\n", filename, BACNET_VERSION_TEXT);
         printf(
             "Copyright (C) 2012 by Steve Karg\r\n"
             "This is free software; see the source for copying conditions.\r\n"
