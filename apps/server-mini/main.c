@@ -18,9 +18,10 @@
  * - 54321 is the BACnet Device Instance ID
  * - "MiniDevice" is the BACnet Device Name
  *
+ * @author Ben Bartling ben.bartling@gmail.com
  * @date 2025
+ * @copyright SPDX-License-Identifier: MIT
  */
-
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>

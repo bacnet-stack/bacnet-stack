@@ -1,10 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2012 Steve Karg
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Calculate BACnet MS/TP CRC values and optionally write a libpcap file.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2012
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>

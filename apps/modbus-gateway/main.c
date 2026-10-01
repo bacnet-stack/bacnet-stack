@@ -24,9 +24,10 @@
  * override any setting before the process starts.
  *
  * @author Jihye Ahn <jen.ahn@lge.com>
+ * @date 2026
  *
  * @copyright Copyright (c) 2026 LG Electronics Inc.
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
