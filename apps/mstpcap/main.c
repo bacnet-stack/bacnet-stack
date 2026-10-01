@@ -1042,6 +1042,11 @@ int main(int argc, char *argv[])
                 return 1;
             }
         }
+        if (strcmp(argv[argi], "--extcap-cleanup-postkill") == 0) {
+            /* Exit immediately. Wireshark waits for this process
+               after it stops a capture. */
+            return 0;
+        }
         if (strcmp(argv[argi], "--extcap-interfaces") == 0) {
             RS485_Print_Ports();
             return 0;
