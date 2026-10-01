@@ -8,9 +8,11 @@
  * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdio.h>
+#include <string.h>
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/msv.h>
 #include <bacnet/bactext.h>
+#include <bacnet/bacapp.h>
 #include <bacnet/proplist.h>
 #include <bacnet/wp.h>
 #include <property_test.h>
@@ -219,7 +221,9 @@ static void testMultistateValue_PresentValueRange(void)
     wp_data.object_type = OBJECT_MULTI_STATE_VALUE;
     wp_data.object_instance = object_instance;
     wp_data.array_index = BACNET_ARRAY_ALL;
-    wp_data.priority = BACNET_NO_PRIORITY;
+    /* the object is commandable in this test binary; an absent priority
+       decodes as BACNET_MAX_PRIORITY */
+    wp_data.priority = BACNET_MAX_PRIORITY;
     wp_data.object_property = PROP_PRESENT_VALUE;
     wp_data.application_data_len =
         encode_application_unsigned(wp_data.application_data, 257);
@@ -260,6 +264,116 @@ static void testMultistateValue_PresentValueRange(void)
  * @}
  */
 
+static bool test_msv_write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
+    uint32_t instance,
+    BACNET_PROPERTY_ID property,
+    const BACNET_APPLICATION_DATA_VALUE *value,
+    uint8_t priority)
+{
+    memset(wp_data, 0, sizeof(*wp_data));
+    wp_data->object_type = OBJECT_MULTI_STATE_VALUE;
+    wp_data->object_instance = instance;
+    wp_data->object_property = property;
+    wp_data->array_index = BACNET_ARRAY_ALL;
+    wp_data->priority = priority;
+    wp_data->application_data_len =
+        bacapp_encode_application_data(wp_data->application_data, value);
+    return Multistate_Value_Write_Property(wp_data);
+}
+
+/**
+ * @brief Test the commandable (priority array) Multi-state Value
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(msv_tests, testMultistateValue_Commandable)
+#else
+static void testMultistateValue_Commandable(void)
+#endif
+{
+    BACNET_WRITE_PROPERTY_DATA wp_data;
+    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    uint32_t instance;
+    int len;
+    bool status;
+
+    Multistate_Value_Init();
+    instance = Multistate_Value_Create(BACNET_MAX_INSTANCE);
+    zassert_not_equal(instance, BACNET_MAX_INSTANCE, NULL);
+    zassert_true(Multistate_Value_Max_States(instance) >= 3, NULL);
+    zassert_equal(Multistate_Value_Relinquish_Default(instance), 1, NULL);
+    zassert_equal(Multistate_Value_Present_Value(instance), 1, NULL);
+    zassert_equal(Multistate_Value_Present_Value_Priority(instance), 0, NULL);
+
+    zassert_true(
+        Multistate_Value_Present_Value_Priority_Set(instance, 2, 10), NULL);
+    zassert_true(
+        Multistate_Value_Present_Value_Priority_Set(instance, 3, 4), NULL);
+    zassert_equal(Multistate_Value_Present_Value(instance), 3, NULL);
+    zassert_equal(Multistate_Value_Present_Value_Priority(instance), 4, NULL);
+    zassert_equal(Multistate_Value_Priority_Array_Value(instance, 10), 2, NULL);
+    zassert_false(
+        Multistate_Value_Present_Value_Priority_Set(instance, 2, 6), NULL);
+    zassert_false(
+        Multistate_Value_Present_Value_Priority_Set(instance, 0, 8), NULL);
+    zassert_false(
+        Multistate_Value_Present_Value_Priority_Set(
+            instance, Multistate_Value_Max_States(instance) + 1, 8),
+        NULL);
+    zassert_true(Multistate_Value_Present_Value_Relinquish(instance, 4), NULL);
+    zassert_equal(Multistate_Value_Present_Value(instance), 2, NULL);
+    zassert_true(Multistate_Value_Present_Value_Relinquish(instance, 10), NULL);
+    zassert_equal(Multistate_Value_Present_Value(instance), 1, NULL);
+
+    /* WriteProperty at priority 12, then NULL relinquishes it */
+    value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    value.type.Unsigned_Int = 3;
+    status = test_msv_write(&wp_data, instance, PROP_PRESENT_VALUE, &value, 12);
+    zassert_true(status, NULL);
+    zassert_equal(Multistate_Value_Present_Value(instance), 3, NULL);
+    zassert_equal(Multistate_Value_Present_Value_Priority(instance), 12, NULL);
+    status = test_msv_write(&wp_data, instance, PROP_PRESENT_VALUE, &value, 6);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_WRITE_ACCESS_DENIED, NULL);
+
+    rpdata.object_type = OBJECT_MULTI_STATE_VALUE;
+    rpdata.object_instance = instance;
+    rpdata.object_property = PROP_PRIORITY_ARRAY;
+    rpdata.array_index = 12;
+    rpdata.application_data = apdu;
+    rpdata.application_data_len = sizeof(apdu);
+    len = Multistate_Value_Read_Property(&rpdata);
+    zassert_true(len > 0, NULL);
+    len = bacapp_decode_application_data(apdu, len, &value);
+    zassert_equal(value.tag, BACNET_APPLICATION_TAG_UNSIGNED_INT, NULL);
+    zassert_equal(value.type.Unsigned_Int, 3, NULL);
+
+    value.tag = BACNET_APPLICATION_TAG_NULL;
+    status = test_msv_write(&wp_data, instance, PROP_PRESENT_VALUE, &value, 12);
+    zassert_true(status, NULL);
+    zassert_true(
+        Multistate_Value_Priority_Array_Relinquished(instance, 12), NULL);
+    zassert_equal(Multistate_Value_Present_Value(instance), 1, NULL);
+
+    /* Relinquish_Default is writable and re-resolves the present-value */
+    value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    value.type.Unsigned_Int = 2;
+    status = test_msv_write(
+        &wp_data, instance, PROP_RELINQUISH_DEFAULT, &value,
+        BACNET_NO_PRIORITY);
+    zassert_true(status, NULL);
+    zassert_equal(Multistate_Value_Relinquish_Default(instance), 2, NULL);
+    zassert_equal(Multistate_Value_Present_Value(instance), 2, NULL);
+
+    status = Multistate_Value_Delete(instance);
+    zassert_true(status, NULL);
+}
+/**
+ * @}
+ */
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(msv_tests, NULL, NULL, NULL, NULL, NULL);
 #else
@@ -270,7 +384,8 @@ void test_main(void)
         ztest_unit_test(testMultistateValueByName),
         ztest_unit_test(testMultistateValue_Writable_Properties),
         ztest_unit_test(testMultistateValue_CreateCleanup),
-        ztest_unit_test(testMultistateValue_PresentValueRange));
+        ztest_unit_test(testMultistateValue_PresentValueRange),
+        ztest_unit_test(testMultistateValue_Commandable));
 
     ztest_run_test_suite(msv_tests);
 }
