@@ -79,6 +79,27 @@ bool Analog_Value_Present_Value_Set(
 BACNET_STACK_EXPORT
 float Analog_Value_Present_Value(uint32_t object_instance);
 
+#if defined(BACNET_OBJECT_ANALOG_VALUE_COMMANDABLE)
+BACNET_STACK_EXPORT
+bool Analog_Value_Present_Value_Priority_Set(
+    uint32_t object_instance, float value, unsigned priority);
+BACNET_STACK_EXPORT
+bool Analog_Value_Present_Value_Relinquish(
+    uint32_t object_instance, unsigned priority);
+BACNET_STACK_EXPORT
+unsigned Analog_Value_Present_Value_Priority(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Analog_Value_Priority_Array_Relinquished(
+    uint32_t object_instance, unsigned priority);
+BACNET_STACK_EXPORT
+float Analog_Value_Priority_Array_Value(
+    uint32_t object_instance, unsigned priority);
+BACNET_STACK_EXPORT
+float Analog_Value_Relinquish_Default(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Analog_Value_Relinquish_Default_Set(uint32_t object_instance, float value);
+#endif
+
 BACNET_STACK_EXPORT
 unsigned Analog_Value_Event_State(uint32_t object_instance);
 BACNET_STACK_EXPORT

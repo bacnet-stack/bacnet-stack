@@ -24,6 +24,7 @@ add_compile_definitions(
     BACNET_BIG_ENDIAN=0
     CONFIG_ZTEST=1
     INTRINSIC_REPORTING=1
+    BACNET_OBJECT_ANALOG_VALUE_COMMANDABLE=1
     )
 
 include_directories(
