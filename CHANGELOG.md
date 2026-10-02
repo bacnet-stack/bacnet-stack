@@ -146,11 +146,6 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
-* Changed the basic Channel object List_Of_Object_Property_References and
-  Control_Groups properties to be resizable. Each is stored in a per-object
-  keylist that starts empty, and WriteProperty of array index 0 grows or
-  shrinks the array up to CHANNEL_MEMBERS_MAX and CONTROL_GROUPS_MAX,
-  respectively. Added Channel_Control_Groups_Count().
 * Changed the Binary Value Present_Value_Set() function when the basic
   Binary Value object is configured for an output mode (priority-array).
   Since no priority is provided, the value is written to the current highest
@@ -202,11 +197,6 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
-* Fixed the basic Channel object WriteProperty of
-  List_Of_Object_Property_References and Control_Groups elements to return
-  INVALID_ARRAY_INDEX before decoding the value when the index is beyond
-  the array size, and to return ERROR_CLASS_RESOURCES for
-  NO_SPACE_TO_WRITE_PROPERTY on array, Object_Name, and Description writes.
 * Fixed the Device object backup failure timeout being restarted by every
   ReadProperty and WriteProperty, including internal property references
   from objects such as Loop, Averaging, and Schedule. The timeout is now
