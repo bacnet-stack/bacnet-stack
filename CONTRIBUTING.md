@@ -24,6 +24,14 @@ Once the release is confirmed and finalized, the suffix should be removed for
 the official release version and a new branch created to track any bug fixes
 for that release.
 
+### CHANGELOG Updates
+
+The CHANGELOG.md is typically updated by the maintainers outside of bugfix
+or feature pull requests. Keeping CHANGELOG.md changes out of those pull
+requests avoids merge conflicts and makes it easier to backport fixes to
+release branches. Contributors do not need to edit CHANGELOG.md in their
+pull requests.
+
 ## Pre-commit Hooks
 
 This project uses `pre-commit` to ensure code formatting and quality standards.
