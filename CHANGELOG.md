@@ -13,7 +13,7 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [Unreleased] - 2026-09-29
+## [Unreleased] - 2026-10-02
 
 ### Security
 
@@ -80,8 +80,16 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added '--version' argument support to various applications. (#1539)
+* Added a public Units getter and setter for Positive Integer Value. (#1538)
+* Add NPDU and APDU ASCII hex capture input modes to apps/dmbrcap example
+  application with the '--npdu' and '--apdu' optional arguments. (#1537)
 * Added AGENTS.md file which references CONTRIBUTING.md file.
 * Added vendor, scratch, and workspace directories to .gitignore file.
+* Added priority-array and relinquish-default support to the Multi-state Value
+  object when BACNET_OBJECT_MULTISTATE_VALUE_COMMANDABLE is defined. (#1527)
+* Added priority-array and relinquish-default support to the Analog Value
+  object when BACNET_OBJECT_ANALOG_VALUE_COMMANDABLE is defined. (#1526)
 * Added function to set Device object UTC offset in minutes with validation.
   Updated daylight savings status retrieval to use local datetime function.
   Adjusted UTC offset calculation to account for daylight saving time. Changed
@@ -146,6 +154,8 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed the Channel object List_Of_Object_Property_References
+  and Control_Groups to be resizable. (#1543)
 * Changed the Binary Value Present_Value_Set() function when the basic
   Binary Value object is configured for an output mode (priority-array).
   Since no priority is provided, the value is written to the current highest
@@ -203,9 +213,9 @@ The git repositories are hosted at the following sites:
   restarted only by access to a configuration File object, including the
   AtomicReadFile and AtomicWriteFile services. Added the
   Restore_Completion_Time property to the optional property list of the
-  Device object when backup and restore is enabled.
+  Device object when backup and restore is enabled. (#1542)
 * Fixed apps/mstpcap to exit when Wireshark sends --extcap-cleanup-postkill.
-  Wireshark 4.6 waits for this process after it stops an MS/TP capture.
+  Wireshark 4.6 waits for this process after it stops an MS/TP capture. (#1541)
 * Fixed BACnet/IP socket cleanup to avoid closing the same socket twice on
   Linux, BSD, and Windows. (#1533)
 * Fixed datalink environment parsing to reject out-of-range port and MS/TP MAC
