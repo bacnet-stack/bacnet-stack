@@ -137,6 +137,11 @@ int handler_atomic_write_file_encode(
         return pdu_len;
     }
     if (data.object_type == OBJECT_FILE) {
+#if defined BACNET_BACKUP_RESTORE
+        if (Device_Is_Configuration_File(data.object_instance)) {
+            Device_Backup_Failure_Timeout_Restart();
+        }
+#endif
         if (!bacfile_valid_instance(data.object_instance)) {
             error = true;
         } else if (

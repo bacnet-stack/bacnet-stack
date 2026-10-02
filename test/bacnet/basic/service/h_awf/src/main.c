@@ -453,6 +453,62 @@ static void testHandlerAWF_RecordRequestOnStreamFile(void)
         (unsigned)PDU_TYPE_ERROR, (unsigned)transmit_buffer[apdu_offset]);
 }
 
+#if defined(BACNET_BACKUP_RESTORE)
+/* Stub control variables defined in device_stub.c */
+extern const uint32_t Device_Stub_Configuration_File;
+extern unsigned Device_Stub_Restart_Count;
+
+/**
+ * @brief Send a stream AtomicWriteFile request and count the backup
+ *  failure timeout restarts it caused
+ * @param instance [in] The File object instance to write
+ * @return The number of restarts
+ */
+static unsigned awf_restart_count(uint32_t instance)
+{
+    uint8_t payload[] = { "test data" };
+    uint8_t service_request[480] = { 0 };
+    uint8_t transmit_buffer[480] = { 0 };
+    BACNET_ATOMIC_WRITE_FILE_DATA req = { 0 };
+    BACNET_ADDRESS src = { 0 };
+    BACNET_CONFIRMED_SERVICE_DATA service_data = { 0 };
+    BACNET_NPDU_DATA npdu_data = { 0 };
+    int service_len;
+
+    req.object_type = OBJECT_FILE;
+    req.object_instance = instance;
+    req.access = FILE_STREAM_ACCESS;
+    req.type.stream.fileStartPosition = 0;
+    octetstring_init(&req.fileData[0], payload, sizeof(payload));
+    service_len = awf_service_encode_apdu(service_request, &req);
+    zassert_true(service_len > 0, "encoding failed: len=%d", service_len);
+    make_service_data(&service_data, 20);
+    Bacfile_Valid_Instance_Result = true;
+    Bacfile_File_Access_Stream_Result = true;
+    Bacfile_Write_Stream_Data_Result = true;
+    Device_Stub_Restart_Count = 0;
+    (void)handler_atomic_write_file_encode(
+        transmit_buffer, service_request, (uint16_t)service_len, &src,
+        &npdu_data, &service_data);
+
+    return Device_Stub_Restart_Count;
+}
+
+/* -------------------------------------------------------------------------
+ * Only writing a configuration file restarts the backup failure timeout
+ * ------------------------------------------------------------------------- */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(h_awf_tests, testHandlerAWF_BackupFailureTimeout)
+#else
+static void testHandlerAWF_BackupFailureTimeout(void)
+#endif
+{
+    zassert_equal(awf_restart_count(Device_Stub_Configuration_File), 1, NULL);
+    zassert_equal(
+        awf_restart_count(Device_Stub_Configuration_File + 1), 0, NULL);
+}
+#endif
+
 /**
  * @}
  */
@@ -462,6 +518,19 @@ ZTEST_SUITE(h_awf_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
+#if defined(BACNET_BACKUP_RESTORE)
+    ztest_test_suite(
+        h_awf_tests, ztest_unit_test(testHandlerAWF_EmptyRequest),
+        ztest_unit_test(testHandlerAWF_InvalidStreamStartPosition),
+        ztest_unit_test(testHandlerAWF_ValidStreamWrite),
+        ztest_unit_test(testHandlerAWF_ValidStreamAppend),
+        ztest_unit_test(testHandlerAWF_InvalidRecordStartPosition),
+        ztest_unit_test(testHandlerAWF_ValidRecordWrite),
+        ztest_unit_test(testHandlerAWF_ValidRecordAppend),
+        ztest_unit_test(testHandlerAWF_StreamRequestOnRecordFile),
+        ztest_unit_test(testHandlerAWF_RecordRequestOnStreamFile),
+        ztest_unit_test(testHandlerAWF_BackupFailureTimeout));
+#else
     ztest_test_suite(
         h_awf_tests, ztest_unit_test(testHandlerAWF_EmptyRequest),
         ztest_unit_test(testHandlerAWF_InvalidStreamStartPosition),
@@ -472,6 +541,7 @@ void test_main(void)
         ztest_unit_test(testHandlerAWF_ValidRecordAppend),
         ztest_unit_test(testHandlerAWF_StreamRequestOnRecordFile),
         ztest_unit_test(testHandlerAWF_RecordRequestOnStreamFile));
+#endif
 
     ztest_run_test_suite(h_awf_tests);
 }

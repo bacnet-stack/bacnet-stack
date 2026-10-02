@@ -197,6 +197,13 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the Device object backup failure timeout being restarted by every
+  ReadProperty and WriteProperty, including internal property references
+  from objects such as Loop, Averaging, and Schedule. The timeout is now
+  restarted only by access to a configuration File object, including the
+  AtomicReadFile and AtomicWriteFile services. Added the
+  Restore_Completion_Time property to the optional property list of the
+  Device object when backup and restore is enabled.
 * Fixed apps/mstpcap to exit when Wireshark sends --extcap-cleanup-postkill.
   Wireshark 4.6 waits for this process after it stops an MS/TP capture.
 * Fixed BACnet/IP socket cleanup to avoid closing the same socket twice on
