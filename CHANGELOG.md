@@ -200,7 +200,8 @@ The git repositories are hosted at the following sites:
 * Fixed the Device object backup failure timeout being restarted by every
   ReadProperty and WriteProperty, including internal property references
   from objects such as Loop, Averaging, and Schedule. The timeout is now
-  restarted only by access to a configuration File object. Added the
+  restarted only by access to a configuration File object, including the
+  AtomicReadFile and AtomicWriteFile services. Added the
   Restore_Completion_Time property to the optional property list of the
   Device object when backup and restore is enabled.
 * Fixed apps/mstpcap to exit when Wireshark sends --extcap-cleanup-postkill.
