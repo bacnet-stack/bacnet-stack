@@ -1421,6 +1421,7 @@ static const int32_t Device_Properties_Optional[] = {
     PROP_BACKUP_FAILURE_TIMEOUT,
     PROP_BACKUP_PREPARATION_TIME,
     PROP_RESTORE_PREPARATION_TIME,
+    PROP_RESTORE_COMPLETION_TIME,
     PROP_BACKUP_AND_RESTORE_STATE,
 #endif
     -1
@@ -3413,7 +3414,12 @@ int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     if (!rpdata) {
         return 0;
     }
-    Device_Backup_Failure_Timeout_Restart();
+    if ((rpdata->object_type == OBJECT_FILE) &&
+        Device_Is_Configuration_File(rpdata->object_instance)) {
+        /* only restart the backup timer when reading configuration
+           File object properties */
+        Device_Backup_Failure_Timeout_Restart();
+    }
     /* initialize the default return values */
     rpdata->error_class = ERROR_CLASS_OBJECT;
     rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
@@ -3856,7 +3862,12 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     if (wp_data == NULL) {
         return false;
     }
-    Device_Backup_Failure_Timeout_Restart();
+    if ((wp_data->object_type == OBJECT_FILE) &&
+        Device_Is_Configuration_File(wp_data->object_instance)) {
+        /* only restart the backup timer when writing configuration
+           File object properties */
+        Device_Backup_Failure_Timeout_Restart();
+    }
     /* initialize the default return values */
     wp_data->error_class = ERROR_CLASS_OBJECT;
     wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
