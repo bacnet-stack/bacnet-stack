@@ -47,6 +47,7 @@ static void test_Channel_Property_Read_Write(void)
 {
     const uint32_t instance = 123;
     unsigned count = 0;
+    unsigned count_members = 0;
     unsigned index = 0;
     const char *sample_name = "Channel:0";
     const char *test_name = NULL;
@@ -287,10 +288,13 @@ static void test_Channel_Property_Read_Write(void)
         bacapp_encode_application_data(wp_data.application_data, &value);
     status = Channel_Write_Property(&wp_data);
     zassert_true(status, NULL);
-    /* array size - read-only */
+    /* array size - resize beyond the limit */
     wp_data.array_index = 0;
     status = Channel_Write_Property(&wp_data);
     zassert_false(status, NULL);
+    zassert_equal(
+        wp_data.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, "error=%s",
+        bactext_error_code_name(wp_data.error_code));
     /* out-of-range value */
     wp_data.array_index = 1;
     value.type.Unsigned_Int = UINT16_MAX + 1;
@@ -318,6 +322,92 @@ static void test_Channel_Property_Read_Write(void)
         bacapp_encode_application_data(wp_data.application_data, &value);
     status = Channel_Write_Property(&wp_data);
     zassert_false(status, NULL);
+    /* resize Control_Groups: grow, element beyond the size, shrink */
+    wp_data.object_property = PROP_CONTROL_GROUPS;
+    wp_data.array_index = 0;
+    value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    value.type.Unsigned_Int = CONTROL_GROUPS_MAX;
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
+    status = Channel_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_equal(
+        Channel_Control_Groups_Count(instance), CONTROL_GROUPS_MAX, NULL);
+    zassert_equal(
+        Channel_Control_Groups_Element(instance, CONTROL_GROUPS_MAX), 0, NULL);
+    wp_data.array_index = CONTROL_GROUPS_MAX + 1;
+    value.type.Unsigned_Int = 5;
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
+    status = Channel_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_ARRAY_INDEX, NULL);
+    wp_data.array_index = CONTROL_GROUPS_MAX;
+    status = Channel_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_equal(
+        Channel_Control_Groups_Element(instance, CONTROL_GROUPS_MAX), 5, NULL);
+    wp_data.array_index = 0;
+    value.type.Unsigned_Int = CONTROL_GROUPS_MAX + 1;
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
+    status = Channel_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(
+        Channel_Control_Groups_Count(instance), CONTROL_GROUPS_MAX, NULL);
+    value.type.Unsigned_Int = 1;
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
+    status = Channel_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_equal(Channel_Control_Groups_Count(instance), 1, NULL);
+    zassert_equal(
+        Channel_Control_Groups_Element(instance, 1), UINT16_MAX, NULL);
+    /* resize List_Of_Object_Property_References the same way */
+    wp_data.object_property = PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES;
+    wp_data.array_index = 0;
+    count_members = Channel_Reference_List_Member_Count(instance);
+    value.type.Unsigned_Int = CHANNEL_MEMBERS_MAX + 1;
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
+    status = Channel_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(
+        Channel_Reference_List_Member_Count(instance), count_members, NULL);
+    value.type.Unsigned_Int = 2;
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
+    status = Channel_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_equal(Channel_Reference_List_Member_Count(instance), 2, NULL);
+    value.type.Unsigned_Int = CHANNEL_MEMBERS_MAX;
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
+    status = Channel_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_equal(
+        Channel_Reference_List_Member_Count(instance), CHANNEL_MEMBERS_MAX,
+        NULL);
+    /* grown elements are empty, so the next add reuses the first one */
+    member.objectIdentifier.type = OBJECT_ANALOG_OUTPUT;
+    member.objectIdentifier.instance = 2;
+    member.propertyIdentifier = PROP_PRESENT_VALUE;
+    index = Channel_Reference_List_Member_Element_Add(instance, &member);
+    zassert_equal(index, 3, NULL);
+    /* array index beyond the size is invalid */
+    wp_data.array_index = CHANNEL_MEMBERS_MAX + 1;
+    value.tag = BACNET_APPLICATION_TAG_DEVICE_OBJECT_PROPERTY_REFERENCE;
+    value.type.Device_Object_Property_Reference.objectIdentifier.type =
+        OBJECT_ANALOG_OUTPUT;
+    value.type.Device_Object_Property_Reference.objectIdentifier.instance = 1;
+    value.type.Device_Object_Property_Reference.propertyIdentifier =
+        PROP_PRESENT_VALUE;
+    value.type.Device_Object_Property_Reference.arrayIndex = BACNET_ARRAY_ALL;
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
+    status = Channel_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_ARRAY_INDEX, NULL);
     /* specific WriteProperty value */
     wp_data.array_index = 1;
     wp_data.priority = BACNET_MAX_PRIORITY;
