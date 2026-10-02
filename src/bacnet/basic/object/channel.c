@@ -1392,6 +1392,9 @@ static BACNET_ERROR_CODE Channel_List_Of_Object_Property_References_Write(
             /* resize, within CHANNEL_MEMBERS_MAX */
             error_code =
                 List_Of_Object_Property_References_Resize(pObject, array_size);
+        } else if (
+            array_index > (BACNET_ARRAY_INDEX)Keylist_Count(pObject->Members)) {
+            error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
         } else {
             len = bacnet_device_object_property_reference_decode(
                 application_data, application_data_len, &value);
@@ -1400,10 +1403,6 @@ static BACNET_ERROR_CODE Channel_List_Of_Object_Property_References_Write(
                     object_instance, &value);
                 if (status) {
                     error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                } else if (
-                    array_index >
-                    (BACNET_ARRAY_INDEX)Keylist_Count(pObject->Members)) {
-                    error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
                 } else {
                     status = List_Of_Object_Property_References_Set(
                         pObject, array_index - 1, &value);
@@ -1476,16 +1475,16 @@ static BACNET_ERROR_CODE Channel_Control_Groups_Write(
         if (array_index == 0) {
             /* resize, within CONTROL_GROUPS_MAX */
             error_code = Control_Groups_Resize(pObject, array_size);
+        } else if (
+            array_index >
+            (BACNET_ARRAY_INDEX)Keylist_Count(pObject->Control_Groups)) {
+            error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
         } else {
             len = bacnet_unsigned_application_decode(
                 application_data, application_data_len, &value_unsigned);
             if (len > 0) {
                 if (value_unsigned > UINT16_MAX) {
                     error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                } else if (
-                    array_index > (BACNET_ARRAY_INDEX)Keylist_Count(
-                                      pObject->Control_Groups)) {
-                    error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
                 } else {
                     control_group = (uint16_t)value_unsigned;
                     status = Control_Groups_Element_Set(
@@ -1527,7 +1526,7 @@ static bool Channel_Object_Name_Write(
             status = bacnet_character_cstring_from_characterstring_strdup(
                 &pObject->Object_Name, cstring);
             if (!status) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_class = ERROR_CLASS_RESOURCES;
                 wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
             }
         } else {
@@ -1562,7 +1561,7 @@ static bool Channel_Description_Write(
             status = bacnet_character_cstring_from_characterstring_strdup(
                 &pObject->Description, cstring);
             if (!status) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_class = ERROR_CLASS_RESOURCES;
                 wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
             }
         } else {
@@ -1648,6 +1647,9 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->application_data, wp_data->application_data_len);
             if (wp_data->error_code == ERROR_CODE_SUCCESS) {
                 status = true;
+            } else if (
+                wp_data->error_code == ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY) {
+                wp_data->error_class = ERROR_CLASS_RESOURCES;
             }
             break;
         case PROP_CHANNEL_NUMBER:
@@ -1672,6 +1674,9 @@ bool Channel_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->application_data, wp_data->application_data_len);
             if (wp_data->error_code == ERROR_CODE_SUCCESS) {
                 status = true;
+            } else if (
+                wp_data->error_code == ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY) {
+                wp_data->error_class = ERROR_CLASS_RESOURCES;
             }
             break;
         default:

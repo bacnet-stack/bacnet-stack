@@ -202,6 +202,11 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the basic Channel object WriteProperty of
+  List_Of_Object_Property_References and Control_Groups elements to return
+  INVALID_ARRAY_INDEX before decoding the value when the index is beyond
+  the array size, and to return ERROR_CLASS_RESOURCES for
+  NO_SPACE_TO_WRITE_PROPERTY on array, Object_Name, and Description writes.
 * Fixed the Device object backup failure timeout being restarted by every
   ReadProperty and WriteProperty, including internal property references
   from objects such as Loop, Averaging, and Schedule. The timeout is now
