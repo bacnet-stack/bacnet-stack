@@ -24,6 +24,7 @@ add_compile_definitions(
     BACNET_BIG_ENDIAN=0
     CONFIG_ZTEST=1
     CHANNEL_MEMBERS_MAX=16
+    CONTROL_GROUPS_MAX=4
     )
 
 include_directories(
