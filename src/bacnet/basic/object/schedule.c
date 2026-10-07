@@ -667,16 +667,13 @@ bool Schedule_Object_Name(
 
     pObject = Object_Data(object_instance);
     if (pObject) {
-        if (characterstring_utf8_valid(object_name)) {
-            status = bacnet_character_cstring_to_characterstring(
-                object_name, &pObject->Object_Name);
-            if (!status) {
-                len = characterstring_utf8_snprintf(
-                    object_name, "SCHEDULE-%lu",
-                    (unsigned long)object_instance);
-                if (len > 0) {
-                    status = true;
-                }
+        status = bacnet_character_cstring_to_characterstring(
+            object_name, &pObject->Object_Name);
+        if (!status) {
+            len = characterstring_utf8_snprintf(
+                object_name, "SCHEDULE-%lu", (unsigned long)object_instance);
+            if (len > 0) {
+                status = true;
             }
         }
     }
