@@ -302,15 +302,19 @@ BACNET_OBJECT_ID Alert_Enrollment_Present_Value(uint32_t object_instance)
  * @param  value - BACnetObjectIdentifier value
  * @return  true if present-value is set.
  */
-void Alert_Enrollment_Present_Value_Set(
+bool Alert_Enrollment_Present_Value_Set(
     uint32_t object_instance, BACNET_OBJECT_ID value)
 {
+    bool status = false;
     struct alert_enrollment_descr *pObject;
 
     pObject = Alert_Enrollment_Object(object_instance);
     if (pObject) {
         pObject->Present_Value = value;
+        status = true;
     }
+
+    return status;
 }
 
 /**

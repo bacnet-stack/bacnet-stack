@@ -84,7 +84,7 @@ bool Alert_Enrollment_Description_Set(uint32_t instance, const char *new_name);
 BACNET_STACK_EXPORT
 BACNET_OBJECT_ID Alert_Enrollment_Present_Value(uint32_t object_instance);
 BACNET_STACK_EXPORT
-void Alert_Enrollment_Present_Value_Set(
+bool Alert_Enrollment_Present_Value_Set(
     uint32_t object_instance, BACNET_OBJECT_ID value);
 
 BACNET_STACK_EXPORT
