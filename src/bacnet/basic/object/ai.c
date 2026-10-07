@@ -6,6 +6,7 @@
  * @date 2005, 2011
  * @copyright SPDX-License-Identifier: MIT
  */
+#include <float.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -51,6 +52,8 @@ static const int32_t Properties_Optional[] = {
     PROP_DESCRIPTION,
     PROP_RELIABILITY,
     PROP_COV_INCREMENT,
+    PROP_MIN_PRES_VALUE,
+    PROP_MAX_PRES_VALUE,
 #if defined(INTRINSIC_REPORTING)
     PROP_TIME_DELAY,
     PROP_NOTIFICATION_CLASS,
@@ -1060,6 +1063,82 @@ void Analog_Input_COV_Increment_Set(uint32_t object_instance, float value)
 }
 
 /**
+ * @brief For a given object instance-number, returns the min-pres-value
+ * @param  object_instance - object-instance number of the object
+ * @return value or 0.0 if not found
+ */
+float Analog_Input_Min_Pres_Value(uint32_t object_instance)
+{
+    float value = 0.0f;
+    struct analog_input_descr *pObject;
+
+    pObject = Analog_Input_Object(object_instance);
+    if (pObject) {
+        value = pObject->Min_Pres_Value;
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets the min-pres-value
+ * @param  object_instance - object-instance number of the object
+ * @param  value - value to be set
+ * @return true if the object-instance exists and the value was set
+ */
+bool Analog_Input_Min_Pres_Value_Set(uint32_t object_instance, float value)
+{
+    bool status = false;
+    struct analog_input_descr *pObject;
+
+    pObject = Analog_Input_Object(object_instance);
+    if (pObject) {
+        pObject->Min_Pres_Value = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, returns the max-pres-value
+ * @param  object_instance - object-instance number of the object
+ * @return value or 0.0 if not found
+ */
+float Analog_Input_Max_Pres_Value(uint32_t object_instance)
+{
+    float value = 0.0f;
+    struct analog_input_descr *pObject;
+
+    pObject = Analog_Input_Object(object_instance);
+    if (pObject) {
+        value = pObject->Max_Pres_Value;
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets the max-pres-value
+ * @param  object_instance - object-instance number of the object
+ * @param  value - value to be set
+ * @return true if the object-instance exists and the value was set
+ */
+bool Analog_Input_Max_Pres_Value_Set(uint32_t object_instance, float value)
+{
+    bool status = false;
+    struct analog_input_descr *pObject;
+
+    pObject = Analog_Input_Object(object_instance);
+    if (pObject) {
+        pObject->Max_Pres_Value = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * For a given object instance-number, returns the units property value
  *
  * @param  object_instance - object-instance number of the object
@@ -1354,6 +1433,14 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_COV_INCREMENT:
             apdu_len =
                 encode_application_real(&apdu[0], pObject->COV_Increment);
+            break;
+        case PROP_MIN_PRES_VALUE:
+            apdu_len =
+                encode_application_real(&apdu[0], pObject->Min_Pres_Value);
+            break;
+        case PROP_MAX_PRES_VALUE:
+            apdu_len =
+                encode_application_real(&apdu[0], pObject->Max_Pres_Value);
             break;
 #if defined(INTRINSIC_REPORTING)
         case PROP_TIME_DELAY:
@@ -2390,6 +2477,8 @@ uint32_t Analog_Input_Create(uint32_t object_instance)
         if (pObject) {
             pObject->Reliability = RELIABILITY_NO_FAULT_DETECTED;
             pObject->COV_Increment = 1.0f;
+            pObject->Min_Pres_Value = -FLT_MAX;
+            pObject->Max_Pres_Value = FLT_MAX;
             pObject->Present_Value = 0.0f;
             pObject->Prior_Value = 0.0f;
             pObject->Units = UNITS_PERCENT;
