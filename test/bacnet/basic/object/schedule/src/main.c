@@ -49,6 +49,7 @@ static void testSchedule(void)
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
     BACNET_DATE_RANGE date_range = { 0 };
     BACNET_TIME time_of_day = { 0 };
+    BACNET_CHARACTER_STRING object_name = { 0 };
     size_t tv = 0, day = 0, i = 0;
     int diff;
     bool status = false;
@@ -189,6 +190,22 @@ static void testSchedule(void)
 
     bacnet_object_name_ascii_test(
         object_instance, Schedule_Name_Set, Schedule_Name_ASCII);
+    /* regression: Schedule_Object_Name() must populate its output
+     * parameter unconditionally, rather than reading it before it is
+     * written. Pre-load the output with a non-UTF-8 encoding/content
+     * that prior garbage stack memory could plausibly hold, so a
+     * reintroduced read-before-write is caught deterministically
+     * instead of depending on whatever happened to be on the stack. */
+    status = Schedule_Name_Set(object_instance, "regression-name");
+    zassert_true(status, NULL);
+    status = characterstring_init(
+        &object_name, CHARACTER_ISO8859, "\xff\xff\xff\xff", 4);
+    zassert_true(status, NULL);
+    status = Schedule_Object_Name(object_instance, &object_name);
+    zassert_true(status, NULL);
+    zassert_equal(
+        strcmp(characterstring_value_const(&object_name), "regression-name"),
+        0, NULL);
     status =
         Schedule_Effective_Period_Set(object_instance, &start_date, &end_date);
     zassert_true(status, NULL);
