@@ -97,11 +97,11 @@ bool dst_active(
            range that wraps across the end of the year */
         wrap = (data->Begin_Month > data->End_Month);
         if (wrap) {
-            in_range = (month >= data->Begin_Month) ||
-                (month <= data->End_Month);
+            in_range =
+                (month >= data->Begin_Month) || (month <= data->End_Month);
         } else {
-            in_range = (month >= data->Begin_Month) &&
-                (month <= data->End_Month);
+            in_range =
+                (month >= data->Begin_Month) && (month <= data->End_Month);
         }
         if (in_range) {
             if (month == data->Begin_Month) {

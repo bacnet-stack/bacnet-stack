@@ -144,23 +144,17 @@ static void dst_test_southern_hemisphere(void)
     /* ordinal: begins 1st Sunday in October, ends 1st Sunday in April */
     dst_init(&data, true, 10, 7, 1, 4, 7, 1, epoch_day, epoch_year);
     /* within the wrap (Jan, before the April end) */
-    zassert_true(
-        dst_active(&data, 2013, 1, 15, hour, minute, second), NULL);
+    zassert_true(dst_active(&data, 2013, 1, 15, hour, minute, second), NULL);
     /* within the wrap (Dec, after the October begin) */
-    zassert_true(
-        dst_active(&data, 2013, 12, 15, hour, minute, second), NULL);
+    zassert_true(dst_active(&data, 2013, 12, 15, hour, minute, second), NULL);
     /* outside the wrap, in the middle of the year */
-    zassert_false(
-        dst_active(&data, 2013, 7, 15, hour, minute, second), NULL);
+    zassert_false(dst_active(&data, 2013, 7, 15, hour, minute, second), NULL);
 
     /* date-based: begins October 1st, ends March 31st */
     dst_init(&data, false, 10, 1, 0, 3, 31, 0, epoch_day, epoch_year);
-    zassert_true(
-        dst_active(&data, 2013, 1, 15, hour, minute, second), NULL);
-    zassert_true(
-        dst_active(&data, 2013, 12, 15, hour, minute, second), NULL);
-    zassert_false(
-        dst_active(&data, 2013, 7, 15, hour, minute, second), NULL);
+    zassert_true(dst_active(&data, 2013, 1, 15, hour, minute, second), NULL);
+    zassert_true(dst_active(&data, 2013, 12, 15, hour, minute, second), NULL);
+    zassert_false(dst_active(&data, 2013, 7, 15, hour, minute, second), NULL);
 }
 
 /**
@@ -179,11 +173,9 @@ static void dst_test_invalid_day(void)
 
     dst_init_defaults(&data);
     /* February 31st does not exist */
-    zassert_false(
-        dst_active(&data, 2013, 2, 31, hour, minute, second), NULL);
+    zassert_false(dst_active(&data, 2013, 2, 31, hour, minute, second), NULL);
     /* April 31st does not exist */
-    zassert_false(
-        dst_active(&data, 2013, 4, 31, hour, minute, second), NULL);
+    zassert_false(dst_active(&data, 2013, 4, 31, hour, minute, second), NULL);
 }
 
 /**
