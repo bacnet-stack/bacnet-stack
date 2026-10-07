@@ -12,6 +12,7 @@
 #include <bacnet/wp.h>
 #include <bacnet/list_element.h>
 #include <bacnet/basic/object/nc.h>
+#include <bacnet/basic/object/device.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -42,11 +43,13 @@ static void test_Notification_Class_Read_Write_Property(void)
     unsigned index;
     unsigned count;
 
+    Notification_Class_Cleanup();
     Notification_Class_Init();
+    Notification_Class_Create(instance);
     status = Notification_Class_Valid_Instance(instance);
     zassert_true(status, NULL);
     index = Notification_Class_Instance_To_Index(instance);
-    zassert_equal(index, instance, "index=%u", index);
+    zassert_equal(index, 0, "index=%u", index);
     test_instance = Notification_Class_Index_To_Instance(index);
     zassert_equal(test_instance, instance, "test_instance=%u", test_instance);
     count = Notification_Class_Count();
@@ -185,7 +188,9 @@ static void test_Notification_Class_Priority(void)
     bool status = false;
     uint32_t priority_array[3] = { 0 };
 
+    Notification_Class_Cleanup();
     Notification_Class_Init();
+    Notification_Class_Create(instance);
     status = Notification_Class_Valid_Instance(instance);
     zassert_true(status, NULL);
 
@@ -233,7 +238,9 @@ static void test_Notification_Class_Ack_Required(void)
     bool status = false;
     uint8_t ack_required = 0;
 
+    Notification_Class_Cleanup();
     Notification_Class_Init();
+    Notification_Class_Create(instance);
     status = Notification_Class_Valid_Instance(instance);
     zassert_true(status, NULL);
 
@@ -268,7 +275,9 @@ static void test_Notification_Class_Recipient_List(void)
     int len = 0;
     int err = 0;
 
+    Notification_Class_Cleanup();
     Notification_Class_Init();
+    Notification_Class_Create(instance);
     status = Notification_Class_Valid_Instance(instance);
     zassert_true(status, NULL);
 
@@ -395,11 +404,154 @@ static void test_Notification_Class_Common_Reporting(void)
     bool status = false;
     BACNET_EVENT_NOTIFICATION_DATA event_data = { 0 };
 
+    Notification_Class_Cleanup();
     Notification_Class_Init();
+    Notification_Class_Create(instance);
     status = Notification_Class_Valid_Instance(instance);
     zassert_true(status, NULL);
 
     Notification_Class_common_reporting_function(&event_data);
+}
+
+/**
+ * @brief Test keylist semantics: sparse instances, wildcard create, delete,
+ * create/delete/create cycle, and fresh empty recipient-list encoding.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(notification_class_tests, test_Notification_Class_Keylist)
+#else
+static void test_Notification_Class_Keylist(void)
+#endif
+{
+    uint32_t instance;
+    uint8_t apdu[MAX_APDU] = { 0 };
+    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
+    BACNET_LIST_ELEMENT_DATA list_element = { 0 };
+    BACNET_CHARACTER_STRING name;
+    uint32_t priorities[3] = { 0 };
+    int len;
+
+    /* start from a clean, empty keylist */
+    Notification_Class_Cleanup();
+    Notification_Class_Init();
+    zassert_equal(Notification_Class_Count(), 0, NULL);
+
+    /* sparse instance: a high instance number is valid, others are not */
+    instance = Notification_Class_Create(42);
+    zassert_equal(instance, 42, "instance=%u", instance);
+    zassert_true(Notification_Class_Valid_Instance(42), NULL);
+    zassert_false(Notification_Class_Valid_Instance(99), NULL);
+    zassert_equal(Notification_Class_Count(), 1, NULL);
+    zassert_equal(Notification_Class_Instance_To_Index(42), 0, NULL);
+    zassert_equal(Notification_Class_Index_To_Instance(0), 42, NULL);
+
+    zassert_equal(Notification_Class_Create(1000), 1000, NULL);
+    zassert_equal(Notification_Class_Create(42), 42, NULL);
+    zassert_equal(Notification_Class_Count(), 2, NULL);
+    zassert_equal(Notification_Class_Instance_To_Index(1000), 1, NULL);
+    zassert_equal(Notification_Class_Index_To_Instance(1), 1000, NULL);
+    zassert_equal(Notification_Class_Index_To_Instance(2), UINT32_MAX, NULL);
+    zassert_true(
+        Notification_Class_Instance_To_Index(99) >= Notification_Class_Count(),
+        NULL);
+    zassert_equal(
+        Notification_Class_Create(BACNET_MAX_INSTANCE + 1), BACNET_MAX_INSTANCE,
+        NULL);
+    Notification_Class_Init();
+    zassert_equal(Notification_Class_Count(), 2, NULL);
+
+    /* a freshly created NC encodes an empty Recipient_List */
+    rpdata.application_data = &apdu[0];
+    rpdata.application_data_len = sizeof(apdu);
+    rpdata.object_type = OBJECT_NOTIFICATION_CLASS;
+    rpdata.object_instance = 42;
+    rpdata.object_property = PROP_RECIPIENT_LIST;
+    rpdata.array_index = BACNET_ARRAY_ALL;
+    len = Notification_Class_Read_Property(&rpdata);
+    zassert_equal(len, 0, "recipient-list len=%d", len);
+
+    /* reading an unknown instance returns an error */
+    rpdata.object_instance = 99;
+    rpdata.object_property = PROP_OBJECT_IDENTIFIER;
+    len = Notification_Class_Read_Property(&rpdata);
+    zassert_equal(len, BACNET_STATUS_ERROR, NULL);
+
+    zassert_equal(rpdata.error_class, ERROR_CLASS_OBJECT, NULL);
+    zassert_equal(rpdata.error_code, ERROR_CODE_UNKNOWN_OBJECT, NULL);
+    wpdata.object_instance = 99;
+    zassert_false(Notification_Class_Write_Property(&wpdata), NULL);
+    zassert_equal(wpdata.error_class, ERROR_CLASS_OBJECT, NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_UNKNOWN_OBJECT, NULL);
+    zassert_false(Notification_Class_Object_Name(99, &name), NULL);
+    Notification_Class_Get_Priorities(99, priorities);
+    zassert_equal(priorities[0], 255, NULL);
+    zassert_equal(priorities[1], 255, NULL);
+    zassert_equal(priorities[2], 255, NULL);
+    list_element.object_instance = 99;
+    list_element.object_property = PROP_RECIPIENT_LIST;
+    list_element.array_index = BACNET_ARRAY_ALL;
+    zassert_equal(
+        Notification_Class_Add_List_Element(&list_element), BACNET_STATUS_ERROR,
+        NULL);
+    zassert_equal(list_element.error_code, ERROR_CODE_UNKNOWN_OBJECT, NULL);
+    zassert_equal(
+        Notification_Class_Remove_List_Element(&list_element),
+        BACNET_STATUS_ERROR, NULL);
+    zassert_equal(list_element.error_code, ERROR_CODE_UNKNOWN_OBJECT, NULL);
+
+    /* wildcard create allocates a unique instance */
+    instance = Notification_Class_Create(BACNET_MAX_INSTANCE);
+    zassert_not_equal(instance, BACNET_MAX_INSTANCE, NULL);
+    zassert_true(Notification_Class_Valid_Instance(instance), NULL);
+    zassert_equal(instance, 1, NULL);
+    zassert_equal(Notification_Class_Count(), 3, NULL);
+    zassert_true(Notification_Class_Delete(instance), NULL);
+    zassert_equal(
+        Notification_Class_Create(BACNET_MAX_INSTANCE), instance, NULL);
+
+#ifdef BAC_ROUTING
+    /* The same instance has independent data on each routed device. */
+    zassert_true(Set_Routed_Device_Object_Index(1), NULL);
+    Notification_Class_Init();
+    zassert_equal(Routed_Device_Object_Index(), 1, NULL);
+    zassert_equal(Notification_Class_Count(), 0, NULL);
+    zassert_equal(Notification_Class_Create(42), 42, NULL);
+    priorities[0] = 10;
+    priorities[1] = 20;
+    priorities[2] = 30;
+    Notification_Class_Set_Priorities(42, priorities);
+    zassert_true(Set_Routed_Device_Object_Index(0), NULL);
+    zassert_equal(Notification_Class_Count(), 3, NULL);
+    Notification_Class_Get_Priorities(42, priorities);
+    zassert_equal(priorities[0], 255, NULL);
+    zassert_true(Notification_Class_Delete(42), NULL);
+    zassert_true(Set_Routed_Device_Object_Index(1), NULL);
+    zassert_true(Notification_Class_Valid_Instance(42), NULL);
+    Notification_Class_Get_Priorities(42, priorities);
+    zassert_equal(priorities[0], 10, NULL);
+    Notification_Class_Cleanup();
+    zassert_equal(Routed_Device_Object_Index(), 1, NULL);
+    zassert_equal(Notification_Class_Count(), 0, NULL);
+    zassert_true(Set_Routed_Device_Object_Index(0), NULL);
+    zassert_equal(Notification_Class_Count(), 0, NULL);
+    zassert_equal(Notification_Class_Create(42), 42, NULL);
+#endif
+
+    /* delete removes the instance and is idempotent-safe */
+    zassert_true(Notification_Class_Delete(42), NULL);
+    zassert_false(Notification_Class_Valid_Instance(42), NULL);
+    zassert_false(Notification_Class_Delete(42), NULL);
+
+    /* create/delete/create cycle (no leak under ASAN/valgrind) */
+    zassert_equal(Notification_Class_Create(7), 7, NULL);
+    zassert_true(Notification_Class_Delete(7), NULL);
+    zassert_equal(Notification_Class_Create(7), 7, NULL);
+    zassert_true(Notification_Class_Valid_Instance(7), NULL);
+
+    /* cleanup empties the list */
+    Notification_Class_Cleanup();
+    zassert_equal(Notification_Class_Count(), 0, NULL);
 }
 
 /**
@@ -436,7 +588,9 @@ static void test_Notification_Class_Add_List_Element_Overflow(void)
     unsigned i = 0, count = 0, encoded_count = 0;
     bool status = false;
 
+    Notification_Class_Cleanup();
     Notification_Class_Init();
+    zassert_equal(Notification_Class_Create(instance), instance, NULL);
     zassert_true(Notification_Class_Valid_Instance(instance), NULL);
 
     /* Setup common destination parameters */
@@ -549,7 +703,9 @@ static void test_Notification_Class_Remove_List_Element_Overflow(void)
     int total_len = 0;
     unsigned i = 0;
 
+    Notification_Class_Cleanup();
     Notification_Class_Init();
+    zassert_equal(Notification_Class_Create(instance), instance, NULL);
     zassert_true(Notification_Class_Valid_Instance(instance), NULL);
 
     /* Setup common destination parameters */
@@ -671,7 +827,8 @@ void test_main(void)
         ztest_unit_test(test_Notification_Class_Recipient_List),
         ztest_unit_test(test_Notification_Class_Common_Reporting),
         ztest_unit_test(test_Notification_Class_Add_List_Element_Overflow),
-        ztest_unit_test(test_Notification_Class_Remove_List_Element_Overflow));
+        ztest_unit_test(test_Notification_Class_Remove_List_Element_Overflow),
+        ztest_unit_test(test_Notification_Class_Keylist));
 
     ztest_run_test_suite(notification_class_tests);
 }
