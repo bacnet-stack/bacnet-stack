@@ -365,6 +365,44 @@ const char *PositiveInteger_Value_Name_ASCII(uint32_t object_instance)
 }
 
 /**
+ * For a given object instance-number, returns the out-of-service
+ * property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  out-of-service property value
+ */
+bool PositiveInteger_Value_Out_Of_Service(uint32_t object_instance)
+{
+    bool value = false;
+    POSITIVEINTEGER_VALUE_DESCR *pObject = NULL;
+
+    pObject = PositiveInteger_Value_Object(object_instance);
+    if (pObject) {
+        value = pObject->Out_Of_Service;
+    }
+
+    return value;
+}
+
+/**
+ * For a given object instance-number, sets the out-of-service property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param oos_flag - boolean out-of-service value
+ */
+void PositiveInteger_Value_Out_Of_Service_Set(
+    uint32_t object_instance, bool oos_flag)
+{
+    POSITIVEINTEGER_VALUE_DESCR *pObject = NULL;
+
+    pObject = PositiveInteger_Value_Object(object_instance);
+    if (pObject) {
+        pObject->Out_Of_Service = oos_flag;
+    }
+}
+
+/**
  * Writes the object-name property value for a given Positive Integer Value
  * object.
  *
@@ -602,7 +640,7 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
             bitstring_set_bit(
                 &bit_string, STATUS_FLAG_OUT_OF_SERVICE,
-                pObject->Out_Of_Service);
+                PositiveInteger_Value_Out_Of_Service(rpdata->object_instance));
 
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
@@ -621,7 +659,7 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                parties. Say 6 months -> September 2016 */
 
         case PROP_OUT_OF_SERVICE:
-            state = pObject->Out_Of_Service;
+            state = PositiveInteger_Value_Out_Of_Service(rpdata->object_instance);
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         default:
@@ -714,7 +752,8 @@ bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
-                pObject->Out_Of_Service = value.type.Boolean;
+                PositiveInteger_Value_Out_Of_Service_Set(
+                    wp_data->object_instance, value.type.Boolean);
             }
             break;
         case PROP_UNITS:
