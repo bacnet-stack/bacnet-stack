@@ -75,6 +75,8 @@ bool dst_active(
     uint8_t second)
 {
     bool active = false;
+    bool wrap = false;
+    bool in_range = false;
     uint8_t i = 0;
     uint32_t time_now = 0;
     uint32_t time_dst = 0;
@@ -84,8 +86,24 @@ bool dst_active(
     uint32_t days_now = 0;
     uint32_t days_end = 0;
 
+    /* reject calendar dates that do not exist (e.g. February 31st) */
+    days = days_per_month(year, month);
+    if ((days == 0) || (day < 1) || (day > days)) {
+        return false;
+    }
+
     if (data->Ordinal) {
-        if ((month >= data->Begin_Month) && (month <= data->End_Month)) {
+        /* Begin_Month > End_Month indicates a Southern Hemisphere style
+           range that wraps across the end of the year */
+        wrap = (data->Begin_Month > data->End_Month);
+        if (wrap) {
+            in_range = (month >= data->Begin_Month) ||
+                (month <= data->End_Month);
+        } else {
+            in_range = (month >= data->Begin_Month) &&
+                (month <= data->End_Month);
+        }
+        if (in_range) {
             if (month == data->Begin_Month) {
                 days = days_per_month(year, month);
                 i = ordinal_week_month_day(year, month, data->Begin_Week);
@@ -140,7 +158,15 @@ bool dst_active(
             data->Epoch_Year, year, data->Begin_Month, data->Begin_Day);
         days_end = days_since_epoch(
             data->Epoch_Year, year, data->End_Month, data->End_Day);
-        if ((days_now >= days_begin) && (days_now <= days_end)) {
+        /* days_begin > days_end indicates a Southern Hemisphere style
+           range that wraps across the end of the year */
+        wrap = (days_begin > days_end);
+        if (wrap) {
+            in_range = (days_now >= days_begin) || (days_now <= days_end);
+        } else {
+            in_range = (days_now >= days_begin) && (days_now <= days_end);
+        }
+        if (in_range) {
             if (days_now == days_begin) {
                 time_now = time_to_seconds(hour, minute, second);
                 /* begins at 2 AM Standard Time */
