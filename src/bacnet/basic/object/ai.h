@@ -116,7 +116,7 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
 BACNET_STACK_EXPORT
 float Analog_Input_Present_Value(uint32_t object_instance);
 BACNET_STACK_EXPORT
-void Analog_Input_Present_Value_Set(uint32_t object_instance, float value);
+bool Analog_Input_Present_Value_Set(uint32_t object_instance, float value);
 
 BACNET_STACK_EXPORT
 bool Analog_Input_Out_Of_Service(uint32_t object_instance);

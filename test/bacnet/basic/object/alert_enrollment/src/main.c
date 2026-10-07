@@ -79,10 +79,13 @@ static void testAlert_Enrollment_APIs(void)
     /* present-value get/set */
     value.type = OBJECT_ANALOG_INPUT;
     value.instance = 42;
-    Alert_Enrollment_Present_Value_Set(instance, value);
+    status = Alert_Enrollment_Present_Value_Set(instance, value);
+    zassert_true(status, NULL);
     value = Alert_Enrollment_Present_Value(instance);
     zassert_equal(value.type, OBJECT_ANALOG_INPUT, NULL);
     zassert_equal(value.instance, 42, NULL);
+    status = Alert_Enrollment_Present_Value_Set(invalid_instance, value);
+    zassert_false(status, NULL);
 
     /* description get/set */
     zassert_equal(strcmp(Alert_Enrollment_Description(instance), ""), 0, NULL);

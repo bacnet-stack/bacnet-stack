@@ -360,7 +360,11 @@ static void testAnalogInput_Time_Delay(void)
     zassert_true(Analog_Input_Event_Detection_Enable(instance), NULL);
     status = Analog_Input_Time_Delay_Set(instance, 2);
     zassert_true(status, NULL);
-    Analog_Input_Present_Value_Set(instance, 100.0f);
+    status = Analog_Input_Present_Value_Set(instance, 100.0f);
+    zassert_true(status, NULL);
+    /* unknown instance: present-value setter fails */
+    status = Analog_Input_Present_Value_Set(invalid_instance, 100.0f);
+    zassert_false(status, NULL);
     Analog_Input_Intrinsic_Reporting(instance);
     zassert_equal(Analog_Input_Event_State(instance), EVENT_STATE_NORMAL, NULL);
     Analog_Input_Intrinsic_Reporting(instance);

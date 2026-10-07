@@ -269,15 +269,19 @@ Analog_Input_COV_Detect(struct analog_input_descr *pObject, float value)
  * @param  value - floating point analog value
  * @return  true if values are within range and present-value is set.
  */
-void Analog_Input_Present_Value_Set(uint32_t object_instance, float value)
+bool Analog_Input_Present_Value_Set(uint32_t object_instance, float value)
 {
+    bool status = false;
     struct analog_input_descr *pObject;
 
     pObject = Analog_Input_Object(object_instance);
     if (pObject) {
         Analog_Input_COV_Detect(pObject, value);
         pObject->Present_Value = value;
+        status = true;
     }
+
+    return status;
 }
 
 /**
