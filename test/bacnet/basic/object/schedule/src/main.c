@@ -204,8 +204,8 @@ static void testSchedule(void)
     status = Schedule_Object_Name(object_instance, &object_name);
     zassert_true(status, NULL);
     zassert_equal(
-        strcmp(characterstring_value_const(&object_name), "regression-name"),
-        0, NULL);
+        strcmp(characterstring_value_const(&object_name), "regression-name"), 0,
+        NULL);
     status =
         Schedule_Effective_Period_Set(object_instance, &start_date, &end_date);
     zassert_true(status, NULL);
