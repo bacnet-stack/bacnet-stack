@@ -5,12 +5,10 @@
  * @date 2005
  * @copyright SPDX-License-Identifier: MIT
  */
-#include <errno.h>
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -22,6 +20,16 @@
 
 #ifndef BACNET_FILE_POSIX_RECORD_SIZE
 #define BACNET_FILE_POSIX_RECORD_SIZE MAX_OCTET_STRING_BYTES
+#endif
+
+#if defined(_WIN32)
+#include <io.h>
+/* resize an open file by descriptor - grows are zero-filled */
+#define bacnet_truncate(fd, size) _chsize_s((fd), (size))
+#else
+#include <unistd.h>
+/* resize an open file by descriptor - grows are zero-filled */
+#define bacnet_truncate(fd, size) ftruncate((fd), (size))
 #endif
 
 /**
@@ -82,96 +90,25 @@ bool bacfile_posix_file_size_set(const char *pathname, size_t file_size)
 {
     bool status = false;
     FILE *pFile = NULL;
-    long old_size = 0;
-    size_t copy_size = 0;
-    uint8_t *buffer = NULL;
-    uint8_t zero_chunk[BACNET_FILE_POSIX_RECORD_SIZE] = { 0 };
-    size_t pad_size = 0;
-    size_t chunk = 0;
+    int fd = -1;
 
     if (!filename_path_valid(pathname)) {
         return false;
     }
-    if (file_size == 0) {
-        /* shortcut - open as a clean slate to discard all content */
-        pFile = fopen(pathname, "wb");
-        if (pFile) {
-            fclose(pFile);
-            return true;
-        }
-        debug_log_fprintf(
-            DEBUG_LOG_DEBUG, stderr, "Failed to open %s for writing!\n",
-            pathname);
-        return false;
-    }
-    /* read the portion of the existing content that is kept, since
-       stdio has no portable way to resize a file in place */
-    errno = 0;
-    pFile = fopen(pathname, "rb");
+    /* open for update, creating the file if it does not exist, without
+       discarding any existing content before it can be resized in place */
+    pFile = fopen(pathname, "a+b");
     if (pFile) {
-        old_size = fsize(pFile);
-        if ((old_size >= 0) && ((size_t)old_size == file_size)) {
-            /* BACnet has no end-of-file marker on writes, so a common
-               use case is writing back the current size to close out
-               a write transaction - nothing to do in that case */
-            fclose(pFile);
-            return true;
-        }
-        if (old_size > 0) {
-            copy_size = (size_t)old_size;
-            if (copy_size > file_size) {
-                copy_size = file_size;
-            }
-            buffer = malloc(copy_size);
-            if (buffer) {
-                if (fread(buffer, 1, copy_size, pFile) != copy_size) {
-                    free(buffer);
-                    buffer = NULL;
-                    copy_size = 0;
-                }
-            } else {
-                copy_size = 0;
-            }
-        }
-        fclose(pFile);
-    } else if (errno != ENOENT) {
-        /* file exists but is unreadable - abort instead of truncating it */
-        debug_log_fprintf(
-            DEBUG_LOG_DEBUG, stderr, "Failed to open %s for reading!\n",
-            pathname);
-        return false;
-    }
-    /* rewrite the file at the new size, zero-padding any growth */
-    pFile = fopen(pathname, "wb");
-    if (pFile) {
-        status = true;
-        if (buffer && (copy_size > 0) &&
-            (fwrite(buffer, 1, copy_size, pFile) != copy_size)) {
-            status = false;
-        }
-        if (status && (file_size > copy_size)) {
-            pad_size = file_size - copy_size;
-            while (pad_size > 0) {
-                if (pad_size < sizeof(zero_chunk)) {
-                    chunk = pad_size;
-                } else {
-                    chunk = sizeof(zero_chunk);
-                }
-                if (fwrite(zero_chunk, 1, chunk, pFile) != chunk) {
-                    status = false;
-                    break;
-                }
-                pad_size -= chunk;
-            }
+        fd = fileno(pFile);
+        if (fd >= 0) {
+            /* platform primitive - shrinks or zero-fill-grows in place */
+            status = (bacnet_truncate(fd, (long)file_size) == 0);
         }
         fclose(pFile);
     } else {
         debug_log_fprintf(
             DEBUG_LOG_DEBUG, stderr, "Failed to open %s for writing!\n",
             pathname);
-    }
-    if (buffer) {
-        free(buffer);
     }
 
     return status;
