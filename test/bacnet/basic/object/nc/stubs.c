@@ -13,7 +13,6 @@
 #include "bacnet/npdu.h"
 #include "bacnet/basic/npdu/h_npdu.h"
 #include "bacnet/basic/object/nc.h"
-#include "bacnet/basic/object/device.h"
 
 uint8_t Send_CEvent_Notify_Address(
     uint8_t *pdu,
@@ -64,26 +63,3 @@ void npdu_set_i_am_router_to_network_handler(
 {
     (void)pFunction;
 }
-
-uint32_t Device_Object_Instance_Number(void)
-{
-    return 0;
-}
-
-#ifdef BAC_ROUTING
-static uint16_t Current_Device_Index;
-
-uint16_t Routed_Device_Object_Index(void)
-{
-    return Current_Device_Index;
-}
-
-bool Set_Routed_Device_Object_Index(uint16_t index)
-{
-    if (index >= MAX_NUM_DEVICES) {
-        return false;
-    }
-    Current_Device_Index = index;
-    return true;
-}
-#endif
