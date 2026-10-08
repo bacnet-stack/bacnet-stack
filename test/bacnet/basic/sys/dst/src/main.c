@@ -208,6 +208,36 @@ static void dst_test_invalid_configured_endpoint(void)
 }
 
 /**
+ * Unit Test for ordinal rules configured with Begin_Month/End_Month
+ * values outside the valid 1..12 range
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(dst_tests, dst_test_invalid_ordinal_endpoint_month)
+#else
+static void dst_test_invalid_ordinal_endpoint_month(void)
+#endif
+{
+    struct daylight_savings_data data = { 0 };
+    uint8_t epoch_day;
+    uint16_t epoch_year;
+    uint8_t hour = 3;
+    uint8_t minute = 0;
+    uint8_t second = 0;
+
+    dst_init_defaults(&data);
+    epoch_day = data.Epoch_Day;
+    epoch_year = data.Epoch_Year;
+    /* Begin_Month of 13 does not exist - must not be treated as a wrap */
+    dst_init(&data, true, 13, 7, 1, 4, 7, 1, epoch_day, epoch_year);
+    zassert_false(dst_active(&data, 2013, 1, 15, hour, minute, second), NULL);
+    zassert_false(dst_active(&data, 2013, 7, 15, hour, minute, second), NULL);
+    /* End_Month of 0 does not exist - must not be treated as a wrap */
+    dst_init(&data, true, 10, 7, 1, 0, 7, 1, epoch_day, epoch_year);
+    zassert_false(dst_active(&data, 2013, 1, 15, hour, minute, second), NULL);
+    zassert_false(dst_active(&data, 2013, 12, 15, hour, minute, second), NULL);
+}
+
+/**
  * @}
  */
 
@@ -220,7 +250,8 @@ void test_main(void)
         dst_tests, ztest_unit_test(dst_test_valid),
         ztest_unit_test(dst_test_southern_hemisphere),
         ztest_unit_test(dst_test_invalid_day),
-        ztest_unit_test(dst_test_invalid_configured_endpoint));
+        ztest_unit_test(dst_test_invalid_configured_endpoint),
+        ztest_unit_test(dst_test_invalid_ordinal_endpoint_month));
 
     ztest_run_test_suite(dst_tests);
 }

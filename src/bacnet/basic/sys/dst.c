@@ -93,6 +93,12 @@ bool dst_active(
     }
 
     if (data->Ordinal) {
+        /* reject configured begin/end months that are out of range
+           before interpreting an out-of-range value as a wrap */
+        if ((data->Begin_Month < 1) || (data->Begin_Month > 12) ||
+            (data->End_Month < 1) || (data->End_Month > 12)) {
+            return false;
+        }
         /* Begin_Month > End_Month indicates a Southern Hemisphere style
            range that wraps across the end of the year */
         wrap = (data->Begin_Month > data->End_Month);
