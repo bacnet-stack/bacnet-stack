@@ -153,6 +153,19 @@ bool dst_active(
             }
         }
     } else {
+        /* reject configured begin/end dates that do not exist in the
+           queried year (e.g. September 31st). days_since_epoch() returns
+           0 for such dates, but 0 is also a valid result for the actual
+           epoch date, so the day-of-month must be checked directly
+           instead of inferring invalidity from a zero offset. */
+        days = days_per_month(year, data->Begin_Month);
+        if ((days == 0) || (data->Begin_Day < 1) || (data->Begin_Day > days)) {
+            return false;
+        }
+        days = days_per_month(year, data->End_Month);
+        if ((days == 0) || (data->End_Day < 1) || (data->End_Day > days)) {
+            return false;
+        }
         days_now = days_since_epoch(data->Epoch_Year, year, month, day);
         days_begin = days_since_epoch(
             data->Epoch_Year, year, data->Begin_Month, data->Begin_Day);

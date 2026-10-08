@@ -179,6 +179,35 @@ static void dst_test_invalid_day(void)
 }
 
 /**
+ * Unit Test for configured begin/end dates that do not exist
+ * (e.g. September 31st), regardless of whether the queried date is valid
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(dst_tests, dst_test_invalid_configured_endpoint)
+#else
+static void dst_test_invalid_configured_endpoint(void)
+#endif
+{
+    struct daylight_savings_data data = { 0 };
+    uint8_t epoch_day;
+    uint16_t epoch_year;
+    uint8_t hour = 3;
+    uint8_t minute = 0;
+    uint8_t second = 0;
+
+    dst_init_defaults(&data);
+    epoch_day = data.Epoch_Day;
+    epoch_year = data.Epoch_Year;
+    /* End_Day of 31 does not exist in September */
+    dst_init(&data, false, 4, 1, 0, 9, 31, 0, epoch_day, epoch_year);
+    zassert_false(dst_active(&data, 2013, 12, 15, hour, minute, second), NULL);
+    zassert_false(dst_active(&data, 2013, 7, 15, hour, minute, second), NULL);
+    /* Begin_Day of 31 does not exist in April */
+    dst_init(&data, false, 4, 31, 0, 9, 30, 0, epoch_day, epoch_year);
+    zassert_false(dst_active(&data, 2013, 7, 15, hour, minute, second), NULL);
+}
+
+/**
  * @}
  */
 
@@ -190,7 +219,8 @@ void test_main(void)
     ztest_test_suite(
         dst_tests, ztest_unit_test(dst_test_valid),
         ztest_unit_test(dst_test_southern_hemisphere),
-        ztest_unit_test(dst_test_invalid_day));
+        ztest_unit_test(dst_test_invalid_day),
+        ztest_unit_test(dst_test_invalid_configured_endpoint));
 
     ztest_run_test_suite(dst_tests);
 }
