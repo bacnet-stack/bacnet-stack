@@ -493,8 +493,8 @@ static object_functions_t Default_Object_Table[] = {
       NULL /* Intrinsic Reporting */,
       Notification_Class_Add_List_Element,
       Notification_Class_Remove_List_Element,
-      NULL /* Create */,
-      NULL /* Delete */,
+      Notification_Class_Create,
+      Notification_Class_Delete,
       NULL /* Timer */,
       Notification_Class_Writable_Property_List },
 #endif

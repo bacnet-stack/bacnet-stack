@@ -112,14 +112,19 @@ bool Device_Encode_Value_List(
     return true;
 }
 
+static uint16_t Current_Device_Index;
+
 uint16_t Routed_Device_Object_Index(void)
 {
-    return 0;
+    return Current_Device_Index;
 }
 
 bool Set_Routed_Device_Object_Index(uint16_t index)
 {
-    (void)index;
+    if (index >= MAX_NUM_DEVICES) {
+        return false;
+    }
+    Current_Device_Index = index;
     return true;
 }
 
