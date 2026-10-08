@@ -6,7 +6,6 @@
  * @date 2005, 2011
  * @copyright SPDX-License-Identifier: MIT
  */
-#include <float.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
