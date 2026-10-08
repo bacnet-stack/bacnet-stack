@@ -80,10 +80,81 @@ size_t bacfile_posix_file_size(const char *pathname)
 bool bacfile_posix_file_size_set(const char *pathname, size_t file_size)
 {
     bool status = false;
+    FILE *pFile = NULL;
+    long old_size = 0;
+    size_t copy_size = 0;
+    uint8_t *buffer = NULL;
+    uint8_t zero_chunk[BACNET_FILE_POSIX_RECORD_SIZE] = { 0 };
+    size_t pad_size = 0;
+    size_t chunk = 0;
 
-    (void)pathname; /* unused parameter */
-    (void)file_size; /* unused parameter */
-    /* FIXME: add clever POSIX file stuff here */
+    if (!filename_path_valid(pathname)) {
+        return false;
+    }
+    if (file_size == 0) {
+        /* shortcut - open as a clean slate to discard all content */
+        pFile = fopen(pathname, "wb");
+        if (pFile) {
+            fclose(pFile);
+            return true;
+        }
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr, "Failed to open %s for writing!\n",
+            pathname);
+        return false;
+    }
+    /* read the portion of the existing content that is kept, since
+       stdio has no portable way to resize a file in place */
+    pFile = fopen(pathname, "rb");
+    if (pFile) {
+        old_size = fsize(pFile);
+        if (old_size > 0) {
+            copy_size = (size_t)old_size;
+            if (copy_size > file_size) {
+                copy_size = file_size;
+            }
+            buffer = malloc(copy_size);
+            if (buffer) {
+                if (fread(buffer, 1, copy_size, pFile) != copy_size) {
+                    free(buffer);
+                    buffer = NULL;
+                    copy_size = 0;
+                }
+            } else {
+                copy_size = 0;
+            }
+        }
+        fclose(pFile);
+    }
+    /* rewrite the file at the new size, zero-padding any growth */
+    pFile = fopen(pathname, "wb");
+    if (pFile) {
+        status = true;
+        if (buffer && (copy_size > 0) &&
+            (fwrite(buffer, 1, copy_size, pFile) != copy_size)) {
+            status = false;
+        }
+        if (status && (file_size > copy_size)) {
+            pad_size = file_size - copy_size;
+            while (pad_size > 0) {
+                chunk = (pad_size < sizeof(zero_chunk)) ? pad_size
+                                                        : sizeof(zero_chunk);
+                if (fwrite(zero_chunk, 1, chunk, pFile) != chunk) {
+                    status = false;
+                    break;
+                }
+                pad_size -= chunk;
+            }
+        }
+        fclose(pFile);
+    } else {
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr, "Failed to open %s for writing!\n",
+            pathname);
+    }
+    if (buffer) {
+        free(buffer);
+    }
 
     return status;
 }
