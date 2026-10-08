@@ -108,6 +108,13 @@ bool bacfile_posix_file_size_set(const char *pathname, size_t file_size)
     pFile = fopen(pathname, "rb");
     if (pFile) {
         old_size = fsize(pFile);
+        if ((old_size >= 0) && ((size_t)old_size == file_size)) {
+            /* BACnet has no end-of-file marker on writes, so a common
+               use case is writing back the current size to close out
+               a write transaction - nothing to do in that case */
+            fclose(pFile);
+            return true;
+        }
         if (old_size > 0) {
             copy_size = (size_t)old_size;
             if (copy_size > file_size) {
