@@ -137,8 +137,11 @@ bool bacfile_posix_file_size_set(const char *pathname, size_t file_size)
         if (status && (file_size > copy_size)) {
             pad_size = file_size - copy_size;
             while (pad_size > 0) {
-                chunk = (pad_size < sizeof(zero_chunk)) ? pad_size
-                                                        : sizeof(zero_chunk);
+                if (pad_size < sizeof(zero_chunk)) {
+                    chunk = pad_size;
+                } else {
+                    chunk = sizeof(zero_chunk);
+                }
                 if (fwrite(zero_chunk, 1, chunk, pFile) != chunk) {
                     status = false;
                     break;
