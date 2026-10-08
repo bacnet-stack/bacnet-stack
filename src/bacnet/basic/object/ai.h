@@ -31,6 +31,8 @@ typedef struct analog_input_descr {
     uint16_t Units;
     float Prior_Value;
     float COV_Increment;
+    float Min_Pres_Value;
+    float Max_Pres_Value;
     bool Changed;
     BACNET_CHARACTER_CSTRING Object_Name;
     BACNET_CHARACTER_CSTRING Description;
@@ -142,6 +144,15 @@ bool Analog_Input_Encode_Value_List(
 float Analog_Input_COV_Increment(uint32_t instance);
 BACNET_STACK_EXPORT
 void Analog_Input_COV_Increment_Set(uint32_t instance, float value);
+
+BACNET_STACK_EXPORT
+float Analog_Input_Min_Pres_Value(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Analog_Input_Min_Pres_Value_Set(uint32_t object_instance, float value);
+BACNET_STACK_EXPORT
+float Analog_Input_Max_Pres_Value(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Analog_Input_Max_Pres_Value_Set(uint32_t object_instance, float value);
 
 /* note: header of Intrinsic_Reporting function is required
    even when INTRINSIC_REPORTING is not defined */
