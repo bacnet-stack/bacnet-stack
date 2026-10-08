@@ -9,7 +9,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -21,6 +20,16 @@
 
 #ifndef BACNET_FILE_POSIX_RECORD_SIZE
 #define BACNET_FILE_POSIX_RECORD_SIZE MAX_OCTET_STRING_BYTES
+#endif
+
+#if defined(_WIN32)
+#include <io.h>
+/* resize an open file by descriptor - grows are zero-filled */
+#define bacnet_truncate(fd, size) _chsize_s((fd), (size))
+#else
+#include <unistd.h>
+/* resize an open file by descriptor - grows are zero-filled */
+#define bacnet_truncate(fd, size) ftruncate((fd), (size))
 #endif
 
 /**
@@ -80,10 +89,27 @@ size_t bacfile_posix_file_size(const char *pathname)
 bool bacfile_posix_file_size_set(const char *pathname, size_t file_size)
 {
     bool status = false;
+    FILE *pFile = NULL;
+    int fd = -1;
 
-    (void)pathname; /* unused parameter */
-    (void)file_size; /* unused parameter */
-    /* FIXME: add clever POSIX file stuff here */
+    if (!filename_path_valid(pathname)) {
+        return false;
+    }
+    /* open for update, creating the file if it does not exist, without
+       discarding any existing content before it can be resized in place */
+    pFile = fopen(pathname, "a+b");
+    if (pFile) {
+        fd = fileno(pFile);
+        if (fd >= 0) {
+            /* platform primitive - shrinks or zero-fill-grows in place */
+            status = (bacnet_truncate(fd, (long)file_size) == 0);
+        }
+        fclose(pFile);
+    } else {
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr, "Failed to open %s for writing!\n",
+            pathname);
+    }
 
     return status;
 }
