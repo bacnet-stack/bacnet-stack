@@ -5,6 +5,7 @@
  * @date 2005
  * @copyright SPDX-License-Identifier: MIT
  */
+#include <errno.h>
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -105,6 +106,7 @@ bool bacfile_posix_file_size_set(const char *pathname, size_t file_size)
     }
     /* read the portion of the existing content that is kept, since
        stdio has no portable way to resize a file in place */
+    errno = 0;
     pFile = fopen(pathname, "rb");
     if (pFile) {
         old_size = fsize(pFile);
@@ -132,6 +134,12 @@ bool bacfile_posix_file_size_set(const char *pathname, size_t file_size)
             }
         }
         fclose(pFile);
+    } else if (errno != ENOENT) {
+        /* file exists but is unreadable - abort instead of truncating it */
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr, "Failed to open %s for reading!\n",
+            pathname);
+        return false;
     }
     /* rewrite the file at the new size, zero-padding any growth */
     pFile = fopen(pathname, "wb");
