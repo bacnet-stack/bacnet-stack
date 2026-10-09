@@ -5,6 +5,12 @@
  * @date 2005
  * @copyright SPDX-License-Identifier: MIT
  */
+/* Use GCC and Clang's __STRICT_ANSI__. It is defined only for
+   strict -std=c89/c99/c11/c17 and not for -std=gnu*,
+   which is exactly when glibc hides fileno() and ftruncate().*/
+#if !defined(_WIN32) && !defined(_POSIX_C_SOURCE) && defined(__STRICT_ANSI__)
+#define _POSIX_C_SOURCE 200809L
+#endif
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
