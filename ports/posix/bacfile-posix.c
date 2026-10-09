@@ -25,11 +25,15 @@
 #if defined(_WIN32)
 #include <io.h>
 /* resize an open file by descriptor - grows are zero-filled */
+#define BACFILE_POSIX_CAN_RESIZE_BY_FD 1
 #define bacnet_truncate(fd, size) _chsize_s((fd), (size))
-#else
+#elif defined(__unix__) || defined(__APPLE__)
 #include <unistd.h>
 /* resize an open file by descriptor - grows are zero-filled */
+#define BACFILE_POSIX_CAN_RESIZE_BY_FD 1
 #define bacnet_truncate(fd, size) ftruncate((fd), (size))
+#else
+#define BACFILE_POSIX_CAN_RESIZE_BY_FD 0
 #endif
 
 /**
@@ -91,10 +95,31 @@ bool bacfile_posix_file_size_set(const char *pathname, size_t file_size)
     bool status = false;
     FILE *pFile = NULL;
     int fd = -1;
+    size_t current_size = 0;
 
     if (!filename_path_valid(pathname)) {
         return false;
     }
+
+    if (file_size == 0) {
+        /* always support truncate-to-zero/create-empty semantics */
+        pFile = fopen(pathname, "wb");
+        if (pFile) {
+            fclose(pFile);
+            return true;
+        }
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr, "Failed to open %s for writing!\n",
+            pathname);
+        return false;
+    }
+
+    current_size = bacfile_posix_file_size(pathname);
+    if (file_size == current_size) {
+        return true;
+    }
+
+#if BACFILE_POSIX_CAN_RESIZE_BY_FD
     /* open for update, creating the file if it does not exist, without
        discarding any existing content before it can be resized in place */
     pFile = fopen(pathname, "a+b");
@@ -110,6 +135,14 @@ bool bacfile_posix_file_size_set(const char *pathname, size_t file_size)
             DEBUG_LOG_DEBUG, stderr, "Failed to open %s for writing!\n",
             pathname);
     }
+#else
+    /* platforms without fileno()/ftruncate() only support:
+       Zephyr libc can be configured without fileno(), so this path is
+       intentionally limited to 0-size truncate and same-size no-op.
+       - file_size == 0 (handled above)
+       - file_size == current size (handled above) */
+    status = false;
+#endif
 
     return status;
 }
