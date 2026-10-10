@@ -11,7 +11,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 #include "bacnet/basic/object/bacfile.h"
@@ -82,69 +81,43 @@ bool bacfile_posix_file_size_set(const char *pathname, size_t file_size)
 {
     bool status = false;
     FILE *pFile = NULL;
-    FILE *pTemp = NULL;
-    int temp_fd = -1;
-    char *temp_path = NULL;
-    const char *temp_suffix = ".bacfile-resize-XXXXXX";
-    const char *slash = NULL;
-    size_t dir_len = 0;
-    size_t temp_path_len = 0;
+    FILE *pScratch = NULL;
     size_t current_size = 0;
     size_t copy_size = 0;
     size_t remaining = 0;
     size_t chunk_size = 0;
     uint8_t buffer[256] = { 0 };
 
+    /* Validate the input path before doing any file operations. */
     if (!filename_path_valid(pathname)) {
         return false;
     }
 
+    /* Handle the empty-file resize as a fast path.
+       Opening with "wb" truncates to zero bytes in one operation. */
+    if (file_size == 0) {
+        pFile = fopen(pathname, "wb");
+        if (!pFile) {
+            debug_log_fprintf(
+                DEBUG_LOG_DEBUG, stderr,
+                "Failed to open %s for truncation during resize!\n", pathname);
+            return false;
+        }
+        if (fclose(pFile) != 0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /* Read current size and return early if no resize is needed. */
     current_size = bacfile_posix_file_size(pathname);
     if (file_size == current_size) {
         return true;
     }
 
-    /* Build a temporary file path in the same directory as destination. */
-    slash = strrchr(pathname, '/');
-    if (slash) {
-        dir_len = (size_t)(slash - pathname + 1);
-        temp_path_len = dir_len + strlen(temp_suffix) + 1;
-        temp_path = calloc(1, temp_path_len);
-        if (temp_path) {
-            (void)snprintf(
-                temp_path, temp_path_len, "%.*s%s", (int)dir_len, pathname,
-                temp_suffix);
-        }
-    } else {
-        temp_path_len = 2 + strlen(temp_suffix) + 1;
-        temp_path = calloc(1, temp_path_len);
-        if (temp_path) {
-            (void)snprintf(temp_path, temp_path_len, "./%s", temp_suffix);
-        }
-    }
-    if (!temp_path) {
-        debug_log_fprintf(
-            DEBUG_LOG_DEBUG, stderr,
-            "Failed to allocate temporary path for %s resize!\n", pathname);
-        return false;
-    }
-
-    temp_fd = mkstemp(temp_path);
-    if (temp_fd < 0) {
-        debug_log_fprintf(
-            DEBUG_LOG_DEBUG, stderr,
-            "Failed to create temporary file for %s resize!\n", pathname);
-        goto cleanup;
-    }
-    pTemp = fdopen(temp_fd, "wb+");
-    if (!pTemp) {
-        debug_log_fprintf(
-            DEBUG_LOG_DEBUG, stderr,
-            "Failed to open temporary stream for %s resize!\n", pathname);
-        goto cleanup;
-    }
-    temp_fd = -1;
-
+    /* Open original file for reading and determine how much
+       existing content we can preserve in the resized output. */
     pFile = fopen(pathname, "rb");
     copy_size = (file_size < current_size) ? file_size : current_size;
     if ((copy_size > 0) && !pFile) {
@@ -153,71 +126,106 @@ bool bacfile_posix_file_size_set(const char *pathname, size_t file_size)
             "Failed to reopen %s for reading during resize!\n", pathname);
         goto cleanup;
     }
-    remaining = copy_size;
 
-    while (remaining > 0) {
-        chunk_size = (remaining > sizeof(buffer)) ? sizeof(buffer) : remaining;
-        if (fread(buffer, 1, chunk_size, pFile) != chunk_size) {
+    /* Copy the preserved portion into a scratch stream.
+       This prevents losing original bytes when destination is reopened
+       in truncate mode for rewrite. */
+    if (copy_size > 0) {
+        pScratch = tmpfile();
+        if (!pScratch) {
             goto cleanup;
         }
-        if (fwrite(buffer, 1, chunk_size, pTemp) != chunk_size) {
+        remaining = copy_size;
+        while (remaining > 0) {
+            chunk_size =
+                (remaining > sizeof(buffer)) ? sizeof(buffer) : remaining;
+            if (fread(buffer, 1, chunk_size, pFile) != chunk_size) {
+                goto cleanup;
+            }
+            if (fwrite(buffer, 1, chunk_size, pScratch) != chunk_size) {
+                goto cleanup;
+            }
+            remaining -= chunk_size;
+        }
+        if (fflush(pScratch) != 0) {
             goto cleanup;
         }
-        remaining -= chunk_size;
     }
 
+    /* Close the original input handle before opening the same
+       pathname for writing. */
     if (pFile) {
         fclose(pFile);
         pFile = NULL;
     }
 
-    /* grow by writing zero fill directly to temporary destination */
+    /* Recreate/truncate destination, then rebuild the file
+       contents from preserved bytes plus any required zero-fill. */
+    /* Weaker but stdio-only behavior: rewrite destination directly. */
+    pFile = fopen(pathname, "wb");
+    if (!pFile) {
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr,
+            "Failed to reopen %s for writing during resize!\n", pathname);
+        goto cleanup;
+    }
+
+    /* Restore preserved bytes at the beginning of the file. */
+    if (copy_size > 0) {
+        if (fseek(pScratch, 0L, SEEK_SET) != 0) {
+            goto cleanup;
+        }
+        remaining = copy_size;
+        while (remaining > 0) {
+            chunk_size =
+                (remaining > sizeof(buffer)) ? sizeof(buffer) : remaining;
+            if (fread(buffer, 1, chunk_size, pScratch) != chunk_size) {
+                goto cleanup;
+            }
+            if (fwrite(buffer, 1, chunk_size, pFile) != chunk_size) {
+                goto cleanup;
+            }
+            remaining -= chunk_size;
+        }
+    }
+
+    /* If growing the file, append zero bytes to reach the
+       requested final size. */
+    /* grow by writing zero fill directly to destination */
     remaining = file_size - copy_size;
     memset(buffer, 0, sizeof(buffer));
     while (remaining > 0) {
         chunk_size = (remaining > sizeof(buffer)) ? sizeof(buffer) : remaining;
-        if (fwrite(buffer, 1, chunk_size, pTemp) != chunk_size) {
+        if (fwrite(buffer, 1, chunk_size, pFile) != chunk_size) {
             goto cleanup;
         }
         remaining -= chunk_size;
     }
 
-    if (fflush(pTemp) != 0) {
+    /* Flush and close so data reaches storage and descriptors
+       are released before reporting success. */
+    if (fflush(pFile) != 0) {
         goto cleanup;
     }
-    if (fsync(fileno(pTemp)) != 0) {
+    if (fclose(pFile) != 0) {
+        pFile = NULL;
         goto cleanup;
     }
-    if (fclose(pTemp) != 0) {
-        pTemp = NULL;
-        goto cleanup;
-    }
-    pTemp = NULL;
+    pFile = NULL;
 
-    if (rename(temp_path, pathname) != 0) {
-        debug_log_fprintf(
-            DEBUG_LOG_DEBUG, stderr,
-            "Failed to replace %s after resize with temporary file!\n",
-            pathname);
-        goto cleanup;
-    }
-
+    /* Mark operation successful; cleanup still runs to close
+       any scratch resources. */
     status = true;
 
 cleanup:
+    /* Best-effort cleanup of any handles still open due to
+       normal flow or early error exit. */
     if (pFile) {
         fclose(pFile);
     }
-    if (pTemp) {
-        fclose(pTemp);
+    if (pScratch) {
+        fclose(pScratch);
     }
-    if (temp_fd >= 0) {
-        close(temp_fd);
-    }
-    if (!status && temp_path) {
-        (void)unlink(temp_path);
-    }
-    free(temp_path);
 
     return status;
 }
