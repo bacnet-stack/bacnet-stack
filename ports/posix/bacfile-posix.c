@@ -8,8 +8,10 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 #include "bacnet/basic/object/bacfile.h"
@@ -81,7 +83,12 @@ bool bacfile_posix_file_size_set(const char *pathname, size_t file_size)
     bool status = false;
     FILE *pFile = NULL;
     FILE *pTemp = NULL;
-    FILE *pDest = NULL;
+    int temp_fd = -1;
+    char *temp_path = NULL;
+    const char *temp_suffix = ".bacfile-resize-XXXXXX";
+    const char *slash = NULL;
+    size_t dir_len = 0;
+    size_t temp_path_len = 0;
     size_t current_size = 0;
     size_t copy_size = 0;
     size_t remaining = 0;
@@ -92,56 +99,67 @@ bool bacfile_posix_file_size_set(const char *pathname, size_t file_size)
         return false;
     }
 
-    if (file_size == 0) {
-        /* always support truncate-to-zero/create-empty semantics */
-        pFile = fopen(pathname, "wb");
-        if (pFile) {
-            fclose(pFile);
-            return true;
-        }
-        debug_log_fprintf(
-            DEBUG_LOG_DEBUG, stderr, "Failed to open %s for writing!\n",
-            pathname);
-        return false;
-    }
-
     current_size = bacfile_posix_file_size(pathname);
     if (file_size == current_size) {
         return true;
     }
 
-    /* ISO C path: rebuild file contents through a temporary stream. */
-    pTemp = tmpfile();
-    if (!pTemp) {
+    /* Build a temporary file path in the same directory as destination. */
+    slash = strrchr(pathname, '/');
+    if (slash) {
+        dir_len = (size_t)(slash - pathname + 1);
+        temp_path_len = dir_len + strlen(temp_suffix) + 1;
+        temp_path = calloc(1, temp_path_len);
+        if (temp_path) {
+            (void)snprintf(
+                temp_path, temp_path_len, "%.*s%s", (int)dir_len, pathname,
+                temp_suffix);
+        }
+    } else {
+        temp_path_len = 2 + strlen(temp_suffix) + 1;
+        temp_path = calloc(1, temp_path_len);
+        if (temp_path) {
+            (void)snprintf(temp_path, temp_path_len, "./%s", temp_suffix);
+        }
+    }
+    if (!temp_path) {
         debug_log_fprintf(
             DEBUG_LOG_DEBUG, stderr,
-            "Failed to create temporary stream for %s resize!\n", pathname);
+            "Failed to allocate temporary path for %s resize!\n", pathname);
         return false;
     }
 
+    temp_fd = mkstemp(temp_path);
+    if (temp_fd < 0) {
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr,
+            "Failed to create temporary file for %s resize!\n", pathname);
+        goto cleanup;
+    }
+    pTemp = fdopen(temp_fd, "wb+");
+    if (!pTemp) {
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr,
+            "Failed to open temporary stream for %s resize!\n", pathname);
+        goto cleanup;
+    }
+    temp_fd = -1;
+
     pFile = fopen(pathname, "rb");
     copy_size = (file_size < current_size) ? file_size : current_size;
+    if ((copy_size > 0) && !pFile) {
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr,
+            "Failed to reopen %s for reading during resize!\n", pathname);
+        goto cleanup;
+    }
     remaining = copy_size;
 
     while (remaining > 0) {
         chunk_size = (remaining > sizeof(buffer)) ? sizeof(buffer) : remaining;
-        if (pFile) {
-            if (fread(buffer, 1, chunk_size, pFile) != chunk_size) {
-                goto cleanup;
-            }
-        } else {
-            memset(buffer, 0, chunk_size);
-        }
-        if (fwrite(buffer, 1, chunk_size, pTemp) != chunk_size) {
+        if (fread(buffer, 1, chunk_size, pFile) != chunk_size) {
             goto cleanup;
         }
-        remaining -= chunk_size;
-    }
-
-    remaining = file_size - copy_size;
-    memset(buffer, 0, sizeof(buffer));
-    while (remaining > 0) {
-        chunk_size = (remaining > sizeof(buffer)) ? sizeof(buffer) : remaining;
         if (fwrite(buffer, 1, chunk_size, pTemp) != chunk_size) {
             goto cleanup;
         }
@@ -153,25 +171,35 @@ bool bacfile_posix_file_size_set(const char *pathname, size_t file_size)
         pFile = NULL;
     }
 
-    rewind(pTemp);
-    pDest = fopen(pathname, "wb");
-    if (!pDest) {
-        debug_log_fprintf(
-            DEBUG_LOG_DEBUG, stderr, "Failed to open %s for writing!\n",
-            pathname);
-        goto cleanup;
-    }
-
-    remaining = file_size;
+    /* grow by writing zero fill directly to temporary destination */
+    remaining = file_size - copy_size;
+    memset(buffer, 0, sizeof(buffer));
     while (remaining > 0) {
         chunk_size = (remaining > sizeof(buffer)) ? sizeof(buffer) : remaining;
-        if (fread(buffer, 1, chunk_size, pTemp) != chunk_size) {
-            goto cleanup;
-        }
-        if (fwrite(buffer, 1, chunk_size, pDest) != chunk_size) {
+        if (fwrite(buffer, 1, chunk_size, pTemp) != chunk_size) {
             goto cleanup;
         }
         remaining -= chunk_size;
+    }
+
+    if (fflush(pTemp) != 0) {
+        goto cleanup;
+    }
+    if (fsync(fileno(pTemp)) != 0) {
+        goto cleanup;
+    }
+    if (fclose(pTemp) != 0) {
+        pTemp = NULL;
+        goto cleanup;
+    }
+    pTemp = NULL;
+
+    if (rename(temp_path, pathname) != 0) {
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr,
+            "Failed to replace %s after resize with temporary file!\n",
+            pathname);
+        goto cleanup;
     }
 
     status = true;
@@ -180,12 +208,16 @@ cleanup:
     if (pFile) {
         fclose(pFile);
     }
-    if (pDest) {
-        fclose(pDest);
-    }
     if (pTemp) {
         fclose(pTemp);
     }
+    if (temp_fd >= 0) {
+        close(temp_fd);
+    }
+    if (!status && temp_path) {
+        (void)unlink(temp_path);
+    }
+    free(temp_path);
 
     return status;
 }
