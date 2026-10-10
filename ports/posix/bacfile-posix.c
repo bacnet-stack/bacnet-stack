@@ -22,20 +22,6 @@
 #define BACNET_FILE_POSIX_RECORD_SIZE MAX_OCTET_STRING_BYTES
 #endif
 
-#if defined(_WIN32)
-#include <io.h>
-/* resize an open file by descriptor - grows are zero-filled */
-#define BACFILE_POSIX_CAN_RESIZE_BY_FD 1
-#define bacnet_truncate(fd, size) _chsize_s((fd), (size))
-#elif defined(__unix__) || defined(__APPLE__)
-#include <unistd.h>
-/* resize an open file by descriptor - grows are zero-filled */
-#define BACFILE_POSIX_CAN_RESIZE_BY_FD 1
-#define bacnet_truncate(fd, size) ftruncate((fd), (size))
-#else
-#define BACFILE_POSIX_CAN_RESIZE_BY_FD 0
-#endif
-
 /**
  * @brief Determines the file size for a given file
  * @param  pFile - file handle
@@ -94,8 +80,13 @@ bool bacfile_posix_file_size_set(const char *pathname, size_t file_size)
 {
     bool status = false;
     FILE *pFile = NULL;
-    int fd = -1;
+    FILE *pTemp = NULL;
+    FILE *pDest = NULL;
     size_t current_size = 0;
+    size_t copy_size = 0;
+    size_t remaining = 0;
+    size_t chunk_size = 0;
+    uint8_t buffer[256] = { 0 };
 
     if (!filename_path_valid(pathname)) {
         return false;
@@ -119,30 +110,82 @@ bool bacfile_posix_file_size_set(const char *pathname, size_t file_size)
         return true;
     }
 
-#if BACFILE_POSIX_CAN_RESIZE_BY_FD
-    /* open for update, creating the file if it does not exist, without
-       discarding any existing content before it can be resized in place */
-    pFile = fopen(pathname, "a+b");
-    if (pFile) {
-        fd = fileno(pFile);
-        if (fd >= 0) {
-            /* platform primitive - shrinks or zero-fill-grows in place */
-            status = (bacnet_truncate(fd, (long)file_size) == 0);
+    /* ISO C path: rebuild file contents through a temporary stream. */
+    pTemp = tmpfile();
+    if (!pTemp) {
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr,
+            "Failed to create temporary stream for %s resize!\n", pathname);
+        return false;
+    }
+
+    pFile = fopen(pathname, "rb");
+    copy_size = (file_size < current_size) ? file_size : current_size;
+    remaining = copy_size;
+
+    while (remaining > 0) {
+        chunk_size = (remaining > sizeof(buffer)) ? sizeof(buffer) : remaining;
+        if (pFile) {
+            if (fread(buffer, 1, chunk_size, pFile) != chunk_size) {
+                goto cleanup;
+            }
+        } else {
+            memset(buffer, 0, chunk_size);
         }
+        if (fwrite(buffer, 1, chunk_size, pTemp) != chunk_size) {
+            goto cleanup;
+        }
+        remaining -= chunk_size;
+    }
+
+    remaining = file_size - copy_size;
+    memset(buffer, 0, sizeof(buffer));
+    while (remaining > 0) {
+        chunk_size = (remaining > sizeof(buffer)) ? sizeof(buffer) : remaining;
+        if (fwrite(buffer, 1, chunk_size, pTemp) != chunk_size) {
+            goto cleanup;
+        }
+        remaining -= chunk_size;
+    }
+
+    if (pFile) {
         fclose(pFile);
-    } else {
+        pFile = NULL;
+    }
+
+    rewind(pTemp);
+    pDest = fopen(pathname, "wb");
+    if (!pDest) {
         debug_log_fprintf(
             DEBUG_LOG_DEBUG, stderr, "Failed to open %s for writing!\n",
             pathname);
+        goto cleanup;
     }
-#else
-    /* platforms without fileno()/ftruncate() only support:
-       Zephyr libc can be configured without fileno(), so this path is
-       intentionally limited to 0-size truncate and same-size no-op.
-       - file_size == 0 (handled above)
-       - file_size == current size (handled above) */
-    status = false;
-#endif
+
+    remaining = file_size;
+    while (remaining > 0) {
+        chunk_size = (remaining > sizeof(buffer)) ? sizeof(buffer) : remaining;
+        if (fread(buffer, 1, chunk_size, pTemp) != chunk_size) {
+            goto cleanup;
+        }
+        if (fwrite(buffer, 1, chunk_size, pDest) != chunk_size) {
+            goto cleanup;
+        }
+        remaining -= chunk_size;
+    }
+
+    status = true;
+
+cleanup:
+    if (pFile) {
+        fclose(pFile);
+    }
+    if (pDest) {
+        fclose(pDest);
+    }
+    if (pTemp) {
+        fclose(pTemp);
+    }
 
     return status;
 }
