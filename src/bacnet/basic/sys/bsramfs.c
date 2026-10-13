@@ -147,12 +147,15 @@ size_t bacfile_sramfs_read_stream_data(
  * @param records - string of null-terminated records
  * @param record_index - record index number 0..N of the records
  * @param size - total buffer size in bytes
- * @return record, or NULL
+ * @param record_len - returns the record length, excluding the terminator
+ * @return record, or NULL if not found or not NUL-terminated
  */
-static char *record_by_index(char *records, size_t index, size_t size)
+static char *
+record_by_index(char *records, size_t index, size_t size, size_t *record_len)
 {
     size_t count = 0;
     size_t len = 0;
+    size_t limit;
     const char *end;
 
     if (!records) {
@@ -160,11 +163,17 @@ static char *record_by_index(char *records, size_t index, size_t size)
     }
     end = records + size;
     while (records < end) {
-        len = bacnet_strnlen(
-            records,
-            BACNET_MIN(MAX_OCTET_STRING_BYTES, (size_t)(end - records)));
+        limit = BACNET_MIN(MAX_OCTET_STRING_BYTES, (size_t)(end - records));
+        len = bacnet_strnlen(records, limit);
+        if (len >= limit) {
+            /* no NUL terminator within the remaining file bytes */
+            return NULL;
+        }
         /* an empty record is a valid record */
         if (index == count) {
+            if (record_len) {
+                *record_len = len;
+            }
             return records;
         }
         count++;
@@ -205,13 +214,9 @@ bool bacfile_sramfs_read_record_data(
     if (pFile) {
         fileSeekRecord = fileStartRecord + fileIndexRecord;
         /* seek to the start record */
-        record = record_by_index(pFile->data, fileSeekRecord, pFile->size);
+        record = record_by_index(
+            pFile->data, fileSeekRecord, pFile->size, &record_len);
         if (record) {
-            record_len = bacnet_strnlen(
-                record,
-                BACNET_MIN(
-                    MAX_OCTET_STRING_BYTES,
-                    pFile->size - (size_t)(record - pFile->data)));
             if (record_len <= fileDataLen) {
                 /* copy the record data, which can be empty */
                 memcpy(fileData, record, record_len);
@@ -235,15 +240,19 @@ size_t bacfile_sramfs_record_count(const char *pathname)
     const char *end;
     size_t count = 0;
     size_t len;
+    size_t limit;
 
     pFile = bacfile_sramfs_open(pathname);
     if (pFile && pFile->data) {
         records = pFile->data;
         end = records + pFile->size;
         while (records < end) {
-            len = bacnet_strnlen(
-                records,
-                BACNET_MIN(MAX_OCTET_STRING_BYTES, (size_t)(end - records)));
+            limit = BACNET_MIN(MAX_OCTET_STRING_BYTES, (size_t)(end - records));
+            len = bacnet_strnlen(records, limit);
+            if (len >= limit) {
+                /* no NUL terminator within the remaining file bytes */
+                break;
+            }
             count++;
             records = records + len + 1;
         }
