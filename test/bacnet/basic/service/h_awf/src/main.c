@@ -349,10 +349,14 @@ static void testHandlerAWF_ValidRecordAppend(void)
     Bacfile_Valid_Instance_Result = true;
     Bacfile_File_Access_Stream_Result = false;
     Bacfile_Write_Record_Data_Result = true;
+    Bacfile_Record_Count_Known = true;
+    Bacfile_Record_Count_Result = 3;
 
     len = handler_atomic_write_file_encode(
         transmit_buffer, service_request, (uint16_t)service_len, &src,
         &npdu_data, &service_data);
+    Bacfile_Record_Count_Known = false;
+    Bacfile_Record_Count_Result = 0;
     zassert_true(len > 0, "encoding failed: len=%d", len);
 
     apdu_offset = npdu_decode(transmit_buffer, NULL, NULL, &npdu_data);
@@ -418,6 +422,57 @@ static void testHandlerAWF_RecordAckStartRecord(void)
     zassert_equal(record_write_ack_start(2, 5), 2, NULL);
     zassert_equal(record_write_ack_start(5, 5), 5, NULL);
     zassert_equal(record_write_ack_start(9, 5), 9, NULL);
+}
+
+/* -------------------------------------------------------------------------
+ * An append without a known, representable record count is an error
+ * ------------------------------------------------------------------------- */
+static uint8_t record_append_pdu_type(bool known, size_t records)
+{
+    uint8_t payload[] = { "record data" };
+    uint8_t service_request[480] = { 0 };
+    uint8_t transmit_buffer[480] = { 0 };
+    BACNET_ADDRESS src = { 0 };
+    BACNET_CONFIRMED_SERVICE_DATA service_data = { 0 };
+    BACNET_NPDU_DATA npdu_data = { 0 };
+    int apdu_offset, len, service_len;
+
+    service_len =
+        make_record_request(service_request, -1, payload, sizeof(payload));
+    zassert_true(service_len > 0, "encoding failed: len=%d", service_len);
+    make_service_data(&service_data, 33);
+    Bacfile_Valid_Instance_Result = true;
+    Bacfile_File_Access_Stream_Result = false;
+    Bacfile_Write_Record_Data_Result = true;
+    Bacfile_Record_Count_Known = known;
+    Bacfile_Record_Count_Result = records;
+    len = handler_atomic_write_file_encode(
+        transmit_buffer, service_request, (uint16_t)service_len, &src,
+        &npdu_data, &service_data);
+    Bacfile_Record_Count_Known = false;
+    Bacfile_Record_Count_Result = 0;
+    zassert_true(len > 0, "encoding failed: len=%d", len);
+    apdu_offset = npdu_decode(transmit_buffer, NULL, NULL, &npdu_data);
+
+    return transmit_buffer[apdu_offset];
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(h_awf_tests, testHandlerAWF_RecordAppendCountUnavailable)
+#else
+static void testHandlerAWF_RecordAppendCountUnavailable(void)
+#endif
+{
+    zassert_equal(
+        record_append_pdu_type(false, 0), (uint8_t)PDU_TYPE_ERROR, NULL);
+    zassert_equal(
+        record_append_pdu_type(true, (size_t)INT32_MAX),
+        (uint8_t)PDU_TYPE_COMPLEX_ACK, NULL);
+#if (SIZE_MAX > INT32_MAX)
+    zassert_equal(
+        record_append_pdu_type(true, (size_t)INT32_MAX + 1),
+        (uint8_t)PDU_TYPE_ERROR, NULL);
+#endif
 }
 
 /* -------------------------------------------------------------------------
@@ -619,6 +674,7 @@ void test_main(void)
         ztest_unit_test(testHandlerAWF_ValidRecordWrite),
         ztest_unit_test(testHandlerAWF_ValidRecordAppend),
         ztest_unit_test(testHandlerAWF_RecordAckStartRecord),
+        ztest_unit_test(testHandlerAWF_RecordAppendCountUnavailable),
         ztest_unit_test(testHandlerAWF_RecordWriteFailure),
         ztest_unit_test(testHandlerAWF_StreamRequestOnRecordFile),
         ztest_unit_test(testHandlerAWF_RecordRequestOnStreamFile),
@@ -633,6 +689,7 @@ void test_main(void)
         ztest_unit_test(testHandlerAWF_ValidRecordWrite),
         ztest_unit_test(testHandlerAWF_ValidRecordAppend),
         ztest_unit_test(testHandlerAWF_RecordAckStartRecord),
+        ztest_unit_test(testHandlerAWF_RecordAppendCountUnavailable),
         ztest_unit_test(testHandlerAWF_RecordWriteFailure),
         ztest_unit_test(testHandlerAWF_StreamRequestOnRecordFile),
         ztest_unit_test(testHandlerAWF_RecordRequestOnStreamFile));

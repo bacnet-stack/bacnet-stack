@@ -10,6 +10,12 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 
+/* maximum number of empty records added by one write past the end of a file;
+   0 disables the padding */
+#ifndef BACNET_FILE_POSIX_MAX_PAD_RECORDS
+#define BACNET_FILE_POSIX_MAX_PAD_RECORDS 1024
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

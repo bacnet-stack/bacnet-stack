@@ -378,7 +378,8 @@ size_t bacfile_posix_record_count(const char *pathname)
  * @brief Replace a record in a file, padding with empty records
  *  if the file has fewer records than the target record.
  * @param pathname - name of the file to write to
- * @param target - record number, 0..N
+ * @param target - record number, 0..N; fails if padding would exceed
+ *  BACNET_FILE_POSIX_MAX_PAD_RECORDS
  * @param fileData - record data
  * @param fileDataLen - size of the record data
  * @return true if successful
@@ -395,16 +396,27 @@ static bool record_replace(
     char *tmp_name = NULL;
     size_t tmp_size;
     size_t i;
+    int fd;
+    bool owned = false;
 
-    tmp_size = strlen(pathname) + sizeof(".tmp");
+    i = bacfile_posix_record_count(pathname);
+    if ((target > i) && ((target - i) > BACNET_FILE_POSIX_MAX_PAD_RECORDS)) {
+        return false;
+    }
+    tmp_size = strlen(pathname) + sizeof(".XXXXXX");
     tmp_name = malloc(tmp_size);
     if (!tmp_name) {
         return false;
     }
-    snprintf(tmp_name, tmp_size, "%s.tmp", pathname);
+    snprintf(tmp_name, tmp_size, "%s.XXXXXX", pathname);
     /* a missing backing file is created by the first write */
     src = fopen(pathname, "rb");
-    dst = fopen(tmp_name, "wb");
+    /* unique, exclusively created scratch file in the destination directory */
+    fd = mkstemp(tmp_name);
+    if (fd >= 0) {
+        owned = true;
+        dst = fdopen(fd, "wb");
+    }
     if (dst) {
         for (i = 0; i < target; i++) {
             if (!src || !record_line_copy(src, dst)) {
@@ -429,17 +441,19 @@ static bool record_replace(
         dst = NULL;
     } else {
         debug_log_fprintf(
-            DEBUG_LOG_DEBUG, stderr, "Failed to open %s for writing!\n",
-            tmp_name);
+            DEBUG_LOG_DEBUG, stderr, "Failed to create scratch file for %s!\n",
+            pathname);
     }
     if (src) {
         fclose(src);
     }
-    if (status) {
-        status = (rename(tmp_name, pathname) == 0);
-    }
-    if (!status) {
-        (void)remove(tmp_name);
+    if (owned) {
+        if (status) {
+            status = (rename(tmp_name, pathname) == 0);
+        }
+        if (!status) {
+            (void)remove(tmp_name);
+        }
     }
     free(tmp_name);
 
@@ -513,7 +527,8 @@ record_append(const char *pathname, const uint8_t *fileData, size_t fileDataLen)
  *  as an append to the current end of file,
  *  and fileIndexRecord can be ignored.
  *  If the parameter exceeds the actual number of records,
- *  the file is extended with empty records.
+ *  the file is extended with empty records, up to
+ *  BACNET_FILE_POSIX_MAX_PAD_RECORDS, otherwise the write fails.
  * @param fileIndexRecord - index of the record to write
  * @param fileData - record data to write, without a line terminator
  * @param fileDataLen - size of the record data
