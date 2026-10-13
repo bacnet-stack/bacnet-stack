@@ -17,6 +17,8 @@ extern "C" {
 BACNET_STACK_EXPORT
 size_t bacfile_posix_file_size(const char *pathname);
 BACNET_STACK_EXPORT
+size_t bacfile_posix_record_count(const char *pathname);
+BACNET_STACK_EXPORT
 bool bacfile_posix_file_size_set(const char *pathname, size_t file_size);
 BACNET_STACK_EXPORT
 size_t bacfile_posix_read_stream_data(

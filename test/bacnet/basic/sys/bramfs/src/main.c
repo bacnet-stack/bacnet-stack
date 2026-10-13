@@ -5,6 +5,7 @@
  * @copyright SPDX-License-Identifier: MIT
  */
 #include <limits.h>
+#include <string.h>
 #include <zephyr/ztest.h>
 #include <bacnet/bacstr.h>
 #include <bacnet/basic/sys/bramfs.h>
@@ -204,6 +205,130 @@ static void test_BRAMFS_records(void)
     zassert_true(
         memcmp(record_1, record_1, record_len) == 0,
         "Record 1 data should match written data");
+    bacfile_ramfs_deinit();
+}
+
+/**
+ * @brief Unit Test for an empty record in the middle of a file
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bramfs_tests, test_BRAMFS_empty_record)
+#else
+static void test_BRAMFS_empty_record(void)
+#endif
+{
+    const char *pathname = "testfile_empty_record.txt";
+    uint8_t buffer[32] = { 0 };
+    bool status;
+
+    bacfile_ramfs_init();
+    zassert_true(
+        bacfile_ramfs_write_record_data(
+            pathname, -1, 0, (const uint8_t *)"aa", 2),
+        NULL);
+    zassert_true(
+        bacfile_ramfs_write_record_data(
+            pathname, -1, 0, (const uint8_t *)"", 0),
+        "Write of an empty record should succeed");
+    zassert_true(
+        bacfile_ramfs_write_record_data(
+            pathname, -1, 0, (const uint8_t *)"cc", 2),
+        NULL);
+    status =
+        bacfile_ramfs_read_record_data(pathname, 0, 1, buffer, sizeof(buffer));
+    zassert_true(status, "Empty record should be read as a record");
+    zassert_equal(buffer[0], 0, NULL);
+    memset(buffer, 0, sizeof(buffer));
+    status =
+        bacfile_ramfs_read_record_data(pathname, 0, 2, buffer, sizeof(buffer));
+    zassert_true(status, "Record after the empty record should be read");
+    zassert_equal(strcmp((char *)buffer, "cc"), 0, NULL);
+    /* past the last record is the end of the file */
+    status =
+        bacfile_ramfs_read_record_data(pathname, 0, 3, buffer, sizeof(buffer));
+    zassert_false(status, "Read past the last record should fail");
+    /* replace the empty record, then the next record is unchanged */
+    zassert_true(
+        bacfile_ramfs_write_record_data(
+            pathname, 1, 0, (const uint8_t *)"bbb", 3),
+        NULL);
+    memset(buffer, 0, sizeof(buffer));
+    status =
+        bacfile_ramfs_read_record_data(pathname, 0, 1, buffer, sizeof(buffer));
+    zassert_true(status, NULL);
+    zassert_equal(strcmp((char *)buffer, "bbb"), 0, NULL);
+    memset(buffer, 0, sizeof(buffer));
+    status =
+        bacfile_ramfs_read_record_data(pathname, 0, 2, buffer, sizeof(buffer));
+    zassert_true(status, NULL);
+    zassert_equal(strcmp((char *)buffer, "cc"), 0, NULL);
+    bacfile_ramfs_deinit();
+}
+
+/**
+ * @brief Unit Test for writing a record past the end of the file
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bramfs_tests, test_BRAMFS_write_record_past_end)
+#else
+static void test_BRAMFS_write_record_past_end(void)
+#endif
+{
+    const char *pathname = "testfile_past_end.txt";
+    uint8_t buffer[32] = { 0 };
+
+    bacfile_ramfs_init();
+    zassert_true(
+        bacfile_ramfs_write_record_data(
+            pathname, -1, 0, (const uint8_t *)"aa", 2),
+        NULL);
+    /* start equal to the record count is a write at the end */
+    zassert_true(
+        bacfile_ramfs_write_record_data(
+            pathname, 1, 0, (const uint8_t *)"bb", 2),
+        NULL);
+    zassert_equal(bacfile_ramfs_record_count(pathname), 2U, NULL);
+    /* start past the end extends the file with empty records */
+    zassert_true(
+        bacfile_ramfs_write_record_data(
+            pathname, 4, 0, (const uint8_t *)"ee", 2),
+        NULL);
+    zassert_equal(bacfile_ramfs_record_count(pathname), 5U, NULL);
+    zassert_true(
+        bacfile_ramfs_read_record_data(pathname, 2, 0, buffer, sizeof(buffer)),
+        NULL);
+    zassert_equal(buffer[0], 0, NULL);
+    zassert_true(
+        bacfile_ramfs_read_record_data(pathname, 3, 0, buffer, sizeof(buffer)),
+        NULL);
+    zassert_equal(buffer[0], 0, NULL);
+    zassert_true(
+        bacfile_ramfs_read_record_data(pathname, 4, 0, buffer, sizeof(buffer)),
+        NULL);
+    zassert_equal(strcmp((char *)buffer, "ee"), 0, NULL);
+    zassert_true(
+        bacfile_ramfs_read_record_data(pathname, 1, 0, buffer, sizeof(buffer)),
+        NULL);
+    zassert_equal(strcmp((char *)buffer, "bb"), 0, NULL);
+    /* padding is limited */
+    zassert_false(
+        bacfile_ramfs_write_record_data(
+            pathname, 5 + BACNET_FILE_RAMFS_MAX_PAD_RECORDS + 1, 0,
+            (const uint8_t *)"zz", 2),
+        NULL);
+    zassert_equal(bacfile_ramfs_record_count(pathname), 5U, NULL);
+    zassert_true(
+        bacfile_ramfs_write_record_data(
+            pathname, 5 + BACNET_FILE_RAMFS_MAX_PAD_RECORDS, 0,
+            (const uint8_t *)"zz", 2),
+        NULL);
+    /* an empty file is padded from record 0 */
+    zassert_true(
+        bacfile_ramfs_write_record_data(
+            "testfile_past_end_new.txt", 2, 0, (const uint8_t *)"cc", 2),
+        NULL);
+    zassert_equal(
+        bacfile_ramfs_record_count("testfile_past_end_new.txt"), 3U, NULL);
     bacfile_ramfs_deinit();
 }
 
@@ -434,6 +559,8 @@ void test_main(void)
     ztest_test_suite(
         bramfs_tests, ztest_unit_test(test_BRAMFS_stream),
         ztest_unit_test(test_BRAMFS_records),
+        ztest_unit_test(test_BRAMFS_empty_record),
+        ztest_unit_test(test_BRAMFS_write_record_past_end),
         ztest_unit_test(test_BRAMFS_invalid_stream_positions),
         ztest_unit_test(test_BRAMFS_invalid_record_positions),
         ztest_unit_test(test_BRAMFS_consecutive_appends),
