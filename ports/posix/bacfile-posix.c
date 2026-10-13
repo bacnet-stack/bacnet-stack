@@ -375,6 +375,58 @@ size_t bacfile_posix_record_count(const char *pathname)
 }
 
 /**
+ * @brief Write a newline-terminated record at the current file position
+ * @return true if successful
+ */
+static bool
+record_write(FILE *pFile, const uint8_t *fileData, size_t fileDataLen)
+{
+    if ((fileDataLen > 0) &&
+        (fwrite(fileData, 1, fileDataLen, pFile) != fileDataLen)) {
+        return false;
+    }
+
+    return putc('\n', pFile) != EOF;
+}
+
+/**
+ * @brief Move a block of bytes within a file, which may overlap
+ * @param pFile - file opened for update
+ * @param from - offset of the block
+ * @param to - destination offset of the block
+ * @param len - size of the block
+ * @param ascending - true to copy from the start of the block (to < from),
+ *  false to copy from the end of the block (to > from)
+ * @return true if successful
+ */
+static bool file_move(FILE *pFile, long from, long to, long len, bool ascending)
+{
+    uint8_t buffer[256];
+    long done = 0;
+    long remaining;
+    long offset;
+    size_t chunk;
+
+    while (done < len) {
+        remaining = len - done;
+        chunk = (remaining > (long)sizeof(buffer)) ? sizeof(buffer)
+                                                   : (size_t)remaining;
+        offset = ascending ? done : (remaining - (long)chunk);
+        if ((fseek(pFile, from + offset, SEEK_SET) != 0) ||
+            (fread(buffer, 1, chunk, pFile) != chunk)) {
+            return false;
+        }
+        if ((fseek(pFile, to + offset, SEEK_SET) != 0) ||
+            (fwrite(buffer, 1, chunk, pFile) != chunk)) {
+            return false;
+        }
+        done += (long)chunk;
+    }
+
+    return true;
+}
+
+/**
  * @brief Replace a record in a file, padding with empty records
  *  if the file has fewer records than the target record.
  * @param pathname - name of the file to write to
@@ -383,6 +435,8 @@ size_t bacfile_posix_record_count(const char *pathname)
  * @param fileData - record data
  * @param fileDataLen - size of the record data
  * @return true if successful
+ * @note Updates the file in place using only C stdio, so a failure
+ *  part way through can leave the file partly modified.
  */
 static bool record_replace(
     const char *pathname,
@@ -391,71 +445,105 @@ static bool record_replace(
     size_t fileDataLen)
 {
     bool status = false;
-    FILE *src = NULL;
-    FILE *dst = NULL;
-    char *tmp_name = NULL;
-    size_t tmp_size;
+    bool found = false;
+    bool unterminated = false;
+    FILE *pFile;
+    size_t records = 0;
     size_t i;
-    int fd;
-    bool owned = false;
+    long pos = 0;
+    long start = 0;
+    long old_end;
+    long size;
+    long new_len = (long)fileDataLen + 1;
+    int c;
+    int last = '\n';
 
-    i = bacfile_posix_record_count(pathname);
-    if ((target > i) && ((target - i) > BACNET_FILE_POSIX_MAX_PAD_RECORDS)) {
-        return false;
-    }
-    tmp_size = strlen(pathname) + sizeof(".XXXXXX");
-    tmp_name = malloc(tmp_size);
-    if (!tmp_name) {
-        return false;
-    }
-    snprintf(tmp_name, tmp_size, "%s.XXXXXX", pathname);
     /* a missing backing file is created by the first write */
-    src = fopen(pathname, "rb");
-    /* unique, exclusively created scratch file in the destination directory */
-    fd = mkstemp(tmp_name);
-    if (fd >= 0) {
-        owned = true;
-        dst = fdopen(fd, "wb");
+    pFile = fopen(pathname, "rb+");
+    if (!pFile) {
+        pFile = fopen(pathname, "wb+");
     }
-    if (dst) {
-        for (i = 0; i < target; i++) {
-            if (!src || !record_line_copy(src, dst)) {
-                /* pad with an empty record */
-                (void)putc('\n', dst);
-            }
+    if (!pFile) {
+        debug_log_fprintf(
+            DEBUG_LOG_DEBUG, stderr, "Failed to open %s for writing!\n",
+            pathname);
+        return false;
+    }
+    /* walk the records until the target record starts */
+    while ((c = getc(pFile)) != EOF) {
+        if (records == target) {
+            found = true;
+            start = pos;
+            break;
         }
-        if (fileDataLen > 0) {
-            (void)fwrite(fileData, 1, fileDataLen, dst);
+        pos++;
+        last = c;
+        if (c == '\n') {
+            records++;
         }
-        (void)putc('\n', dst);
-        if (src) {
-            /* skip the replaced record, then copy the rest */
-            if (record_line_copy(src, NULL)) {
-                while (record_line_copy(src, dst)) { }
-            }
+    }
+    if (!found) {
+        /* append, padding with empty records up to the target */
+        unterminated = (last != '\n');
+        if (unterminated) {
+            records++;
         }
-        status = (ferror(dst) == 0);
-        if (fclose(dst) != 0) {
+        if ((target - records) > BACNET_FILE_POSIX_MAX_PAD_RECORDS) {
+            fclose(pFile);
+            return false;
+        }
+        status = (fseek(pFile, 0L, SEEK_END) == 0);
+        if (status && unterminated) {
+            status = (putc('\n', pFile) != EOF);
+        }
+        for (i = records; status && (i < target); i++) {
+            status = (putc('\n', pFile) != EOF);
+        }
+        status = status && record_write(pFile, fileData, fileDataLen);
+        if (fclose(pFile) != 0) {
             status = false;
         }
-        dst = NULL;
+        return status;
+    }
+    /* find the end of the replaced record, and the end of the file */
+    old_end = start;
+    if (fseek(pFile, start, SEEK_SET) == 0) {
+        while ((c = getc(pFile)) != EOF) {
+            old_end++;
+            if (c == '\n') {
+                break;
+            }
+        }
+    }
+    status = (fseek(pFile, 0L, SEEK_END) == 0);
+    size = status ? ftell(pFile) : -1L;
+    if (size < old_end) {
+        fclose(pFile);
+        return false;
+    }
+    /* move the tail only if the record length changes */
+    if (new_len > (old_end - start)) {
+        status =
+            file_move(pFile, old_end, start + new_len, size - old_end, false);
+        status = status && (fseek(pFile, start, SEEK_SET) == 0) &&
+            record_write(pFile, fileData, fileDataLen);
     } else {
-        debug_log_fprintf(
-            DEBUG_LOG_DEBUG, stderr, "Failed to create scratch file for %s!\n",
-            pathname);
-    }
-    if (src) {
-        fclose(src);
-    }
-    if (owned) {
-        if (status) {
-            status = (rename(tmp_name, pathname) == 0);
-        }
-        if (!status) {
-            (void)remove(tmp_name);
+        status = (fseek(pFile, start, SEEK_SET) == 0) &&
+            record_write(pFile, fileData, fileDataLen);
+        if (new_len < (old_end - start)) {
+            status = status &&
+                file_move(
+                         pFile, old_end, start + new_len, size - old_end, true);
         }
     }
-    free(tmp_name);
+    if (fclose(pFile) != 0) {
+        status = false;
+    }
+    if (status && (new_len < (old_end - start))) {
+        /* stdio cannot truncate in place */
+        size -= (old_end - start) - new_len;
+        status = bacfile_posix_file_size_set(pathname, (size_t)size);
+    }
 
     return status;
 }
