@@ -315,6 +315,38 @@ static void test_is_valid_hostname(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(host_n_port_tests, test_HostAddressNone_Malformed)
+#else
+static void test_HostAddressNone_Malformed(void)
+#endif
+{
+    uint8_t apdu[2] = { 0 };
+    BACNET_HOST_N_PORT data = { 0 };
+    BACNET_HOST_N_PORT_MINIMAL minimal = { 0 };
+    BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
+    int len;
+
+    /* none [0] NULL is a primitive context tag with length zero */
+    len = encode_context_null(apdu, 0);
+    zassert_equal(len, 1, NULL);
+    len = host_n_port_address_decode(apdu, len, &error_code, &data);
+    zassert_equal(len, 1, NULL);
+    len = host_n_port_minimal_address_decode(apdu, 1, &error_code, &minimal);
+    zassert_equal(len, 1, NULL);
+    /* none [0] with length 1 is malformed */
+    (void)encode_tag(&apdu[0], 0, true, 1);
+    (void)encode_closing_tag(&apdu[1], 0);
+    error_code = ERROR_CODE_SUCCESS;
+    len = host_n_port_address_decode(apdu, 2, &error_code, &data);
+    zassert_equal(len, BACNET_STATUS_REJECT, NULL);
+    zassert_equal(error_code, ERROR_CODE_REJECT_INVALID_TAG, NULL);
+    error_code = ERROR_CODE_SUCCESS;
+    len = host_n_port_minimal_address_decode(apdu, 2, &error_code, &minimal);
+    zassert_equal(len, BACNET_STATUS_REJECT, NULL);
+    zassert_equal(error_code, ERROR_CODE_REJECT_INVALID_TAG, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(host_n_port_tests, test_fdt_entry)
 #else
 static void test_fdt_entry(void)
@@ -432,6 +464,7 @@ void test_main(void)
         ztest_unit_test(test_HostNPortMinimal_Codec),
         ztest_unit_test(test_HostNPortMinimalContext_Codec),
         ztest_unit_test(test_is_valid_hostname),
+        ztest_unit_test(test_HostAddressNone_Malformed),
         ztest_unit_test(test_fdt_entry));
 
     ztest_run_test_suite(host_n_port_tests);
