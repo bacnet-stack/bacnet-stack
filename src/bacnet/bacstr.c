@@ -2869,7 +2869,7 @@ char *bacnet_ultoa(unsigned long value, char *buffer, size_t size)
  * @brief trim characters from the left side of a string
  * @param str - string to trim
  * @param trimmedchars - characters to trim from the string
- * @return the trimmed string, or NULL if str is NULL
+ * @return the trimmed string, NULL if str is NULL; str if trimmedchars is NULL
  */
 char *bacnet_ltrim(const char *str, const char *trimmedchars)
 {
