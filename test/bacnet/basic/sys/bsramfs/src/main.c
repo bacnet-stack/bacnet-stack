@@ -5,6 +5,7 @@
  * @copyright SPDX-License-Identifier: MIT
  */
 #include <limits.h>
+#include <string.h>
 #include <zephyr/ztest.h>
 #include <bacnet/bacstr.h>
 #include <bacnet/basic/sys/bsramfs.h>
@@ -85,12 +86,12 @@ static void test_BSRAMFS_records(void)
 {
     /* static storage: bacfile_sramfs_add() stores the pointer for the
        lifetime of the program, so this cannot be a stack variable */
+    static char records[] = "This is the first record in the file.\0"
+                            "This is the second record in the file.\0"
+                            "\0"
+                            "This is the fourth record in the file.";
     static struct bacnet_file_sramfs_data file_data[1] = {
-        { 0,
-          "This is the first record in the file.\0"
-          "This is the second record in the file.\0"
-          "This is the third record in the file.",
-          "testfile.txt", NULL }
+        { sizeof(records), records, "testfile.txt", NULL }
     };
     bool status = false;
     const char *pathname = file_data[0].pathname;
@@ -129,6 +130,21 @@ static void test_BSRAMFS_records(void)
     status = bacfile_sramfs_read_record_data(
         pathname, 0, 2, (uint8_t *)record_3, sizeof(record_3));
     zassert_true(status, "Read record 3 should succeed");
+    zassert_equal(record_3[0], 0, "Record 3 is empty");
+    zassert_equal(bacfile_sramfs_record_count(pathname), 4U, NULL);
+    /* the empty record is a record, and the records after it are readable */
+    status = bacfile_sramfs_read_record_data(
+        pathname, 0, 3, (uint8_t *)record_3, sizeof(record_3));
+    zassert_true(status, "Read record 4 should succeed");
+    zassert_equal(
+        strcmp(record_3, "This is the fourth record in the file."), 0, NULL);
+    /* past the last record is the end of the file */
+    status = bacfile_sramfs_read_record_data(
+        pathname, 0, 4, (uint8_t *)record_3, sizeof(record_3));
+    zassert_false(status, "Read record 5 should fail");
+    status = bacfile_sramfs_read_record_data(
+        pathname, 3, 1, (uint8_t *)record_3, sizeof(record_3));
+    zassert_false(status, "Read record 3+1 should fail");
 }
 
 /**

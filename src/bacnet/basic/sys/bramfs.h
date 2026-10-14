@@ -10,6 +10,12 @@
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 
+/* maximum number of empty records added by one write past the end of a file;
+   0 disables the padding */
+#ifndef BACNET_FILE_RAMFS_MAX_PAD_RECORDS
+#define BACNET_FILE_RAMFS_MAX_PAD_RECORDS 1024
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -18,6 +24,8 @@ BACNET_STACK_EXPORT
 const char *bacfile_ramfs_file_data(const char *pathname);
 BACNET_STACK_EXPORT
 size_t bacfile_ramfs_file_size(const char *pathname);
+BACNET_STACK_EXPORT
+size_t bacfile_ramfs_record_count(const char *pathname);
 BACNET_STACK_EXPORT
 bool bacfile_ramfs_file_size_set(const char *pathname, size_t file_size);
 BACNET_STACK_EXPORT

@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include <bacfile-posix.h>
 
@@ -114,50 +115,43 @@ static void test_invalid_parameters(void)
     remove_test_file();
 }
 
+static bool record_equals(int32_t start, const char *expected)
+{
+    uint8_t buffer[32] = { 0 };
+    size_t len = strlen(expected);
+
+    if (!bacfile_posix_read_record_data(
+            test_file, start, 0, buffer, sizeof(buffer))) {
+        return false;
+    }
+    return (strlen((const char *)buffer) == len) &&
+        (memcmp(buffer, expected, len) == 0);
+}
+
+static bool record_write(int32_t start, const char *data)
+{
+    return bacfile_posix_write_record_data(
+        test_file, start, 0, (const uint8_t *)data, strlen(data));
+}
+
 static void test_record_read_write(void)
 {
-    const uint8_t record1[] = "record-1\n";
-    const uint8_t record2[] = "record-2\n";
-    const uint8_t record2_updated[] = "record-2-upd\n";
     uint8_t buffer[32] = { 0 };
 
     remove_test_file();
 
-    zassert_true(
-        bacfile_posix_write_record_data(
-            test_file, 0, 0, record1, sizeof(record1) - 1),
+    /* a missing backing file is created by the first write */
+    zassert_true(record_write(0, "record-0"), NULL);
+    zassert_true(record_write(-1, "record-1"), NULL);
+    zassert_true(record_write(-1, "record-2"), NULL);
+    /* same index is used to write and to read */
+    zassert_true(record_equals(0, "record-0"), NULL);
+    zassert_true(record_equals(1, "record-1"), NULL);
+    zassert_true(record_equals(2, "record-2"), NULL);
+    /* one past the last record is the end of the file */
+    zassert_false(
+        bacfile_posix_read_record_data(test_file, 3, 0, buffer, sizeof(buffer)),
         NULL);
-    zassert_true(
-        bacfile_posix_write_record_data(
-            test_file, -1, 0, record2, sizeof(record2) - 1),
-        NULL);
-
-    memset(buffer, 0, sizeof(buffer));
-    zassert_true(
-        bacfile_posix_read_record_data(
-            test_file, 1, 0, buffer, sizeof(record1) - 1),
-        NULL);
-    zassert_mem_equal(buffer, record1, sizeof(record1) - 1, NULL);
-
-    memset(buffer, 0, sizeof(buffer));
-    zassert_true(
-        bacfile_posix_read_record_data(
-            test_file, 2, 0, buffer, sizeof(record2) - 1),
-        NULL);
-    zassert_mem_equal(buffer, record2, sizeof(record2) - 1, NULL);
-
-    zassert_true(
-        bacfile_posix_write_record_data(
-            test_file, 1, 0, record2_updated, sizeof(record2_updated) - 1),
-        NULL);
-
-    memset(buffer, 0, sizeof(buffer));
-    zassert_true(
-        bacfile_posix_read_record_data(
-            test_file, 2, 0, buffer, sizeof(record2_updated) - 1),
-        NULL);
-    zassert_mem_equal(
-        buffer, record2_updated, sizeof(record2_updated) - 1, NULL);
 
     zassert_false(
         bacfile_posix_read_record_data(
@@ -167,9 +161,186 @@ static void test_record_read_write(void)
         bacfile_posix_read_record_data(NULL, 1, 0, buffer, sizeof(buffer)),
         NULL);
     zassert_false(
-        bacfile_posix_write_record_data(
-            NULL, 1, 0, record1, sizeof(record1) - 1),
+        bacfile_posix_write_record_data(NULL, 1, 0, (const uint8_t *)"a", 1),
         NULL);
+    zassert_false(record_write(-2, "a"), NULL);
+
+    remove_test_file();
+}
+
+static void test_record_write_multiple_at_start(void)
+{
+    const char *records[] = { "one", "two", "three" };
+    size_t i;
+
+    remove_test_file();
+
+    for (i = 0; i < 3; i++) {
+        zassert_true(
+            bacfile_posix_write_record_data(
+                test_file, 0, i, (const uint8_t *)records[i],
+                strlen(records[i])),
+            NULL);
+    }
+    zassert_true(record_equals(0, "one"), NULL);
+    zassert_true(record_equals(1, "two"), NULL);
+    zassert_true(record_equals(2, "three"), NULL);
+
+    /* writing one record at start 0 does not truncate the file */
+    zassert_true(record_write(0, "uno"), NULL);
+    zassert_true(record_equals(0, "uno"), NULL);
+    zassert_true(record_equals(1, "two"), NULL);
+    zassert_true(record_equals(2, "three"), NULL);
+
+    remove_test_file();
+}
+
+static void test_record_replace_different_length(void)
+{
+    uint8_t buffer[8] = { 0 };
+
+    remove_test_file();
+
+    zassert_true(record_write(-1, "aaa"), NULL);
+    zassert_true(record_write(-1, "bbb"), NULL);
+    zassert_true(record_write(-1, "ccc"), NULL);
+
+    /* longer record does not overwrite the next record */
+    zassert_true(record_write(1, "bbbbbbbbbb"), NULL);
+    zassert_true(record_equals(0, "aaa"), NULL);
+    zassert_true(record_equals(1, "bbbbbbbbbb"), NULL);
+    zassert_true(record_equals(2, "ccc"), NULL);
+
+    /* shorter record leaves no old tail */
+    zassert_true(record_write(1, "b"), NULL);
+    zassert_true(record_equals(1, "b"), NULL);
+    zassert_true(record_equals(2, "ccc"), NULL);
+
+    /* record is truncated to the buffer, and the rest is skipped */
+    zassert_true(record_write(1, "0123456789"), NULL);
+    zassert_true(
+        bacfile_posix_read_record_data(test_file, 1, 0, buffer, sizeof(buffer)),
+        NULL);
+    zassert_mem_equal(buffer, "01234567", sizeof(buffer), NULL);
+    zassert_true(record_equals(2, "ccc"), NULL);
+
+    remove_test_file();
+}
+
+static void test_record_empty_and_end_of_file(void)
+{
+    uint8_t buffer[8] = { 0 };
+
+    remove_test_file();
+
+    /* empty file has no records */
+    zassert_equal(
+        bacfile_posix_write_stream_data(test_file, 0, buffer, 0), 0U, NULL);
+    zassert_false(
+        bacfile_posix_read_record_data(test_file, 0, 0, buffer, sizeof(buffer)),
+        NULL);
+    remove_test_file();
+
+    /* an empty record is a record, distinct from the end of the file */
+    zassert_true(record_write(-1, "first"), NULL);
+    zassert_true(record_write(-1, ""), NULL);
+    zassert_true(record_write(-1, "third"), NULL);
+    zassert_true(record_equals(1, ""), NULL);
+    zassert_true(record_equals(2, "third"), NULL);
+    zassert_false(
+        bacfile_posix_read_record_data(test_file, 3, 0, buffer, sizeof(buffer)),
+        NULL);
+
+    /* a record cannot contain the line terminator */
+    zassert_false(record_write(-1, "a\nb"), NULL);
+    zassert_false(record_write(0, "a\nb"), NULL);
+
+    remove_test_file();
+}
+
+static void test_record_no_trailing_newline(void)
+{
+    const uint8_t data[] = { 'a', 'a', '\n', 'b', 'b' };
+    uint8_t buffer[8] = { 0 };
+
+    remove_test_file();
+
+    zassert_equal(
+        bacfile_posix_write_stream_data(test_file, 0, data, sizeof(data)),
+        sizeof(data), NULL);
+    /* last line without a newline is still a record */
+    zassert_true(record_equals(0, "aa"), NULL);
+    zassert_true(record_equals(1, "bb"), NULL);
+    zassert_false(
+        bacfile_posix_read_record_data(test_file, 2, 0, buffer, sizeof(buffer)),
+        NULL);
+    /* append does not join the new record to the last line */
+    zassert_true(record_write(-1, "cc"), NULL);
+    zassert_true(record_equals(1, "bb"), NULL);
+    zassert_true(record_equals(2, "cc"), NULL);
+
+    remove_test_file();
+}
+
+static void test_record_write_past_end(void)
+{
+    remove_test_file();
+
+    zassert_true(record_write(-1, "aa"), NULL);
+    /* start equal to the record count is a write at the end */
+    zassert_true(record_write(1, "bb"), NULL);
+    zassert_true(record_equals(1, "bb"), NULL);
+    /* start past the end extends the file with empty records */
+    zassert_true(record_write(4, "ee"), NULL);
+    zassert_true(record_equals(2, ""), NULL);
+    zassert_true(record_equals(3, ""), NULL);
+    zassert_true(record_equals(4, "ee"), NULL);
+
+    remove_test_file();
+}
+
+static void test_record_long_line(void)
+{
+    uint8_t data[600];
+    uint8_t buffer[700] = { 0 };
+
+    remove_test_file();
+
+    memset(data, 'x', sizeof(data));
+    zassert_true(
+        bacfile_posix_write_record_data(test_file, -1, 0, data, sizeof(data)),
+        NULL);
+    zassert_true(record_write(-1, "next"), NULL);
+    zassert_true(record_equals(1, "next"), NULL);
+    zassert_true(
+        bacfile_posix_read_record_data(test_file, 0, 0, buffer, sizeof(buffer)),
+        NULL);
+    zassert_mem_equal(buffer, data, sizeof(data), NULL);
+
+    remove_test_file();
+}
+
+static void test_record_count(void)
+{
+    const uint8_t data[] = { 'a', '\n', '\n', 'b' };
+
+    remove_test_file();
+
+    zassert_equal(bacfile_posix_record_count(test_file), 0U, NULL);
+    zassert_true(record_write(-1, "one"), NULL);
+    zassert_equal(bacfile_posix_record_count(test_file), 1U, NULL);
+    zassert_true(record_write(-1, ""), NULL);
+    zassert_equal(bacfile_posix_record_count(test_file), 2U, NULL);
+    zassert_true(record_write(3, "four"), NULL);
+    zassert_equal(bacfile_posix_record_count(test_file), 4U, NULL);
+    zassert_equal(bacfile_posix_record_count(NULL), 0U, NULL);
+
+    remove_test_file();
+    /* the last line without a newline is a record */
+    zassert_equal(
+        bacfile_posix_write_stream_data(test_file, 0, data, sizeof(data)),
+        sizeof(data), NULL);
+    zassert_equal(bacfile_posix_record_count(test_file), 3U, NULL);
 
     remove_test_file();
 }
@@ -180,7 +351,14 @@ void test_main(void)
         bacfile_posix_tests, ztest_unit_test(test_stream_read_write_append),
         ztest_unit_test(test_file_size_set_grow_and_shrink),
         ztest_unit_test(test_invalid_parameters),
-        ztest_unit_test(test_record_read_write));
+        ztest_unit_test(test_record_read_write),
+        ztest_unit_test(test_record_write_multiple_at_start),
+        ztest_unit_test(test_record_replace_different_length),
+        ztest_unit_test(test_record_empty_and_end_of_file),
+        ztest_unit_test(test_record_no_trailing_newline),
+        ztest_unit_test(test_record_write_past_end),
+        ztest_unit_test(test_record_long_line),
+        ztest_unit_test(test_record_count));
 
     ztest_run_test_suite(bacfile_posix_tests);
 }
