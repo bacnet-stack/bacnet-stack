@@ -27,6 +27,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed missing public Units getter and setter for Positive Integer Value.
+  (#1538)
 * Fixed a global buffer overflow in the memcopy unit test by using arrays
   for test data. (#1525)
 * Fixed RAM file system scans to stop at the remaining buffer size and at

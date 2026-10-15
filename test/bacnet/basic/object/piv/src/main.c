@@ -31,8 +31,15 @@ static void testPositiveInteger_Value(void)
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     const int *required_property = NULL;
     const uint32_t instance = 1;
+    bool status = false;
 
     PositiveInteger_Value_Init();
+    status = PositiveInteger_Value_Units_Set(instance, UNITS_VOLTS);
+    zassert_true(status, NULL);
+    zassert_equal(PositiveInteger_Value_Units(instance), UNITS_VOLTS, NULL);
+    status = PositiveInteger_Value_Units_Set(
+        PositiveInteger_Value_Count(), UNITS_VOLTS);
+    zassert_false(status, NULL);
     rpdata.application_data = &apdu[0];
     rpdata.application_data_len = sizeof(apdu);
     rpdata.object_type = OBJECT_POSITIVE_INTEGER_VALUE;

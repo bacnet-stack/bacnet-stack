@@ -165,6 +165,50 @@ bool PositiveInteger_Value_Object_Name(
 }
 
 /**
+ * For a given object instance-number, returns the units property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  units property value
+ */
+BACNET_ENGINEERING_UNITS
+PositiveInteger_Value_Units(uint32_t object_instance)
+{
+    BACNET_ENGINEERING_UNITS units = UNITS_NO_UNITS;
+    unsigned index = 0;
+
+    index = PositiveInteger_Value_Instance_To_Index(object_instance);
+    if (index < MAX_POSITIVEINTEGER_VALUES) {
+        units = (BACNET_ENGINEERING_UNITS)PIV_Descr[index].Units;
+    }
+
+    return units;
+}
+
+/**
+ * For a given object instance-number, sets the units property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param units - units property value
+ *
+ * @return true if the units property value was set
+ */
+bool PositiveInteger_Value_Units_Set(
+    uint32_t object_instance, BACNET_ENGINEERING_UNITS units)
+{
+    bool status = false;
+    unsigned index = 0;
+
+    index = PositiveInteger_Value_Instance_To_Index(object_instance);
+    if (index < MAX_POSITIVEINTEGER_VALUES) {
+        PIV_Descr[index].Units = (uint16_t)units;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * ReadProperty handler for this object.  For the given ReadProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -237,8 +281,8 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_UNITS:
-            apdu_len =
-                encode_application_enumerated(&apdu[0], CurrentAV->Units);
+            apdu_len = encode_application_enumerated(
+                &apdu[0], PositiveInteger_Value_Units(rpdata->object_instance));
             break;
             /* BACnet Testing Observed Incident oi00109
                     Positive Integer Value / Units returned wrong datatype -
@@ -333,7 +377,9 @@ bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
                 if (value.type.Enumerated <= UINT16_MAX) {
-                    CurrentAV->Units = (uint16_t)value.type.Enumerated;
+                    PositiveInteger_Value_Units_Set(
+                        wp_data->object_instance,
+                        (BACNET_ENGINEERING_UNITS)value.type.Enumerated);
                 } else {
                     status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
