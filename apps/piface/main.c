@@ -31,6 +31,7 @@
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/version.h"
+#include "bacnet/basic/sys/filename.h"
 /* include the device object */
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/bi.h"
@@ -300,11 +301,23 @@ static void piface_task(void)
  */
 int main(int argc, char *argv[])
 {
+    const char *filename;
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout_ms = 1; /* milliseconds */
     unsigned long seconds = 0;
     unsigned long milliseconds;
+
+    filename = filename_remove_path(argv[0]);
+    if ((argc > 1) && (strcmp(argv[1], "--version") == 0)) {
+        printf("%s %s\n", filename, BACNET_VERSION_TEXT);
+        printf("Copyright (C) 2023 by Steve Karg.\n"
+               "This is free software; see the source for copying "
+               "conditions.\n"
+               "There is NO warranty; not even for MERCHANTABILITY or\n"
+               "FITNESS FOR A PARTICULAR PURPOSE.\n");
+        return 0;
+    }
 
     /* allow the device ID to be set */
     if (argc > 1) {

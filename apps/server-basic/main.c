@@ -15,7 +15,7 @@
 /* BACnet Stack API */
 #include "bacnet/bactext.h"
 #include "bacnet/version.h"
-/* some demo stuff needed */
+/* basic modules */
 #include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/sys/debug.h"
 #include "bacnet/basic/sys/mstimer.h"
@@ -155,6 +155,19 @@ static void BACnet_Basic_Store(
  */
 int main(int argc, char *argv[])
 {
+    const char *filename;
+
+    filename = filename_remove_path(argv[0]);
+    if ((argc > 1) && (strcmp(argv[1], "--version") == 0)) {
+        printf("%s %s\n", filename, BACNET_VERSION_TEXT);
+        printf("Copyright (C) 2024 by Steve Karg.\n"
+               "This is free software; see the source for copying "
+               "conditions.\n"
+               "There is NO warranty; not even for MERCHANTABILITY or\n"
+               "FITNESS FOR A PARTICULAR PURPOSE.\n");
+        return 0;
+    }
+
     if (argc > 1) {
         /* allow the device ID to be set */
         Device_Set_Object_Instance_Number(strtol(argv[1], NULL, 0));

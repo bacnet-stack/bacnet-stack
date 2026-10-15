@@ -23,7 +23,8 @@
 #include "bacnet/iam.h"
 #include "bacnet/dcc.h"
 #include "bacnet/version.h"
-/* some demo stuff needed */
+/* basic modules */
+#include "bacnet/basic/sys/filename.h"
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
@@ -204,6 +205,7 @@ static void Init_Service_Handlers(uint32_t first_object_instance)
  */
 int main(int argc, char *argv[])
 {
+    const char *filename;
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 1000; /* milliseconds */
@@ -217,6 +219,17 @@ int main(int argc, char *argv[])
     BACNET_DEVICE_PROFILE *device;
     BACNET_VMAC_ADDRESS adr;
 #endif
+
+    filename = filename_remove_path(argv[0]);
+    if ((argc > 1) && (strcmp(argv[1], "--version") == 0)) {
+        printf("%s %s\n", filename, BACNET_VERSION_TEXT);
+        printf("Copyright (C) 2010 by Tom Brennan.\n"
+               "This is free software; see the source for copying "
+               "conditions.\n"
+               "There is NO warranty; not even for MERCHANTABILITY or\n"
+               "FITNESS FOR A PARTICULAR PURPOSE.\n");
+        return 0;
+    }
 
     /* allow the device ID to be set */
     if (argc > 1) {
