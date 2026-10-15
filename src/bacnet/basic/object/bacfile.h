@@ -132,6 +132,10 @@ void bacfile_read_record_data_callback_set(
 BACNET_STACK_EXPORT
 void bacfile_file_size_callback_set(size_t (*callback)(const char *));
 BACNET_STACK_EXPORT
+void bacfile_record_count_callback_set(size_t (*callback)(const char *));
+BACNET_STACK_EXPORT
+bool bacfile_record_count(uint32_t object_instance, size_t *count);
+BACNET_STACK_EXPORT
 void bacfile_file_size_set_callback_set(bool (*callback)(const char *, size_t));
 
 BACNET_STACK_EXPORT

@@ -25,8 +25,24 @@ The git repositories are hosted at the following sites:
   to prevent overrun. Fixed buffer overrun in bacnet_constructed_value_decode
   and validate using tests for oversized APDU. (#1510)
 
+### Added
+
+* Added the bacfile_record_count_callback_set() and bacfile_record_count()
+  functions to the File object. Added record count support to the POSIX,
+  RAM, and static RAM file backends. (#1566)
+
 ### Fixed
 
+* Fixed the bacfile_posix_write_record_data() function to ignore one trailing
+  newline in the record data. The function still rejects a newline in any
+  other position. (#1570)
+* Fixed the AtomicReadFile and AtomicWriteFile services to conform to
+  ANSI/ASHRAE 135-2024 Clauses 14.1 and 14.2 for record access.
+  AtomicReadFile accepts any non-negative start record and returns
+  INVALID_FILE_START_POSITION when the start record is beyond the last
+  record. AtomicWriteFile reports record write errors, rejects a start record
+  less than -1, and returns the actual start record when it appends.
+  Fixed the POSIX, RAM, and static RAM file backends for record access. (#1566)
 * Fixed dst_active() to support Southern Hemisphere DST ranges, where the
   begin month or date is after the end month or date. Fixed dst_active() to
   return false for dates that do not exist, such as February 31st. (#1555)

@@ -234,6 +234,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   list(APPEND testdirs
   ports/linux/bsc_event
   ports/linux/dlmstp_linux
+  ports/posix/bacfile_posix
   )
 
 elseif(WIN32)
@@ -247,6 +248,7 @@ elseif(APPLE)
   message(STATUS "Added ports specific tests for APPLE")
   list(APPEND testdirs
   ports/bsd/bsc_event
+  ports/posix/bacfile_posix
   )
 endif()
 

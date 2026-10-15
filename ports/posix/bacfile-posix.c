@@ -18,10 +18,6 @@
 /* me! */
 #include "bacfile-posix.h"
 
-#ifndef BACNET_FILE_POSIX_RECORD_SIZE
-#define BACNET_FILE_POSIX_RECORD_SIZE MAX_OCTET_STRING_BYTES
-#endif
-
 /* restrict file paths */
 #ifndef BACNET_FILE_POSIX_PATH_RESTRICTED
 #define BACNET_FILE_POSIX_PATH_RESTRICTED 1
@@ -220,13 +216,230 @@ size_t bacfile_posix_write_stream_data(
 }
 
 /**
+ * @brief Copy or skip one newline-terminated record
+ * @param src - source file
+ * @param dst - destination file, or NULL to skip the record
+ * @return true if a record was found in the source
+ * @note The destination record is always newline-terminated.
+ */
+static bool record_line_copy(FILE *src, FILE *dst)
+{
+    int c;
+    bool found = false;
+
+    while ((c = getc(src)) != EOF) {
+        found = true;
+        if (c == '\n') {
+            break;
+        }
+        if (dst) {
+            (void)putc(c, dst);
+        }
+    }
+    if (found && dst) {
+        (void)putc('\n', dst);
+    }
+
+    return found;
+}
+
+/**
+ * @brief Determines the number of records in a file
+ * @param pathname - name of the file
+ * @return number of records, or 0 if the file is not found
+ */
+size_t bacfile_posix_record_count(const char *pathname)
+{
+    FILE *pFile;
+    size_t count = 0;
+
+    if (bacfile_posix_file_path_valid(pathname)) {
+        pFile = fopen(pathname, "rb");
+        if (pFile) {
+            while (record_line_copy(pFile, NULL)) {
+                count++;
+            }
+            fclose(pFile);
+        }
+    }
+
+    return count;
+}
+
+/**
+ * @brief Write a newline-terminated record at the current file position
+ * @return true if successful
+ */
+static bool
+record_write(FILE *pFile, const uint8_t *fileData, size_t fileDataLen)
+{
+    if ((fileDataLen > 0) &&
+        (fwrite(fileData, 1, fileDataLen, pFile) != fileDataLen)) {
+        return false;
+    }
+
+    return putc('\n', pFile) != EOF;
+}
+
+/**
+ * @brief Replace a record in a file, padding with empty records
+ *  if the file has fewer records than the target record.
+ * @param pathname - name of the file to write to
+ * @param target - record number, 0..N; fails if padding would exceed
+ *  BACNET_FILE_POSIX_MAX_PAD_RECORDS
+ * @param fileData - record data
+ * @param fileDataLen - size of the record data
+ * @return true if successful
+ * @note Builds the new file in a temporary file using only C stdio,
+ *  and then replaces the original file, so a failure leaves the
+ *  original file unchanged. A missing file is created.
+ */
+static bool record_replace(
+    const char *pathname,
+    size_t target,
+    const uint8_t *fileData,
+    size_t fileDataLen)
+{
+    bool status = true;
+    FILE *src;
+    FILE *dst;
+    char *tmpname;
+    size_t records = 0;
+    size_t i;
+    size_t len;
+    uint8_t buffer[256];
+
+    tmpname = malloc(strlen(pathname) + sizeof(".tmp"));
+    if (!tmpname) {
+        return false;
+    }
+    strcpy(tmpname, pathname);
+    strcat(tmpname, ".tmp");
+    /* a missing backing file is treated as an empty file */
+    src = fopen(pathname, "rb");
+    dst = fopen(tmpname, "wb");
+    if (!dst) {
+        debug_printf_stderr("Failed to open %s for writing!\n", tmpname);
+        if (src) {
+            fclose(src);
+        }
+        free(tmpname);
+        return false;
+    }
+    if (src) {
+        /* copy the records before the target record */
+        while ((records < target) && record_line_copy(src, dst)) {
+            records++;
+        }
+    }
+    if (records < target) {
+        /* pad with empty records up to the target */
+        if ((target - records) > BACNET_FILE_POSIX_MAX_PAD_RECORDS) {
+            status = false;
+        }
+        for (i = records; status && (i < target); i++) {
+            status = (putc('\n', dst) != EOF);
+        }
+    } else if (src) {
+        /* skip the replaced record */
+        (void)record_line_copy(src, NULL);
+    }
+    status = status && record_write(dst, fileData, fileDataLen);
+    if (status && src) {
+        /* copy the records after the target record */
+        while ((len = fread(buffer, 1, sizeof(buffer), src)) > 0) {
+            if (fwrite(buffer, 1, len, dst) != len) {
+                status = false;
+                break;
+            }
+        }
+        if (ferror(src)) {
+            status = false;
+        }
+    }
+    if (src) {
+        fclose(src);
+    }
+    if (fclose(dst) != 0) {
+        status = false;
+    }
+    if (status && (rename(tmpname, pathname) != 0)) {
+        /* some platforms cannot rename over an existing file */
+        status = (remove(pathname) == 0) && (rename(tmpname, pathname) == 0);
+    }
+    if (!status) {
+        (void)remove(tmpname);
+    }
+    free(tmpname);
+
+    return status;
+}
+
+/**
+ * @brief Append a record to the end of a file
+ * @param pathname - name of the file to write to
+ * @param fileData - record data
+ * @param fileDataLen - size of the record data
+ * @return true if successful
+ */
+static bool
+record_append(const char *pathname, const uint8_t *fileData, size_t fileDataLen)
+{
+    bool status = false;
+    FILE *pFile;
+    long size;
+    int c;
+
+    pFile = fopen(pathname, "ab+");
+    if (!pFile) {
+        debug_printf_stderr("Failed to open %s for writing!\n", pathname);
+        return false;
+    }
+    if (fseek(pFile, 0L, SEEK_END) == 0) {
+        size = ftell(pFile);
+        status = true;
+        if (size > 0) {
+            /* terminate an unterminated last record */
+            if (fseek(pFile, -1L, SEEK_END) == 0) {
+                c = getc(pFile);
+                if ((c != '\n') && (c != EOF)) {
+                    if ((fseek(pFile, 0L, SEEK_END) != 0) ||
+                        (putc('\n', pFile) == EOF)) {
+                        status = false;
+                    }
+                }
+            }
+            if (fseek(pFile, 0L, SEEK_END) != 0) {
+                status = false;
+            }
+        }
+    }
+    status = status && record_write(pFile, fileData, fileDataLen);
+    if (fclose(pFile) != 0) {
+        status = false;
+    }
+
+    return status;
+}
+
+/**
  * @brief Writes record data to a file
  * @param pathname - name of the file to write to
- * @param fileStartRecord - starting record in the file
- * @param fileIndexRecord - index of the record to read
- * @param fileData - data buffer to read into
- * @param fileDataLen - size of the data buffer
+ * @param fileStartRecord - starting record in the file, 0 is the first record.
+ *  If 'File Start Record' parameter has the special
+ *  value -1, then the write operation shall be treated
+ *  as an append to the current end of file,
+ *  and fileIndexRecord can be ignored.
+ *  If the parameter exceeds the actual number of records,
+ *  the file is extended with empty records, up to
+ *  BACNET_FILE_POSIX_MAX_PAD_RECORDS, otherwise the write fails.
+ * @param fileIndexRecord - index of the record to write
+ * @param fileData - record data to write; one trailing newline is ignored
+ * @param fileDataLen - size of the record data
  * @return true if successful, false otherwise
+ * @note The file format is one newline-terminated record per line.
+ *  A record that contains a newline other than a single trailing one
+ *  cannot be stored.
  */
 bool bacfile_posix_write_record_data(
     const char *pathname,
@@ -235,59 +448,47 @@ bool bacfile_posix_write_record_data(
     const uint8_t *fileData,
     size_t fileDataLen)
 {
-    bool status = false;
-    FILE *pFile = NULL;
-    uint32_t i = 0;
-    char dummy_data[BACNET_FILE_POSIX_RECORD_SIZE];
-    const char *pData = NULL;
-    size_t fileSeekRecord = 0;
-
-    if (bacfile_posix_file_path_valid(pathname)) {
-        if (fileStartRecord == 0) {
-            /* open the file as a clean slate when starting at 0 */
-            pFile = fopen(pathname, "wb");
-            fileSeekRecord = fileIndexRecord;
-        } else if (fileStartRecord == -1) {
-            /* If 'File Start Record' parameter has the special
-               value -1, then the write operation shall be treated
-               as an append to the current end of file. */
-            pFile = fopen(pathname, "ab+");
-            fileSeekRecord = fileIndexRecord;
-        } else {
-            /* open for update */
-            pFile = fopen(pathname, "rb+");
-            fileSeekRecord = fileStartRecord + fileIndexRecord;
+    if (!bacfile_posix_file_path_valid(pathname) || (fileStartRecord < -1)) {
+        return false;
+    }
+    if (fileDataLen > 0) {
+        if (!fileData) {
+            return false;
         }
-        if (pFile) {
-            if ((fileStartRecord != -1) && (fileSeekRecord > 0)) {
-                /* seek to the start record */
-                for (i = 0; i < fileSeekRecord; i++) {
-                    pData = fgets(&dummy_data[0], sizeof(dummy_data), pFile);
-                    if ((pData == NULL) || feof(pFile)) {
-                        break;
-                    }
-                }
-            }
-            if (fwrite(fileData, fileDataLen, 1, pFile) == 1) {
-                status = true;
-            }
-            fclose(pFile);
-        } else {
-            debug_printf_stderr("Failed to open %s for writing!\n", pathname);
+        /* a single trailing newline is ignored, since one is always added */
+        if (fileData[fileDataLen - 1] == '\n') {
+            fileDataLen--;
+        }
+        if ((fileDataLen > 0) && memchr(fileData, '\n', fileDataLen)) {
+            return false;
         }
     }
+    if (fileStartRecord == -1) {
+        /* If 'File Start Record' parameter has the special
+           value -1, then the write operation shall be treated
+           as an append to the current end of file. */
+        return record_append(pathname, fileData, fileDataLen);
+    }
 
-    return status;
+    return record_replace(
+        pathname, (size_t)fileStartRecord + fileIndexRecord, fileData,
+        fileDataLen);
 }
 
 /**
  * @brief Reads record data from a file
  * @param pathname - name of the file to read from
- * @param fileStartRecord - starting record in the file
+ * @param fileStartRecord - starting record in the file, 0 is the first record.
+ *  If the 'File Start Record' parameter is less than 0,
+ *  then an error is returned.
  * @param fileIndexRecord - index of the record to read
  * @param fileData - data buffer to read into
  * @param fileDataLen - size of the data buffer
- * @return true if successful, false otherwise
+ * @return true if the record exists, false if it is
+ *  at or past the end of the file, or on error
+ * @note The record is returned without its newline terminator, and the
+ *  remainder of the buffer is zero filled. A record longer than the
+ *  buffer is truncated.
  */
 bool bacfile_posix_read_record_data(
     const char *pathname,
@@ -298,32 +499,42 @@ bool bacfile_posix_read_record_data(
 {
     bool status = false;
     FILE *pFile = NULL;
-    uint32_t i = 0;
-    char dummy_data[BACNET_FILE_POSIX_RECORD_SIZE] = { 0 };
-    const char *pData = NULL;
-    size_t fileSeekRecord = 0;
+    size_t i;
+    size_t target;
+    size_t len = 0;
+    int c;
 
-    if (bacfile_posix_file_path_valid(pathname)) {
-        pFile = fopen(pathname, "rb");
-        if (pFile) {
-            fileSeekRecord = fileStartRecord + fileIndexRecord;
-            /* seek to the start record */
-            for (i = 0; i < fileSeekRecord; i++) {
-                pData = fgets(&dummy_data[0], sizeof(dummy_data), pFile);
-                if ((pData == NULL) || feof(pFile)) {
-                    break;
-                }
-            }
-            if ((i == fileSeekRecord) && (fileDataLen <= sizeof(dummy_data))) {
-                /* copy the record data */
-                memmove(fileData, &dummy_data[0], fileDataLen);
-                status = true;
-            }
-            fclose(pFile);
-        } else {
-            debug_printf_stderr("Failed to open %s for reading!\n", pathname);
+    if ((fileStartRecord < 0) || !fileData ||
+        !bacfile_posix_file_path_valid(pathname)) {
+        return false;
+    }
+    pFile = fopen(pathname, "rb");
+    if (!pFile) {
+        debug_printf_stderr("Failed to open %s for reading!\n", pathname);
+        return false;
+    }
+    target = (size_t)fileStartRecord + fileIndexRecord;
+    status = true;
+    for (i = 0; i < target; i++) {
+        if (!record_line_copy(pFile, NULL)) {
+            status = false;
+            break;
         }
     }
+    if (status) {
+        memset(fileData, 0, fileDataLen);
+        status = false;
+        while ((c = getc(pFile)) != EOF) {
+            status = true;
+            if (c == '\n') {
+                break;
+            }
+            if (len < fileDataLen) {
+                fileData[len++] = (uint8_t)c;
+            }
+        }
+    }
+    fclose(pFile);
 
     return status;
 }
@@ -339,6 +550,7 @@ void bacfile_posix_init(void)
     bacfile_write_record_data_callback_set(bacfile_posix_write_record_data);
     bacfile_read_record_data_callback_set(bacfile_posix_read_record_data);
     bacfile_file_size_callback_set(bacfile_posix_file_size);
+    bacfile_record_count_callback_set(bacfile_posix_record_count);
     bacfile_file_size_set_callback_set(bacfile_posix_file_size_set);
 #elif defined(BACDL_BSC)
 #error BACFILE is not defined for BACnet/SC!

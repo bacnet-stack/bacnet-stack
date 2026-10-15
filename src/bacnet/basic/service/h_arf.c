@@ -107,7 +107,7 @@ void handler_atomic_read_file(
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     BACNET_UNSIGNED_INTEGER file_size;
-
+    size_t record_count = 0;
 #if PRINT_ENABLED
     fprintf(stderr, "Received Atomic-Read-File Request!\n");
 #endif
@@ -183,14 +183,19 @@ void handler_atomic_read_file(
                     (int)octetstring_capacity(&data.fileData[0]));
             }
         } else if (data.access == FILE_RECORD_ACCESS) {
-            if (data.type.record.RecordCount > BACNET_READ_FILE_RECORD_COUNT) {
+            if (data.type.record.fileStartRecord < 0) {
+                /* If the 'File Start Record' parameter is less
+                than 0, then the appropriate error is returned
+                in a 'Result(-)' response.*/
                 error_class = ERROR_CLASS_SERVICES;
-                error_code = ERROR_CODE_INCONSISTENT_PARAMETERS;
+                error_code = ERROR_CODE_INVALID_FILE_START_POSITION;
                 error = true;
             } else if (
-                (data.type.record.fileStartRecord < 0) ||
-                (data.type.record.fileStartRecord >=
-                 BACNET_READ_FILE_RECORD_COUNT)) {
+                bacfile_record_count(data.object_instance, &record_count) &&
+                ((size_t)data.type.record.fileStartRecord > record_count)) {
+                /* If the 'File Start Record' parameter exceeds the
+                actual file size, then the appropriate error is
+                returned in a 'Result(-)' response.*/
                 error_class = ERROR_CLASS_SERVICES;
                 error_code = ERROR_CODE_INVALID_FILE_START_POSITION;
                 error = true;

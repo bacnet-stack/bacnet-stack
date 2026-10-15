@@ -15,6 +15,7 @@
 #include "bacnet/bacdef.h"
 #include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/object/bacfile.h"
+#include "bacnet/basic/sys/bramfs.h"
 #include "bacnet/datalink/cobs.h"
 
 /* Key List for storing the object data sorted by instance number  */
@@ -286,13 +287,15 @@ static size_t record_count(const char *records, size_t size)
         }
         len = bacnet_strnlen(
             records, min(MAX_OCTET_STRING_BYTES, (size_t)(end - records)));
-        if ((len > 0) && ((size_t)len < (size_t)(end - records))) {
+        if ((size_t)len < (size_t)(end - records)) {
+            /* an empty record is a valid record */
             count++;
             records = records + len + 1;
         } else {
-            len = 0;
+            /* unterminated data is not a record */
+            break;
         }
-    } while (len > 0);
+    } while (true);
 
     return count;
 }
@@ -321,16 +324,18 @@ static char *record_by_index(char *records, size_t index, size_t size)
         }
         len = bacnet_strnlen(
             records, min(MAX_OCTET_STRING_BYTES, (size_t)(end - records)));
-        if ((len > 0) && ((size_t)len < (size_t)(end - records))) {
+        if ((size_t)len < (size_t)(end - records)) {
+            /* an empty record is a valid record */
             if (index == count) {
                 return records;
             }
             count++;
             records = records + len + 1;
         } else {
-            len = 0;
+            /* unterminated data is not a record */
+            break;
         }
-    } while (len > 0);
+    } while (true);
 
     return NULL;
 }
@@ -343,6 +348,9 @@ static char *record_by_index(char *records, size_t index, size_t size)
  *  value -1, then the write operation shall be treated
  *  as an append to the current end of file,
  *  and fileIndexRecord can be ignored.
+ *  If the parameter exceeds the number of records,
+ *  the file is extended with empty records, up to
+ *  BACNET_FILE_RAMFS_MAX_PAD_RECORDS, otherwise the write fails.
  * @param fileIndexRecord - index of the record to read
  * @param fileData - data buffer to read into
  * @param fileDataLen - size of the data buffer
@@ -382,21 +390,29 @@ bool bacfile_ramfs_write_record_data(
             fileSeekRecord = fileRecordCount;
         } else if (fileStartRecord >= 0) {
             fileSeekRecord = fileStartRecord + fileIndexRecord;
-            if (fileSeekRecord > fileRecordCount) {
-                /* cannot write more than 1 record beyond the end of the file */
-                return false;
-            }
         } else {
             /* invalid file start record */
             return false;
+        }
+        if (fileSeekRecord > fileRecordCount) {
+            /* extend the file with empty records up to the start record */
+            record_len = fileSeekRecord - fileRecordCount;
+            if (record_len > BACNET_FILE_RAMFS_MAX_PAD_RECORDS) {
+                return false;
+            }
+            record = realloc(pFile->data, pFile->size + record_len);
+            if (!record) {
+                return false; /* out of memory */
+            }
+            memset(record + pFile->size, 0, record_len);
+            pFile->data = record;
+            pFile->size += record_len;
+            fileRecordCount = fileSeekRecord;
         }
         /* sanitize the incoming record; assume from an octetstring */
         fileDataStrLen = min(fileDataLen, MAX_OCTET_STRING_BYTES);
         memcpy(fileDataStr, fileData, fileDataStrLen);
         fileDataStr[fileDataStrLen] = 0; /* null-terminate */
-        if (fileDataStrLen == 0) {
-            return false; /* nothing to write */
-        }
         if (fileSeekRecord < fileRecordCount) {
             /* find the old record length */
             record = record_by_index(pFile->data, fileSeekRecord, pFile->size);
@@ -492,8 +508,8 @@ bool bacfile_ramfs_read_record_data(
                 record,
                 min(MAX_OCTET_STRING_BYTES,
                     pFile->size - (size_t)(record - pFile->data)));
-            if ((record_len > 0) && (record_len <= fileDataLen)) {
-                /* copy the record data */
+            if (record_len <= fileDataLen) {
+                /* copy the record data, which can be empty */
                 memcpy(fileData, record, record_len);
                 status = true;
             }
@@ -501,6 +517,24 @@ bool bacfile_ramfs_read_record_data(
     }
 
     return status;
+}
+
+/**
+ * @brief Determines the number of records in a file
+ * @param pathname - name of the file
+ * @return number of records, or 0 if the file is not found
+ */
+size_t bacfile_ramfs_record_count(const char *pathname)
+{
+    struct file_data *pFile;
+    size_t count = 0;
+
+    pFile = bacfile_ramfs_open(pathname);
+    if (pFile) {
+        count = record_count(pFile->data, pFile->size);
+    }
+
+    return count;
 }
 
 /**
@@ -534,6 +568,7 @@ void bacfile_ramfs_init(void)
     bacfile_write_record_data_callback_set(bacfile_ramfs_write_record_data);
     bacfile_read_record_data_callback_set(bacfile_ramfs_read_record_data);
     bacfile_file_size_callback_set(bacfile_ramfs_file_size);
+    bacfile_record_count_callback_set(bacfile_ramfs_record_count);
     bacfile_file_size_set_callback_set(bacfile_ramfs_file_size_set);
 #endif
     File_List = Keylist_Create();

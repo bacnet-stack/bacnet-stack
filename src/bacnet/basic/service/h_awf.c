@@ -78,6 +78,7 @@ void handler_atomic_write_file(
     int len = 0;
     int pdu_len = 0;
     bool error = false;
+    size_t record_count = 0;
     int bytes_sent = 0;
     BACNET_NPDU_DATA npdu_data;
     BACNET_ADDRESS my_address;
@@ -147,7 +148,19 @@ void handler_atomic_write_file(
                 error = true;
                 error_class = ERROR_CLASS_SERVICES;
                 error_code = ERROR_CODE_INVALID_FILE_START_POSITION;
+            } else if (
+                (data.type.record.fileStartRecord == -1) &&
+                (!bacfile_record_count(data.object_instance, &record_count) ||
+                 (record_count > INT32_MAX))) {
+                /* an append must report where the data were written */
+                error = true;
+                error_class = ERROR_CLASS_OBJECT;
+                error_code = ERROR_CODE_FILE_ACCESS_DENIED;
             } else if (bacfile_write_record_data(&data)) {
+                if (data.type.record.fileStartRecord == -1) {
+                    /* the ack has the actual start record of an append */
+                    data.type.record.fileStartRecord = (int32_t)record_count;
+                }
                 debug_fprintf(
                     stderr, "AWF: StartRecord %d, RecordCount %u\n",
                     data.type.record.fileStartRecord,
