@@ -16,6 +16,10 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured the apps/sc-hub example by removing the ReinitializeDevice,
+  WriteProperty, WritePropertyMultiple, TimeSynchronization, and
+  UTCTimeSynchronization handlers. The default ReinitializeDevice password
+  is public in the source code, so any peer could restart the hub. (#1567)
 * Secured BACnet list writes to reject zero-byte elements and decode errors.
   This prevents loops when list data is malformed or truncated. (#1535)
 * Secured router MS/TP NPDU parsing to reject packets without APDU data. (#1534)
