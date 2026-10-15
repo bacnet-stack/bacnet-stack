@@ -17,6 +17,28 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured the cJSON parse_string() function to reject a string that ends with
+  a backslash. This prevents a one-byte read past the end of the buffer.
+  Added a unit test for this case. (#1572)
+* Secured the Send_Private_Transfer_Request() function to check that the NPDU
+  fits in max_pdu before it writes to the buffer. This prevents a buffer
+  overrun and an unsigned underflow of max_pdu. When the NPDU does not fit,
+  the function releases the invoke ID and returns 0. (#1571)
+* Secured the bacnet_ltrim() function to stop at the NUL terminator. This
+  prevents a read past the end of a string that contains only trimmed
+  characters. Added NULL pointer checks to bacnet_ltrim() and
+  bacnet_rtrim(). (#1568)
+* Secured the apps/sc-hub example by removing the ReinitializeDevice,
+  WriteProperty, WritePropertyMultiple, TimeSynchronization, and
+  UTCTimeSynchronization handlers. The default ReinitializeDevice password
+  is public in the source code, so any peer could restart the hub. (#1567)
+* Secured the special_event_from_ascii() function to prevent a buffer overrun
+  when it parses long period, priority, or schedule tokens. Added unit tests
+  for tokens at the boundary length. (#1565)
+* Secured the Schedule_Object_Name() function to prevent a stack buffer
+  over-read. The function read the object_name parameter before the function
+  set it. A Who-Has or ReadProperty request for the Object_Name property
+  of a Schedule object could cause this. (#1548)
 * Secured router MS/TP NPDU parsing to reject packets without APDU data. (#1534)
 * Secured BACnet list writes to reject zero-byte elements and decode errors.
   This prevents loops when list data is malformed or truncated. (#1535)
@@ -80,6 +102,18 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added dynamic instances to the Notification Class object. Replaced the fixed
+  per-device arrays with keylists. Added the Notification_Class_Create(),
+  Notification_Class_Delete(), and Notification_Class_Cleanup() functions.
+  Registered the create and delete functions in the Device object. (#1553)
+* Added the read-only Min_Pres_Value and Max_Pres_Value properties to the
+  Analog Input object. Added getter and setter functions for each instance.
+  The default limits are -FLT_MAX and FLT_MAX. (#1552)
+* Added the bacfile_posix_file_size_set() function to the POSIX File object
+  port. (#1556)
+* Added the bacfile_record_count_callback_set() and bacfile_record_count()
+  functions to the File object. Added record count support to the POSIX,
+  RAM, and static RAM file backends. (#1566)
 * Added '--version' argument support to various applications. (#1539)
 * Added a public Units getter and setter for Positive Integer Value. (#1538)
 * Add NPDU and APDU ASCII hex capture input modes to apps/dmbrcap example
@@ -154,6 +188,13 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed the bacfile_posix_file_size_set() function to resize a file with
+  standard C stdio functions only. The function no longer needs fileno() or
+  ftruncate(). Added unit tests for the POSIX File object port in
+  test/ports/posix/bacfile_posix. (#1557, #1558)
+* Changed the Analog_Input_Present_Value_Set() and
+  Alert_Enrollment_Present_Value_Set() functions to return bool instead of
+  void. Updated the at91sam7s, bdk-atxx4-mstp, and xplained ports. (#1549)
 * Changed the Channel object List_Of_Object_Property_References
   and Control_Groups to be resizable. (#1543)
 * Changed the Binary Value Present_Value_Set() function when the basic
@@ -207,6 +248,31 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the bacfile_posix_write_record_data() function to ignore one trailing
+  newline in the record data. The function still rejects a newline in any
+  other position. (#1570)
+* Fixed the BACnetTimerStateChangeValue no-value [0] encoding. The encoder
+  now writes a context-tagged Null as one primitive tag with length 0.
+  Fixed bacnet_timer_value_decode() to check the decoded length against
+  apdu_size to prevent an out-of-bounds read. Fixed the BACnetHostAddress
+  none [0] and BACnetLogRecord null-value [7] decoders to reject a
+  context-tagged Null with a length that is not 0. (#1569)
+* Fixed the AtomicReadFile and AtomicWriteFile services to conform to
+  ANSI/ASHRAE 135-2024 Clauses 14.1 and 14.2 for record access.
+  AtomicReadFile accepts any non-negative start record and returns
+  INVALID_FILE_START_POSITION when the start record is beyond the last
+  record. AtomicWriteFile reports record write errors, rejects a start record
+  less than -1, and returns the actual start record when it appends.
+  Fixed the POSIX, RAM, and static RAM file backends for record access. (#1566)
+* Fixed the Day Light Saving Time dst_active() function to support Southern
+  Hemisphere ranges where the begin date is after the end date. The function
+  now rejects calendar dates that do not exist. (#1555)
+* Fixed the Positive Integer Value object by adding the missing
+  PositiveInteger_Value_Out_Of_Service() and
+  PositiveInteger_Value_Out_Of_Service_Set() functions. (#1550)
+* Fixed the Notification Class object Priority property to be a
+  BACnetARRAY property in the property list. WriteProperty of a single array
+  element no longer fails with PROPERTY_IS_NOT_AN_ARRAY. (#1551)
 * Fixed the Device object backup failure timeout being restarted by every
   ReadProperty and WriteProperty, including internal property references
   from objects such as Loop, Averaging, and Schedule. The timeout is now
