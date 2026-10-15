@@ -100,6 +100,11 @@ option(
   "build with uci"
   OFF)
 
+option(
+  BACNET_ADDRESS_CACHE
+  "enable dynamic address cache binding and periodic aging"
+  ON)
+
 set(BACNET_PROTOCOL_REVISION 24)
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -723,6 +728,7 @@ target_compile_definitions(
   $<$<BOOL:${BACDL_NONE}>:BACDL_NONE>
   $<$<BOOL:${BACNET_PROPERTY_LISTS}>:BACNET_PROPERTY_LISTS=1>
   $<$<BOOL:${BAC_ROUTING}>:BAC_ROUTING>
+  $<$<BOOL:${BACNET_ADDRESS_CACHE}>:BACNET_ADDRESS_CACHE>
   $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:BACNET_STACK_STATIC_DEFINE>
   PRIVATE
   PRINT_ENABLED=1)
@@ -1275,3 +1281,4 @@ message(STATUS "BACNET: BACDL_ARCNET:...................\"${BACDL_ARCNET}\"")
 message(STATUS "BACNET: BACDL_MSTP:.....................\"${BACDL_MSTP}\"")
 message(STATUS "BACNET: BACDL_ZIGBEE:...................\"${BACDL_ZIGBEE}\"")
 message(STATUS "BACNET: BACDL_ETHERNET:.................\"${BACDL_ETHERNET}\"")
+message(STATUS "BACNET: BACNET_ADDRESS_CACHE:............\"${BACNET_ADDRESS_CACHE}\"")
