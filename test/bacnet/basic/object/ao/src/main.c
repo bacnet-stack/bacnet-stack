@@ -47,24 +47,34 @@ static void testAnalogOutput(void)
 }
 
 /**
- * @brief Test Analog Output Writable_Property_List API
+ * @brief Test Analog Output instance validity and property lists
  */
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(ao_tests, testAnalogOutput_Writable_Properties)
+ZTEST(ao_tests, testAnalogOutput_Instance_Properties)
 #else
-static void testAnalogOutput_Writable_Properties(void)
+static void testAnalogOutput_Instance_Properties(void)
 #endif
 {
     const uint32_t instance = 456;
     const uint32_t invalid_instance = instance + 1;
-    const int32_t *properties = NULL;
-    uint32_t count = 0;
+    const int *required = NULL;
+    const int *optional = NULL;
+    const int *proprietary = NULL;
 
     Analog_Output_Init();
     zassert_not_equal(
         Analog_Output_Create(instance), BACNET_MAX_INSTANCE, NULL);
+    zassert_true(Analog_Output_Valid_Instance(instance), NULL);
+    zassert_false(Analog_Output_Valid_Instance(invalid_instance), NULL);
+
+    Analog_Output_Property_Lists(&required, &optional, &proprietary);
+    zassert_not_null(required, NULL);
+    zassert_not_null(optional, NULL);
+    zassert_not_null(proprietary, NULL);
+    zassert_equal(required[0] >= 0, true, NULL);
 
     Analog_Output_Delete(instance);
+    zassert_false(Analog_Output_Valid_Instance(instance), NULL);
     Analog_Output_Cleanup();
 }
 
@@ -195,7 +205,7 @@ void test_main(void)
 {
     ztest_test_suite(
         ao_tests, ztest_unit_test(testAnalogOutput),
-        ztest_unit_test(testAnalogOutput_Writable_Properties),
+        ztest_unit_test(testAnalogOutput_Instance_Properties),
         ztest_unit_test(testAnalogOutput_Priority_6_Reserved),
         ztest_unit_test(testAnalogOutput_COV));
 
