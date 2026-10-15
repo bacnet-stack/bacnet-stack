@@ -2239,6 +2239,7 @@ void test_main(void)
         ztest_unit_test(testOctetStringContextDecodes),
         ztest_unit_test(testBACDCodeDouble),
         ztest_unit_test(test_bacnet_enclosed_data_length),
+        ztest_unit_test(test_bacnet_constructed_value),
         ztest_unit_test(test_bacnet_array_encode));
 
     ztest_run_test_suite(bacdcode_tests);
