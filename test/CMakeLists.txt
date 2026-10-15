@@ -233,6 +233,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 
   list(APPEND testdirs
   ports/linux/bsc_event
+  ports/linux/dlmstp_linux
   )
 
 elseif(WIN32)

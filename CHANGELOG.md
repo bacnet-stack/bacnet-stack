@@ -24,6 +24,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed MS/TP reception to reject oversized PDUs and wait correctly for queued
+  packets. Fixed the MS/TP thread to prevent a busy loop when the station MAC
+  is greater than 127. Added Linux MS/TP unit tests. (#1521)
 * Fixed BACnet/IP socket cleanup to avoid closing the same socket twice on
   Linux, BSD, and Windows. (#1533)
 * Fixed Linux and BSD MS/TP time handling at the nanosecond boundary. (#1530)

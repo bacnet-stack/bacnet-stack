@@ -454,13 +454,25 @@ uint16_t dlmstp_receive(
     uint16_t pdu_len = 0;
     struct timespec abstime;
 
-    (void)max_pdu;
+    pthread_mutex_lock(&Receive_Packet_Mutex);
+    /* check first - a packet may already be queued, in which case
+       waiting on the condition variable would miss its signal and
+       block for the entire timeout */
+    if (!Receive_Packet.ready && (timeout > 0)) {
+        get_abstime(&abstime, timeout);
+        /* guard against spurious wakeups - keep waiting on the same
+           deadline until a packet arrives or the wait times out/errors */
+        while (!Receive_Packet.ready) {
+            if (pthread_cond_timedwait(
+                    &Receive_Packet_Flag, &Receive_Packet_Mutex, &abstime) !=
+                0) {
+                break;
+            }
+        }
+    }
+
     /* see if there is a packet available, and a place
        to put the reply (if necessary) and process it */
-    pthread_mutex_lock(&Receive_Packet_Mutex);
-    get_abstime(&abstime, timeout);
-    pthread_cond_timedwait(
-        &Receive_Packet_Flag, &Receive_Packet_Mutex, &abstime);
     if (Receive_Packet.ready) {
         if (Receive_Packet.pdu_len) {
             DLMSTP_Statistics.receive_pdu_counter++;
@@ -469,10 +481,13 @@ uint16_t dlmstp_receive(
                     src, &Receive_Packet.address,
                     sizeof(Receive_Packet.address));
             }
-            if (pdu) {
-                memmove(pdu, &Receive_Packet.pdu, sizeof(Receive_Packet.pdu));
-            }
             pdu_len = Receive_Packet.pdu_len;
+            if (pdu_len > max_pdu) {
+                /* PDU is too large - drop it rather than truncate */
+                pdu_len = 0;
+            } else if (pdu) {
+                memmove(pdu, &Receive_Packet.pdu, pdu_len);
+            }
         }
         Receive_Packet.ready = false;
     }
@@ -569,14 +584,13 @@ static void *dlmstp_thread(void *pArg)
             run_master = false;
             if (MSTP_Port.SlaveNodeEnabled) {
                 MSTP_Slave_Node_FSM(&MSTP_Port);
-            } else {
-                if (MSTP_Port.ZeroConfigEnabled || MSTP_Port.CheckAutoBaud) {
-                    /* if we are in auto baud or zero config mode,
-                        we need to run the master state machine */
-                } else if (MSTP_Port.This_Station > DEFAULT_MAX_MASTER) {
-                    /* Master node address must be restricted */
-                    continue;
-                }
+            } else if (
+                MSTP_Port.ZeroConfigEnabled || MSTP_Port.CheckAutoBaud ||
+                (MSTP_Port.This_Station <= DEFAULT_MAX_MASTER)) {
+                /* Master node address must be restricted, unless we are
+                   in auto baud or zero config mode. Skipping the master
+                   FSM below must still fall through to the Thread_Run
+                   check at the bottom of the loop. */
                 master_state = MSTP_Port.master_state;
                 run_loop = true;
                 while (run_loop) {
