@@ -27,6 +27,10 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed missing Out_Of_Service getter and setter functions for Positive
+  Integer Value. Added PositiveInteger_Value_Out_Of_Service() and
+  PositiveInteger_Value_Out_Of_Service_Set(). ReadProperty and WriteProperty
+  use these functions. (#1550)
 * Fixed the Notification Class Priority property to be a BACnetARRAY in
   the property list. WriteProperty now accepts writes to single elements
   of Priority. (#1551)

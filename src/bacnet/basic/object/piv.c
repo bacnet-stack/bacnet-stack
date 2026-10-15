@@ -209,6 +209,44 @@ bool PositiveInteger_Value_Units_Set(
 }
 
 /**
+ * For a given object instance-number, returns the out-of-service
+ * property value
+ *
+ * @param  object_instance - object-instance number of the object
+ *
+ * @return  out-of-service property value
+ */
+bool PositiveInteger_Value_Out_Of_Service(uint32_t object_instance)
+{
+    bool value = false;
+    unsigned index = 0;
+
+    index = PositiveInteger_Value_Instance_To_Index(object_instance);
+    if (index < MAX_POSITIVEINTEGER_VALUES) {
+        value = PIV_Descr[index].Out_Of_Service;
+    }
+
+    return value;
+}
+
+/**
+ * For a given object instance-number, sets the out-of-service property value
+ *
+ * @param object_instance - object-instance number of the object
+ * @param oos_flag - boolean out-of-service value
+ */
+void PositiveInteger_Value_Out_Of_Service_Set(
+    uint32_t object_instance, bool oos_flag)
+{
+    unsigned index = 0;
+
+    index = PositiveInteger_Value_Instance_To_Index(object_instance);
+    if (index < MAX_POSITIVEINTEGER_VALUES) {
+        PIV_Descr[index].Out_Of_Service = oos_flag;
+    }
+}
+
+/**
  * ReadProperty handler for this object.  For the given ReadProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -226,7 +264,6 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     unsigned object_index = 0;
     bool state = false;
     uint8_t *apdu = NULL;
-    POSITIVEINTEGER_VALUE_DESCR *CurrentAV;
 
     if ((rpdata == NULL) || (rpdata->application_data == NULL) ||
         (rpdata->application_data_len == 0)) {
@@ -237,9 +274,7 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 
     object_index =
         PositiveInteger_Value_Instance_To_Index(rpdata->object_instance);
-    if (object_index < MAX_POSITIVEINTEGER_VALUES) {
-        CurrentAV = &PIV_Descr[object_index];
-    } else {
+    if (object_index >= MAX_POSITIVEINTEGER_VALUES) {
         return BACNET_STATUS_ERROR;
     }
 
@@ -275,7 +310,7 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             bitstring_set_bit(&bit_string, STATUS_FLAG_OVERRIDDEN, false);
             bitstring_set_bit(
                 &bit_string, STATUS_FLAG_OUT_OF_SERVICE,
-                CurrentAV->Out_Of_Service);
+                PositiveInteger_Value_Out_Of_Service(rpdata->object_instance));
 
             apdu_len = encode_application_bitstring(&apdu[0], &bit_string);
             break;
@@ -294,7 +329,8 @@ int PositiveInteger_Value_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
                parties. Say 6 months -> September 2016 */
 
         case PROP_OUT_OF_SERVICE:
-            state = CurrentAV->Out_Of_Service;
+            state =
+                PositiveInteger_Value_Out_Of_Service(rpdata->object_instance);
             apdu_len = encode_application_boolean(&apdu[0], state);
             break;
         default:
@@ -322,7 +358,6 @@ bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     unsigned int object_index = 0;
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
-    POSITIVEINTEGER_VALUE_DESCR *CurrentAV;
 
     /* decode the some of the request */
     len = bacapp_decode_application_data(
@@ -336,9 +371,7 @@ bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     object_index =
         PositiveInteger_Value_Instance_To_Index(wp_data->object_instance);
-    if (object_index < MAX_POSITIVEINTEGER_VALUES) {
-        CurrentAV = &PIV_Descr[object_index];
-    } else {
+    if (object_index >= MAX_POSITIVEINTEGER_VALUES) {
         return false;
     }
     switch (wp_data->object_property) {
@@ -369,7 +402,8 @@ bool PositiveInteger_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
             if (status) {
-                CurrentAV->Out_Of_Service = value.type.Boolean;
+                PositiveInteger_Value_Out_Of_Service_Set(
+                    wp_data->object_instance, value.type.Boolean);
             }
             break;
         case PROP_UNITS:
