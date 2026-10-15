@@ -4,25 +4,56 @@ Thank you for your interest in contributing to the BACnet stack!
 Please review the following guidelines for contributing new code
 or documentation to the project.
 
-## GitLab Workflow and Versioning
+## Maintenance Branch Workflow and Versioning
+
+This is the `bacnet-stack-1.6` maintenance branch. It tracks bug fixes for
+the 1.6.x releases. New features, new demo applications, refactoring, and
+API or ABI changes belong on the `master` branch and are not accepted here.
 
 The CMakeLists.txt, CHANGELOG.md, and version.h contain the version number.
 
 This project aspires to adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+On this branch only the patch (maintenance) number changes, such as
+1.6.1 to 1.6.2.
 
-We utilize a GitLab-style workflow for managing changes and releases.
-When developing features or preparing release candidates, please reflect
-the release candidate stages using `-rc1`, `-rc2`, etc., in the
-`src/bacnet/version.h` file.
+Fixes are made on `master` first and then back ported to this branch,
+typically by cherry-picking the fix commit with `git cherry-pick -x`
+so that the original commit is referenced. Open back port pull requests
+against this branch. A fix that applies only to this branch, because the
+code no longer exists on `master`, can be made directly on this branch.
 
+Preparing a patch release candidate is reflected using `-rc1`, `-rc2`, etc.,
+in the `src/bacnet/version.h` file.
 Specifically, update the `BACNET_VERSION_TEXT` string in the version.h file
 to include the `-rc` suffix during the release candidate phase. For example:
 ```c
-#define BACNET_VERSION_TEXT "1.6.0-rc1"
+#define BACNET_VERSION_TEXT "1.6.2-rc1"
 ```
-Once the release is confirmed and finalized, the suffix should be removed for
-the official release version and a new branch created to track any bug fixes
-for that release.
+Once the release is confirmed and finalized, the suffix is removed for
+the official release version, and the CMakeLists.txt, version.h, and
+CHANGELOG.md are updated to the same version number.
+
+### CHANGELOG Updates
+
+Unlike `master`, where the maintainers update CHANGELOG.md outside of bugfix
+and feature pull requests, on this maintenance branch the CHANGELOG.md is
+updated with each fix that is back ported. Every back port pull request
+must include its CHANGELOG.md entry. Follow these steps:
+
+- Add the entry to the section for the next patch release at the top of
+  the file, such as `## [1.6.2] - Unreleased`. Create the section if it
+  does not exist, and replace `Unreleased` with the release date when the
+  release is made.
+- Place the entry under the matching [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
+  heading: `### Security`, `### Fixed`, `### Changed`, or `### Removed`.
+  Only bug fixes are expected on this branch, so `### Added` is rarely used.
+  Keep the headings in the order used by the existing releases.
+- Write a one-line summary of the fix, wrapped at 80 columns with
+  continuation lines indented two spaces, and end it with the pull request
+  or issue number in parentheses, such as `(#1234)`. Use the same wording
+  as the `master` CHANGELOG.md entry for that fix when one exists.
+- Do not move or reorder existing entries, to keep merges from
+  `master` and cherry-picks simple.
 
 ## Pre-commit Hooks
 
@@ -42,7 +73,7 @@ pre-commit --version
 ```
 
 This ensures that your code complies with our coding conventions and saves time
-during code review.
+during code review. Keep changes consistent with `.clang-format`.
 
 ## CI Expectations (.github/workflows)
 
@@ -50,14 +81,58 @@ All code contributions are subjected to automated CI testing via GitHub Actions
 defined in `.github/workflows/`.
 The workflows include:
 - Build verification across OS platforms (Linux, macOS, Windows, Raspberry Pi)
-- Build variations across embedded microcontrollers (ESP32, STM32/AT91, xmega/AVR, etc.)
+- Build variations across embedded microcontrollers (STM32/AT91, xmega/AVR, etc.)
 - Build for C standards: gnu89 (C89+extensions), gnu99, gnu11, gnu17
-- Lint validation using clang-build, cppcheck, and flawfinder
+- Lint validation using scan-build, cppcheck, and flawfinder
 - pre-commit using clang-format and other tools to enforce code style
 - CodeQL static analysis
 
 Contributions that break the build or introduce new warnings will not be
-merged.
+merged. Existing unit tests must continue to pass. Add tests under `test/` for
+new functionality when practical. Follow the existing test layout and register
+new test directories with CMake. See the [unit testing README](test/README.md)
+for test conventions, framework details, and instructions for running tests.
+
+## Local Build Guidance
+
+The `apps/Makefile` manages the shared library and the applications built under
+`apps/`. The Makefile in the repository root provides most, but not all, build
+targets and configures the project include paths for those targets. Use the
+appropriate root-level target when one exists, such as `make mstp` for MS/TP
+applications including `router-mstp`; otherwise use the corresponding target
+from `apps/Makefile`. Invoking an application Makefile directly from a deeper
+subdirectory is not self-contained and can fail before compilation with a
+missing header such as `bacnet/bacdef.h`.
+
+## Code and Platform Guidelines
+
+Keep code compatible with the supported C standards listed above; do not
+introduce language features that break older supported standards unless
+required. Declare local variables at the start of a function or block, before
+executable statements, to follow the project's C89 style. Initialize variables
+meaningful default is available, and ensure every variable is assigned before
+it is read; do not rely on implicit initialization. Use explicit parentheses
+around each independent comparison in compound `if` conditions, even when
+operator precedence makes them optional. Prefer `if`/`else` blocks over ternary
+operators when they make the control flow clearer and easier to read. Preserve
+existing SPDX license identifiers in source and header files. Header files
+under `src/bacnet/` typically use `MIT`; most C source files use
+`GPL-2.0-or-later WITH GCC-exception-2.0`, while some use MIT or Apache-2.0.
+Consult maintainers before changing a file's license identifier.
+
+The core library must remain portable across supported operating systems and
+embedded platforms. Keep operating-system-specific headers and code out of core
+library files; platform-specific implementations belong in `ports/`. Include
+`bacnet/bacdef.h` first in project headers. It includes
+`bacnet/basic/sys/platform.h`, the shared libc and compiler portability layer;
+put reusable compatibility abstractions there rather than duplicating them
+throughout the codebase. Use `bacnet/config.h` as the central location for
+project configuration defines. Product-specific settings can be supplied in a
+local `bacnet-config.h` or through the build configuration, as documented in
+`config.h`.
+
+The application layer uses standard C structures with function pointers and
+callbacks for its object-oriented patterns.
 
 ## Naming Conventions
 
@@ -135,7 +210,7 @@ typedef enum BACnetAuthenticationDisableReason {
 ```
 
 Most BACnet enumerations have a text equivalent in bactext.c module
-that is used for EPICS and logging. For example:
+that is used for EPICS, printing, logging, and parsing. For example:
 ```c
 static INDTEXT_DATA bactext_audit_level_names[] = {
     /* BACnetAuditLevel enumerations */
