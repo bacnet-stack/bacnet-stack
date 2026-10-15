@@ -27,6 +27,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed dst_active() to support Southern Hemisphere DST ranges, where the
+  begin month or date is after the end month or date. Fixed dst_active() to
+  return false for dates that do not exist, such as February 31st. (#1555)
 * Fixed missing Out_Of_Service getter and setter functions for Positive
   Integer Value. Added PositiveInteger_Value_Out_Of_Service() and
   PositiveInteger_Value_Out_Of_Service_Set(). ReadProperty and WriteProperty
