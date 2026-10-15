@@ -24,6 +24,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed Linux and BSD MS/TP time handling at the nanosecond boundary. (#1530)
 * Fixed datalink environment parsing to reject out-of-range port and MS/TP MAC
   address values. (#1532)
 * Fixed Device WriteProperty range checks for APDU retries, APDU timeout, and
