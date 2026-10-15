@@ -16,6 +16,7 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured router MS/TP NPDU parsing to reject packets without APDU data. (#1534)
 * Secured the Linux/BSD/Windows websocket by enforcing TLS client-certificate
   verification in BACnet/SC. (#1503)
 * Secured buffer handling in bacnet_constructed_value_context_encode
