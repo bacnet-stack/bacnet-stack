@@ -27,6 +27,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed apps/mstpcap to exit when Wireshark sends --extcap-cleanup-postkill.
+  Wireshark 4.6 waits for this process after it stops an MS/TP capture.
 * Fixed missing "--version" option in various example applications. (#1539)
 * Fixed missing public Units getter and setter for Positive Integer Value.
   (#1538)
