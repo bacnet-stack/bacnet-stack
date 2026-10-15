@@ -34,10 +34,25 @@ official release version and the release is tagged on this branch.
 
 ### CHANGELOG Updates
 
-The CHANGELOG.md is typically updated by the maintainers outside of bugfix
-pull requests. Keeping CHANGELOG.md changes out of those pull requests avoids
-merge conflicts and makes it easier to backport fixes from `master`.
-Contributors do not need to edit CHANGELOG.md in their pull requests.
+Contributors do not need to edit CHANGELOG.md in pull requests that target
+`master`. The maintainers add those entries, and keeping them out of the pull
+requests avoids merge conflicts.
+
+The `/backport <PR number>` process adds the CHANGELOG.md entry for each
+backported pull request to this branch:
+- The entry is copied unchanged from `master`, including the `(#<PR>)`
+  reference, when `master` has one.
+- If `master` has no entry, the entry is written from the pull request title,
+  commit message, and diff. It uses ASD-STE-100 (Simplified Technical English)
+  and the style of the neighboring entries.
+- The entry goes at the top of the matching subsection (`Security`, `Added`,
+  `Changed`, `Fixed`, `Removed`, or `Deprecated`) of the first
+  `## [x.y.z] - Unreleased` section. Released sections are never changed.
+- The entry is in the same commit as the backported change. A pull request that
+  is already referenced in CHANGELOG.md is not backported again.
+
+A fix that only applies to this branch needs its own CHANGELOG.md entry in its
+pull request, because it has no `master` entry to copy.
 
 ## Pre-commit Hooks
 
