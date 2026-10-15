@@ -52,6 +52,31 @@ static BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY BBMD_Table_Entry;
 static uint32_t Network_Port_Instance = 1;
 
 /**
+ * @brief Convert an environment string to an unsigned 16-bit value
+ * @param str - string of decimal, hexadecimal (0x), or octal (0) digits
+ * @param value - the converted value, set only when the conversion succeeds
+ * @return true if the entire string is a number in the range 0..65535
+ */
+static bool dlenv_string_to_uint16(const char *str, uint16_t *value)
+{
+    char *endptr = NULL;
+    unsigned long parsed;
+
+    if (!str || (*str < '0') || (*str > '9')) {
+        return false;
+    }
+    parsed = strtoul(str, &endptr, 0);
+    if ((endptr == str) || (*endptr != '\0') || (parsed > UINT16_MAX)) {
+        return false;
+    }
+    if (value) {
+        *value = (uint16_t)parsed;
+    }
+
+    return true;
+}
+
+/**
  * @brief Enabled debug printing of BACnet/IPv4 DL
  */
 void dlenv_debug_enable(void)
@@ -121,7 +146,7 @@ int dlenv_bbmd_result(void)
  * If no address for the BBMD is provided, no BBMD registration will occur.
  *
  * The Environment Variables depend on define of BACDL_BIP:
- *     - BACNET_BBMD_PORT - 0..65534, defaults to 47808
+ *     - BACNET_BBMD_PORT - 0..65535, defaults to 47808
  *     - BACNET_BBMD_TIMETOLIVE - 0..65535 seconds, defaults to 60000
  *     - BACNET_BBMD_ADDRESS - dotted IPv4 address
  * @return Positive number (of bytes sent) on success,
@@ -278,7 +303,7 @@ static int bbmd_register_as_foreign_device(void)
  * If no address for the BBMD is provided, no BBMD registration will occur.
  *
  * The Environment Variables depend on define of BACDL_BIP:
- *     - BACNET_BBMD6_PORT - 0..65534, defaults to 47808
+ *     - BACNET_BBMD6_PORT - 0..65535, defaults to 47808
  *     - BACNET_BBMD6_TIMETOLIVE - 0..65535 seconds, defaults to 60000
  *     - BACNET_BBMD6_ADDRESS - IPv6 address
  * @return Positive number (of bytes sent) on success,
@@ -372,6 +397,7 @@ static void dlenv_network_port_bip_init(uint32_t instance)
 #if defined(BACDL_BIP)
     BACNET_IP_ADDRESS addr = { 0 };
     uint8_t addr0, addr1, addr2, addr3;
+    uint16_t port;
     char *pEnv = NULL;
     BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_table = NULL;
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_table = NULL;
@@ -389,7 +415,11 @@ static void dlenv_network_port_bip_init(uint32_t instance)
     }
     pEnv = getenv("BACNET_IP_PORT");
     if (pEnv) {
-        bip_set_port((uint16_t)strtol(pEnv, NULL, 0));
+        if (dlenv_string_to_uint16(pEnv, &port)) {
+            bip_set_port(port);
+        } else {
+            debug_fprintf(stderr, "Invalid BACNET_IP_PORT value: %s\n", pEnv);
+        }
     } else {
         /* BIP_Port is statically initialized to 0xBAC0,
          * so if it is different, then it was programmatically altered,
@@ -487,6 +517,7 @@ static void dlenv_network_port_bip_update(uint32_t instance)
 void dlenv_network_port_mstp_init(uint32_t instance)
 {
     uint8_t mac[1] = { 0 };
+    uint16_t parsed_mac;
     char *pEnv = NULL;
     long max_master = 127;
     long max_info_frames = 1;
@@ -511,7 +542,11 @@ void dlenv_network_port_mstp_init(uint32_t instance)
     }
     pEnv = getenv("BACNET_MSTP_MAC");
     if (pEnv) {
-        mac_address = strtol(pEnv, NULL, 0);
+        if (dlenv_string_to_uint16(pEnv, &parsed_mac) && (parsed_mac <= 127)) {
+            mac_address = parsed_mac;
+        } else {
+            debug_fprintf(stderr, "Invalid BACNET_MSTP_MAC value: %s\n", pEnv);
+        }
     }
     if (Datalink_Debug) {
         fprintf(
@@ -956,9 +991,9 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
  *     interface on Windows, the applications will choose it, and this
  *     setting will not be needed.
  * - BACDL_BIP: (BACnet/IP)
- *   - BACNET_IP_PORT - UDP/IP port number (0..65534) used for BACnet/IP
+ *   - BACNET_IP_PORT - UDP/IP port number (0..65535) used for BACnet/IP
  *     communications.  Default is 47808 (0xBAC0).
- *   - BACNET_BBMD_PORT - UDP/IP port number (0..65534) used for Foreign
+ *   - BACNET_BBMD_PORT - UDP/IP port number (0..65535) used for Foreign
  *       Device Registration.  Defaults to 47808 (0xBAC0).
  *   - BACNET_BBMD_TIMETOLIVE - number of seconds used in Foreign Device
  *       Registration (0..65535). Defaults to 60000 seconds.
@@ -976,10 +1011,10 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
  *   - BACNET_MSTP_BAUD
  *   - BACNET_MSTP_MAC
  * - BACDL_BIP6: (BACnet/IPv6)
- *   - BACNET_BIP6_PORT - UDP/IP port number (0..65534) used for BACnet/IPv6
+ *   - BACNET_BIP6_PORT - UDP/IP port number (0..65535) used for BACnet/IPv6
  *     communications.  Default is 47808 (0xBAC0).
  *   - BACNET_BIP6_BROADCAST - FF05::BAC0 or FF02::BAC0 or ...
- *   - BACNET_BBMD6_PORT - UDP/IPv6 port number (0..65534) used for Foreign
+ *   - BACNET_BBMD6_PORT - UDP/IPv6 port number (0..65535) used for Foreign
  *     Device Registration.  Defaults to 47808 (0xBAC0).
  *   - BACNET_BBMD6_TIMETOLIVE - 0..65535 seconds, defaults to 60000
  *   - BACNET_BBMD6_ADDRESS - IPv6 address
@@ -991,10 +1026,10 @@ void dlenv_maintenance_timer(uint16_t elapsed_seconds)
  *   - BACNET_SC_OPERATIONAL_CERTIFICATE_FILE
  *   - BACNET_SC_OPERATIONAL_CERTIFICATE_PRIVATE_KEY_FILE
  *   - BACNET_SC_DIRECT_CONNECT_BINDING - pair: interface name (optional) and
- *       TCP/IP port number (0..65534), like "50000" (port only) or
+ *       TCP/IP port number (0..65535), like "50000" (port only) or
  *       "eth0:50000"(both)
  *   - BACNET_SC_HUB_FUNCTION_BINDING - pair: interface name (optional) and
- *       TCP/IP port number (0..65534), like "50000" (port only) or
+ *       TCP/IP port number (0..65535), like "50000" (port only) or
  *       "eth0:50000"(both)
  *   - BACNET_SC_DIRECT_CONNECT_INITIATE - if true equal "1", "y", "Y",
  *       otherwise false
