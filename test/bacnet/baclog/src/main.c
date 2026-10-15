@@ -12,6 +12,7 @@
 #include <string.h>
 #include <math.h>
 #include <zephyr/ztest.h>
+#include <bacnet/bacdcode.h>
 #include <bacnet/baclog.h>
 
 /**
@@ -124,6 +125,37 @@ static void test_bacnet_log_record(void)
     status = bacnet_log_record_same(&value, &test_value);
     zassert_false(status, NULL);
 }
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacnet_log_tests, test_bacnet_log_record_null_malformed)
+#else
+static void test_bacnet_log_record_null_malformed(void)
+#endif
+{
+    uint8_t apdu[MAX_APDU] = { 0 };
+    uint8_t pattern[2] = { 0 };
+    BACNET_LOG_RECORD value = { 0 }, test_value = { 0 };
+    int apdu_len, test_len, i;
+
+    datetime_init_ascii(&value.timestamp, "2021/12/31-23:59:59.99");
+    value.tag = BACNET_LOG_DATUM_NULL;
+    apdu_len = bacnet_log_record_encode(apdu, sizeof(apdu), &value);
+    test_len = bacnet_log_record_decode(apdu, apdu_len, &test_value);
+    zassert_equal(test_len, apdu_len, NULL);
+    /* log-datum [1] opening followed by null-value [7] */
+    (void)encode_opening_tag(&pattern[0], 1);
+    (void)encode_context_null(&pattern[1], BACNET_LOG_DATUM_NULL);
+    for (i = 0; i < (apdu_len - 1); i++) {
+        if (memcmp(&apdu[i], pattern, sizeof(pattern)) == 0) {
+            break;
+        }
+    }
+    zassert_true(i < (apdu_len - 1), NULL);
+    /* null-value [7] with length 1 is malformed */
+    (void)encode_tag(&apdu[i + 1], BACNET_LOG_DATUM_NULL, true, 1);
+    test_len = bacnet_log_record_decode(apdu, apdu_len, &test_value);
+    zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+}
 /**
  * @}
  */
@@ -133,7 +165,9 @@ ZTEST_SUITE(bacnet_log_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(bacnet_log_tests, ztest_unit_test(test_bacnet_log_record));
+    ztest_test_suite(
+        bacnet_log_tests, ztest_unit_test(test_bacnet_log_record),
+        ztest_unit_test(test_bacnet_log_record_null_malformed));
 
     ztest_run_test_suite(bacnet_log_tests);
 }

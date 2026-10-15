@@ -43,6 +43,12 @@ The git repositories are hosted at the following sites:
 * Fixed the bacfile_posix_write_record_data() function to ignore one trailing
   newline in the record data. The function still rejects a newline in any
   other position. (#1570)
+* Fixed the BACnetTimerStateChangeValue no-value [0] encoding. The encoder
+  now writes a context-tagged Null as one primitive tag with length 0.
+  Fixed bacnet_timer_value_decode() to check the decoded length against
+  apdu_size to prevent an out-of-bounds read. Fixed the BACnetHostAddress
+  none [0] and BACnetLogRecord null-value [7] decoders to reject a
+  context-tagged Null with a length that is not 0. (#1569)
 * Fixed the AtomicReadFile and AtomicWriteFile services to conform to
   ANSI/ASHRAE 135-2024 Clauses 14.1 and 14.2 for record access.
   AtomicReadFile accepts any non-negative start record and returns

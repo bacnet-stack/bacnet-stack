@@ -155,7 +155,7 @@ int host_n_port_address_decode(
         return BACNET_STATUS_REJECT;
     }
     apdu_len += len;
-    if (tag.context && (tag.number == 0)) {
+    if (tag.context && (tag.number == 0) && (tag.len_value_type == 0)) {
         /* CHOICE - none [0] NULL */
         if (address) {
             address->host_ip_address = false;
