@@ -6,7 +6,9 @@
  * @copyright SPDX-License-Identifier: MIT
  */
 #include <zephyr/ztest.h>
+#include <bacnet/bacdcode.h>
 #include <bacnet/basic/object/device.h>
+#include <bacnet/basic/service/h_apdu.h>
 #include <bacnet/bactext.h>
 #include <property_test.h>
 
@@ -14,6 +16,51 @@
  * @addtogroup bacnet_tests
  * @{
  */
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Device_Write_Property_Range)
+#else
+static void test_Device_Write_Property_Range(void)
+#endif
+{
+    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
+    bool status = false;
+
+    Device_Init(NULL);
+    Device_Set_Vendor_Identifier(1234);
+    apdu_timeout_set(5000);
+    apdu_retries_set(5);
+    wpdata.object_type = OBJECT_DEVICE;
+    wpdata.object_instance = Device_Object_Instance_Number();
+    wpdata.array_index = BACNET_ARRAY_ALL;
+
+    wpdata.object_property = PROP_NUMBER_OF_APDU_RETRIES;
+    wpdata.application_data_len = bacnet_unsigned_application_encode(
+        wpdata.application_data, sizeof(wpdata.application_data),
+        UINT8_MAX + 1u);
+    status = Device_Write_Property(&wpdata);
+    zassert_false(status, NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+    zassert_equal(apdu_retries(), 5, NULL);
+
+    wpdata.object_property = PROP_APDU_TIMEOUT;
+    wpdata.application_data_len = bacnet_unsigned_application_encode(
+        wpdata.application_data, sizeof(wpdata.application_data),
+        UINT16_MAX + 1u);
+    status = Device_Write_Property(&wpdata);
+    zassert_false(status, NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+    zassert_equal(apdu_timeout(), 5000, NULL);
+
+    wpdata.object_property = PROP_VENDOR_IDENTIFIER;
+    wpdata.application_data_len = bacnet_unsigned_application_encode(
+        wpdata.application_data, sizeof(wpdata.application_data),
+        UINT16_MAX + 1u);
+    status = Device_Write_Property(&wpdata);
+    zassert_false(status, NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+    zassert_equal(Device_Vendor_Identifier(), 1234, NULL);
+}
 
 /**
  * @brief Test ReadProperty API
@@ -436,7 +483,8 @@ void test_main(void)
 {
     ztest_test_suite(
         device_tests, ztest_unit_test(testDevice),
-        ztest_unit_test(test_Device_Data_Sharing));
+        ztest_unit_test(test_Device_Data_Sharing),
+        ztest_unit_test(test_Device_Write_Property_Range));
 
     ztest_run_test_suite(device_tests);
 }
