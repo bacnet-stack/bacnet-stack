@@ -27,6 +27,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the Notification Class Priority property to be a BACnetARRAY in
+  the property list. WriteProperty now accepts writes to single elements
+  of Priority. (#1551)
 * Fixed apps/mstpcap to exit when Wireshark sends --extcap-cleanup-postkill.
   Wireshark 4.6 waits for this process after it stops an MS/TP capture.
 * Fixed missing "--version" option in various example applications. (#1539)
