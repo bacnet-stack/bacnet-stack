@@ -374,6 +374,23 @@ static void testCJSON_UnterminatedStringLeniency(void)
 }
 
 /**
+ * @brief a string ending in a lone backslash must be rejected without
+ * reading past the terminating NUL (regression test)
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(cJSON_tests, testCJSON_DanglingBackslashRejected)
+#else
+static void testCJSON_DanglingBackslashRejected(void)
+#endif
+{
+    const char input[] = { '"', '\\', '\0' };
+    const char input2[] = { '"', 'a', '\\', '\0' };
+
+    zassert_is_null(cJSON_Parse(input), NULL);
+    zassert_is_null(cJSON_Parse(input2), NULL);
+}
+
+/**
  * @brief deeply nested arrays are rejected before they can exhaust the
  * call stack, while moderate nesting still parses correctly
  * (regression test for the parser hardening).
@@ -440,6 +457,7 @@ void test_main(void)
         ztest_unit_test(testCJSON_ParseObject),
         ztest_unit_test(testCJSON_ParseInvalidInput),
         ztest_unit_test(testCJSON_UnterminatedStringLeniency),
+        ztest_unit_test(testCJSON_DanglingBackslashRejected),
         ztest_unit_test(testCJSON_NestingLimit),
         ztest_unit_test(testCJSON_GetErrorPtr));
 
