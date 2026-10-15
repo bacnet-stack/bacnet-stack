@@ -4136,10 +4136,11 @@ bool bacapp_print_value(
 #ifdef BACAPP_PRINT_ENABLED
 static char *ltrim(char *str, const char *trimmedchars)
 {
-    if (str[0] == 0) {
+    if (!str || !trimmedchars) {
         return str;
     }
-    while (strchr(trimmedchars, *str)) {
+    /* strchr() matches the terminating NUL, so test for it explicitly */
+    while ((*str != 0) && strchr(trimmedchars, *str)) {
         str++;
     }
     return str;
@@ -4149,7 +4150,7 @@ static char *rtrim(char *str, const char *trimmedchars)
 {
     char *end;
 
-    if (str[0] == 0) {
+    if (!str || !trimmedchars || (str[0] == 0)) {
         return str;
     }
     end = str + strlen(str) - 1;
