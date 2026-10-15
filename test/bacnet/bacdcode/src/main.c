@@ -2196,6 +2196,157 @@ static void test_bacnet_constructed_value(void)
     zassert_equal(apdu_len, 0, NULL);
 }
 
+static unsigned List_Write_Decode_Count;
+static unsigned List_Write_Decode_Fail_After;
+static int List_Write_Decode_Fail_Result;
+static unsigned List_Write_Add_Count;
+static unsigned List_Write_Add_Clear_Count;
+static BACNET_ERROR_CODE List_Write_Add_Result;
+
+static void list_write_test_reset(void)
+{
+    List_Write_Decode_Count = 0;
+    List_Write_Decode_Fail_After = UINT_MAX;
+    List_Write_Decode_Fail_Result = 0;
+    List_Write_Add_Count = 0;
+    List_Write_Add_Clear_Count = 0;
+    List_Write_Add_Result = ERROR_CODE_SUCCESS;
+}
+
+/* decodes application tagged unsigned integers, and can be told to
+   return a failure value after a number of successful decodes */
+static int list_write_test_decode(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
+{
+    BACNET_UNSIGNED_INTEGER value = 0;
+
+    (void)object_instance;
+    if (List_Write_Decode_Count >= List_Write_Decode_Fail_After) {
+        List_Write_Decode_Count++;
+        return List_Write_Decode_Fail_Result;
+    }
+    List_Write_Decode_Count++;
+
+    return bacnet_unsigned_application_decode(apdu, apdu_size, &value);
+}
+
+static BACNET_ERROR_CODE list_write_test_add(
+    uint32_t object_instance, uint8_t *application_data, size_t data_len)
+{
+    (void)object_instance;
+    (void)application_data;
+    if (data_len == 0) {
+        List_Write_Add_Clear_Count++;
+        return ERROR_CODE_SUCCESS;
+    }
+    List_Write_Add_Count++;
+
+    return List_Write_Add_Result;
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, test_bacnet_list_write)
+#else
+static void test_bacnet_list_write(void)
+#endif
+{
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int apdu_len = 0;
+    BACNET_ERROR_CODE error_code;
+
+    apdu_len += encode_application_unsigned(&apdu[apdu_len], 1);
+    apdu_len += encode_application_unsigned(&apdu[apdu_len], 2);
+    apdu_len += encode_application_unsigned(&apdu[apdu_len], 3);
+
+    /* valid list: every element is added after the list is emptied */
+    list_write_test_reset();
+    error_code = bacnet_list_write(
+        1, BACNET_ARRAY_ALL, list_write_test_decode, list_write_test_add, 3,
+        apdu, apdu_len);
+    zassert_equal(error_code, ERROR_CODE_SUCCESS, "error_code=%d", error_code);
+    zassert_equal(List_Write_Add_Count, 3, NULL);
+    zassert_equal(List_Write_Add_Clear_Count, 1, NULL);
+
+    /* more elements than the list can hold */
+    list_write_test_reset();
+    error_code = bacnet_list_write(
+        1, BACNET_ARRAY_ALL, list_write_test_decode, list_write_test_add, 2,
+        apdu, apdu_len);
+    zassert_equal(error_code, ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY, NULL);
+    zassert_equal(List_Write_Add_Count, 0, NULL);
+    zassert_equal(List_Write_Add_Clear_Count, 0, NULL);
+
+    /* a list write to a specific index is not permitted */
+    list_write_test_reset();
+    error_code = bacnet_list_write(
+        1, 1, list_write_test_decode, list_write_test_add, 3, apdu, apdu_len);
+    zassert_equal(error_code, ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY, NULL);
+
+    /* the add function error is returned and stops the write */
+    list_write_test_reset();
+    List_Write_Add_Result = ERROR_CODE_VALUE_OUT_OF_RANGE;
+    error_code = bacnet_list_write(
+        1, BACNET_ARRAY_ALL, list_write_test_decode, list_write_test_add, 3,
+        apdu, apdu_len);
+    zassert_equal(error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+    zassert_equal(List_Write_Add_Count, 1, NULL);
+
+    /* a decoder that consumes zero bytes must fail instead of looping or
+       silently treating the remaining data as the end of the list */
+    list_write_test_reset();
+    List_Write_Decode_Fail_After = 0;
+    List_Write_Decode_Fail_Result = 0;
+    error_code = bacnet_list_write(
+        1, BACNET_ARRAY_ALL, list_write_test_decode, list_write_test_add, 3,
+        apdu, apdu_len);
+    zassert_equal(error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    zassert_equal(List_Write_Decode_Count, 1, NULL);
+    zassert_equal(List_Write_Add_Count, 0, NULL);
+    zassert_equal(List_Write_Add_Clear_Count, 0, NULL);
+
+    /* a decode error in the verify pass stops after the failing element */
+    list_write_test_reset();
+    List_Write_Decode_Fail_After = 1;
+    List_Write_Decode_Fail_Result = BACNET_STATUS_ERROR;
+    error_code = bacnet_list_write(
+        1, BACNET_ARRAY_ALL, list_write_test_decode, list_write_test_add, 3,
+        apdu, apdu_len);
+    zassert_equal(error_code, ERROR_CODE_ABORT_OTHER, NULL);
+    zassert_equal(List_Write_Decode_Count, 2, NULL);
+    zassert_equal(List_Write_Add_Count, 0, NULL);
+
+    /* a decode error in the add pass stops instead of repeating forever */
+    list_write_test_reset();
+    List_Write_Decode_Fail_After = 4;
+    List_Write_Decode_Fail_Result = BACNET_STATUS_ERROR;
+    error_code = bacnet_list_write(
+        1, BACNET_ARRAY_ALL, list_write_test_decode, list_write_test_add, 3,
+        apdu, apdu_len);
+    zassert_equal(error_code, ERROR_CODE_ABORT_OTHER, NULL);
+    zassert_equal(List_Write_Decode_Count, 5, NULL);
+    zassert_equal(List_Write_Add_Count, 1, NULL);
+
+    /* a zero-byte decode in the add pass fails the same way */
+    list_write_test_reset();
+    List_Write_Decode_Fail_After = 4;
+    List_Write_Decode_Fail_Result = 0;
+    error_code = bacnet_list_write(
+        1, BACNET_ARRAY_ALL, list_write_test_decode, list_write_test_add, 3,
+        apdu, apdu_len);
+    zassert_equal(error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    zassert_equal(List_Write_Decode_Count, 5, NULL);
+    zassert_equal(List_Write_Add_Count, 1, NULL);
+
+    /* an empty list empties the list without decoding */
+    list_write_test_reset();
+    error_code = bacnet_list_write(
+        1, BACNET_ARRAY_ALL, list_write_test_decode, list_write_test_add, 3,
+        apdu, 0);
+    zassert_equal(error_code, ERROR_CODE_SUCCESS, NULL);
+    zassert_equal(List_Write_Decode_Count, 0, NULL);
+    zassert_equal(List_Write_Add_Clear_Count, 1, NULL);
+}
+
 /**
  * @}
  */
@@ -2237,7 +2388,8 @@ void test_main(void)
         ztest_unit_test(testBACDCodeDouble),
         ztest_unit_test(test_bacnet_enclosed_data_length),
         ztest_unit_test(test_bacnet_constructed_value),
-        ztest_unit_test(test_bacnet_array_encode));
+        ztest_unit_test(test_bacnet_array_encode),
+        ztest_unit_test(test_bacnet_list_write));
 
     ztest_run_test_suite(bacdcode_tests);
 }
