@@ -24,6 +24,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed MSV and MS-Input Present_Value width and write-range validation. (#1522)
 * Fixed inverted NAT anti-loop check in BBMD BDT/FDT forwarding. (#1520)
 * Fixed bacnet_basic_task() to run the TSM and address-cache timers. (#1524)
 * Fixed Analog Output and Binary Output priority-array accessors to guard
