@@ -25,6 +25,31 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed a global buffer overflow in the memcopy unit test by using arrays
+  for test data. (#1525)
+* Fixed RAM file system scans to stop at the remaining buffer size and at
+  unterminated records. Fixed cleanup to free record data. (#1525)
+* Fixed the static RAM file system test to keep registered data for the
+  program lifetime. (#1525)
+* Fixed VMAC cleanup to release old lists and entries. Fixed VMAC add failure
+  handling to release an allocated entry. (#1525)
+* Fixed Network Port unit tests to release keylists after each test. (#1525)
+* Fixed BVLC unit tests to release allocated BDT and FDT test arrays. (#1525)
+* Fixed BIT and _BV macros to use unsigned shifts. (#1525)
+* Fixed bit-string comparison to prevent an out-of-bounds read at the end of
+  the bit string. (#1525)
+* Fixed BACnet data-code tests to use valid shift counts and buffer sizes for
+  values up to 64 bits. (#1525)
+* Fixed BACnet data-code tests to avoid signed integer overflow at the limits
+  of the signed integer range. (#1525)
+* Fixed fixed-point conversion and division to avoid signed left-shift
+  undefined behavior. (#1525)
+* Fixed fixed-point exponent handling to limit the shift count and use an
+  unsigned value. (#1525)
+* Fixed BACnet/SC encoding and unit tests to avoid NULL pointers with
+  zero-length memcpy and memcmp calls. (#1525)
+* Fixed bit-string writes to reject values that exceed the configured capacity
+  limit. (#1525)
 * Fixed MS/TP reception to reject oversized PDUs and wait correctly for queued
   packets. Fixed the MS/TP thread to prevent a busy loop when the station MAC
   is greater than 127. Added Linux MS/TP unit tests. (#1521)
