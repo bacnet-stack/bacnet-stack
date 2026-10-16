@@ -1014,12 +1014,12 @@ void bip_cleanup(void)
         sock_fd = BIP_Socket;
         closesocket(sock_fd);
     }
-    BIP_Socket = INVALID_SOCKET;
-
-    if (BIP_Broadcast_Socket != INVALID_SOCKET) {
+    if ((BIP_Broadcast_Socket != INVALID_SOCKET) &&
+        (BIP_Broadcast_Socket != BIP_Socket)) {
         sock_fd = BIP_Broadcast_Socket;
         closesocket(sock_fd);
     }
+    BIP_Socket = INVALID_SOCKET;
     BIP_Broadcast_Socket = INVALID_SOCKET;
 
     if (BIP_Initialized) {

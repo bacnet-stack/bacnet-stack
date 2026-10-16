@@ -31,6 +31,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed BACnet/IP socket cleanup to avoid closing the same socket twice on
+  Linux, BSD, and Windows. (#1533)
 * Fixed the error class for State_Text write errors in Multistate Input,
   Multistate Output, and Multistate Value objects. (#1529)
 * Fixed Linux and BSD MS/TP time handling at the nanosecond boundary. (#1530)
