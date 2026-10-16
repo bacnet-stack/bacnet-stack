@@ -44,6 +44,11 @@ The git repositories are hosted at the following sites:
   functions to the File object. Added record count support to the POSIX,
   RAM, and static RAM file backends. (#1566)
 
+### Changed
+
+* Changed the github/codeql-action version in the CodeQL workflow from 4.37.7
+  to 4.38.3. (#1559)
+
 ### Fixed
 
 * Fixed the bacfile_posix_write_record_data() function to ignore one trailing
