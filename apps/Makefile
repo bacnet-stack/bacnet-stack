@@ -421,8 +421,9 @@ dmbrcap:
 	$(MAKE) -B -C $@
 
 .PHONY: mstpcap
+mstpcap: CFLAGS += -DMAX_APDU=1476
 mstpcap:
-	$(MAKE) -B -DMAX_APDU=1476 -C $@
+	$(MAKE) -B -C $@
 
 .PHONY: mstpcrc
 mstpcrc:
