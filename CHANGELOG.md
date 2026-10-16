@@ -17,6 +17,10 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured the bacnet_ltrim() function to stop at the NUL terminator. This
+  prevents a read past the end of a string that contains only trimmed
+  characters. Added NULL pointer checks to bacnet_ltrim() and
+  bacnet_rtrim(). (#1568)
 * Secured the apps/sc-hub example by removing the ReinitializeDevice,
   WriteProperty, WritePropertyMultiple, TimeSynchronization, and
   UTCTimeSynchronization handlers. The default ReinitializeDevice password

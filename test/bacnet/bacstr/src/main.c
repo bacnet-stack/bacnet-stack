@@ -1634,6 +1634,19 @@ static void test_bacnet_string_trim(void)
     zassert_equal(bacnet_strcmp(trim_left_result, trim_empty), 0, NULL);
     zassert_equal(bacnet_strcmp(trim_right_result, trim_empty), 0, NULL);
     zassert_equal(bacnet_strcmp(trim_both_result, trim_empty), 0, NULL);
+    /* string made up only of trimmed characters must stop at the NUL */
+    strcpy(trim_left, "    ");
+    trim_left_result = bacnet_ltrim(trim_left, " ");
+    zassert_equal(trim_left_result, &trim_left[4], NULL);
+    zassert_equal(trim_left_result[0], 0, NULL);
+    /* NULL pointers are handled */
+    zassert_is_null(bacnet_ltrim(NULL, " "), NULL);
+    zassert_is_null(bacnet_rtrim(NULL, " "), NULL);
+    zassert_is_null(bacnet_trim(NULL, " "), NULL);
+    strcpy(trim_both, "  abc  ");
+    zassert_equal(bacnet_ltrim(trim_both, NULL), trim_both, NULL);
+    zassert_equal(bacnet_rtrim(trim_both, NULL), trim_both, NULL);
+    zassert_equal(bacnet_strcmp(trim_both, "  abc  "), 0, NULL);
 }
 
 /**
