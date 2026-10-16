@@ -17,6 +17,7 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured router MS/TP NPDU parsing to reject packets without APDU data. (#1534)
 * Secured buffer handling in bacnet_constructed_value_context_encode
   to prevent overrun. Fixed buffer overrun in bacnet_constructed_value_decode
   and validate using tests for oversized APDU. (#1510)
