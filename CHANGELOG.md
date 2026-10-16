@@ -25,6 +25,10 @@ The git repositories are hosted at the following sites:
 * Fixed the CharacterString Value object changed flag that was able to
   be cleared by writing an unchanged value to it. (#1484)
 
+### Removed
+
+* Removed unnecessary platform include from bacapp.c
+
 ## [1.6.1] - 2026-08-28
 
 ### Security
