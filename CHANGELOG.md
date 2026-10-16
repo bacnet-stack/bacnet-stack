@@ -17,6 +17,7 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured router MS/TP NPDU parsing to reject packets without APDU data. (#1534)
 * Secured WriteProperty of State_Text[0] (array size) or State_Text[N] to any
   multistate object (MSV, MSO, MSI) by rejecting a new size of 0 or
   above BACNET_STATE_NAME_LIST_MAX (default 255) with VALUE_OUT_OF_RANGE,
