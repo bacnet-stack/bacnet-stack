@@ -293,7 +293,6 @@ int main(int argc, char *argv[])
     /* broadcast an I-am-router-to-network on startup */
     printf("Remote Network DNET Number %d \n", DNET_list[0]);
     Send_I_Am_Router_To_Network(DNET_list);
-    Send_Network_Number_Is(NULL, DNET_list[0], NETWORK_NUMBER_CONFIGURED);
 
     handler_cov_init();
 
