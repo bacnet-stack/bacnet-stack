@@ -126,6 +126,35 @@ static bool timestamp_in_deadband(struct timeval t0, struct timeval t1)
 }
 
 /**
+ * @brief Convert a local struct tm value to UTC calendar fields using the
+ * host timezone offset and daylight-saving state, without gmtime().
+ * @param local_tm [in] Local time, including tm_isdst
+ * @param utc_tm [in,out] Receives the UTC year, month, day, hour, minute,
+ * and second; other members are unchanged
+ */
+static void datetime_tm_utc_fields(const struct tm *local_tm, struct tm *utc_tm)
+{
+    BACNET_DATE_TIME local_time = { 0 };
+    BACNET_DATE_TIME utc_time = { 0 };
+
+    datetime_set_values(
+        &local_time, (uint16_t)(local_tm->tm_year + 1900),
+        (uint8_t)(local_tm->tm_mon + 1), (uint8_t)local_tm->tm_mday,
+        (uint8_t)local_tm->tm_hour, (uint8_t)local_tm->tm_min,
+        (uint8_t)local_tm->tm_sec, 0);
+    (void)datetime_local_to_utc(
+        &utc_time, &local_time,
+        (int16_t)(datetime_timezone_seconds_west() / 60),
+        (local_tm->tm_isdst > 0) ? -60 : 0);
+    utc_tm->tm_year = (int)utc_time.date.year - 1900;
+    utc_tm->tm_mon = (int)utc_time.date.month - 1;
+    utc_tm->tm_mday = utc_time.date.day;
+    utc_tm->tm_hour = utc_time.time.hour;
+    utc_tm->tm_min = utc_time.time.min;
+    utc_tm->tm_sec = utc_time.time.sec;
+}
+
+/**
  * @brief Apply a BACnet TimeSynchronization request to the host clock offset.
  * @param bdate [in] Date to set, or NULL to retain the current date
  * @param btime [in] Time to set, or NULL to retain the current time
@@ -161,6 +190,10 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
         return;
     }
     input_tm = *timeinfo;
+    if (utc) {
+        /* omitted fields are seeded in the same basis as the request */
+        datetime_tm_utc_fields(timeinfo, &input_tm);
+    }
     if (bdate) {
         input_tm.tm_year = (int)bdate->year - 1900;
         input_tm.tm_mon = (int)bdate->month - 1;

@@ -100,11 +100,56 @@ static void test_host_timezone_sync(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(datetime_linux, test_host_timezone_partial_utc)
+#else
+static void test_host_timezone_partial_utc(void)
+#endif
+{
+    BACNET_DATE_TIME utc_time = { 0 };
+    BACNET_DATE date = { 0 };
+    BACNET_TIME time = { 0 };
+
+    zassert_equal(setenv("TZ", "America/New_York", 1), 0, NULL);
+    tzset();
+    datetime_reset();
+    datetime_init();
+    datetime_timesync_deadband_set(0);
+
+    /* 02:30 UTC during DST is 22:30 local on the previous day */
+    datetime_set_values(&utc_time, 2024, 7, 1, 2, 30, 0, 0);
+    datetime_timesync(&utc_time.date, &utc_time.time, true);
+    check_local_time(2024, 6, 30, 22, 30, true);
+
+    /* date-only UTC request preserves the UTC time */
+    datetime_set_date(&date, 2024, 7, 5);
+    datetime_timesync(&date, NULL, true);
+    check_local_time(2024, 7, 4, 22, 30, true);
+
+    /* time-only UTC request keeps the UTC date, not the local date */
+    datetime_set_time(&time, 3, 15, 0, 0);
+    datetime_timesync(NULL, &time, true);
+    check_local_time(2024, 7, 4, 23, 15, true);
+
+    /* the same requests outside DST */
+    datetime_set_values(&utc_time, 2024, 1, 10, 3, 30, 0, 0);
+    datetime_timesync(&utc_time.date, &utc_time.time, true);
+    check_local_time(2024, 1, 9, 22, 30, false);
+    datetime_set_date(&date, 2024, 1, 20);
+    datetime_timesync(&date, NULL, true);
+    check_local_time(2024, 1, 19, 22, 30, false);
+    datetime_set_time(&time, 4, 45, 0, 0);
+    datetime_timesync(NULL, &time, true);
+    check_local_time(2024, 1, 19, 23, 45, false);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(datetime_linux, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(datetime_linux, ztest_unit_test(test_host_timezone_sync));
+    ztest_test_suite(
+        datetime_linux, ztest_unit_test(test_host_timezone_sync),
+        ztest_unit_test(test_host_timezone_partial_utc));
     ztest_run_test_suite(datetime_linux);
 }
 #endif
