@@ -2165,14 +2165,15 @@ char *bacnet_ultoa(unsigned long value, char *buffer, size_t size)
  * @brief trim characters from the left side of a string
  * @param str - string to trim
  * @param trimmedchars - characters to trim from the string
- * @return the trimmed string
+ * @return the trimmed string, NULL if str is NULL; str if trimmedchars is NULL
  */
 char *bacnet_ltrim(char *str, const char *trimmedchars)
 {
-    if (str[0] == 0) {
+    if (!str || !trimmedchars) {
         return str;
     }
-    while (strchr(trimmedchars, *str)) {
+    /* strchr() matches the terminating NUL, so test for it explicitly */
+    while ((*str != 0) && strchr(trimmedchars, *str)) {
         str++;
     }
     return str;
@@ -2182,13 +2183,13 @@ char *bacnet_ltrim(char *str, const char *trimmedchars)
  * @brief trim characters from the right side of a string
  * @param str - string to trim
  * @param trimmedchars - characters to trim from the string
- * @return the trimmed string
+ * @return the trimmed string, or NULL if str is NULL
  */
 char *bacnet_rtrim(char *str, const char *trimmedchars)
 {
     char *end;
 
-    if (str[0] == 0) {
+    if (!str || !trimmedchars || (str[0] == 0)) {
         return str;
     }
     end = str + strlen(str) - 1;
