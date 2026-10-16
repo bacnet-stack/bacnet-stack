@@ -50,6 +50,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the Linux MS/TP initialization build failure with warnings treated as
+  errors by preserving the const qualifier of the default RS-485 interface name.
 * Fixed the BACnetTimerStateChangeValue no-value [0] encoding. The encoder
   now writes a context-tagged Null as one primitive tag with length 0.
   Fixed the BACnetHostAddress none [0] and BACnetLogRecord null-value [7]
