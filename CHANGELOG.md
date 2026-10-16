@@ -17,6 +17,12 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured the TSM and h_apdu confirmed-reply handlers. A response with a
+  matching Invoke ID from a different address no longer frees the pending
+  client transaction. The handlers now compare the remote address of a routed
+  peer, not the MAC of the router. Fixed Send_GetEvent() to register the
+  destination and the pending transaction before it sends the request, and to
+  set the data-expecting-reply flag. (#1573)
 * Secured the cJSON parse_string() function to reject a string that ends with
   a backslash. This prevents a one-byte read past the end of the buffer.
   Added a unit test for this case. (#1572)
@@ -167,6 +173,8 @@ ALREADY IN LOCAL CHANGELOG
 
 ### Removed
 
+* Removed the Send_GetEvent_Global() function. GetEventInformation is a
+  confirmed service and cannot be broadcast. (#1573)
 * Removed duplicate javadoc header for the
   bacnet_write_property_abstract_syntax_queue() function in bac-rw.h file.
 * Removed unnecessary platform include from bacapp.c
