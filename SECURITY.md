@@ -16,6 +16,46 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories)
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
+BACnet confirmed response source is not bound to the pending TSM transaction
+[GHSA-m3mw-mwm8-g846](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-m3mw-mwm8-g846)
+Patched versions: 1.4.7
+Pull Request: [#1573](https://github.com/bacnet-stack/bacnet-stack/pull/1573).
+
+Out-of-bounds read in bacnet_timer_value_decode via unsigned length underflow (Timer State_Change_Values)
+[GHSA-gp2v-g6xp-3vj7](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-gp2v-g6xp-3vj7)
+Patched versions: 1.4.7
+Pull Request: [#1569](https://github.com/bacnet-stack/bacnet-stack/pull/1569).
+
+Out-of-bounds read in bacnet_ltrim: skip loop never stops at the terminating NUL (reached via WeeklySchedule ASCII parser)
+[GHSA-85x2-2p8v-rjhm](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-85x2-2p8v-rjhm)
+Patched versions: 1.4.7
+Pull Request: [#1568](https://github.com/bacnet-stack/bacnet-stack/pull/1568).
+
+BACnet/SC (Linux port): sc-hub example accepts ReinitializeDevice with default password
+[GHSA-r8wc-8mcp-hjfc](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-r8wc-8mcp-hjfc)
+Patched versions: 1.4.7
+Pull Request: [#1567](https://github.com/bacnet-stack/bacnet-stack/pull/1567).
+
+BACnet Schedule list WriteProperty can enter a zero-progress CPU loop
+[GHSA-9g5v-8wwr-pr5g](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-9g5v-8wwr-pr5g)
+Patched versions: 1.4.7
+Pull Request: [#1535](https://github.com/bacnet-stack/bacnet-stack/pull/1535).
+
+Off-by-one out-of-bounds read in router-mstp NPDU handler
+[GHSA-wgjm-9rv6-ph6j](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-wgjm-9rv6-ph6j)
+Patched versions: 1.4.7
+Pull Request: [#1534](https://github.com/bacnet-stack/bacnet-stack/pull/1534).
+
+Stack buffer overflow in bacnet_constructed_value_decode() via Timer object WriteProperty (build-flag-gated)
+[GHSA-6272-3rw9-xr2j](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-6272-3rw9-xr2j)
+Patched versions: 1.4.7
+Pull Request: [#1510](https://github.com/bacnet-stack/bacnet-stack/pull/1510).
+
+BACnet/SC hub: unauthenticated peer acceptance and unbound identity claims enable node preemption and fabricated device data
+[GHSA-gv5j-fc8m-6gj7](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-gv5j-fc8m-6gj7)
+Patched versions: 1.4.7
+Pull Request: [#1503](https://github.com/bacnet-stack/bacnet-stack/pull/1503).
+
 Deprecated Decoder Out-of-Bounds Read (BN-05)
 [GHSA-f96q-cj8v-939q](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-f96q-cj8v-939q)
 Patched versions: 1.4.6
@@ -55,56 +95,67 @@ Router route-table Tx_Buffer overflow
 Patched versions: 1.4.6
 Pull Request: [#1438](https://github.com/bacnet-stack/bacnet-stack/pull/1438).
 
+[CVE-2026-102612](https://www.cve.org/CVERecord?id=CVE-2026-102612) -
 BACnet/SC hub never requires a client cert, so any host joins the mesh unauthenticated
 [GHSA-92q2-p4vr-fvmp](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-92q2-p4vr-fvmp).
 Patched versions: 1.4.6
 Pull Request: [#1436](https://github.com/bacnet-stack/bacnet-stack/pull/1436).
 
+[CVE-2026-97692](https://www.cve.org/CVERecord?id=CVE-2026-97692) -
 Trailing MORE bit on the last BACnet/SC header option walks the option list past the end of the message, causing a pre-auth out-of-bounds read escalating to an out-of-bounds write into global memory
 [GHSA-gr74-333w-7wg8](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-gr74-333w-7wg8).
 Patched versions: 1.4.6
 Pull Request: [#1435](https://github.com/bacnet-stack/bacnet-stack/pull/1435).
 
+[CVE-2026-102537](https://www.cve.org/CVERecord?id=CVE-2026-102537) -
 bacnet-stack BACnet/SC node always accepts a self-signed hub cert, so an attacker can MITM it
 [GHSA-jgm4-2wg9-jwfg](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-jgm4-2wg9-jwfg).
 Patched versions: 1.4.6
 Pull Request: [#1434](https://github.com/bacnet-stack/bacnet-stack/pull/1434).
 
+[CVE-2026-100403](https://www.cve.org/CVERecord?id=CVE-2026-100403) -
 BACnet/SC hub grows its WebSocket reassembly buffer without limit, so a peer can exhaust its memory
 [GHSA-4vgv-v5ph-rmxr](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-4vgv-v5ph-rmxr).
 Patched versions: 1.4.6
 Pull Request: [#1433](https://github.com/bacnet-stack/bacnet-stack/pull/1433).
 
+[CVE-2026-82414](https://www.cve.org/CVERecord?id=CVE-2026-82414) -
 MS/TP COBS decode overflow
 [GHSA-8456-m9x4-j6mc](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-8456-m9x4-j6mc).
 Patched versions: 1.4.6
 Pull Request: [#1425](https://github.com/bacnet-stack/bacnet-stack/pull/1425).
 
+[CVE-2026-62972](https://www.cve.org/CVERecord?id=CVE-2026-62972) -
 Out-of-bounds read in lighting_command_decode (full APDU size passed to nested tag decoders)
 [GHSA-9hq3-w3pc-8385](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-9hq3-w3pc-8385).
 Patched versions: 1.4.5
 Pull Request: [#1412](https://github.com/bacnet-stack/bacnet-stack/pull/1412).
 
+[CVE-2026-62977](https://www.cve.org/CVERecord?id=CVE-2026-62977) -
 WriteProperty(File_Size) can bypass read-only protection and expose uninitialized RAMFS tail bytes through AtomicReadFile
 [GHSA-mwj7-2v5r-v934](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-mwj7-2v5r-v934).
 Patched versions: 1.4.5
 Pull Request: [#1411](https://github.com/bacnet-stack/bacnet-stack/pull/1411).
 
+[CVE-2026-62975](https://www.cve.org/CVERecord?id=CVE-2026-62975) -
 Replacing a RAMFS record with a shorter one via AtomicWriteFile(record-access) can trigger a heap out-of-bounds read
 [GHSA-cf8g-hp9m-9fvv](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-cf8g-hp9m-9fvv).
 Patched versions: 1.4.5
 Pull Request: [#1408](https://github.com/bacnet-stack/bacnet-stack/pull/1408).
 
+[CVE-2026-62976](https://www.cve.org/CVERecord?id=CVE-2026-62976) -
 Consecutive AtomicWriteFile(record-access) appends can trigger a heap out-of-bounds read in the RAMFS file backend
 [GHSA-32jj-x86x-w98w](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-32jj-x86x-w98w).
 Patched versions: 1.4.5
 Pull Request: [#1408](https://github.com/bacnet-stack/bacnet-stack/pull/1408).
 
+[CVE-2026-62974](https://www.cve.org/CVERecord?id=CVE-2026-62974) -
 Remote unauthenticated DoS in Life_Safety_Zone PROP_ZONE_MEMBERS WriteProperty parsing
 [GHSA-2c8x-f46r-8phh](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-2c8x-f46r-8phh).
 Patched versions: 1.4.5
 Pull Request: [#1410](https://github.com/bacnet-stack/bacnet-stack/pull/1410).
 
+[CVE-2026-62973](https://www.cve.org/CVERecord?id=CVE-2026-62973) -
 Remote Global-Buffer-Overflow Read in readpropm via Malformed ReadPropertyMultiple-ACK
 [GHSA-3xxw-jfwm-rq9c](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-3xxw-jfwm-rq9c).
 Patched versions: 1.4.5
@@ -116,11 +167,13 @@ Out-of-bounds read in BACnet/SC proprietary header-option decode (bvlc_sc_decode
 Patched versions: 1.4.5
 Pull Request: [#1396](https://github.com/bacnet-stack/bacnet-stack/pull/1396).
 
+[CVE-2026-58498](https://www.cve.org/CVERecord?id=CVE-2026-58498) -
 Remote global-buffer-overflow in apps/router-ipv6/main.c routed APDU forwarding path
 [GHSA-4p4w-m434-jrhj](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-4p4w-m434-jrhj).
 Patched versions: 1.4.5
 Pull Request: [#1392](https://github.com/bacnet-stack/bacnet-stack/pull/1392).
 
+[CVE-2026-64675](https://www.cve.org/CVERecord?id=CVE-2026-64675) -
 Pre-auth OOB read in xy_color_decode (BACnetXYColor) via WriteGroup/WriteProperty
 [GHSA-mmg6-p4pr-cj6h](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-mmg6-p4pr-cj6h).
 Patched versions: 1.4.5
@@ -158,49 +211,52 @@ Global APDU transmit buffer out-of-bounds write in device.address-binding respon
 Patched versions: 1.4.5
 Pull Request: [#1363](https://github.com/bacnet-stack/bacnet-stack/pull/1363).
 
-AtomicReadFile/AtomicWriteFile stream fileStartPosition validation flaw causes out-of-bounds read/write in RAM file backends
-[GHSA-8759-hx7g-94qx](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-8759-hx7g-94qx)
+[CVE-2026-49990](https://www.cve.org/CVERecord?id=CVE-2026-49990) -
+AtomicReadFile/AtomicWriteFile stream fileStartPosition validation flaw causes out-of-bounds read/write in RAM file backends.
+[GHSA-8759-hx7g-94qx](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-8759-hx7g-94qx).
 Patched versions: 1.4.5
 Pull Request: [#1362](https://github.com/bacnet-stack/bacnet-stack/pull/1362).
 
 [CVE-2026-47710](https://www.cve.org/CVERecord?id=CVE-2026-47710) -
-Loop reference to long Structured View description causes stack-buffer-overflow
-[GHSA-2xm5-gjpc-9m6q](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-2xm5-gjpc-9m6q)
+Loop reference to long Structured View description causes stack-buffer-overflow.
+[GHSA-2xm5-gjpc-9m6q](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-2xm5-gjpc-9m6q).
 Patched versions: 1.4.4
 Pull Request: [#1355](https://github.com/bacnet-stack/bacnet-stack/pull/1355).
 
 [CVE-2026-47711](https://www.cve.org/CVERecord?id=CVE-2026-47711) -
-Stack buffer overflow in Loop internal ReadProperty path via Life_Safety_Zone accepted-modes property
-[GHSA-vrpm-9gm2-x552](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-vrpm-9gm2-x552)
+Stack buffer overflow in Loop internal ReadProperty path via Life_Safety_Zone accepted-modes property.
+[GHSA-vrpm-9gm2-x552](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-vrpm-9gm2-x552).
 Patched versions: 1.4.4
 Pull Request: [#1354](https://github.com/bacnet-stack/bacnet-stack/pull/1354),
 [#1355](https://github.com/bacnet-stack/bacnet-stack/pull/1355).
 
 [CVE-2026-47259](https://www.cve.org/CVERecord?id=CVE-2026-47259) -
-Stack-based buffer overflow in Notification Class RemoveListElement recipient-list decoding
-[GHSA-9w9m-w7w5-rrv3](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-9w9m-w7w5-rrv3)
+Stack-based buffer overflow in Notification Class RemoveListElement recipient-list decoding.
+[GHSA-9w9m-w7w5-rrv3](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-9w9m-w7w5-rrv3).
 Patched versions: 1.4.4
 Pull Request: [#1353](https://github.com/bacnet-stack/bacnet-stack/pull/1353).
 
 [CVE-2026-47258](https://www.cve.org/CVERecord?id=CVE-2026-47258) -
-Stack-based buffer overflow in Notification Class AddListElement recipient-list decoding
-[GHSA-rjmv-3mcm-r83j](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-rjmv-3mcm-r83j)
+Stack-based buffer overflow in Notification Class AddListElement recipient-list decoding.
+[GHSA-rjmv-3mcm-r83j](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-rjmv-3mcm-r83j).
 Patched versions: 1.4.4
-Pull Request: [#1347](https://github.com/bacnet-stack/bacnet-stack/pull/1347)
+Pull Request: [#1353](https://github.com/bacnet-stack/bacnet-stack/pull/1353).
 
+[CVE-2026-49341](https://www.cve.org/CVERecord?id=CVE-2026-49341) -
 Uncontrolled recursion in Timer object writeback path leads to remote server stack overflow
 [GHSA-7r8r-2rj2-5wvr](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-7r8r-2rj2-5wvr)
 Patched versions: 1.4.4
+Pull Request: [#1347](https://github.com/bacnet-stack/bacnet-stack/pull/1347)
 
 [CVE-2026-47217](https://www.cve.org/CVERecord?id=CVE-2026-47217) -
-Channel member self-reference causes uncontrolled recursion and stack overflow in default BACnet/IP server
-[GHSA-wjw5-q9g6-2764](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-wjw5-q9g6-2764)
+Channel member self-reference causes uncontrolled recursion and stack overflow in default BACnet/IP server.
+[GHSA-wjw5-q9g6-2764](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-wjw5-q9g6-2764).
 Patched versions: 1.4.4
 Pull Request: [#1345](https://github.com/bacnet-stack/bacnet-stack/pull/1345).
 
 [CVE-2026-46677](https://www.cve.org/CVERecord?id=CVE-2026-46677) -
-Client-Side Out-of-Bounds Read in AtomicReadFile-ACK Record-Access Handling via RecordCount / fileData[] Mismatch
-[GHSA-rv5h-cxwq-q3mh](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-rv5h-cxwq-q3mh)
+Client-Side Out-of-Bounds Read in AtomicReadFile-ACK Record-Access Handling via RecordCount / fileData[] Mismatch.
+[GHSA-rv5h-cxwq-q3mh](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-rv5h-cxwq-q3mh).
 Patched versions: 1.4.4
 Pull Request: [#1344](https://github.com/bacnet-stack/bacnet-stack/pull/1344).
 
@@ -227,6 +283,30 @@ Atomic-Read-File RecordCount Stack-Based Out-of-Bounds Write
 [GHSA-v3gx-mwrp-xvh5](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-v3gx-mwrp-xvh5)
 Patched versions: 1.4.4
 Pull Request: [#1340](https://github.com/bacnet-stack/bacnet-stack/pull/1340).
+
+[CVE-2026-40279](https://www.cve.org/CVERecord?id=CVE-2026-40279) -
+Undefined-behavior signed left shift in `decode_signed32()`
+[GHSA-326g-j95f-gmxv](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-326g-j95f-gmxv)
+Patched versions: 1.4.3
+Pull Request: [#1300](https://github.com/bacnet-stack/bacnet-stack/pull/1300)
+
+[CVE-2026-41503](https://www.cve.org/CVERecord?id=CVE-2026-41503) -
+Out-of-Bounds Read in ReadPropertyMultiple Property Decoder via Deprecated Tag Parser
+[GHSA-5w2v-mwqj-pr2c](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-5w2v-mwqj-pr2c)
+Patched versions: 1.4.3
+Pull Request: [#1244](https://github.com/bacnet-stack/bacnet-stack/pull/1244)
+
+[CVE-2026-41502](https://www.cve.org/CVERecord?id=CVE-2026-41502) -
+Off-by-One Out-of-Bounds Read in ReadPropertyMultiple Object ID Decoder
+[GHSA-7545-3fpx-4xw3](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-7545-3fpx-4xw3)
+Patched versions: 1.4.3
+Pull Request: [#1244](https://github.com/bacnet-stack/bacnet-stack/pull/1244)
+
+[CVE-2026-41475](https://www.cve.org/CVERecord?id=CVE-2026-41475) -
+Out-of-Bounds Read in WritePropertyMultiple Decoder via Deprecated Tag Parser
+[GHSA-cvv4-v3g6-4jmv](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-cvv4-v3g6-4jmv)
+Patched versions: 1.4.3
+Pull Request: [#1244](https://github.com/bacnet-stack/bacnet-stack/pull/1244)
 
 [CVE-2026-26264](https://www.cve.org/CVERecord?id=CVE-2026-26264) -
 WriteProperty decoding length underflow leads to OOB read and crash
