@@ -87,6 +87,30 @@ static void testAnalogOutput_Priority_6_Reserved(void)
     Analog_Output_Delete(instance);
     Analog_Output_Cleanup();
 }
+
+/**
+ * @brief Test that the priority-array accessors do not dereference NULL
+ *  for an unknown object instance
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ao_tests, testAnalogOutput_Priority_Array_Unknown_Instance)
+#else
+static void testAnalogOutput_Priority_Array_Unknown_Instance(void)
+#endif
+{
+    const uint32_t invalid_instance = 999;
+
+    Analog_Output_Init();
+
+    zassert_false(
+        Analog_Output_Priority_Array_Relinquished(invalid_instance, 1), NULL);
+    zassert_within(
+        Analog_Output_Priority_Array_Value(invalid_instance, 1), 0.0f, 0.001f,
+        NULL);
+
+    Analog_Output_Cleanup();
+}
+
 /**
  * @brief Test that changes to Present_Value (priority-array),
  *  Relinquish_Default, and Status_Flags (Out_Of_Service, Reliability/Fault)
@@ -174,6 +198,7 @@ void test_main(void)
     ztest_test_suite(
         ao_tests, ztest_unit_test(testAnalogOutput),
         ztest_unit_test(testAnalogOutput_Priority_6_Reserved),
+        ztest_unit_test(testAnalogOutput_Priority_Array_Unknown_Instance),
         ztest_unit_test(testAnalogOutput_COV));
 
     ztest_run_test_suite(ao_tests);
