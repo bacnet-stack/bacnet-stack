@@ -43,7 +43,9 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/bacapp.c
     ${SRC_DIR}/bacnet/bacdcode.c
     ${SRC_DIR}/bacnet/bacdest.c
+    ${SRC_DIR}/bacnet/abort.c
     ${SRC_DIR}/bacnet/bacdevobjpropref.c
+    ${SRC_DIR}/bacnet/bacerror.c
     ${SRC_DIR}/bacnet/bacint.c
     ${SRC_DIR}/bacnet/baclog.c
     ${SRC_DIR}/bacnet/bacreal.c
@@ -55,6 +57,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/hostnport.c
     ${SRC_DIR}/bacnet/lighting.c
     ${SRC_DIR}/bacnet/proplist.c
+    ${SRC_DIR}/bacnet/reject.c
     ${SRC_DIR}/bacnet/memcopy.c
     ${SRC_DIR}/bacnet/shed_level.c
     ${SRC_DIR}/bacnet/timer_value.c

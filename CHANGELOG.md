@@ -31,6 +31,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the error class for State_Text write errors in Multistate Input,
+  Multistate Output, and Multistate Value objects. (#1529)
 * Fixed Linux and BSD MS/TP time handling at the nanosecond boundary. (#1530)
 * Fixed datalink environment parsing to reject out-of-range port and MS/TP MAC
   address values. (#1532)
