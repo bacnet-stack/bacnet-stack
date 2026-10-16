@@ -17,6 +17,10 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured the apps/sc-hub example by removing the ReinitializeDevice,
+  WriteProperty, WritePropertyMultiple, TimeSynchronization, and
+  UTCTimeSynchronization handlers. The default ReinitializeDevice password
+  is public in the source code, so any peer could restart the hub. (#1567)
 * Secured the special_event_from_ascii() function to prevent a buffer overrun
   when it parses long period, priority, or schedule tokens. Added unit tests
   for tokens at the boundary length. (#1565)
