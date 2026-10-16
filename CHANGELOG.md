@@ -162,6 +162,9 @@ The git repositories are hosted at the following sites:
 
 ### Removed
 
+* Removed the ports/bsd/stdbool.h file because it was picked up by every
+  file that includes <stdbool.h> due to ports/bsd being on the include path.
+  Modern compilers no longer need this standard C99 header file. (#1512)
 * Removed the Send_GetEvent_Global() function. GetEventInformation is a
   confirmed service and cannot be broadcast. (#1573)
 
