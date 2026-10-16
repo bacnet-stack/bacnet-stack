@@ -4776,30 +4776,56 @@ bool bacapp_parse_primitive_value(
  * The value tag is auto-inferred from the token content.
  *
  * @param sched - output BACnetDailySchedule value
- * @param str - input string
+ * @param str - start of the schedule text
+ * @param end - one past the last character of the schedule text
  * @return true on parse success
  */
-static bool
-daily_schedule_from_ascii(BACNET_DAILY_SCHEDULE *sched, const char *str)
+static bool daily_schedule_from_ascii(
+    BACNET_DAILY_SCHEDULE *sched, const char *str, const char *end)
 {
     char tok[32] = "";
-    const char *next;
+    const char *p = str;
+    const char *tok_end;
+    const char *tok_start;
+    size_t len;
     int tvnum = 0;
     bool is_time = true;
 
     sched->TV_Count = 0;
     /* skip optional leading brace/spaces */
-    next = bacnet_ltrim(str, "{ ");
-    if (!next || next[0] == '\0' || next[0] == '}') {
+    while ((p < end) && ((*p == '{') || (*p == ' '))) {
+        p++;
+    }
+    /* trim trailing brace and spaces */
+    while ((end > p) && ((end[-1] == '}') || (end[-1] == ' '))) {
+        end--;
+    }
+    if (p >= end) {
         return true; /* empty schedule is valid */
     }
-    do {
-        next = bacnet_stptok(next, tok, sizeof(tok), ",");
-        /* trim trailing brace and spaces from the last token */
-        bacnet_rtrim(tok, "} ");
-        if (tok[0] == '\0') {
+    while (p < end) {
+        tok_end = memchr(p, ',', (size_t)(end - p));
+        if (!tok_end) {
+            tok_end = end;
+        }
+        tok_start = p;
+        len = (size_t)(tok_end - tok_start);
+        while ((len > 0) && (*tok_start == ' ')) {
+            tok_start++;
+            len--;
+        }
+        while ((len > 0) && (tok_start[len - 1] == ' ')) {
+            len--;
+        }
+        if (len == 0) {
             break;
         }
+        if (len >= sizeof(tok)) {
+            return false;
+        }
+        memcpy(tok, tok_start, len);
+        tok[len] = '\0';
+        p = (tok_end < end) ? (tok_end + 1) : end;
         if (is_time) {
             if (tvnum >= BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE) {
                 return false;
@@ -4816,7 +4842,7 @@ daily_schedule_from_ascii(BACNET_DAILY_SCHEDULE *sched, const char *str)
             tvnum++;
         }
         is_time = !is_time;
-    } while (next && *next);
+    }
     if (!is_time) {
         /* dangling time token with no corresponding value */
         return false;
@@ -4856,13 +4882,12 @@ static bool
 special_event_from_ascii(BACNET_APPLICATION_DATA_VALUE *value, const char *str)
 {
     const char *sep1, *sep2;
-    const char *period_str, *sched_str, *prio_str;
+    const char *period_str, *prio_str;
     BACNET_SPECIAL_EVENT *ev = &value->type.Special_Event;
     BACNET_UNSIGNED_INTEGER prio = 0;
     long unsigned int unsigned_value = 0;
     uint32_t found_index = 0;
     char period_buf[64];
-    char schedule_buf[64];
     char priority_buf[32];
     char type_buf[64];
     const char *colon;
@@ -4877,15 +4902,22 @@ special_event_from_ascii(BACNET_APPLICATION_DATA_VALUE *value, const char *str)
     if (*sep1 == '\0') {
         return false;
     }
-    bacnet_strncpy(period_buf, str, sep1 - str + 1);
+    tlen = (size_t)(sep1 - str);
+    if (tlen >= sizeof(period_buf)) {
+        return false;
+    }
+    memcpy(period_buf, str, tlen);
+    period_buf[tlen] = '\0';
     period_str = bacnet_trim(period_buf, " ");
     sep2 = bacapp_find_depth0(sep1 + 1, ',');
     if (*sep2 == '\0') {
         return false;
     }
-    bacnet_strncpy(schedule_buf, sep1 + 1, sep2 - (sep1 + 1) + 1);
-    sched_str = bacnet_trim(schedule_buf, " ");
-    bacnet_strncpy(priority_buf, sep2 + 1, sizeof(priority_buf) - 1);
+    tlen = strlen(sep2 + 1);
+    if (tlen >= sizeof(priority_buf)) {
+        return false;
+    }
+    memcpy(priority_buf, sep2 + 1, tlen + 1);
     prio_str = bacnet_trim(priority_buf, " ");
     /* priority - no range check, allows out-of-range testing */
     if (!bacnet_string_to_unsigned(prio_str, &prio)) {
@@ -4893,7 +4925,7 @@ special_event_from_ascii(BACNET_APPLICATION_DATA_VALUE *value, const char *str)
     }
     ev->priority = (uint8_t)prio;
     /* schedule */
-    if (!daily_schedule_from_ascii(&ev->timeValues, sched_str)) {
+    if (!daily_schedule_from_ascii(&ev->timeValues, sep1 + 1, sep2)) {
         return false;
     }
     /* period: pattern-based detection */

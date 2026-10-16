@@ -1440,6 +1440,102 @@ static void testBACnetApplicationData(void)
             .Value.type.Signed_Int,
         -1, NULL);
 
+    /* boundary lengths for the special event period/priority/schedule
+       tokens: oversized tokens must be rejected without overrunning */
+    {
+        char text[2048];
+        char pad[128];
+        size_t i, pad_len;
+
+        /* period token of exactly 63 bytes is accepted */
+        pad_len = 63 - strlen("calendar:5");
+        memset(pad, ' ', pad_len);
+        pad[pad_len] = '\0';
+        snprintf(text, sizeof(text), "%scalendar:5,{},5", pad);
+        memset(&value, 0, sizeof(value));
+        status = bacapp_parse_application_data(
+            BACNET_APPLICATION_TAG_SPECIAL_EVENT, text, &value);
+        zassert_true(status, NULL);
+        zassert_equal(
+            value.type.Special_Event.period.calendarReference.instance, 5,
+            NULL);
+        /* period token of 64 bytes is rejected */
+        pad[pad_len] = ' ';
+        pad[pad_len + 1] = '\0';
+        snprintf(text, sizeof(text), "%scalendar:5,{},5", pad);
+        status = bacapp_parse_application_data(
+            BACNET_APPLICATION_TAG_SPECIAL_EVENT, text, &value);
+        zassert_false(status, NULL);
+        /* very long period token is rejected */
+        memset(text, 'A', 1000);
+        strcpy(&text[1000], ":5,{},5");
+        status = bacapp_parse_application_data(
+            BACNET_APPLICATION_TAG_SPECIAL_EVENT, text, &value);
+        zassert_false(status, NULL);
+
+        /* priority token of exactly 31 bytes is accepted */
+        pad_len = 30;
+        memset(pad, ' ', pad_len);
+        pad[pad_len] = '\0';
+        snprintf(text, sizeof(text), "2023/10/24,{},%s5", pad);
+        status = bacapp_parse_application_data(
+            BACNET_APPLICATION_TAG_SPECIAL_EVENT, text, &value);
+        zassert_true(status, NULL);
+        zassert_equal(value.type.Special_Event.priority, 5, NULL);
+        /* priority token of 32 bytes is rejected */
+        pad[pad_len] = ' ';
+        pad[pad_len + 1] = '\0';
+        snprintf(text, sizeof(text), "2023/10/24,{},%s5", pad);
+        status = bacapp_parse_application_data(
+            BACNET_APPLICATION_TAG_SPECIAL_EVENT, text, &value);
+        zassert_false(status, NULL);
+
+        /* schedule with the maximum number of pairs, far longer than 64
+           bytes, is parsed in full */
+        strcpy(text, "2023/10/24,{");
+        for (i = 0; i < BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE; i++) {
+            snprintf(
+                pad, sizeof(pad), "%s%02u:00:00.00,%u", (i == 0) ? "" : ",",
+                (unsigned)(i % 24), (unsigned)i);
+            strcat(text, pad);
+        }
+        strcat(text, "},7");
+        zassert_true(strlen(text) > 64, NULL);
+        memset(&value, 0, sizeof(value));
+        status = bacapp_parse_application_data(
+            BACNET_APPLICATION_TAG_SPECIAL_EVENT, text, &value);
+        zassert_true(status, NULL);
+        zassert_equal(
+            value.type.Special_Event.timeValues.TV_Count,
+            BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE, NULL);
+        zassert_equal(value.type.Special_Event.priority, 7, NULL);
+        /* one more pair than fits is rejected */
+        strcpy(text, "2023/10/24,{");
+        for (i = 0; i <= BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE; i++) {
+            snprintf(
+                pad, sizeof(pad), "%s%02u:00:00.00,%u", (i == 0) ? "" : ",",
+                (unsigned)(i % 24), (unsigned)i);
+            strcat(text, pad);
+        }
+        strcat(text, "},7");
+        status = bacapp_parse_application_data(
+            BACNET_APPLICATION_TAG_SPECIAL_EVENT, text, &value);
+        zassert_false(status, NULL);
+        /* oversized schedule token (32 bytes) is rejected */
+        snprintf(text, sizeof(text), "2023/10/24,{08:00:00.00,%032u},7", 1U);
+        status = bacapp_parse_application_data(
+            BACNET_APPLICATION_TAG_SPECIAL_EVENT, text, &value);
+        zassert_false(status, NULL);
+        /* very long schedule token is rejected */
+        strcpy(text, "2023/10/24,{08:00:00.00,");
+        i = strlen(text);
+        memset(&text[i], '1', 1500);
+        strcpy(&text[i + 1500], "},7");
+        status = bacapp_parse_application_data(
+            BACNET_APPLICATION_TAG_SPECIAL_EVENT, text, &value);
+        zassert_false(status, NULL);
+    }
+
     return;
 }
 

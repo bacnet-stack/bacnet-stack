@@ -17,6 +17,9 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured the special_event_from_ascii() function to prevent a buffer overrun
+  when it parses long period, priority, or schedule tokens. Added unit tests
+  for tokens at the boundary length. (#1565)
 * Secured BACnet list writes to reject zero-byte elements and decode errors.
   This prevents loops when list data is malformed or truncated. (#1535)
 * Secured router MS/TP NPDU parsing to reject packets without APDU data. (#1534)
