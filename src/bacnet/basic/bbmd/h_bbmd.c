@@ -387,7 +387,7 @@ static uint16_t bbmd_bdt_forward_npdu(
                 continue;
             }
             if (BVLC_NAT_Handling) {
-                if (bvlc_address_different(&bip_dest, &BVLC_Global_Address)) {
+                if (!bvlc_address_different(&bip_dest, &BVLC_Global_Address)) {
                     /* NAT router port forwards BACnet packets from global IP.
                        Packets sent to that global IP by us would end up back,
                        creating a loop. */
@@ -454,7 +454,7 @@ static uint16_t bbmd_fdt_forward_npdu(
                 continue;
             }
             if (BVLC_NAT_Handling) {
-                if (bvlc_address_different(&bip_dest, &BVLC_Global_Address)) {
+                if (!bvlc_address_different(&bip_dest, &BVLC_Global_Address)) {
                     /* NAT router port forwards BACnet packets from global IP.
                        Packets sent to that global IP by us would end up back,
                        creating a loop. */
