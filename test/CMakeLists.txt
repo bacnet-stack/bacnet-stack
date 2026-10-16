@@ -215,6 +215,7 @@ list(APPEND testdirs
   bacnet/basic/service/h_pt
   bacnet/basic/service/h_rpm_a
   bacnet/basic/service/h_rr
+  bacnet/basic/service/s_getevent
   bacnet/basic/service/s_pt
   # basic/server
   bacnet/basic/server/bacnet_device
