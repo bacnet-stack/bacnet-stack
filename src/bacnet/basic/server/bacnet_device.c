@@ -3173,14 +3173,14 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
     uint32_t minutes = 0;
 #endif
 
+    if (wp_data == NULL) {
+        return false;
+    }
 #if defined(BACNET_TIME_MASTER)
-    if (wp_data &&
-        (wp_data->object_property == PROP_TIME_SYNCHRONIZATION_RECIPIENTS)) {
+    if (wp_data->object_property == PROP_TIME_SYNCHRONIZATION_RECIPIENTS) {
         return handler_timesync_recipient_write(wp_data);
     }
-    if (wp_data &&
-        (wp_data->object_property ==
-         PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS)) {
+    if (wp_data->object_property == PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS) {
         return handler_timesync_utc_recipient_write(wp_data);
     }
 #endif

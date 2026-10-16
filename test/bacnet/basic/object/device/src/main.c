@@ -63,6 +63,11 @@ static void test_Device_Write_Property_Range(void)
     wpdata.object_instance = Device_Object_Instance_Number();
     wpdata.array_index = BACNET_ARRAY_ALL;
 
+    status = Device_Write_Property_Local(NULL);
+    zassert_false(status, NULL);
+    status = Device_Write_Property(NULL);
+    zassert_false(status, NULL);
+
     wpdata.object_property = PROP_NUMBER_OF_APDU_RETRIES;
     wpdata.application_data_len = bacnet_unsigned_application_encode(
         wpdata.application_data, sizeof(wpdata.application_data),
