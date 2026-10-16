@@ -656,7 +656,6 @@ static void testReceiveNodeFSM_COBS_Decode_TightBuffer(void)
     unsigned len;
     unsigned cobs_len;
     unsigned tight_size;
-    unsigned guard_start;
     unsigned i;
 
     for (i = 0; i < sizeof(payload); i++) {
@@ -673,10 +672,72 @@ static void testReceiveNodeFSM_COBS_Decode_TightBuffer(void)
 
     cobs_len = (((unsigned)frame[5]) << 8) | frame[6];
     cobs_len += 2;
-    /* tight_size: enough for wire bytes plus almost no decode destination.
-        This should fail decode but must not overwrite guard bytes. */
-    tight_size = cobs_len + 1;
+    /* tight_size: exactly enough room for the encoded wire bytes and no
+       more. Decoding in-place at offset 0 needs no extra headroom, so
+       this must now succeed (it incorrectly failed before the fix). */
+    tight_size = cobs_len;
     zassert_true(tight_size < sizeof(rx_tight), NULL);
+
+    mstp_port.InputBuffer = &rx_tight[0];
+    mstp_port.InputBufferSize = tight_size;
+    mstp_port.OutputBuffer = &TxBuffer[0];
+    mstp_port.OutputBufferSize = sizeof(TxBuffer);
+    mstp_port.SilenceTimer = Timer_Silence;
+    mstp_port.SilenceTimerReset = Timer_Silence_Reset;
+    mstp_port.This_Station = my_mac;
+    mstp_port.Nmax_info_frames = 1;
+    mstp_port.Nmax_master = 127;
+    MSTP_Init(&mstp_port);
+
+    Load_Input_Buffer(frame, len);
+    for (i = 0; i < len; i++) {
+        RS485_Check_UART_Data(&mstp_port);
+        MSTP_Receive_Frame_FSM(&mstp_port);
+    }
+
+    zassert_true(mstp_port.ReceivedValidFrame == true, NULL);
+    zassert_true(mstp_port.ReceivedInvalidFrame == false, NULL);
+    zassert_true(mstp_port.receive_state == MSTP_RECEIVE_STATE_IDLE, NULL);
+    zassert_true(mstp_port.DataLength == sizeof(payload), NULL);
+    /* decoded data must land at offset 0, not after the encoded bytes */
+    for (i = 0; i < sizeof(payload); i++) {
+        zassert_true(
+            mstp_port.InputBuffer[i] == payload[i],
+            "tight buffer decoded payload[%u]: got 0x%02X expected 0x%02X", i,
+            mstp_port.InputBuffer[i], payload[i]);
+    }
+}
+
+static void testReceiveNodeFSM_COBS_Decode_BufferTooSmall(void)
+{
+    struct mstp_port_struct_t mstp_port = { 0 }; /* port data */
+    uint8_t my_mac = 0x05; /* local MAC address */
+    uint8_t frame[MAX_MPDU] = { 0 };
+    uint8_t rx_tight[MAX_MPDU] = { 0 };
+    uint8_t payload[64] = { 0 };
+    unsigned len;
+    unsigned cobs_len;
+    unsigned tight_size;
+    unsigned guard_start;
+    unsigned i;
+
+    for (i = 0; i < sizeof(payload); i++) {
+        payload[i] = (uint8_t)(i + 1);
+    }
+    payload[3] = 0;
+    payload[17] = 0;
+
+    len = MSTP_Create_Frame(
+        frame, sizeof(frame), FRAME_TYPE_BACNET_EXTENDED_DATA_EXPECTING_REPLY,
+        my_mac, my_mac, payload, sizeof(payload));
+    zassert_true(len > 0, NULL);
+
+    cobs_len = (((unsigned)frame[5]) << 8) | frame[6];
+    cobs_len += 2;
+    /* tight_size: too small to hold the encoded wire bytes at all. This
+       must fail decode (FrameTooLong) and must not overwrite guard bytes. */
+    zassert_true(cobs_len > 1, NULL);
+    tight_size = cobs_len - 1;
 
     mstp_port.InputBuffer = &rx_tight[0];
     mstp_port.InputBufferSize = tight_size;
@@ -700,7 +761,6 @@ static void testReceiveNodeFSM_COBS_Decode_TightBuffer(void)
         MSTP_Receive_Frame_FSM(&mstp_port);
     }
 
-    /* Decode destination space is intentionally too small. */
     zassert_true(mstp_port.ReceivedValidFrame == false, NULL);
     zassert_true(mstp_port.ReceivedInvalidFrame == true, NULL);
     zassert_true(mstp_port.receive_state == MSTP_RECEIVE_STATE_IDLE, NULL);
@@ -715,9 +775,11 @@ static void testReceiveNodeFSM_COBS_Large_Frame(void)
     struct mstp_port_struct_t mstp_port = { 0 };
     uint8_t my_mac = 0x05;
     uint8_t frame[MAX_MPDU] = { 0 };
-    /* payload larger than InputBufferSize/2 to exercise the in-place path
-       that previously failed with the off-buffer decode destination */
-    uint8_t payload[Nmin_COBS_length_BACnet] = { 0 };
+    /* payload large enough that (encoded length + decoded length) would
+       exceed InputBufferSize, even though the encoded length alone fits.
+       This previously failed because the decode destination was placed
+       after the encoded bytes instead of in-place at offset 0. */
+    uint8_t payload[1000] = { 0 };
     unsigned len;
     unsigned cobs_len;
     unsigned i;
@@ -749,6 +811,12 @@ static void testReceiveNodeFSM_COBS_Large_Frame(void)
     mstp_port.Nmax_master = 127;
     MSTP_Init(&mstp_port);
 
+    /* confirm this frame demonstrates the previously-failing case: the
+       encoded frame alone fits, but encoded+decoded together would not */
+    zassert_true(cobs_len <= mstp_port.InputBufferSize, NULL);
+    zassert_true(
+        (cobs_len + sizeof(payload)) > mstp_port.InputBufferSize, NULL);
+
     Load_Input_Buffer(frame, len);
     RS485_Check_UART_Data(&mstp_port);
     MSTP_Receive_Frame_FSM(&mstp_port);
@@ -760,13 +828,12 @@ static void testReceiveNodeFSM_COBS_Large_Frame(void)
     zassert_true(mstp_port.ReceivedValidFrame == true, NULL);
     zassert_true(mstp_port.ReceivedInvalidFrame == false, NULL);
     zassert_true(mstp_port.DataLength == sizeof(payload), NULL);
-    zassert_true(
-        (cobs_len + sizeof(payload)) <= mstp_port.InputBufferSize, NULL);
+    /* decoded data must land at offset 0, not after the encoded bytes */
     for (i = 0; i < sizeof(payload); i++) {
         zassert_true(
-            mstp_port.InputBuffer[cobs_len + i] == payload[i],
+            mstp_port.InputBuffer[i] == payload[i],
             "large frame decoded payload[%u]: got 0x%02X expected 0x%02X", i,
-            mstp_port.InputBuffer[cobs_len + i], payload[i]);
+            mstp_port.InputBuffer[i], payload[i]);
     }
 }
 
@@ -1492,6 +1559,7 @@ void test_main(void)
     ztest_test_suite(
         crc_tests, ztest_unit_test(testReceiveNodeFSM),
         ztest_unit_test(testReceiveNodeFSM_COBS_Decode_TightBuffer),
+        ztest_unit_test(testReceiveNodeFSM_COBS_Decode_BufferTooSmall),
         ztest_unit_test(testReceiveNodeFSM_COBS_Large_Frame),
         ztest_unit_test(testMasterNodeFSM), ztest_unit_test(testSlaveNodeFSM),
         ztest_unit_test(testZeroConfigNodeFSM),
