@@ -101,20 +101,28 @@ static long datetime_timezone_seconds_west(void)
 }
 
 /**
- * @brief Convert a system struct tm value to a BACnet date and time.
- * @param timeinfo [in] System time to convert
- * @param hundredths [in] Hundredths of a second
- * @param value [out] BACnet date and time receiving the converted value
+ * @brief Determine whether two system-clock readings are within the
+ * TimeSynchronization deadband.
+ * @param t0 [in] Requested time
+ * @param t1 [in] Current time
+ * @return true if the absolute difference is at most the configured
+ * deadband; false if the deadband is zero
+ *
+ * Timestamps are compared instead of local wall-clock values because
+ * wall-clock values repeat during the DST fall-back hour.
  */
-static void datetime_tm_to_bacnet(
-    const struct tm *timeinfo, uint8_t hundredths, BACNET_DATE_TIME *value)
+static bool timestamp_in_deadband(struct timeval t0, struct timeval t1)
 {
-    datetime_set_date(
-        &value->date, (uint16_t)(timeinfo->tm_year + 1900),
-        (uint8_t)(timeinfo->tm_mon + 1), (uint8_t)timeinfo->tm_mday);
-    datetime_set_time(
-        &value->time, (uint8_t)timeinfo->tm_hour, (uint8_t)timeinfo->tm_min,
-        (uint8_t)timeinfo->tm_sec, hundredths);
+    int64_t difference = 0;
+    int64_t deadband = (int64_t)datetime_timesync_deadband() * 1000;
+
+    difference = (((int64_t)t0.tv_sec - (int64_t)t1.tv_sec) * 1000000) +
+        ((int64_t)t0.tv_usec - (int64_t)t1.tv_usec);
+    if (difference < 0) {
+        difference = -difference;
+    }
+
+    return (deadband > 0) && (difference <= deadband);
 }
 
 /**
@@ -129,20 +137,17 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
 {
     struct timeval tv_system = { 0 };
     struct timeval tv_target = { 0 };
+    struct timeval tv_current = { 0 };
     struct tm current_tm = { 0 };
     struct tm input_tm = { 0 };
     struct tm target_tm = { 0 };
     struct tm standard_tm = { 0 };
     struct tm check_tm = { 0 };
-    struct tm target_local = { 0 };
     struct tm *timeinfo = NULL;
-    struct tm *local_result = NULL;
     struct tm *roundtrip = NULL;
     time_t seconds = 0;
     time_t target_seconds = 0;
     time_t standard_seconds = 0;
-    BACNET_DATE_TIME current = { 0 };
-    BACNET_DATE_TIME requested = { 0 };
     BACNET_DATE_TIME standard_time = { 0 };
 
     datetime_lock();
@@ -155,8 +160,6 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
         datetime_unlock();
         return;
     }
-    datetime_tm_to_bacnet(
-        timeinfo, (uint8_t)(tv_system.tv_usec / 10000), &current);
     input_tm = *timeinfo;
     if (bdate) {
         input_tm.tm_year = (int)bdate->year - 1900;
@@ -198,14 +201,9 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
     }
     tv_target.tv_sec = target_seconds;
     tv_target.tv_usec = btime ? (long)btime->hundredths * 10000 : 0;
-    target_seconds = tv_target.tv_sec;
-    if (!datetime_localtime(&target_local, &target_seconds, &local_result)) {
-        datetime_unlock();
-        return;
-    }
-    datetime_tm_to_bacnet(
-        local_result, btime ? btime->hundredths : 0, &requested);
-    if (datetime_timesync_in_deadband(&current, &requested)) {
+    tv_current = tv_system;
+    tv_current.tv_sec += Time_Offset;
+    if (timestamp_in_deadband(tv_target, tv_current)) {
         datetime_unlock();
         return;
     }
