@@ -17,6 +17,9 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured buffer handling in bacnet_constructed_value_context_encode
+  to prevent overrun. Fixed buffer overrun in bacnet_constructed_value_decode
+  and validate using tests for oversized APDU. (#1510)
 * Secured the Linux/BSD/Windows websocket by enforcing TLS client-certificate
   verification in BACnet/SC. (#1503)
 
