@@ -151,13 +151,10 @@ void Schedule_Init(void)
     uint16_t current_dev_id = Routed_Device_Object_Index();
 #endif
 
-    /* whole year, change as necessary */
-    datetime_set_date(&start_date, 0, 1, 1);
-    datetime_wildcard_year_set(&start_date);
-    datetime_wildcard_weekday_set(&start_date);
-    datetime_set_date(&end_date, 0, 12, 31);
-    datetime_wildcard_year_set(&end_date);
-    datetime_wildcard_weekday_set(&end_date);
+    /* default to a completely unspecified Effective_Period, since a
+       partial wildcard is not a valid date range; change as necessary */
+    datetime_date_wildcard_set(&start_date);
+    datetime_date_wildcard_set(&end_date);
     for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
 #ifdef BAC_ROUTING
         Set_Routed_Device_Object_Index(dev_id);
@@ -445,11 +442,62 @@ static int Schedule_Exception_Schedule_Encode(
 #endif
 
 /**
+ * @brief Determine if a date is either fully specified or completely
+ *  unspecified (all fields wildcarded). BACnet addenda clarified that
+ *  the start date and end date of a date range used in Effective_Period
+ *  must be either a fully specified date, or a completely unspecified date.
+ *  Partial wildcards, such as specifying a month and day while wildcarding
+ *  only the year, are not permitted in a date range.
+ * @param bdate - date to check
+ * @return true if the date is fully specified or completely unspecified
+ */
+static bool Schedule_Effective_Period_Date_Valid(const BACNET_DATE *bdate)
+{
+    bool year, month, day, weekday;
+
+    if (!bdate) {
+        return false;
+    }
+    year = datetime_wildcard_year(bdate);
+    month = datetime_wildcard_month(bdate);
+    day = datetime_wildcard_day(bdate);
+    weekday = datetime_wildcard_weekday(bdate);
+    if (year && month && day && weekday) {
+        /* completely unspecified date */
+        return true;
+    }
+    if (!year && !month && !day) {
+        /* fully specified date (weekday may be wildcarded or computed) */
+        if (!datetime_date_is_valid(bdate)) {
+            return false;
+        }
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * @brief Determine if a start/end date pair is a valid Effective_Period
+ * @param start_date - start date of the effective period
+ * @param end_date - end date of the effective period
+ * @return true if both dates are valid
+ */
+static bool Schedule_Effective_Period_Valid(
+    const BACNET_DATE *start_date, const BACNET_DATE *end_date)
+{
+    return Schedule_Effective_Period_Date_Valid(start_date) &&
+        Schedule_Effective_Period_Date_Valid(end_date);
+}
+
+/**
  * @brief Set the Effective Period for a given object instance
  * @param object_instance - object-instance number of the object
  * @param start_date - start date of the effective period
  * @param end_date - end date of the effective period
- * @return true if the effective period was set, and false if not
+ * @return true if the effective period was set, and false if not (either
+ *  the object was not found, or start_date/end_date is not fully specified
+ *  or fully wildcarded)
  */
 bool Schedule_Effective_Period_Set(
     uint32_t object_instance,
@@ -458,6 +506,9 @@ bool Schedule_Effective_Period_Set(
 {
     SCHEDULE_DESCR *pObject;
 
+    if (!Schedule_Effective_Period_Valid(start_date, end_date)) {
+        return false;
+    }
     pObject = Schedule_Object(object_instance);
     if (pObject) {
         datetime_copy_date(&pObject->Start_Date, start_date);
@@ -992,6 +1043,14 @@ bool Schedule_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_EFFECTIVE_PERIOD:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_DATERANGE);
+            if (status &&
+                !Schedule_Effective_Period_Valid(
+                    &value.type.Date_Range.startdate,
+                    &value.type.Date_Range.enddate)) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                status = false;
+            }
             if (status) {
                 /* set the start and end date */
                 datetime_copy_date(
