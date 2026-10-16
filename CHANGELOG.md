@@ -25,6 +25,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed datalink environment parsing to reject out-of-range port and MS/TP MAC
+  address values. (#1532)
 * Fixed Device WriteProperty range checks for APDU retries, APDU timeout, and
   vendor identifier. (#1531)
 * Fixed MSV and MS-Input Present_Value width and write-range validation. (#1522)
