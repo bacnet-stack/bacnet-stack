@@ -17,6 +17,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the basic Analog Output object to reserve priority 6 and reject
+  writes to it. (#1492)
 * Fixed MinGW and MSVC compiler warnings by adding a setenv() function to
   platform.h that calls _putenv_s().
 * Fixed bacapp.c to not include the unnecessary platform.h header file.
