@@ -28,6 +28,8 @@ The git repositories are hosted at the following sites:
 
 ### Removed
 
+* Removed duplicate javadoc header for the
+  bacnet_write_property_abstract_syntax_queue() function in bac-rw.h file.
 * Removed unnecessary platform include from bacapp.c
 
 ## [1.6.1] - 2026-08-28
