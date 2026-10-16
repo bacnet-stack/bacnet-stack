@@ -35,8 +35,21 @@ The git repositories are hosted at the following sites:
 * Secured the Linux/BSD/Windows websocket by enforcing TLS client-certificate
   verification in BACnet/SC. (#1503)
 
+### Added
+
+* Added the bacfile_record_count_callback_set() and bacfile_record_count()
+  functions to the File object. Added record count support to the POSIX,
+  RAM, and static RAM file backends. (#1566)
+
 ### Fixed
 
+* Fixed the AtomicReadFile and AtomicWriteFile services to conform to
+  ANSI/ASHRAE 135-2024 Clauses 14.1 and 14.2 for record access.
+  AtomicReadFile accepts any non-negative start record and returns
+  INVALID_FILE_START_POSITION when the start record is beyond the last
+  record. AtomicWriteFile reports record write errors, rejects a start record
+  less than -1, and returns the actual start record when it appends.
+  Fixed the POSIX, RAM, and static RAM file backends for record access. (#1566)
 * Fixed the Day Light Saving Time dst_active() function to support Southern
   Hemisphere ranges where the begin date is after the end date. The function
   now rejects calendar dates that do not exist. (#1555)

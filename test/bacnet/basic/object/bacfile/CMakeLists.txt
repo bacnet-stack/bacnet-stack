@@ -23,6 +23,7 @@ set(ZTST_DIR "${TST_DIR}/ztest/src")
 add_compile_definitions(
     BACNET_BIG_ENDIAN=0
     BACFILE=1
+    BACNET_WRITE_FILE_RECORD_COUNT=3
     CONFIG_ZTEST=1
     )
 

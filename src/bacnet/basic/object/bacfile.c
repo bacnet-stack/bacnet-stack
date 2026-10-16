@@ -356,10 +356,12 @@ static bool (*bacfile_read_record_data_cb)(
  * @param pathname - name of the file to read from
  * @param fileStartRecord - starting record number in the file
  * @param record_index - index of the record to read
- * @param buffer - data buffer to read into
+ * @param buffer - data buffer to read into, zero-filled by the caller.
+ *  A record is a NUL-terminated string. An empty record is valid.
  * @param buffer_size - size of the data buffer
- * @return true if the record data was read successfully
- * @return false if the record data could not be read
+ * @return true if the record exists and was read, even if it is empty
+ * @return false if the record is at or past the last record of the file,
+ *  or could not be read. Record numbers are 0-based.
  */
 static bool bacfile_read_record_data_callback(
     const char *pathname,
@@ -490,6 +492,46 @@ static size_t bacfile_file_size_callback(const char *pathname)
 void bacfile_file_size_callback_set(size_t (*callback)(const char *))
 {
     bacfile_file_size_cb = callback;
+}
+
+/**
+ * @brief Callback function to get the number of records in a file
+ */
+static size_t (*bacfile_record_count_cb)(const char *) = NULL;
+
+/**
+ * @brief Sets the callback function for getting the number of records
+ * @param callback - function pointer to the callback, which returns the
+ *  number of records in the file, or 0 if the file is not found
+ */
+void bacfile_record_count_callback_set(size_t (*callback)(const char *))
+{
+    bacfile_record_count_cb = callback;
+}
+
+/**
+ * @brief Get the number of records in a file
+ * @param object_instance - object-instance number of the object
+ * @param count - the number of records
+ * @return true if the number of records is known, false if the file
+ *  has no pathname or the record count callback is not set
+ */
+bool bacfile_record_count(uint32_t object_instance, size_t *count)
+{
+    const char *pathname;
+
+    if (!bacfile_record_count_cb) {
+        return false;
+    }
+    pathname = bacfile_pathname(object_instance);
+    if (!pathname) {
+        return false;
+    }
+    if (count) {
+        *count = bacfile_record_count_cb(pathname);
+    }
+
+    return true;
 }
 
 /**
@@ -1094,6 +1136,7 @@ bool bacfile_read_record_data(BACNET_ATOMIC_READ_FILE_DATA *data)
     size_t len = 0;
     uint32_t i = 0;
     size_t max_records = 0;
+    size_t total_records = 0;
 
     if (!data) {
         return false;
@@ -1105,10 +1148,13 @@ bool bacfile_read_record_data(BACNET_ATOMIC_READ_FILE_DATA *data)
         found = true;
     }
     if (found && (data->type.record.fileStartRecord >= 0) &&
-        (data->type.record.fileStartRecord < ARRAY_SIZE(data->fileData)) &&
         (max_records > 0)) {
         data->endOfFile = false;
+        data->type.record.RecordCount = max_records;
         for (i = 0; i < max_records; i++) {
+            memset(
+                octetstring_value(&data->fileData[i]), 0,
+                octetstring_capacity(&data->fileData[i]));
             status = bacfile_read_record_data_callback(
                 pathname, data->type.record.fileStartRecord, i,
                 octetstring_value(&data->fileData[i]),
@@ -1125,6 +1171,13 @@ bool bacfile_read_record_data(BACNET_ATOMIC_READ_FILE_DATA *data)
                 data->type.record.RecordCount = i;
                 break;
             }
+        }
+        if (bacfile_record_count(data->object_instance, &total_records)) {
+            /* TRUE if the response includes the last record */
+            data->endOfFile =
+                ((size_t)data->type.record.fileStartRecord +
+                     data->type.record.RecordCount >=
+                 total_records);
         }
     } else {
         data->endOfFile = true;
@@ -1184,7 +1237,6 @@ bool bacfile_write_record_data(const BACNET_ATOMIC_WRITE_FILE_DATA *data)
     const char *pathname = NULL;
     bool found = false;
     size_t i = 0;
-    size_t max_records = 0;
 
     if (!data) {
         return false;
@@ -1193,21 +1245,23 @@ bool bacfile_write_record_data(const BACNET_ATOMIC_WRITE_FILE_DATA *data)
         /* if the file is read-only, then we cannot write to it */
         return false;
     }
-    max_records = BACNET_MIN(
-        data->type.record.returnedRecordCount, ARRAY_SIZE(data->fileData));
+    if (data->type.record.returnedRecordCount > ARRAY_SIZE(data->fileData)) {
+        return false;
+    }
     pathname = bacfile_pathname(data->object_instance);
     if (pathname) {
         found = true;
         /* If 'File Start Record' parameter has the special
             value -1, then the write operation shall be treated
-            as an append to the current end of file.
-            If the 'File Start Record' parameter is 0,
-            open the file as a clean slate. */
-        for (i = 0; i < max_records; i++) {
-            bacfile_write_record_data_callback(
-                pathname, data->type.record.fileStartRecord, i,
-                octetstring_value_const(&data->fileData[i]),
-                octetstring_length(&data->fileData[i]));
+            as an append to the current end of file. */
+        for (i = 0; i < data->type.record.returnedRecordCount; i++) {
+            if (!bacfile_write_record_data_callback(
+                    pathname, data->type.record.fileStartRecord, i,
+                    octetstring_value_const(&data->fileData[i]),
+                    octetstring_length(&data->fileData[i]))) {
+                found = false;
+                break;
+            }
         }
     }
 

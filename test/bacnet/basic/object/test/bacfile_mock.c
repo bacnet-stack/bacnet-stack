@@ -60,6 +60,15 @@ void bacfile_file_size_callback_set(size_t (*callback)(const char *))
 }
 
 /**
+ * @brief Sets the callback function for getting the number of records
+ * @param callback - function pointer to the callback
+ */
+void bacfile_record_count_callback_set(size_t (*callback)(const char *))
+{
+    (void)callback;
+}
+
+/**
  * @brief Sets the callback function for setting file size
  * @param callback - function pointer to the callback
  */
