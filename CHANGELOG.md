@@ -17,6 +17,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed MinGW and MSVC compiler warnings by adding a setenv() function to
+  platform.h that calls _putenv_s().
 * Fixed bacapp.c to not include the unnecessary platform.h header file.
 * Fixed MinGW buggy warnings for isinfinite(), isnan(), and isinf()
   when used with double arguments.

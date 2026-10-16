@@ -10,6 +10,7 @@
 #ifndef BACNET_SYS_PLATFORM_H
 #define BACNET_SYS_PLATFORM_H
 #include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
 #include <limits.h>
 #include <math.h>
@@ -41,6 +42,17 @@
 #define isfinite(x) __builtin_isfinite(x)
 #define isnan(x) __builtin_isnan(x)
 #define isinf(x) __builtin_isinf(x)
+#endif
+
+#if defined(_WIN32)
+/* MinGW/MSVC lack setenv(); wrap _putenv_s() to match its signature */
+static __inline int setenv(const char *name, const char *value, int overwrite)
+{
+    if (!overwrite && (getenv(name) != NULL)) {
+        return 0;
+    }
+    return (int)_putenv_s(name, value);
+}
 #endif
 
 #ifndef ARRAY_SIZE
