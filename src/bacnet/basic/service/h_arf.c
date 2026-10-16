@@ -20,6 +20,7 @@
 #include "bacnet/reject.h"
 #include "bacnet/arf.h"
 /* basic objects, services, TSM, and datalink */
+#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/bacfile.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
@@ -138,6 +139,11 @@ int handler_atomic_read_file_encode(
             error_code = ERROR_CODE_ABORT_OTHER;
             error = true;
         } else if (data.object_type == OBJECT_FILE) {
+#if defined BACNET_BACKUP_RESTORE
+            if (Device_Is_Configuration_File(data.object_instance)) {
+                Device_Backup_Failure_Timeout_Restart();
+            }
+#endif
             if (!bacfile_valid_instance(data.object_instance)) {
                 error_code = ERROR_CODE_UNKNOWN_OBJECT;
                 error = true;

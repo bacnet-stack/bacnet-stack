@@ -589,6 +589,108 @@ static void test_Routed_Device_Reinitialize(void)
 }
 #endif
 
+#if defined(BACNET_BACKUP_RESTORE)
+/**
+ * @brief Test that internal reads and writes of other objects, such as
+ *  object property references, let the backup failure timeout expire
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Device_Backup_Failure_Timeout_Internal_Access)
+#else
+static void test_Device_Backup_Failure_Timeout_Internal_Access(void)
+#endif
+{
+    const uint32_t config_file = 7;
+    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    bool status = false;
+    int len = 0;
+
+    Device_Init(NULL);
+    Device_Configuration_File_Set(0, config_file);
+    Device_Backup_Failure_Timeout_Set(1);
+    Device_Backup_And_Restore_State_Set(BACKUP_STATE_PERFORMING_A_BACKUP);
+    Device_Backup_Failure_Timeout_Restart();
+
+    Device_Timer(250);
+    rpdata.object_type = OBJECT_DEVICE;
+    rpdata.object_instance = Device_Object_Instance_Number();
+    rpdata.object_property = PROP_OBJECT_NAME;
+    rpdata.array_index = BACNET_ARRAY_ALL;
+    rpdata.application_data = apdu;
+    rpdata.application_data_len = sizeof(apdu);
+    len = Device_Read_Property(&rpdata);
+    zassert_true(len > 0, NULL);
+
+    /* a File object that is not a configuration file */
+    Device_Timer(250);
+    rpdata.object_type = OBJECT_FILE;
+    rpdata.object_instance = config_file + 1;
+    (void)Device_Read_Property(&rpdata);
+
+    Device_Timer(250);
+    wpdata.object_type = OBJECT_DEVICE;
+    wpdata.object_instance = Device_Object_Instance_Number();
+    wpdata.object_property = PROP_NUMBER_OF_APDU_RETRIES;
+    wpdata.array_index = BACNET_ARRAY_ALL;
+    wpdata.application_data_len = bacnet_unsigned_application_encode(
+        wpdata.application_data, sizeof(wpdata.application_data), 3);
+    status = Device_Write_Property(&wpdata);
+    zassert_true(status, NULL);
+    zassert_equal(
+        Device_Backup_And_Restore_State(), BACKUP_STATE_PERFORMING_A_BACKUP,
+        NULL);
+
+    /* the one second timeout expires despite the internal access */
+    Device_Timer(250);
+    zassert_equal(
+        Device_Backup_And_Restore_State(), BACKUP_STATE_BACKUP_FAILURE, NULL);
+    Device_Configuration_File_Set(0, 0);
+}
+
+/**
+ * @brief Test that reading a configuration File object restarts the
+ *  backup failure timeout
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Device_Backup_Failure_Timeout_Configuration_File)
+#else
+static void test_Device_Backup_Failure_Timeout_Configuration_File(void)
+#endif
+{
+    const uint32_t config_file = 7;
+    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+
+    Device_Init(NULL);
+    Device_Configuration_File_Set(0, config_file);
+    Device_Backup_Failure_Timeout_Set(1);
+    Device_Backup_And_Restore_State_Set(BACKUP_STATE_PERFORMING_A_BACKUP);
+    Device_Backup_Failure_Timeout_Restart();
+
+    Device_Timer(600);
+    rpdata.object_type = OBJECT_FILE;
+    rpdata.object_instance = config_file;
+    rpdata.object_property = PROP_OBJECT_NAME;
+    rpdata.array_index = BACNET_ARRAY_ALL;
+    rpdata.application_data = apdu;
+    rpdata.application_data_len = sizeof(apdu);
+    /* the File object may not exist, but the request still counts */
+    (void)Device_Read_Property(&rpdata);
+    Device_Timer(600);
+    zassert_equal(
+        Device_Backup_And_Restore_State(), BACKUP_STATE_PERFORMING_A_BACKUP,
+        NULL);
+
+    /* without another request the restarted timeout expires */
+    Device_Timer(400);
+    zassert_equal(
+        Device_Backup_And_Restore_State(), BACKUP_STATE_BACKUP_FAILURE, NULL);
+    Device_Configuration_File_Set(0, 0);
+}
+#endif
+
 #if defined(BAC_ROUTING) && defined(BACNET_BACKUP_RESTORE)
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(device_tests, test_Routed_Device_Backup_Restore_Independence)
@@ -709,6 +811,8 @@ void test_main(void)
         device_tests, ztest_unit_test(testDevice),
         ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Write_Property_Range),
+        ztest_unit_test(test_Device_Backup_Failure_Timeout_Internal_Access),
+        ztest_unit_test(test_Device_Backup_Failure_Timeout_Configuration_File),
         ztest_unit_test(test_Routed_Device_DCC_Remains_Blocked),
         ztest_unit_test(test_Routed_Device_Reinitialize),
         ztest_unit_test(test_Routed_Device_Backup_Restore_Independence),
@@ -720,6 +824,13 @@ void test_main(void)
         ztest_unit_test(test_Device_Write_Property_Range),
         ztest_unit_test(test_Routed_Device_DCC_Remains_Blocked),
         ztest_unit_test(test_Routed_Device_Reinitialize));
+#elif defined(BACNET_BACKUP_RESTORE)
+    ztest_test_suite(
+        device_tests, ztest_unit_test(testDevice),
+        ztest_unit_test(test_Device_Data_Sharing),
+        ztest_unit_test(test_Device_Write_Property_Range),
+        ztest_unit_test(test_Device_Backup_Failure_Timeout_Internal_Access),
+        ztest_unit_test(test_Device_Backup_Failure_Timeout_Configuration_File));
 #else
     ztest_test_suite(
         device_tests, ztest_unit_test(testDevice),

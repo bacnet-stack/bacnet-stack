@@ -509,6 +509,61 @@ static void testHandlerARF_RecordRequestOnStreamFile(void)
         (unsigned)PDU_TYPE_ERROR, (unsigned)transmit_buffer[apdu_offset]);
 }
 
+#if defined(BACNET_BACKUP_RESTORE)
+/* Stub control variables defined in device_stub.c */
+extern const uint32_t Device_Stub_Configuration_File;
+extern unsigned Device_Stub_Restart_Count;
+
+/**
+ * @brief Send a stream AtomicReadFile request and count the backup
+ *  failure timeout restarts it caused
+ * @param instance [in] The File object instance to read
+ * @return The number of restarts
+ */
+static unsigned arf_restart_count(uint32_t instance)
+{
+    BACNET_ATOMIC_READ_FILE_DATA req = { 0 };
+    uint8_t service_request[480] = { 0 };
+    uint8_t transmit_buffer[480] = { 0 };
+    BACNET_ADDRESS src = { 0 };
+    BACNET_CONFIRMED_SERVICE_DATA service_data = { 0 };
+    BACNET_NPDU_DATA npdu_data = { 0 };
+    int service_len;
+
+    req.object_type = OBJECT_FILE;
+    req.object_instance = instance;
+    req.access = FILE_STREAM_ACCESS;
+    req.type.stream.fileStartPosition = 0;
+    req.type.stream.requestedOctetCount = 16;
+    service_len = arf_service_encode_apdu(service_request, &req);
+    zassert_true(service_len > 0, "encoding failed: len=%d", service_len);
+    make_service_data(&service_data, 20);
+    Bacfile_Valid_Instance_Result = true;
+    Bacfile_File_Access_Stream_Result = true;
+    Bacfile_File_Size_Result = 64;
+    Device_Stub_Restart_Count = 0;
+    (void)handler_atomic_read_file_encode(
+        transmit_buffer, service_request, (uint16_t)service_len, &src,
+        &npdu_data, &service_data);
+
+    return Device_Stub_Restart_Count;
+}
+
+/* -------------------------------------------------------------------------
+ * Only reading a configuration file restarts the backup failure timeout
+ * ------------------------------------------------------------------------- */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(h_arf_tests, testHandlerARF_BackupFailureTimeout)
+#else
+static void testHandlerARF_BackupFailureTimeout(void)
+#endif
+{
+    zassert_equal(arf_restart_count(Device_Stub_Configuration_File), 1, NULL);
+    zassert_equal(
+        arf_restart_count(Device_Stub_Configuration_File + 1), 0, NULL);
+}
+#endif
+
 /**
  * @}
  */
@@ -518,6 +573,20 @@ ZTEST_SUITE(h_arf_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
+#if defined(BACNET_BACKUP_RESTORE)
+    ztest_test_suite(
+        h_arf_tests, ztest_unit_test(testHandlerARF_EmptyRequest),
+        ztest_unit_test(testHandlerARF_RecordCountOutOfBounds),
+        ztest_unit_test(testHandlerARF_FileStartRecordOutOfBounds),
+        ztest_unit_test(testHandlerARF_ValidRecordRequest),
+        ztest_unit_test(testHandlerARF_NegativeFileStartRecord),
+        ztest_unit_test(testHandlerARF_NegativeStreamStartPosition),
+        ztest_unit_test(testHandlerARF_StreamStartPositionBeyondFile),
+        ztest_unit_test(testHandlerARF_ValidStreamRequest),
+        ztest_unit_test(testHandlerARF_StreamRequestOnRecordFile),
+        ztest_unit_test(testHandlerARF_RecordRequestOnStreamFile),
+        ztest_unit_test(testHandlerARF_BackupFailureTimeout));
+#else
     ztest_test_suite(
         h_arf_tests, ztest_unit_test(testHandlerARF_EmptyRequest),
         ztest_unit_test(testHandlerARF_RecordCountOutOfBounds),
@@ -529,6 +598,7 @@ void test_main(void)
         ztest_unit_test(testHandlerARF_ValidStreamRequest),
         ztest_unit_test(testHandlerARF_StreamRequestOnRecordFile),
         ztest_unit_test(testHandlerARF_RecordRequestOnStreamFile));
+#endif
 
     ztest_run_test_suite(h_arf_tests);
 }
