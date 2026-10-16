@@ -17,6 +17,12 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured WriteProperty of State_Text[0] (array size) or State_Text[N] to any
+  multistate object (MSV, MSO, MSI) by rejecting a new size of 0 or
+  above BACNET_STATE_NAME_LIST_MAX (default 255) with VALUE_OUT_OF_RANGE,
+  by rejecting an auto-expanding element write beyond the maximum with
+  INVALID_ARRAY_INDEX, and by initializing new elements to an empty
+  string instead of NULL so they can always be read back.(#1518)
 * Secured buffer handling in bacnet_constructed_value_context_encode
   to prevent overrun. Fixed buffer overrun in bacnet_constructed_value_decode
   and validate using tests for oversized APDU. (#1510)
