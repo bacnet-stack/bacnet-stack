@@ -15,6 +15,11 @@ The git repositories are hosted at the following sites:
 
 ## [1.5.3] - Unreleased
 
+### Fixed
+
+* Fixed the CharacterString Value object changed flag that was able to
+  be cleared by writing an unchanged value to it. (#1484)
+
 ## [1.5.2] - 2026-08-28
 
 ### Security
