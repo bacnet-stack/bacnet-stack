@@ -25,6 +25,46 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories?state
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
+BACnet confirmed response source is not bound to the pending TSM transaction
+[GHSA-m3mw-mwm8-g846](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-m3mw-mwm8-g846)
+Patched versions: 1.5.3
+Pull Request: [#1573](https://github.com/bacnet-stack/bacnet-stack/pull/1573).
+
+Out-of-bounds read in bacnet_timer_value_decode via unsigned length underflow (Timer State_Change_Values)
+[GHSA-gp2v-g6xp-3vj7](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-gp2v-g6xp-3vj7)
+Patched versions: 1.5.3
+Pull Request: [#1569](https://github.com/bacnet-stack/bacnet-stack/pull/1569).
+
+Out-of-bounds read in bacnet_ltrim: skip loop never stops at the terminating NUL (reached via WeeklySchedule ASCII parser)
+[GHSA-85x2-2p8v-rjhm](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-85x2-2p8v-rjhm)
+Patched versions: 1.5.3
+Pull Request: [#1568](https://github.com/bacnet-stack/bacnet-stack/pull/1568).
+
+BACnet/SC (Linux port): sc-hub example accepts ReinitializeDevice with default password
+[GHSA-r8wc-8mcp-hjfc](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-r8wc-8mcp-hjfc)
+Patched versions: 1.5.3
+Pull Request: [#1567](https://github.com/bacnet-stack/bacnet-stack/pull/1567).
+
+BACnet Schedule list WriteProperty can enter a zero-progress CPU loop
+[GHSA-9g5v-8wwr-pr5g](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-9g5v-8wwr-pr5g)
+Patched versions: 1.5.3
+Pull Request: [#1535](https://github.com/bacnet-stack/bacnet-stack/pull/1535).
+
+Off-by-one out-of-bounds read in router-mstp NPDU handler
+[GHSA-wgjm-9rv6-ph6j](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-wgjm-9rv6-ph6j)
+Patched versions: 1.5.3
+Pull Request: [#1534](https://github.com/bacnet-stack/bacnet-stack/pull/1534).
+
+Stack buffer overflow in bacnet_constructed_value_decode() via Timer object WriteProperty (build-flag-gated)
+[GHSA-6272-3rw9-xr2j](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-6272-3rw9-xr2j)
+Patched versions: 1.5.3
+Pull Request: [#1510](https://github.com/bacnet-stack/bacnet-stack/pull/1510).
+
+BACnet/SC hub: unauthenticated peer acceptance and unbound identity claims enable node preemption and fabricated device data
+[GHSA-gv5j-fc8m-6gj7](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-gv5j-fc8m-6gj7)
+Patched versions: 1.5.3
+Pull Request: [#1503](https://github.com/bacnet-stack/bacnet-stack/pull/1503).
+
 Deprecated Decoder Out-of-Bounds Read (BN-05)
 [GHSA-f96q-cj8v-939q](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-f96q-cj8v-939q)
 Patched versions: 1.5.2
