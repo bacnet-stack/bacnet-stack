@@ -16,6 +16,12 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured the TSM and h_apdu confirmed-reply handlers. A response with a
+  matching Invoke ID from a different address no longer frees the pending
+  client transaction. The handlers now compare the remote address of a routed
+  peer, not the MAC of the router. Fixed Send_GetEvent() to register the
+  destination and the pending transaction before it sends the request, and to
+  set the data-expecting-reply flag. (#1573)
 * Secured the ltrim() function in bacapp.c to stop at the NUL terminator. This
   prevents a read past the end of a string that contains only trimmed
   characters. Added NULL pointer checks to ltrim() and rtrim(). (#1568)
@@ -129,6 +135,11 @@ The git repositories are hosted at the following sites:
   before calling datalink_init(). (#1491)
 * Fixed the CharacterString Value object changed flag that was able to
   be cleared by writing an unchanged value to it. (#1484)
+
+### Removed
+
+* Removed the Send_GetEvent_Global() function. GetEventInformation is a
+  confirmed service and cannot be broadcast. (#1573)
 
 ## [1.4.6] - 2026-08-28
 

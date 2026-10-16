@@ -108,6 +108,49 @@ static void test_BACNET_ADDRESS(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacnet_address_tests, test_BACNET_ADDRESS_net_same)
+#else
+static void test_BACNET_ADDRESS_net_same(void)
+#endif
+{
+    BACNET_ADDRESS src = { 0 }, dest = { 0 };
+    BACNET_MAC_ADDRESS mac = { 0 }, adr = { 0 };
+    bool status = false;
+
+    status = bacnet_address_net_same(NULL, &src);
+    zassert_false(status, NULL);
+    status = bacnet_address_net_same(&dest, NULL);
+    zassert_false(status, NULL);
+    /* local: compared by MAC */
+    mac.len = 1;
+    mac.adr[0] = 3;
+    bacnet_address_init(&dest, &mac, 0, NULL);
+    bacnet_address_init(&src, &mac, 0, NULL);
+    status = bacnet_address_net_same(&dest, &src);
+    zassert_true(status, NULL);
+    src.mac[0] = 4;
+    status = bacnet_address_net_same(&dest, &src);
+    zassert_false(status, NULL);
+    /* remote: router MAC is ignored, ADR is compared */
+    adr.len = 1;
+    adr.adr[0] = 7;
+    bacnet_address_init(&dest, &mac, 1234, &adr);
+    mac.adr[0] = 9;
+    bacnet_address_init(&src, &mac, 1234, &adr);
+    status = bacnet_address_net_same(&dest, &src);
+    zassert_true(status, NULL);
+    status = bacnet_address_same(&dest, &src);
+    zassert_false(status, NULL);
+    src.adr[0] = 8;
+    status = bacnet_address_net_same(&dest, &src);
+    zassert_false(status, NULL);
+    /* different network */
+    bacnet_address_init(&src, &mac, 1235, &adr);
+    status = bacnet_address_net_same(&dest, &src);
+    zassert_false(status, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(bacnet_address_tests, test_BACNET_MAC_ADDRESS)
 #else
 static void test_BACNET_MAC_ADDRESS(void)
@@ -312,6 +355,7 @@ void test_main(void)
 {
     ztest_test_suite(
         bacnet_address_tests, ztest_unit_test(test_BACNET_ADDRESS),
+        ztest_unit_test(test_BACNET_ADDRESS_net_same),
         ztest_unit_test(test_BACNET_MAC_ADDRESS),
         ztest_unit_test(test_BACnetAddress_Codec),
         ztest_unit_test(test_bacnet_vmac_entry_codec));
