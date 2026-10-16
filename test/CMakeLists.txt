@@ -195,6 +195,8 @@ list(APPEND testdirs
   # basic/program
   bacnet/basic/program/ubasic
   # basic/service
+  bacnet/basic/service/h_arf
+  bacnet/basic/service/h_awf
   bacnet/basic/service/h_rpm_a
   # basic/server
   bacnet/basic/server/bacnet_device
@@ -245,6 +247,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   ports/linux/bsc_event
   ports/linux/bip_subnet
   ports/linux/dlmstp_linux
+  ports/posix/bacfile_posix
   )
 
 elseif(WIN32)
@@ -258,6 +261,7 @@ elseif(APPLE)
   message(STATUS "Added ports specific tests for APPLE")
   list(APPEND testdirs
   ports/bsd/bsc_event
+  ports/posix/bacfile_posix
   )
 endif()
 

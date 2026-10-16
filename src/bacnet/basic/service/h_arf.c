@@ -84,7 +84,7 @@ void handler_atomic_read_file(
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_DATA *service_data)
 {
-    BACNET_ATOMIC_READ_FILE_DATA data;
+    BACNET_ATOMIC_READ_FILE_DATA data = { 0 };
     int len = 0;
     int pdu_len = 0;
     bool error = false;
@@ -94,6 +94,7 @@ void handler_atomic_read_file(
     BACNET_ERROR_CLASS error_class = ERROR_CLASS_OBJECT;
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     BACNET_UNSIGNED_INTEGER file_size;
+    size_t record_count = 0;
 
 #if PRINT_ENABLED
     fprintf(stderr, "Received Atomic-Read-File Request!\n");
@@ -173,24 +174,25 @@ void handler_atomic_read_file(
                         (int)octetstring_capacity(&data.fileData[0]));
                 }
             } else if (data.access == FILE_RECORD_ACCESS) {
-                if (data.type.record.RecordCount > ARRAY_SIZE(data.fileData)) {
+                if (data.type.record.fileStartRecord < 0) {
+                    /* If the 'File Start Record' parameter is less
+                    than 0, then the appropriate error is returned
+                    in a 'Result(-)' response.*/
                     DEBUG_PRINTF(
-                        "ARF: RecordCount %u > %u. Sending Reject!\n",
-                        (unsigned)data.type.record.RecordCount,
-                        (unsigned)ARRAY_SIZE(data.fileData));
-                    error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
+                        "ARF: fileStartRecord %d < 0. Sending Error!\n",
+                        (int)data.type.record.fileStartRecord);
+                    error_code = ERROR_CODE_INVALID_FILE_START_POSITION;
                     error = true;
                 } else if (
-                    (data.type.record.fileStartRecord < 0) ||
-                    (data.type.record.fileStartRecord >=
-                     ARRAY_SIZE(data.fileData))) {
-                    /* If the 'File Start Record' parameter is either less
-                    than 0 or exceeds the actual file size, then the appropriate
-                    error is returned in a 'Result(-)' response.*/
+                    bacfile_record_count(data.object_instance, &record_count) &&
+                    ((size_t)data.type.record.fileStartRecord > record_count)) {
+                    /* If the 'File Start Record' parameter exceeds the
+                    actual file size, then the appropriate error is
+                    returned in a 'Result(-)' response.*/
                     DEBUG_PRINTF(
-                        "ARF: fileStartRecord %d >= %u. Sending Error!\n",
+                        "ARF: fileStartRecord %d > %u. Sending Error!\n",
                         (int)data.type.record.fileStartRecord,
-                        (unsigned)ARRAY_SIZE(data.fileData));
+                        (unsigned)record_count);
                     error_code = ERROR_CODE_INVALID_FILE_START_POSITION;
                     error = true;
                 } else if (bacfile_read_record_data(&data)) {
