@@ -53,6 +53,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the bacfile_posix_write_record_data() function to ignore one trailing
+  newline in the record data. The function still rejects a newline in any
+  other position. (#1570)
 * Fixed the BACnetTimerStateChangeValue no-value [0] encoding. The encoder
   now writes a context-tagged Null as one primitive tag with length 0.
   Fixed the BACnetHostAddress none [0] and BACnetLogRecord null-value [7]

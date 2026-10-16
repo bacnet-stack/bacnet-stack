@@ -188,6 +188,12 @@ static void test_record_empty_and_end_of_file(void)
     /* a record cannot contain the line terminator */
     zassert_false(record_write(-1, "a\nb"), NULL);
     zassert_false(record_write(0, "a\nb"), NULL);
+    zassert_false(record_write(-1, "a\n\n"), NULL);
+    /* a single trailing newline is ignored */
+    zassert_true(record_write(-1, "hello\n"), NULL);
+    zassert_true(record_equals(3, "hello"), NULL);
+    zassert_true(record_write(-1, "\n"), NULL);
+    zassert_true(record_equals(4, ""), NULL);
 
     remove_test_file();
 }
