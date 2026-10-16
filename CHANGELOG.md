@@ -17,6 +17,9 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured the cJSON parse_string() function to reject a string that ends with
+  a backslash. This prevents a one-byte read past the end of the buffer.
+  Added a unit test for this case. (#1572)
 * Secured bacnet_timer_value_decode() to check the decoded length against
   apdu_size to prevent an out-of-bounds read. (#1569)
 * Secured the bacnet_ltrim() function to stop at the NUL terminator. This

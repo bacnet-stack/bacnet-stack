@@ -169,8 +169,14 @@ static const char *parse_string(cJSON *item, const char *str)
         return NULL;
     }
 
-    while (*ptr != '\"' && *ptr && ++len) {
+    while (*ptr != '\"' && *ptr) {
+        len++;
         if (*ptr++ == '\\') {
+            if (*ptr == '\0') {
+                /* dangling escape at end of input: nothing to escape */
+                global_ep = ptr;
+                return NULL;
+            }
             ptr++;
         }
     }
