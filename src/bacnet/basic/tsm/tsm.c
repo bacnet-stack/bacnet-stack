@@ -72,6 +72,30 @@ static uint8_t tsm_find_invokeID_index(uint8_t invokeID)
     return index;
 }
 
+/** Return true when src is the destination of a pending confirmation.
+ *
+ * @param invokeID  Invoke Id
+ * @param src  Source address of the received PDU
+ *
+ * @return true when invokeID is awaiting confirmation from src
+ */
+bool tsm_invoke_id_source_match(uint8_t invokeID, const BACNET_ADDRESS *src)
+{
+    uint8_t index;
+
+    if (!invokeID || !src) {
+        return false;
+    }
+    index = tsm_find_invokeID_index(invokeID);
+    if (index < MAX_TSM_TRANSACTIONS) {
+        if (TSM_List[index].state == TSM_STATE_AWAIT_CONFIRMATION) {
+            return bacnet_address_same(&TSM_List[index].dest, src);
+        }
+    }
+
+    return false;
+}
+
 /** Find the first free index in the TSM table.
  *
  * @return Index of the id or MAX_TSM_TRANSACTIONS
