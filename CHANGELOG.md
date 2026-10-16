@@ -17,6 +17,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed MinGW buggy warnings for isinfinite(), isnan(), and isinf()
+  when used with double arguments.
 * Fixed Network Port object IPv4 to use the actual IPv4 settings
   instead of 0.0.0.0 due to calling dlenv_network_port_bip_init()
   before calling datalink_init(). (#1491)
