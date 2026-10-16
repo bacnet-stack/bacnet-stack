@@ -28,6 +28,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the Notification Class object Priority property to be a
+  BACnetARRAY property in the property list. WriteProperty of a single array
+  element no longer fails with PROPERTY_IS_NOT_AN_ARRAY. (#1551)
 * Fixed the Device object backup failure timeout being restarted by every
   ReadProperty and WriteProperty, including internal property references
   from objects such as Loop, Averaging, and Schedule. The timeout is now
