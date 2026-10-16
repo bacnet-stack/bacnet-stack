@@ -29,8 +29,6 @@ BACNET_STACK_EXPORT
 uint8_t Send_GetEvent(
     BACNET_ADDRESS *target_address,
     const BACNET_OBJECT_ID *lastReceivedObjectIdentifier);
-BACNET_STACK_EXPORT
-uint8_t Send_GetEvent_Global(void);
 
 #ifdef __cplusplus
 }
