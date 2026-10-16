@@ -15,6 +15,11 @@ The git repositories are hosted at the following sites:
 
 ## [1.5.3] - Unreleased
 
+### Security
+
+* Secured the Linux/BSD/Windows websocket by enforcing TLS client-certificate
+  verification in BACnet/SC. (#1503)
+
 ### Fixed
 
 * Fixed the Relinquish_Default COV trigger in Output objects. (#1496)
