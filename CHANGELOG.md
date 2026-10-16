@@ -34,6 +34,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the Day Light Saving Time dst_active() function to support Southern
+  Hemisphere ranges where the begin date is after the end date. The function
+  now rejects calendar dates that do not exist. (#1555)
 * Fixed the Positive Integer Value object by adding the missing
   PositiveInteger_Value_Out_Of_Service() and
   PositiveInteger_Value_Out_Of_Service_Set() functions. (#1550)
