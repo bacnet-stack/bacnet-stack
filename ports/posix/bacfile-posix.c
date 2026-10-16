@@ -466,11 +466,12 @@ record_append(const char *pathname, const uint8_t *fileData, size_t fileDataLen)
  *  the file is extended with empty records, up to
  *  BACNET_FILE_POSIX_MAX_PAD_RECORDS, otherwise the write fails.
  * @param fileIndexRecord - index of the record to write
- * @param fileData - record data to write, without a line terminator
+ * @param fileData - record data to write; one trailing newline is ignored
  * @param fileDataLen - size of the record data
  * @return true if successful, false otherwise
  * @note The file format is one newline-terminated record per line.
- *  A record that contains a newline cannot be stored.
+ *  A record that contains a newline other than a single trailing one
+ *  cannot be stored.
  */
 bool bacfile_posix_write_record_data(
     const char *pathname,
@@ -483,7 +484,14 @@ bool bacfile_posix_write_record_data(
         return false;
     }
     if (fileDataLen > 0) {
-        if (!fileData || memchr(fileData, '\n', fileDataLen)) {
+        if (!fileData) {
+            return false;
+        }
+        /* a single trailing newline is ignored, since one is always added */
+        if (fileData[fileDataLen - 1] == '\n') {
+            fileDataLen--;
+        }
+        if ((fileDataLen > 0) && memchr(fileData, '\n', fileDataLen)) {
             return false;
         }
     }
