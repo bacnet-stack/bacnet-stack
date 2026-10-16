@@ -25,6 +25,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed Analog Output and Binary Output priority-array accessors to guard
+  against NULL when the object instance is unknown. (#1523)
 * Fixed decoding of COBS frames in-place at offset 0. Previously any
   payload whose encoded+decoded length exceeded the input buffer
   was rejected as BadCRC, even though the encoded frame itself fit
