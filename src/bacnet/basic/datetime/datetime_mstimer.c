@@ -448,8 +448,16 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
 
     datetime_lock();
     datetime_sync_locked();
-    datetime_copy(&requested, &BACnet_Date_Time);
     datetime_copy(&current, &BACnet_Date_Time);
+    /* seed omitted fields in the same time basis as the request */
+    if (utc) {
+        datetime_local_to_utc(&requested, &current, UTC_Offset_Minutes, 0);
+    } else {
+        datetime_copy(&requested, &current);
+        if (datetime_dst_active(&DST_Range, &current, DST_Enabled)) {
+            datetime_add_minutes(&requested, 60);
+        }
+    }
     if (bdate) {
         datetime_copy_date(&requested.date, bdate);
     }

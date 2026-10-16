@@ -180,11 +180,79 @@ static void test_datetime_backend(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(datetime_mstimer, test_datetime_timesync_partial)
+#else
+static void test_datetime_timesync_partial(void)
+#endif
+{
+    BACNET_DATE_TIME standard_time = { 0 };
+    BACNET_DATE_TIME read_standard = { 0 };
+    BACNET_DATE date = { 0 };
+    BACNET_TIME time = { 0 };
+    bool dst_active = false;
+
+    datetime_lock_callback_set(NULL, NULL);
+    datetime_reset();
+    datetime_dst_date_range_set(3, 10, 11, 3);
+    datetime_dst_enabled_set(true);
+    datetime_utc_offset_minutes_set(300);
+    datetime_timesync_deadband_set(0);
+
+    /* date-only local request during DST preserves the local time */
+    datetime_set_values(&standard_time, 2024, 7, 1, 13, 0, 0, 0);
+    datetime_standard_set(&standard_time);
+    datetime_set_date(&date, 2024, 7, 2);
+    datetime_timesync(&date, NULL, false);
+    zassert_true(datetime_standard(&read_standard), NULL);
+    zassert_equal(read_standard.date.day, 2, NULL);
+    zassert_equal(read_standard.time.hour, 13, NULL);
+    zassert_true(datetime_local(&date, &time, NULL, &dst_active), NULL);
+    zassert_equal(date.day, 2, NULL);
+    zassert_equal(time.hour, 14, NULL);
+    zassert_true(dst_active, NULL);
+
+    /* time-only local request keeps the local date across midnight */
+    datetime_set_values(&standard_time, 2024, 7, 1, 23, 30, 0, 0);
+    datetime_standard_set(&standard_time);
+    datetime_set_time(&time, 0, 45, 0, 0);
+    datetime_timesync(NULL, &time, false);
+    zassert_true(datetime_standard(&read_standard), NULL);
+    zassert_equal(read_standard.date.day, 1, NULL);
+    zassert_equal(read_standard.time.hour, 23, NULL);
+    zassert_equal(read_standard.time.min, 45, NULL);
+    zassert_true(datetime_local(&date, &time, NULL, NULL), NULL);
+    zassert_equal(date.day, 2, NULL);
+    zassert_equal(time.hour, 0, NULL);
+    zassert_equal(time.min, 45, NULL);
+
+    /* date-only UTC request preserves the UTC time */
+    datetime_set_values(&standard_time, 2024, 7, 1, 13, 0, 0, 0);
+    datetime_standard_set(&standard_time);
+    datetime_set_date(&date, 2024, 7, 3);
+    datetime_timesync(&date, NULL, true);
+    zassert_true(datetime_standard(&read_standard), NULL);
+    zassert_equal(read_standard.date.day, 3, NULL);
+    zassert_equal(read_standard.time.hour, 13, NULL);
+
+    /* time-only UTC request keeps the UTC date across midnight */
+    datetime_set_values(&standard_time, 2024, 7, 1, 20, 0, 0, 0);
+    datetime_standard_set(&standard_time);
+    datetime_set_time(&time, 1, 30, 0, 0);
+    datetime_timesync(NULL, &time, true);
+    zassert_true(datetime_standard(&read_standard), NULL);
+    zassert_equal(read_standard.date.day, 1, NULL);
+    zassert_equal(read_standard.time.hour, 20, NULL);
+    zassert_equal(read_standard.time.min, 30, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(datetime_mstimer, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
-    ztest_test_suite(datetime_mstimer, ztest_unit_test(test_datetime_backend));
+    ztest_test_suite(
+        datetime_mstimer, ztest_unit_test(test_datetime_backend),
+        ztest_unit_test(test_datetime_timesync_partial));
     ztest_run_test_suite(datetime_mstimer);
 }
 #endif
