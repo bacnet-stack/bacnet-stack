@@ -177,10 +177,8 @@ int main(int argc, char *argv[])
     signal(SIGTERM, signal_handler);
 
     /* Set stdout/stderr to unbuffered so log output appears immediately */
-#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
     setbuf(stdout, NULL);
     setbuf(stderr, NULL);
-#endif
 
     /* ── Load configuration and point table from JSON ── */
     if (!point_table_load_json(&Gw_Config, &Point_Table, config_file)) {
@@ -258,7 +256,6 @@ int main(int argc, char *argv[])
      * All standard BACNET_* env vars can also be pre-set externally to
      * override any of these settings before the process starts.
      */
-#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
     setenv("BACNET_DATALINK", effective_datalink, 1);
     setenv("BACNET_IFACE", Gw_Config.bacnet_iface, 0);
 
@@ -332,7 +329,6 @@ int main(int argc, char *argv[])
         }
 #endif
     }
-#endif /* __linux__ || __unix__ || __APPLE__ */
     dlenv_init();
 
     atexit(datalink_cleanup);
