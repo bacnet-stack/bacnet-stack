@@ -29,25 +29,8 @@
  */
 int bacnet_timer_value_no_value_encode(uint8_t *apdu)
 {
-    int len = 0;
-    int apdu_len = 0;
-    const uint8_t tag_number = 0;
-
     /* no-value[0] Null */
-    len = encode_opening_tag(apdu, tag_number);
-    apdu_len += len;
-    if (apdu) {
-        apdu += len;
-    }
-    len = encode_application_null(apdu);
-    apdu_len += len;
-    if (apdu) {
-        apdu += len;
-    }
-    len = encode_closing_tag(apdu, tag_number);
-    apdu_len += len;
-
-    return apdu_len;
+    return encode_context_null(apdu, 0);
 }
 
 /**
@@ -59,28 +42,18 @@ int bacnet_timer_value_no_value_encode(uint8_t *apdu)
  */
 int bacnet_timer_value_no_value_decode(const uint8_t *apdu, uint32_t apdu_size)
 {
-    int apdu_len = 0;
     int len;
-    const uint8_t tag_number = 0;
 
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
     /* no-value[0] Null */
-    if (!bacnet_is_opening_tag_number(
-            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
+    len = bacnet_null_context_decode(apdu, apdu_size, 0);
+    if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
-    apdu_len += len;
-    len = bacnet_null_application_decode(&apdu[apdu_len], apdu_size - apdu_len);
-    if (len < 0) {
-        return BACNET_STATUS_ERROR;
-    }
-    apdu_len += len;
-    if (!bacnet_is_closing_tag_number(
-            &apdu[apdu_len], apdu_size - apdu_len, tag_number, &len)) {
-        return BACNET_STATUS_ERROR;
-    }
-    apdu_len += len;
 
-    return apdu_len;
+    return len;
 }
 
 /**
@@ -409,17 +382,12 @@ int bacnet_timer_value_decode(
             } else {
                 return BACNET_STATUS_ERROR;
             }
+        } else if (
+            tag.context && (tag.number == 0) && (tag.len_value_type == 0)) {
+            /* no-value[0] Null */
+            value->tag = BACNET_APPLICATION_TAG_NO_VALUE;
         } else if (tag.opening) {
             switch (tag.number) {
-                case 0:
-                    /* no-value[0] Null */
-                    value->tag = BACNET_APPLICATION_TAG_NO_VALUE;
-                    if (tag.len_value_type == 0) {
-                        len = tag_len;
-                    } else {
-                        return BACNET_STATUS_ERROR;
-                    }
-                    break;
                 case 1:
                     /* constructed-value[1] ABSTRACT-SYNTAX.&Type */
                     value->tag = BACNET_APPLICATION_TAG_ABSTRACT_SYNTAX;
@@ -456,6 +424,9 @@ int bacnet_timer_value_decode(
             }
             if (len > 0) {
                 apdu_len += len;
+                if ((size_t)apdu_len > apdu_size) {
+                    return BACNET_STATUS_ERROR;
+                }
                 if (bacnet_is_closing_tag_number(
                         &apdu[apdu_len], apdu_size - apdu_len, tag.number,
                         &len)) {
