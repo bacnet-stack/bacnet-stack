@@ -17,6 +17,8 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured BACnet list writes to reject zero-byte elements and decode errors.
+  This prevents loops when list data is malformed or truncated. (#1535)
 * Secured router MS/TP NPDU parsing to reject packets without APDU data. (#1534)
 * Secured buffer handling in bacnet_constructed_value_context_encode
   to prevent overrun. Fixed buffer overrun in bacnet_constructed_value_decode

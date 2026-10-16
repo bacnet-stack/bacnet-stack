@@ -2655,6 +2655,70 @@ static void test_simple_ack(void)
     zassert_equal(len, null_len, NULL);
 }
 
+static int List_Write_Decode_Result;
+static unsigned List_Write_Add_Count;
+
+static int list_write_decode_stub(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
+{
+    (void)object_instance;
+    (void)apdu;
+    if (List_Write_Decode_Result > 0) {
+        return (int)apdu_size;
+    }
+
+    return List_Write_Decode_Result;
+}
+
+static BACNET_ERROR_CODE list_write_add_stub(
+    uint32_t object_instance,
+    uint8_t *application_data,
+    size_t application_data_len)
+{
+    (void)object_instance;
+    (void)application_data;
+    (void)application_data_len;
+    List_Write_Add_Count++;
+
+    return ERROR_CODE_SUCCESS;
+}
+
+/**
+ * @brief Test that BACnetLIST writes cannot loop without progress
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, test_bacnet_list_write)
+#else
+static void test_bacnet_list_write(void)
+#endif
+{
+    uint8_t apdu[22] = { 0 };
+    BACNET_ERROR_CODE error_code;
+
+    /* a non-empty list element that consumes zero bytes must fail */
+    List_Write_Decode_Result = 0;
+    List_Write_Add_Count = 0;
+    error_code = bacnet_list_write(
+        1, BACNET_ARRAY_ALL, list_write_decode_stub, list_write_add_stub, 4,
+        apdu, sizeof(apdu));
+    zassert_equal(error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    zassert_equal(List_Write_Add_Count, 0, NULL);
+    /* a list element that fails to decode must fail */
+    List_Write_Decode_Result = -1;
+    error_code = bacnet_list_write(
+        1, BACNET_ARRAY_ALL, list_write_decode_stub, list_write_add_stub, 4,
+        apdu, sizeof(apdu));
+    zassert_equal(error_code, ERROR_CODE_ABORT_OTHER, NULL);
+    zassert_equal(List_Write_Add_Count, 0, NULL);
+    /* a valid list element is added after the list is emptied */
+    List_Write_Decode_Result = 1;
+    error_code = bacnet_list_write(
+        1, BACNET_ARRAY_ALL, list_write_decode_stub, list_write_add_stub, 4,
+        apdu, sizeof(apdu));
+    zassert_equal(error_code, ERROR_CODE_SUCCESS, NULL);
+    zassert_equal(List_Write_Add_Count, 2, NULL);
+}
+
 /**
  * @}
  */
@@ -2701,6 +2765,7 @@ void test_main(void)
         ztest_unit_test(test_octet_string_buffer),
         ztest_unit_test(test_bacnet_character_string_buffer),
         ztest_unit_test(test_bacnet_constructed_value),
+        ztest_unit_test(test_bacnet_list_write),
         ztest_unit_test(test_simple_ack));
 
     ztest_run_test_suite(bacdcode_tests);
