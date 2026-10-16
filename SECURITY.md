@@ -108,27 +108,32 @@ Structured View subordinate-list[0] WriteProperty allows unbounded synchronous r
 Patched versions: 1.5.2
 Pull Request: [#1437](https://github.com/bacnet-stack/bacnet-stack/pull/1437).
 
+[CVE-2026-102612](https://www.cve.org/CVERecord?id=CVE-2026-102612) -
 BACnet/SC hub never requires a client cert, so any host joins the mesh unauthenticated
 [GHSA-92q2-p4vr-fvmp](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-92q2-p4vr-fvmp).
 Patched versions: 1.5.2
 Pull Request: [#1436](https://github.com/bacnet-stack/bacnet-stack/pull/1436).
 
+[CVE-2026-97692](https://www.cve.org/CVERecord?id=CVE-2026-97692) -
 Trailing MORE bit on the last BACnet/SC header option walks the option list past the end of the message,
 causing a pre-auth out-of-bounds read escalating to an out-of-bounds write into global memory
 [GHSA-gr74-333w-7wg8](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-gr74-333w-7wg8).
 Patched versions: 1.5.2
 Pull Request: [#1435](https://github.com/bacnet-stack/bacnet-stack/pull/1435).
 
+[CVE-2026-102537](https://www.cve.org/CVERecord?id=CVE-2026-102537) -
 bacnet-stack BACnet/SC node always accepts a self-signed hub cert, so an attacker can MITM it
 [GHSA-jgm4-2wg9-jwfg](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-jgm4-2wg9-jwfg).
 Patched versions: 1.5.2
 Pull Request: [#1434](https://github.com/bacnet-stack/bacnet-stack/pull/1434).
 
+[CVE-2026-100403](https://www.cve.org/CVERecord?id=CVE-2026-100403) -
 BACnet/SC hub grows its WebSocket reassembly buffer without limit, so a peer can exhaust its memory
 [GHSA-4vgv-v5ph-rmxr](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-4vgv-v5ph-rmxr).
 Patched versions: 1.5.2
 Pull Request: [#1433](https://github.com/bacnet-stack/bacnet-stack/pull/1433).
 
+[CVE-2026-82414](https://www.cve.org/CVERecord?id=CVE-2026-82414) -
 MS/TP COBS decode overflow
 [GHSA-8456-m9x4-j6mc](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-8456-m9x4-j6mc).
 Patched versions: 1.5.2
@@ -146,42 +151,50 @@ WriteProperty to Structured View subordinate-list causes NULL pointer dereferenc
 Patched versions: 1.5.1
 Pull Request: [#1321](https://github.com/bacnet-stack/bacnet-stack/pull/1321).
 
+[CVE-2026-64675](https://www.cve.org/CVERecord?id=CVE-2026-64675) -
 Pre-auth OOB read in xy_color_decode (BACnetXYColor) via WriteGroup/WriteProperty
 [GHSA-mmg6-p4pr-cj6h](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-mmg6-p4pr-cj6h).
 Patched versions: 1.5.1
 Pull Request: [#1386](https://github.com/bacnet-stack/bacnet-stack/pull/1386),
 [#1387](https://github.com/bacnet-stack/bacnet-stack/pull/1387).
 
+[CVE-2026-58498](https://www.cve.org/CVERecord?id=CVE-2026-58498) -
 Remote global-buffer-overflow in apps/router-ipv6/main.c routed APDU forwarding path
 [GHSA-4p4w-m434-jrhj](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-4p4w-m434-jrhj).
 Patched versions: 1.5.1
 Pull Request: [#1392](https://github.com/bacnet-stack/bacnet-stack/pull/1392).
 
+[CVE-2026-62973](https://www.cve.org/CVERecord?id=CVE-2026-62973) -
 Remote Global-Buffer-Overflow Read in readpropm via Malformed ReadPropertyMultiple-ACK
 [GHSA-3xxw-jfwm-rq9c](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-3xxw-jfwm-rq9c).
 Patched versions: 1.5.1
 Pull Request: [#1395](https://github.com/bacnet-stack/bacnet-stack/pull/1395).
 
+[CVE-2026-62975](https://www.cve.org/CVERecord?id=CVE-2026-62975) -
 Replacing a RAMFS record with a shorter one via AtomicWriteFile(record-access) can trigger a heap out-of-bounds read
 [GHSA-cf8g-hp9m-9fvv](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-cf8g-hp9m-9fvv).
 Patched versions: 1.5.1
 Pull Request: [#1408](https://github.com/bacnet-stack/bacnet-stack/pull/1408).
 
+[CVE-2026-62976](https://www.cve.org/CVERecord?id=CVE-2026-62976) -
 Consecutive AtomicWriteFile(record-access) appends can trigger a heap out-of-bounds read in the RAMFS file backend
 [GHSA-32jj-x86x-w98w](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-32jj-x86x-w98w).
 Patched versions: 1.5.1
 Pull Request: [#1408](https://github.com/bacnet-stack/bacnet-stack/pull/1408).
 
+[CVE-2026-62974](https://www.cve.org/CVERecord?id=CVE-2026-62974) -
 Remote unauthenticated DoS in Life_Safety_Zone PROP_ZONE_MEMBERS WriteProperty parsing
 [GHSA-2c8x-f46r-8phh](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-2c8x-f46r-8phh).
 Patched versions: 1.5.1
 Pull Request: [#1410](https://github.com/bacnet-stack/bacnet-stack/pull/1410).
 
+[CVE-2026-62977](https://www.cve.org/CVERecord?id=CVE-2026-62977) -
 WriteProperty(File_Size) can bypass read-only protection and expose uninitialized RAMFS tail bytes through AtomicReadFile
 [GHSA-mwj7-2v5r-v934](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-mwj7-2v5r-v934).
 Patched versions: 1.5.1
 Pull Request: [#1411](https://github.com/bacnet-stack/bacnet-stack/pull/1411).
 
+[CVE-2026-62972](https://www.cve.org/CVERecord?id=CVE-2026-62972) -
 Out-of-bounds read in lighting_command_decode (full APDU size passed to nested tag decoders)
 [GHSA-9hq3-w3pc-8385](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-9hq3-w3pc-8385).
 Patched versions: 1.5.1
