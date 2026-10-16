@@ -17,6 +17,12 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured the TSM and h_apdu confirmed-reply handlers. A response with a
+  matching Invoke ID from a different address no longer frees the pending
+  client transaction. The handlers now compare the remote address of a routed
+  peer, not the MAC of the router. Fixed Send_GetEvent() to register the
+  destination and the pending transaction before it sends the request, and to
+  set the data-expecting-reply flag. (#1573)
 * Secured the cJSON parse_string() function to reject a string that ends with
   a backslash. This prevents a one-byte read past the end of the buffer.
   Added a unit test for this case. (#1572)
@@ -24,6 +30,8 @@ The git repositories are hosted at the following sites:
   fits in max_pdu before it writes to the buffer. This prevents a buffer
   overrun and an unsigned underflow of max_pdu. When the NPDU does not fit,
   the function releases the invoke ID and returns 0. (#1571)
+* Secured bacnet_timer_value_decode() to check the decoded length against
+  apdu_size to prevent an out-of-bounds read. (#1569)
 * Secured the bacnet_ltrim() function to stop at the NUL terminator. This
   prevents a read past the end of a string that contains only trimmed
   characters. Added NULL pointer checks to bacnet_ltrim() and
@@ -253,10 +261,8 @@ The git repositories are hosted at the following sites:
   other position. (#1570)
 * Fixed the BACnetTimerStateChangeValue no-value [0] encoding. The encoder
   now writes a context-tagged Null as one primitive tag with length 0.
-  Fixed bacnet_timer_value_decode() to check the decoded length against
-  apdu_size to prevent an out-of-bounds read. Fixed the BACnetHostAddress
-  none [0] and BACnetLogRecord null-value [7] decoders to reject a
-  context-tagged Null with a length that is not 0. (#1569)
+  Fixed the BACnetHostAddress none [0] and BACnetLogRecord null-value [7]
+  decoders to reject a context-tagged Null with a length that is not 0. (#1569)
 * Fixed the AtomicReadFile and AtomicWriteFile services to conform to
   ANSI/ASHRAE 135-2024 Clauses 14.1 and 14.2 for record access.
   AtomicReadFile accepts any non-negative start record and returns

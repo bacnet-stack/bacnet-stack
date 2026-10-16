@@ -9,7 +9,7 @@ currently being supported with security updates.
 | ------- | ------------------ |
 | 1.7.x   | :white_check_mark: |
 | 1.6.x   | :white_check_mark: |
-| 1.5.x   | :white_check_mark: |
+| 1.5.x   | :x:                | |
 | 1.4.x   | :white_check_mark: |
 | 1.3.x   | :x:                |
 | 1.2.x   | :x:                |
@@ -28,6 +28,27 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories)
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
+BACnet confirmed response source is not bound to the pending TSM transaction
+[GHSA-m3mw-mwm8-g846](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-m3mw-mwm8-g846)
+Patched versions: 1.4.7, 1.5.3, 1.6.2, 1.7.0
+Pull Request: [#1573](https://github.com/bacnet-stack/bacnet-stack/pull/1573).
+
+Out-of-bounds read in bacnet_timer_value_decode via unsigned length underflow (Timer State_Change_Values)
+[GHSA-gp2v-g6xp-3vj7](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-gp2v-g6xp-3vj7)
+Patched versions: 1.4.7, 1.5.3, 1.6.2, 1.7.0
+Pull Request: [#1569](https://github.com/bacnet-stack/bacnet-stack/pull/1569).
+
+Out-of-bounds read in bacnet_ltrim: skip loop never stops at the terminating NUL (reached via WeeklySchedule ASCII parser)
+[GHSA-85x2-2p8v-rjhm](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-85x2-2p8v-rjhm)
+Patched versions: 1.4.7, 1.5.3, 1.6.2, 1.7.0
+Pull Request: [#1568](https://github.com/bacnet-stack/bacnet-stack/pull/1568).
+
+BACnet/SC (Linux port): sc-hub example accepts ReinitializeDevice with default password
+[GHSA-r8wc-8mcp-hjfc](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-r8wc-8mcp-hjfc)
+Patched versions: 1.4.7, 1.5.3, 1.6.2, 1.7.0
+Pull Request: [#1567](https://github.com/bacnet-stack/bacnet-stack/pull/1567).
+
+BACnet State_Text array resize can exhaust CPU and heap remotely
 [GHSA-gh4p-3vmc-6mqw](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-gh4p-3vmc-6mqw)
 Patched versions: 1.4.7, 1.5.3, 1.6.2, 1.7.0
 Pull Request: [#1518](https://github.com/bacnet-stack/bacnet-stack/pull/1518).
