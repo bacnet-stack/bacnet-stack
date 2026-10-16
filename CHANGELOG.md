@@ -25,6 +25,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed TrendLog TL_MAX_ENTRIES to be able to be overridden and provide
+  a default value. (#1514)
 * Fixed the Effective_Period property value to be a fully specified date
   or completely unspecified date, and added validation for Effective_Period
   date ranges when set or written. Fixed calendar entry date matching logic
