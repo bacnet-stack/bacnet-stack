@@ -11,7 +11,7 @@
 #include <ctype.h>
 #include <limits.h>
 #include <float.h>
-
+#include "platform.h"
 #include "cJSON.h"
 
 /* Maximum object/array nesting depth accepted by the parser. Guards
