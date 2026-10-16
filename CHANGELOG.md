@@ -28,6 +28,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed apps/mstpcap to exit when Wireshark sends --extcap-cleanup-postkill.
+  Wireshark 4.6 waits for this process after it stops an MS/TP capture. (#1541)
 * Fixed a global buffer overflow in the memcopy unit test by using arrays
   for test data. (#1525)
 * Fixed RAM file system scans to stop at the remaining buffer size and at
