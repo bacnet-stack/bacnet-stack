@@ -5,6 +5,7 @@
  * @date October 2025
  * @copyright SPDX-License-Identifier: MIT
  */
+#include <string.h>
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/timer.h>
 #include <bacnet/timer_value.h>
@@ -85,6 +86,7 @@ static void test_Timer_Read_Write(void)
         .object_property = PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES
     };
     int err = 0;
+    int len = 0;
 
     Timer_Init();
     Timer_Create(instance);
@@ -287,6 +289,23 @@ static void test_Timer_Read_Write(void)
     value.type.Device_Object_Property_Reference.objectIdentifier.instance = 1;
     value.type.Device_Object_Property_Reference.propertyIdentifier =
         PROP_PRESENT_VALUE;
+    /* A non-empty malformed list must fail instead of looping forever when
+     * its element decoder reports zero bytes consumed. */
+    memset(wp_data.application_data, 0, 22);
+    wp_data.application_data_len = 22;
+    status = Timer_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    /* A valid reference followed by a truncated reference must fail
+     * instead of looping forever when its element decoder returns
+     * an error. */
+    len = bacapp_encode_application_data(wp_data.application_data, &value);
+    zassert_true(len > 1, NULL);
+    wp_data.application_data[len] = wp_data.application_data[0];
+    wp_data.application_data_len = len + 1;
+    status = Timer_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_ABORT_OTHER, NULL);
     wp_data.application_data_len =
         bacapp_encode_application_data(wp_data.application_data, &value);
     status = Timer_Write_Property(&wp_data);
