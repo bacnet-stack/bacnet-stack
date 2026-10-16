@@ -227,13 +227,11 @@ void bacnet_basic_init(void)
 #endif
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_REINITIALIZE_DEVICE, handler_reinitialize_device);
-    /* start the 1 second timer for non-critical cyclic tasks */
-#if defined(BACNET_TIME_MASTER)
     apdu_set_unconfirmed_handler(
         SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, handler_timesync_utc);
     apdu_set_unconfirmed_handler(
         SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, handler_timesync);
-#endif
+    handler_timesync_set_callback_set(datetime_timesync);
     apdu_set_unconfirmed_handler(
         SERVICE_UNCONFIRMED_YOU_ARE, handler_you_are_device_id_set);
 #if (BACNET_COV_SUBSCRIPTIONS_SIZE > 0)
@@ -302,6 +300,17 @@ void bacnet_basic_task(void)
         datalink_maintenance_timer(elapsed_seconds);
 #if (BACNET_COV_SUBSCRIPTIONS_SIZE > 0)
         handler_cov_timer_seconds(elapsed_seconds);
+#endif
+#if defined(BACNET_TIME_MASTER)
+        {
+            BACNET_DATE_TIME current_date_time = { 0 };
+
+            if (datetime_local(
+                    &current_date_time.date, &current_date_time.time, NULL,
+                    NULL)) {
+                handler_timesync_task(&current_date_time);
+            }
+        }
 #endif
     }
 #if (BACNET_COV_SUBSCRIPTIONS_SIZE > 0)

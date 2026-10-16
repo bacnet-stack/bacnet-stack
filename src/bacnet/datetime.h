@@ -52,6 +52,23 @@ typedef struct BACnet_DateTime {
     BACNET_TIME time;
 } BACNET_DATE_TIME;
 
+typedef enum BACnet_DateTime_Change {
+    DATETIME_CHANGE_TIME,
+    DATETIME_CHANGE_UTC_OFFSET,
+    DATETIME_CHANGE_DST
+} BACNET_DATETIME_CHANGE;
+
+typedef void (*datetime_change_callback_t)(
+    BACNET_DATETIME_CHANGE change, const BACNET_DATE_TIME *standard_time);
+
+struct datetime_change_notification;
+typedef struct datetime_change_notification {
+    struct datetime_change_notification *next;
+    datetime_change_callback_t callback;
+} DATETIME_CHANGE_NOTIFICATION;
+
+typedef void (*datetime_lock_callback_t)(void);
+
 /* range of dates */
 typedef struct BACnet_Date_Range {
     BACNET_DATE startdate;
@@ -275,6 +292,27 @@ bool datetime_local_to_utc(
     int16_t utc_offset_minutes,
     int8_t dst_adjust_minutes);
 BACNET_STACK_EXPORT
+void datetime_change_notification_add(
+    DATETIME_CHANGE_NOTIFICATION *notification);
+BACNET_STACK_EXPORT
+void datetime_change_notify(
+    BACNET_DATETIME_CHANGE change, const BACNET_DATE_TIME *standard_time);
+BACNET_STACK_EXPORT
+void datetime_timesync_deadband_set(uint32_t milliseconds);
+BACNET_STACK_EXPORT
+uint32_t datetime_timesync_deadband(void);
+BACNET_STACK_EXPORT
+bool datetime_timesync_in_deadband(
+    const BACNET_DATE_TIME *current, const BACNET_DATE_TIME *requested);
+/* Lock callbacks are registered and cleared as a pair. */
+BACNET_STACK_EXPORT
+void datetime_lock_callback_set(
+    datetime_lock_callback_t lock, datetime_lock_callback_t unlock);
+BACNET_STACK_EXPORT
+void datetime_lock(void);
+BACNET_STACK_EXPORT
+void datetime_unlock(void);
+BACNET_STACK_EXPORT
 bool datetime_utc_to_local(
     BACNET_DATE_TIME *local_time,
     const BACNET_DATE_TIME *utc_time,
@@ -345,6 +383,14 @@ bool datetime_local(
     BACNET_TIME *btime,
     int16_t *utc_offset_minutes,
     bool *dst_active);
+BACNET_STACK_EXPORT
+void datetime_standard_set(const BACNET_DATE_TIME *standard_time);
+BACNET_STACK_EXPORT
+bool datetime_standard(BACNET_DATE_TIME *standard_time);
+BACNET_STACK_EXPORT
+bool datetime_valid(void);
+BACNET_STACK_EXPORT
+void datetime_reset(void);
 /* UTC Offset API */
 BACNET_STACK_EXPORT
 int16_t datetime_utc_offset_minutes(void);

@@ -40,11 +40,15 @@ void handler_timesync_utc(
 BACNET_STACK_EXPORT
 int handler_timesync_encode_recipients(uint8_t *apdu, int max_apdu);
 BACNET_STACK_EXPORT
+int handler_timesync_encode_utc_recipients(uint8_t *apdu, int max_apdu);
+BACNET_STACK_EXPORT
 void handler_timesync_task(BACNET_DATE_TIME *bdatetime);
 BACNET_STACK_EXPORT
 void handler_timesync_init(void);
 BACNET_STACK_EXPORT
 bool handler_timesync_recipient_write(BACNET_WRITE_PROPERTY_DATA *wp_data);
+BACNET_STACK_EXPORT
+bool handler_timesync_utc_recipient_write(BACNET_WRITE_PROPERTY_DATA *wp_data);
 BACNET_STACK_EXPORT
 uint32_t handler_timesync_interval(void);
 BACNET_STACK_EXPORT
@@ -58,6 +62,9 @@ BACNET_STACK_EXPORT
 bool handler_timesync_interval_align_set(bool flag);
 BACNET_STACK_EXPORT
 bool handler_timesync_recipient_address_set(
+    unsigned index, BACNET_ADDRESS *address);
+BACNET_STACK_EXPORT
+bool handler_timesync_utc_recipient_address_set(
     unsigned index, BACNET_ADDRESS *address);
 BACNET_STACK_EXPORT
 void handler_timesync_set_callback_set(handler_timesync_set_callback_t cb);

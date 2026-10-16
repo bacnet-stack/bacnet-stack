@@ -12,6 +12,19 @@
 #include <bacnet/bactext.h>
 #include <property_test.h>
 
+extern void datetime_utc_offset_minutes_set_accept(bool accept);
+
+static unsigned Device_DateTime_Change_Count;
+static BACNET_DATETIME_CHANGE Device_DateTime_Last_Change;
+
+static void test_datetime_change_callback(
+    BACNET_DATETIME_CHANGE change, const BACNET_DATE_TIME *standard_time)
+{
+    (void)standard_time;
+    Device_DateTime_Change_Count++;
+    Device_DateTime_Last_Change = change;
+}
+
 /**
  * @addtogroup bacnet_tests
  * @{
@@ -68,6 +81,86 @@ static void test_Device_Write_Property_Range(void)
     zassert_false(status, NULL);
     zassert_equal(wpdata.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
     zassert_equal(Device_Vendor_Identifier(), 1234, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Device_UTC_Offset_Write)
+#else
+static void test_Device_UTC_Offset_Write(void)
+#endif
+{
+    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
+    bool status = false;
+
+    Device_Init(NULL);
+    datetime_utc_offset_minutes_set_accept(true);
+    wpdata.object_type = OBJECT_DEVICE;
+    wpdata.object_instance = Device_Object_Instance_Number();
+    wpdata.object_property = PROP_UTC_OFFSET;
+    wpdata.array_index = BACNET_ARRAY_ALL;
+    wpdata.application_data_len = bacnet_signed_application_encode(
+        wpdata.application_data, sizeof(wpdata.application_data), 300);
+    status = Device_Write_Property(&wpdata);
+    zassert_true(status, NULL);
+    zassert_equal(Device_UTC_Offset(), 300, NULL);
+
+    wpdata.application_data_len = bacnet_signed_application_encode(
+        wpdata.application_data, sizeof(wpdata.application_data), -1440);
+    status = Device_Write_Property(&wpdata);
+    zassert_true(status, NULL);
+    zassert_equal(Device_UTC_Offset(), -1440, NULL);
+
+    wpdata.application_data_len = bacnet_signed_application_encode(
+        wpdata.application_data, sizeof(wpdata.application_data), 1441);
+    status = Device_Write_Property(&wpdata);
+    zassert_false(status, NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+
+    datetime_utc_offset_minutes_set_accept(false);
+    wpdata.application_data_len = bacnet_signed_application_encode(
+        wpdata.application_data, sizeof(wpdata.application_data), 0);
+    status = Device_Write_Property(&wpdata);
+    zassert_false(status, NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_WRITE_ACCESS_DENIED, NULL);
+    datetime_utc_offset_minutes_set_accept(true);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Device_Local_Time_Change_Notifications)
+#else
+static void test_Device_Local_Time_Change_Notifications(void)
+#endif
+{
+    static DATETIME_CHANGE_NOTIFICATION notification = {
+        NULL, test_datetime_change_callback
+    };
+    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
+    BACNET_TIME time = { 0 };
+    BACNET_DATE date = { 0 };
+    bool status = false;
+
+    Device_Init(NULL);
+    datetime_change_notification_add(&notification);
+    Device_DateTime_Change_Count = 0;
+    wpdata.object_type = OBJECT_DEVICE;
+    wpdata.object_instance = Device_Object_Instance_Number();
+    wpdata.array_index = BACNET_ARRAY_ALL;
+    wpdata.object_property = PROP_LOCAL_TIME;
+    datetime_set_time(&time, 12, 34, 56, 0);
+    wpdata.application_data_len =
+        encode_application_time(wpdata.application_data, &time);
+    status = Device_Write_Property(&wpdata);
+    zassert_true(status, NULL);
+    zassert_equal(Device_DateTime_Change_Count, 1, NULL);
+    zassert_equal(Device_DateTime_Last_Change, DATETIME_CHANGE_TIME, NULL);
+
+    wpdata.object_property = PROP_LOCAL_DATE;
+    datetime_set_date(&date, 2024, 1, 15);
+    wpdata.application_data_len =
+        encode_application_date(wpdata.application_data, &date);
+    status = Device_Write_Property(&wpdata);
+    zassert_true(status, NULL);
+    zassert_equal(Device_DateTime_Change_Count, 2, NULL);
 }
 
 static BACNET_OBJECT_TYPE test_find_free_object_type(
@@ -871,6 +964,8 @@ void test_main(void)
         device_tests, ztest_unit_test(testDevice),
         ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Write_Property_Range),
+        ztest_unit_test(test_Device_UTC_Offset_Write),
+        ztest_unit_test(test_Device_Local_Time_Change_Notifications),
         ztest_unit_test(test_Device_CharacterString_Property_Values),
         ztest_unit_test(test_Device_Last_Restart_Reason),
         ztest_unit_test(test_Device_Object_Functions_APIs),
@@ -882,6 +977,8 @@ void test_main(void)
         device_tests, ztest_unit_test(testDevice),
         ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Write_Property_Range),
+        ztest_unit_test(test_Device_UTC_Offset_Write),
+        ztest_unit_test(test_Device_Local_Time_Change_Notifications),
         ztest_unit_test(test_Device_CharacterString_Property_Values),
         ztest_unit_test(test_Device_Last_Restart_Reason),
         ztest_unit_test(test_Device_Object_Functions_APIs),

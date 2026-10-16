@@ -29,12 +29,18 @@
 #define MAX_TIME_SYNC_RECIPIENTS 16
 #endif
 BACNET_RECIPIENT_LIST Time_Sync_Recipients[MAX_TIME_SYNC_RECIPIENTS];
+static BACNET_RECIPIENT_LIST Time_Sync_UTC_Recipients[MAX_TIME_SYNC_RECIPIENTS];
 /* variable used for controlling when to
    automatically send a TimeSynchronization request */
 static BACNET_DATE_TIME Next_Sync_Time;
 #endif
 
 #if PRINT_ENABLED
+/**
+ * @brief Print a BACnet date and time to standard error.
+ * @param bdate [in] Date to print
+ * @param btime [in] Time to print
+ */
 static void
 show_bacnet_date_time(const BACNET_DATE *bdate, const BACNET_TIME *btime)
 {
@@ -54,6 +60,15 @@ show_bacnet_date_time(const BACNET_DATE *bdate, const BACNET_TIME *btime)
 /* Callback for timesync set */
 static handler_timesync_set_callback_t handler_timesync_set_callback;
 
+/**
+ * @brief Handle a local TimeSynchronization service request.
+ * @param service_request [in] Encoded service request
+ * @param service_len [in] Length of the service request
+ * @param src [in] Request source address
+ *
+ * Calls the registered set callback only when decoding and date/time
+ * validation succeed.
+ */
 void handler_timesync(
     uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
 {
@@ -67,7 +82,6 @@ void handler_timesync(
         service_request, service_len, &bdate, &btime);
     if (len > 0) {
         if (datetime_is_valid(&bdate, &btime)) {
-            /* fixme: only set the time if off by some amount */
             if (handler_timesync_set_callback) {
                 handler_timesync_set_callback(&bdate, &btime, false);
             }
@@ -81,6 +95,15 @@ void handler_timesync(
     return;
 }
 
+/**
+ * @brief Handle a UTC TimeSynchronization service request.
+ * @param service_request [in] Encoded service request
+ * @param service_len [in] Length of the service request
+ * @param src [in] Request source address
+ *
+ * Calls the registered set callback only when decoding and date/time
+ * validation succeed.
+ */
 void handler_timesync_utc(
     uint8_t *service_request, uint16_t service_len, BACNET_ADDRESS *src)
 {
@@ -126,25 +149,124 @@ int handler_timesync_encode_recipients(uint8_t *apdu, int max_apdu)
     return timesync_encode_timesync_recipients(
         apdu, max_apdu, &Time_Sync_Recipients[0]);
 }
-#endif
 
-#if defined(BACNET_TIME_MASTER)
-bool handler_timesync_recipient_write(BACNET_WRITE_PROPERTY_DATA *wp_data)
+/**
+ * @brief Encode the UTC TimeSynchronization recipient list.
+ * @param apdu [out] Buffer receiving the encoded list
+ * @param max_apdu [in] Maximum length of the output buffer
+ * @return Number of bytes encoded, or BACNET_STATUS_ABORT if it does not fit
+ */
+int handler_timesync_encode_utc_recipients(uint8_t *apdu, int max_apdu)
 {
-    bool status = false;
-
-    /* fixme: handle writing of the recipient list */
-    wp_data->error_class = ERROR_CLASS_PROPERTY;
-    wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-
-    return status;
+    return timesync_encode_timesync_recipients(
+        apdu, max_apdu, &Time_Sync_UTC_Recipients[0]);
 }
 #endif
 
 #if defined(BACNET_TIME_MASTER)
+/**
+ * @brief Decode and replace a TimeSynchronization recipient list.
+ * @param wp_data [in,out] WriteProperty data and error result
+ * @param list [out] Recipient list to replace after successful decoding
+ * @return true if the complete list was decoded and stored
+ */
+static bool handler_timesync_recipient_list_write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_RECIPIENT_LIST *list)
+{
+    BACNET_RECIPIENT_LIST decoded[MAX_TIME_SYNC_RECIPIENTS];
+    BACNET_RECIPIENT_LIST *entry = NULL;
+    int apdu_length = 0;
+    int length = 0;
+    unsigned count = 0;
+    unsigned index = 0;
+    bool status = false;
+
+    if (!wp_data || !list) {
+        return false;
+    }
+    if ((wp_data->application_data_len < 0) ||
+        (wp_data->application_data_len > MAX_APDU)) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        return false;
+    }
+    if (wp_data->array_index != BACNET_ARRAY_ALL) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
+        return false;
+    }
+    if (wp_data->application_data_len > 0) {
+        bacnet_recipient_list_link_array(decoded, MAX_TIME_SYNC_RECIPIENTS);
+        for (index = 0; index < MAX_TIME_SYNC_RECIPIENTS; index++) {
+            decoded[index].recipient.tag = BACNET_RECIPIENT_TAG_MAX;
+        }
+        while (apdu_length < wp_data->application_data_len) {
+            if (count >= MAX_TIME_SYNC_RECIPIENTS) {
+                break;
+            }
+            entry = &decoded[count];
+            length = bacnet_recipient_decode(
+                &wp_data->application_data[apdu_length],
+                wp_data->application_data_len - apdu_length, &entry->recipient);
+            if (length <= 0) {
+                break;
+            }
+            apdu_length += length;
+            count++;
+        }
+        if (apdu_length != wp_data->application_data_len) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            return false;
+        }
+    }
+    for (index = 0; index < MAX_TIME_SYNC_RECIPIENTS; index++) {
+        list[index].recipient.tag = BACNET_RECIPIENT_TAG_MAX;
+        if (index < count) {
+            list[index].recipient = decoded[index].recipient;
+        }
+    }
+    status = true;
+
+    return status;
+}
+
+/**
+ * @brief Write the local TimeSynchronization recipient list.
+ * @param wp_data [in,out] WriteProperty data and error result
+ * @return true if the recipient list was accepted
+ */
+bool handler_timesync_recipient_write(BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    return handler_timesync_recipient_list_write(
+        wp_data, &Time_Sync_Recipients[0]);
+}
+
+/**
+ * @brief Write the UTC TimeSynchronization recipient list.
+ * @param wp_data [in,out] WriteProperty data and error result
+ * @return true if the recipient list was accepted
+ */
+bool handler_timesync_utc_recipient_write(BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    return handler_timesync_recipient_list_write(
+        wp_data, &Time_Sync_UTC_Recipients[0]);
+}
+#endif
+
+#if defined(BACNET_TIME_MASTER)
+/**
+ * @brief Send local and UTC TimeSynchronization requests to address recipients.
+ * @param current_date_time [in] Current local date and time
+ *
+ * Device-identifier recipients are not sent by this handler.
+ */
 static void handler_timesync_send(BACNET_DATE_TIME *current_date_time)
 {
     unsigned index = 0;
+    BACNET_DATE_TIME utc_time = { 0 };
+    int16_t utc_offset = 0;
+    bool dst_active = false;
 
     for (index = 0; index < MAX_TIME_SYNC_RECIPIENTS; index++) {
         if (Time_Sync_Recipients[index].recipient.tag ==
@@ -154,10 +276,28 @@ static void handler_timesync_send(BACNET_DATE_TIME *current_date_time)
                 &current_date_time->date, &current_date_time->time);
         }
     }
+    if (!datetime_local(NULL, NULL, &utc_offset, &dst_active) ||
+        !datetime_local_to_utc(
+            &utc_time, current_date_time, utc_offset, dst_active ? -60 : 0)) {
+        return;
+    }
+    for (index = 0; index < MAX_TIME_SYNC_RECIPIENTS; index++) {
+        if (Time_Sync_UTC_Recipients[index].recipient.tag ==
+            BACNET_RECIPIENT_TAG_ADDRESS) {
+            Send_TimeSyncUTC_Remote(
+                &Time_Sync_UTC_Recipients[index].recipient.type.address,
+                &utc_time.date, &utc_time.time);
+        }
+    }
 }
 #endif
 
 #if defined(BACNET_TIME_MASTER)
+/**
+ * @brief Calculate the next TimeSynchronization send time.
+ * @param device_interval [in] Synchronization interval in minutes
+ * @param current_date_time [in] Current local date and time
+ */
 static void handler_timesync_update(
     uint32_t device_interval, BACNET_DATE_TIME *current_date_time)
 {
@@ -217,6 +357,12 @@ static void handler_timesync_update(
 #endif
 
 #if defined(BACNET_TIME_MASTER)
+/**
+ * @brief Set a local TimeSynchronization recipient address.
+ * @param index [in] Recipient list index
+ * @param address [in] Address to store
+ * @return true if the address was stored
+ */
 bool handler_timesync_recipient_address_set(
     unsigned index, BACNET_ADDRESS *address)
 {
@@ -232,9 +378,35 @@ bool handler_timesync_recipient_address_set(
 
     return status;
 }
+
+/**
+ * @brief Set a UTC TimeSynchronization recipient address.
+ * @param index [in] Recipient list index
+ * @param address [in] Address to store
+ * @return true if the address was stored
+ */
+bool handler_timesync_utc_recipient_address_set(
+    unsigned index, BACNET_ADDRESS *address)
+{
+    bool status = false;
+
+    if (address && (index < MAX_TIME_SYNC_RECIPIENTS)) {
+        Time_Sync_UTC_Recipients[index].recipient.tag =
+            BACNET_RECIPIENT_TAG_ADDRESS;
+        bacnet_address_copy(
+            &Time_Sync_UTC_Recipients[index].recipient.type.address, address);
+        status = true;
+    }
+
+    return status;
+}
 #endif
 
 #if defined(BACNET_TIME_MASTER)
+/**
+ * @brief Run the periodic TimeSynchronization master task.
+ * @param current_date_time [in] Current local date and time
+ */
 void handler_timesync_task(BACNET_DATE_TIME *current_date_time)
 {
     int compare = 0;
@@ -255,6 +427,9 @@ void handler_timesync_task(BACNET_DATE_TIME *current_date_time)
 #endif
 
 #if defined(BACNET_TIME_MASTER)
+/**
+ * @brief Initialize local and UTC TimeSynchronization recipient lists.
+ */
 void handler_timesync_init(void)
 {
     unsigned i = 0;
@@ -262,16 +437,18 @@ void handler_timesync_init(void)
     /* connect linked list */
     bacnet_recipient_list_link_array(
         Time_Sync_Recipients, MAX_TIME_SYNC_RECIPIENTS);
+    bacnet_recipient_list_link_array(
+        Time_Sync_UTC_Recipients, MAX_TIME_SYNC_RECIPIENTS);
     for (i = 0; i < MAX_TIME_SYNC_RECIPIENTS; i++) {
         Time_Sync_Recipients[i].recipient.tag = BACNET_RECIPIENT_TAG_MAX;
+        Time_Sync_UTC_Recipients[i].recipient.tag = BACNET_RECIPIENT_TAG_MAX;
     }
 }
 #endif
 
 /**
- * Configures and enables a timesync callback function
- *
- * @param cb - pointer to #handler_timesync_set_callback_t
+ * @brief Configure the callback used to apply received TimeSynchronization.
+ * @param cb [in] Callback to register, or NULL to clear it
  */
 void handler_timesync_set_callback_set(handler_timesync_set_callback_t cb)
 {
