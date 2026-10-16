@@ -25,6 +25,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed BACnet/IP socket cleanup to avoid closing the same socket twice on
+  Linux, BSD, and Windows. (#1533)
 * Fixed Linux and BSD MS/TP time handling at the nanosecond boundary. (#1530)
 * Fixed datalink environment parsing to reject out-of-range port and MS/TP MAC
   address values. (#1532)
