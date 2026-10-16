@@ -37,7 +37,6 @@
 #include "bacnet/special_event.h"
 #include "bacnet/channel_value.h"
 #include "bacnet/timer_value.h"
-#include "bacnet/basic/sys/platform.h"
 
 #if defined(BACAPP_SCALE)
 /**

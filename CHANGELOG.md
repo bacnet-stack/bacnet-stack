@@ -17,6 +17,7 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed bacapp.c to not include the unnecessary platform.h header file.
 * Fixed MinGW buggy warnings for isinfinite(), isnan(), and isinf()
   when used with double arguments.
 * Fixed Network Port object IPv4 to use the actual IPv4 settings
