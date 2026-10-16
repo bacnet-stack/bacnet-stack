@@ -1062,6 +1062,7 @@ bool dlmstp_init(char *ifname)
     struct sched_param sch_param;
     pthread_condattr_t attr;
     int rv = 0;
+    const char *iface_name;
 
     if (DLMSTP_Initialized) {
         dlmstp_cleanup();
@@ -1070,15 +1071,14 @@ bool dlmstp_init(char *ifname)
     DLMSTP_Initialized = true;
     if (ifname) {
         RS485_Set_Interface(ifname);
-        debug_fprintf(stderr, "MS/TP Interface: %s\n", ifname);
-    } else {
-        ifname = RS485_Interface();
     }
+    iface_name = RS485_Interface();
+    debug_fprintf(stderr, "MS/TP Interface: %s\n", iface_name);
     pthread_condattr_init(&attr);
     if ((rv = pthread_condattr_setclock(&attr, CLOCK_MONOTONIC)) != 0) {
         fprintf(
             stderr, "MS/TP Interface: %s\n failed to set MONOTONIC clock\n",
-            ifname);
+            iface_name);
         exit(1);
     }
     pthread_mutex_init(&Thread_Mutex, NULL);
@@ -1086,7 +1086,7 @@ bool dlmstp_init(char *ifname)
     if (rv != 0) {
         fprintf(
             stderr, "MS/TP Interface: %s\n cannot allocate PThread Mutex.\n",
-            ifname);
+            iface_name);
         exit(1);
     }
     /* initialize PDU queue */
@@ -1102,14 +1102,14 @@ bool dlmstp_init(char *ifname)
         fprintf(
             stderr,
             "MS/TP Interface: %s\n cannot allocate PThread Condition.\n",
-            ifname);
+            iface_name);
         exit(1);
     }
     rv = pthread_mutex_init(&Receive_Packet_Mutex, NULL);
     if (rv != 0) {
         fprintf(
             stderr, "MS/TP Interface: %s\n cannot allocate PThread Mutex.\n",
-            ifname);
+            iface_name);
         exit(1);
     }
     clock_gettime(CLOCK_MONOTONIC, &Clock_Get_Time_Start);
@@ -1163,7 +1163,7 @@ bool dlmstp_init(char *ifname)
             stderr,
             "MS/TP Interface: %s\n cannot setup thread schedule to "
             "explicit.\n",
-            ifname);
+            iface_name);
         exit(1);
     }
     rv = pthread_attr_setschedpolicy(&thread_attr, SCHED_FIFO);
@@ -1172,7 +1172,7 @@ bool dlmstp_init(char *ifname)
             stderr,
             "MS/TP Interface: %s\n cannot setup thread schedule policy to "
             "FIFO.\n",
-            ifname);
+            iface_name);
         exit(1);
     }
     sch_param.sched_priority = 99;
@@ -1180,7 +1180,7 @@ bool dlmstp_init(char *ifname)
     if (rv != 0) {
         fprintf(
             stderr, "MS/TP Interface: %s\n cannot setup thread priority.\n",
-            ifname);
+            iface_name);
         exit(1);
     }
     /* start one thread */
@@ -1194,13 +1194,13 @@ bool dlmstp_init(char *ifname)
             "    A thread without priority will be created.\n"
             "  Run this executable as a user with thread priority permission\n"
             "    or grant capability with \"setcap 'cap_sys_nice=eip'\"",
-            ifname);
+            iface_name);
         rv = pthread_create(&hThread, NULL, dlmstp_thread, NULL);
     }
     if (rv != 0) {
         fprintf(
             stderr, "MS/TP Interface: %s\n Failed to start MS/TP thread.\n",
-            ifname);
+            iface_name);
         exit(1);
     }
 

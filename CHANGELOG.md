@@ -51,6 +51,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the Linux dlmstp_init() function to use a const pointer for the
+  interface name from RS485_Interface(). This removes a discarded-qualifiers
+  compiler error.
 * Fixed the bacfile_posix_write_record_data() function to ignore one trailing
   newline in the record data. The function still rejects a newline in any
   other position. (#1570)
