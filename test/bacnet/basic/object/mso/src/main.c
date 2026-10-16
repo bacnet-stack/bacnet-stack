@@ -85,6 +85,51 @@ static void testMultistateOutputByName(void)
     status = Multistate_Output_Delete(object_instance);
     zassert_true(status, NULL);
 }
+
+/**
+ * @brief Test that priority 6 (reserved for the Minimum On/Off algorithm
+ *  per the BACnet standard's recommended priority assignments) is rejected
+ *  by the present-value priority-array primitives, and that other priority
+ *  levels are unaffected
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(mso_tests, testMultistateOutput_Priority_6_Reserved)
+#else
+static void testMultistateOutput_Priority_6_Reserved(void)
+#endif
+{
+    const uint32_t instance = 789;
+    bool status = false;
+
+    Multistate_Output_Init();
+    zassert_not_equal(
+        Multistate_Output_Create(instance), BACNET_MAX_INSTANCE, NULL);
+
+    /* priority 6 is reserved: Set must be rejected and the slot must stay
+       relinquished */
+    status = Multistate_Output_Present_Value_Set(instance, 2, 6);
+    zassert_false(status, NULL);
+    zassert_true(
+        Multistate_Output_Priority_Array_Relinquished(instance, 6), NULL);
+
+    /* priority 6 is reserved: Relinquish must be rejected too (nothing to
+       relinquish, no false report of a state change) */
+    status = Multistate_Output_Present_Value_Relinquish(instance, 6);
+    zassert_false(status, NULL);
+
+    /* a non-reserved priority is unaffected by the above */
+    status = Multistate_Output_Present_Value_Set(instance, 2, 5);
+    zassert_true(status, NULL);
+    zassert_false(
+        Multistate_Output_Priority_Array_Relinquished(instance, 5), NULL);
+    status = Multistate_Output_Present_Value_Relinquish(instance, 5);
+    zassert_true(status, NULL);
+    zassert_true(
+        Multistate_Output_Priority_Array_Relinquished(instance, 5), NULL);
+
+    Multistate_Output_Delete(instance);
+    Multistate_Output_Cleanup();
+}
 /**
  * @}
  */
@@ -96,7 +141,8 @@ void test_main(void)
 {
     ztest_test_suite(
         mso_tests, ztest_unit_test(testMultistateOutput),
-        ztest_unit_test(testMultistateOutputByName));
+        ztest_unit_test(testMultistateOutputByName),
+        ztest_unit_test(testMultistateOutput_Priority_6_Reserved));
 
     ztest_run_test_suite(mso_tests);
 }
