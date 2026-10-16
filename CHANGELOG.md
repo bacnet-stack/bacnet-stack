@@ -28,6 +28,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the Positive Integer Value object by adding the missing
+  PositiveInteger_Value_Out_Of_Service() and
+  PositiveInteger_Value_Out_Of_Service_Set() functions. (#1550)
 * Fixed the Notification Class object Priority property to be a
   BACnetARRAY property in the property list. WriteProperty of a single array
   element no longer fails with PROPERTY_IS_NOT_AN_ARRAY. (#1551)
