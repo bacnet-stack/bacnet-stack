@@ -25,6 +25,9 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed basic Trend Log object by rejecting ReadRange by-position RefIndex 0
+  and non-positive count, and guard against an entry index below 1 as a
+  defense-in-depth measure. (#1517)
 * Fixed TrendLog TL_MAX_ENTRIES to be able to be overridden and provide
   a default value. (#1514)
 * Fixed the Effective_Period property value to be a fully specified date
