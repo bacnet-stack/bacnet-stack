@@ -17,6 +17,10 @@
 #include "bacnet/basic/object/bacfile.h"
 #include "bacnet/datalink/cobs.h"
 
+#ifndef BACNET_MIN
+#define BACNET_MIN(a, b) (((a) < (b)) ? (a) : (b))
+#endif
+
 /* Key List for storing the object data sorted by instance number  */
 static OS_Keylist File_List;
 
@@ -284,10 +288,14 @@ static size_t record_count(const char *records, size_t size)
         if (records >= end) {
             break;
         }
-        len = bacnet_strnlen(records, MAX_OCTET_STRING_BYTES);
-        if (len > 0) {
+        len = bacnet_strnlen(
+            records,
+            BACNET_MIN(MAX_OCTET_STRING_BYTES, (size_t)(end - records)));
+        if ((len > 0) && ((size_t)len < (size_t)(end - records))) {
             count++;
             records = records + len + 1;
+        } else {
+            len = 0;
         }
     } while (len > 0);
 
@@ -316,13 +324,17 @@ static char *record_by_index(char *records, size_t index, size_t size)
         if (records >= end) {
             break;
         }
-        len = bacnet_strnlen(records, MAX_OCTET_STRING_BYTES);
-        if (len > 0) {
+        len = bacnet_strnlen(
+            records,
+            BACNET_MIN(MAX_OCTET_STRING_BYTES, (size_t)(end - records)));
+        if ((len > 0) && ((size_t)len < (size_t)(end - records))) {
             if (index == count) {
                 return records;
             }
             count++;
             records = records + len + 1;
+        } else {
+            len = 0;
         }
     } while (len > 0);
 
@@ -355,6 +367,7 @@ bool bacfile_ramfs_write_record_data(
     struct file_data *pFile;
     char *record;
     size_t record_len;
+    size_t record_offset;
     size_t tail_record_len;
     char *tail_data = NULL;
     size_t tail_data_len = 0;
@@ -393,7 +406,12 @@ bool bacfile_ramfs_write_record_data(
         if (fileSeekRecord < fileRecordCount) {
             /* find the old record length */
             record = record_by_index(pFile->data, fileSeekRecord, pFile->size);
-            record_len = bacnet_strnlen(record, MAX_OCTET_STRING_BYTES);
+            record_offset = (size_t)(record - pFile->data);
+            record_len = bacnet_strnlen(
+                record,
+                BACNET_MIN(
+                    MAX_OCTET_STRING_BYTES,
+                    pFile->size - (size_t)(record - pFile->data)));
             tail_record_len = pFile->size - (record - pFile->data) - record_len;
             /* save tail data (excluding old record's null terminator) before
                realloc (may be lost if buffer shrinks) */
@@ -417,8 +435,8 @@ bool bacfile_ramfs_write_record_data(
             }
             pFile->data = record;
             pFile->size = new_size;
-            /* find the old record position after a realloc */
-            record = record_by_index(pFile->data, fileSeekRecord, pFile->size);
+            /* The old record may be truncated by a shrinking realloc. */
+            record = pFile->data + record_offset;
             /* restore tail data to new position (after new record + null
                terminator) */
             if (tail_data && tail_data_len > 0) {
@@ -477,7 +495,11 @@ bool bacfile_ramfs_read_record_data(
         /* seek to the start record */
         record = record_by_index(pFile->data, fileSeekRecord, pFile->size);
         if (record) {
-            record_len = bacnet_strnlen(record, MAX_OCTET_STRING_BYTES);
+            record_len = bacnet_strnlen(
+                record,
+                BACNET_MIN(
+                    MAX_OCTET_STRING_BYTES,
+                    pFile->size - (size_t)(record - pFile->data)));
             if ((record_len > 0) && (record_len <= fileDataLen)) {
                 /* copy the record data */
                 memcpy(fileData, record, record_len);
@@ -500,6 +522,7 @@ void bacfile_ramfs_deinit(void)
         do {
             pFile = Keylist_Data_Pop(File_List);
             if (pFile) {
+                free(pFile->data);
                 free(pFile);
             }
         } while (pFile);
