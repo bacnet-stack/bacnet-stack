@@ -32,6 +32,8 @@ BACNET_STACK_EXPORT extern uint8_t Handler_Transmit_Buffer[MAX_PDU];
 
 #if (!MAX_TSM_TRANSACTIONS)
 #define tsm_free_invoke_id(x) (void)x;
+#define tsm_invoke_id_source_match(invokeID, src) \
+    ((void)(invokeID), (void)(src), true)
 #else
 typedef enum {
     TSM_STATE_IDLE,
@@ -96,6 +98,8 @@ void tsm_timer_milliseconds(uint16_t milliseconds);
 /* free the invoke ID when the reply comes back */
 BACNET_STACK_EXPORT
 void tsm_free_invoke_id(uint8_t invokeID);
+BACNET_STACK_EXPORT
+bool tsm_invoke_id_source_match(uint8_t invokeID, const BACNET_ADDRESS *src);
 /* use these in tandem */
 BACNET_STACK_EXPORT
 uint8_t tsm_next_free_invokeID(void);

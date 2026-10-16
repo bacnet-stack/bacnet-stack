@@ -208,12 +208,14 @@ list(APPEND testdirs
   # basic/program
   bacnet/basic/program/ubasic
   # basic/service
+  bacnet/basic/service/h_apdu
   bacnet/basic/service/h_arf
   bacnet/basic/service/h_awf
   bacnet/basic/service/h_cov
   bacnet/basic/service/h_pt
   bacnet/basic/service/h_rpm_a
   bacnet/basic/service/h_rr
+  bacnet/basic/service/s_getevent
   bacnet/basic/service/s_pt
   # basic/server
   bacnet/basic/server/bacnet_device
