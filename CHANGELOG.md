@@ -22,6 +22,16 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the Effective_Period property value to be a fully specified date
+  or completely unspecified date, and added validation for Effective_Period
+  date ranges when set or written. Fixed calendar entry date matching logic
+  to handle patterns and unspecified fields. Validate effective period date
+  in Schedule_Effective_Period_Date_Valid function and fix BACnetWeekNDay
+  pattern matching logic in datetime module. Fixed weekofmonth logic in
+  Calendar_Present_Value test to avoid incorrect wrapping. Fixed date
+  pattern matching to include day-of-week validation per IC135-2012-6 and
+  update tests for accurate contradiction handling. Fixed date matching
+  functions between BACnetDate and BACnetWeekNDay options. (#1508)
 * Fixed the Relinquish_Default COV trigger in Output objects. (#1496)
 * Fixed the gateway2 app to not announce virtual network as a network. (#1495)
 * Fixed the Write Property Multiple to reject priority 0. (#1494)

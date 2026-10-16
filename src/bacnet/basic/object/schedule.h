@@ -38,6 +38,13 @@ extern "C" {
 
 typedef struct schedule {
     /* Effective Period: Start and End Date */
+    /* For BACnet date ranges used in Effective_Period,
+       BACnet addenda clarified that the start date and end date
+       must be either:
+       * A fully specified date, or
+       * A completely unspecified date (all fields wildcarded)
+       Partial wildcards, such as specifying a month and day
+       while wildcarding only the year, are not permitted in a date range. */
     BACNET_DATE Start_Date;
     BACNET_DATE End_Date;
     /* Properties concerning Present Value */
