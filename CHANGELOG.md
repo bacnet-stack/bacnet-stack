@@ -17,6 +17,8 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the basic Analog Output object to reserve priority 6 and reject
+  writes to it. (#1492)
 * Fixed compiler warnings by adding setenv implementation for MinGW/MSVC.
 * Fixed MinGW buggy warnings for isinfinite(), isnan(), and isinf()
   when used with double arguments.
