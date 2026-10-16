@@ -296,6 +296,7 @@ static void test_ubasic_math(void)
         "println 'Demo - Math';"
         "for i = 1 to 2;"
         "  j = i + 0.25 + 1/2;"
+        "  n = -3 / 2;"
         "  k = sqrt(2*j) + ln(4*i) + cos(i+j) + sin(j);"
         "next i;"
         "println 'j=' j;"
@@ -354,6 +355,11 @@ static void test_ubasic_math(void)
     value_frac = fixedpt_fracpart_floor_toint(value, 2);
     zassert_equal(value_int, 4, "int=%d", value_int);
     zassert_equal(value_frac, 83, "frac=%d", value_frac);
+    value = ubasic_get_variable(&data, 'n');
+    value_int = fixedpt_toint(value);
+    value_frac = fixedpt_fracpart_floor_toint(value, 2);
+    zassert_equal(value_int, -2, "int=%d", value_int);
+    zassert_equal(value_frac, 50, "frac=%d", value_frac);
     for (i = 0; i < ARRAY_SIZE(arrayvalue); i++) {
         arrayvalue[i] = ubasic_get_arrayvariable(&data, 'r', 1 + i);
         value_int = fixedpt_toint(arrayvalue[i]);

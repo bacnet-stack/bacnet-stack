@@ -342,5 +342,7 @@ int main(void)
     test_Execute_Virtual_Address_Resolution();
     test_Initiate_Original_Broadcast_NPDU();
 
+    VMAC_Cleanup();
+
     return 0;
 }
