@@ -158,6 +158,42 @@ static void testInvokeIdSourceMatch(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(h_apdu_tests, testInvokeIdSourceMatchRouted)
+#else
+static void testInvokeIdSourceMatchRouted(void)
+#endif
+{
+    BACNET_ADDRESS dest;
+    BACNET_ADDRESS other_router;
+    BACNET_ADDRESS other_remote;
+    BACNET_ADDRESS other_net;
+    uint8_t invoke_id;
+
+    /* remote device 5 on network 2000, reached via router at host 10 */
+    address_set(&dest, 10);
+    dest.net = 2000;
+    dest.len = 1;
+    dest.adr[0] = 5;
+    /* same remote device, response came back through another router */
+    other_router = dest;
+    other_router.mac[3] = 11;
+    /* different remote device behind the same router */
+    other_remote = dest;
+    other_remote.adr[0] = 6;
+    /* same remote address on a different network */
+    other_net = dest;
+    other_net.net = 2001;
+
+    invoke_id = pending_invoke_id(&dest);
+    zassert_true(tsm_invoke_id_source_match(invoke_id, &dest), NULL);
+    zassert_true(tsm_invoke_id_source_match(invoke_id, &other_router), NULL);
+    zassert_false(tsm_invoke_id_source_match(invoke_id, &other_remote), NULL);
+    zassert_false(tsm_invoke_id_source_match(invoke_id, &other_net), NULL);
+
+    tsm_free_invoke_id(invoke_id);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(h_apdu_tests, testSimpleAckSourceMatch)
 #else
 static void testSimpleAckSourceMatch(void)
@@ -282,6 +318,7 @@ void test_main(void)
 {
     ztest_test_suite(
         h_apdu_tests, ztest_unit_test(testInvokeIdSourceMatch),
+        ztest_unit_test(testInvokeIdSourceMatchRouted),
         ztest_unit_test(testSimpleAckSourceMatch),
         ztest_unit_test(testComplexAckSourceMatch),
         ztest_unit_test(testErrorSourceMatch),

@@ -89,7 +89,7 @@ bool tsm_invoke_id_source_match(uint8_t invokeID, const BACNET_ADDRESS *src)
     index = tsm_find_invokeID_index(invokeID);
     if (index < MAX_TSM_TRANSACTIONS) {
         if (TSM_List[index].state == TSM_STATE_AWAIT_CONFIRMATION) {
-            return bacnet_address_same(&TSM_List[index].dest, src);
+            return bacnet_address_net_same(&TSM_List[index].dest, src);
         }
     }
 
