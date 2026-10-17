@@ -12,17 +12,53 @@
 #include "bacport.h"
 #include "bacnet/datetime.h"
 
-static time_t Time_Offset;
+/* Difference between the BACnet clock and the host clock. Kept so time
+ * can be set without changing the operating-system clock. */
+static struct timeval Time_Offset;
 
 /**
- * @brief Calculate the difference between two system-clock readings.
+ * @brief Calculate the normalized difference between two clock readings.
  * @param t0 [in] Target time
  * @param t1 [in] Current system time
- * @return Difference in seconds
+ * @param difference [out] Whole seconds and a microsecond remainder in
+ * the range [0, 999999]
  */
-static time_t time_difference(struct timeval t0, struct timeval t1)
+static void time_difference(
+    struct timeval t0, struct timeval t1, struct timeval *difference)
 {
-    return (t0.tv_sec - t1.tv_sec) + (t0.tv_usec - t1.tv_usec) / 1000000;
+    time_t sec = 0;
+    long usec = 0;
+
+    sec = (time_t)t0.tv_sec - (time_t)t1.tv_sec;
+    usec = (long)t0.tv_usec - (long)t1.tv_usec;
+    while (usec >= 1000000L) {
+        usec -= 1000000L;
+        sec += 1;
+    }
+    while (usec < 0) {
+        usec += 1000000L;
+        sec -= 1;
+    }
+    difference->tv_sec = sec;
+    difference->tv_usec = usec;
+}
+
+/**
+ * @brief Add the stored offset to a system-clock reading.
+ * @param seconds [in,out] Seconds since the epoch
+ * @param microseconds [in,out] Microseconds, normalized to [0, 999999]
+ *
+ * Time_Offset.tv_usec is in [0, 999999], so the microsecond sum carries at
+ * most one second.
+ */
+static void time_offset_apply(time_t *seconds, long *microseconds)
+{
+    *seconds += Time_Offset.tv_sec;
+    *microseconds += Time_Offset.tv_usec;
+    if (*microseconds >= 1000000L) {
+        *microseconds -= 1000000L;
+        *seconds += 1;
+    }
 }
 
 /**
@@ -101,6 +137,7 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
     time_t rawtime = 0;
     time_t target_seconds = 0;
     time_t standard_seconds = 0;
+    long current_usec = 0;
     BACNET_DATE_TIME standard_time = { 0 };
 
     datetime_lock();
@@ -108,7 +145,9 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
         datetime_unlock();
         return;
     }
-    rawtime = tv_system.tv_sec + Time_Offset;
+    rawtime = tv_system.tv_sec;
+    current_usec = (long)tv_system.tv_usec;
+    time_offset_apply(&rawtime, &current_usec);
     timeinfo = localtime(&rawtime);
     if (!timeinfo) {
         datetime_unlock();
@@ -160,9 +199,13 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
         target_seconds -= timezone;
     }
     tv_target.tv_sec = target_seconds;
-    tv_target.tv_usec = btime ? (suseconds_t)btime->hundredths * 10000 : 0;
-    tv_current = tv_system;
-    tv_current.tv_sec += Time_Offset;
+    if (btime) {
+        tv_target.tv_usec = (suseconds_t)btime->hundredths * 10000;
+    } else {
+        tv_target.tv_usec = (suseconds_t)current_usec;
+    }
+    tv_current.tv_sec = rawtime;
+    tv_current.tv_usec = (suseconds_t)current_usec;
     if (timestamp_in_deadband(tv_target, tv_current)) {
         datetime_unlock();
         return;
@@ -171,7 +214,7 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
         datetime_unlock();
         return;
     }
-    Time_Offset = time_difference(tv_target, tv_system);
+    time_difference(tv_target, tv_system, &Time_Offset);
     datetime_unlock();
     if (datetime_standard(&standard_time)) {
         datetime_change_notify(DATETIME_CHANGE_TIME, &standard_time);
@@ -196,10 +239,13 @@ bool datetime_local(
     struct tm *timeinfo = NULL;
     struct timeval tv = { 0 };
     time_t seconds = 0;
+    long microseconds = 0;
 
     datetime_lock();
     if (gettimeofday(&tv, NULL) == 0) {
-        seconds = tv.tv_sec + Time_Offset;
+        seconds = tv.tv_sec;
+        microseconds = (long)tv.tv_usec;
+        time_offset_apply(&seconds, &microseconds);
         timeinfo = localtime(&seconds);
         if (timeinfo) {
             status = true;
@@ -213,7 +259,7 @@ bool datetime_local(
                 datetime_set_time(
                     btime, (uint8_t)timeinfo->tm_hour,
                     (uint8_t)timeinfo->tm_min, (uint8_t)timeinfo->tm_sec,
-                    (uint8_t)(tv.tv_usec / 10000));
+                    (uint8_t)(microseconds / 10000));
             }
             if (dst_active) {
                 *dst_active = (timeinfo->tm_isdst > 0);
@@ -283,7 +329,7 @@ void datetime_standard_set(const BACNET_DATE_TIME *standard_time)
     tv_target.tv_sec = target_seconds;
     tv_target.tv_usec = (suseconds_t)standard_time->time.hundredths * 10000;
     datetime_lock();
-    Time_Offset = time_difference(tv_target, tv_system);
+    time_difference(tv_target, tv_system, &Time_Offset);
     datetime_unlock();
 }
 
@@ -324,7 +370,8 @@ bool datetime_valid(void)
 void datetime_reset(void)
 {
     datetime_lock();
-    Time_Offset = 0;
+    Time_Offset.tv_sec = 0;
+    Time_Offset.tv_usec = 0;
     datetime_unlock();
 }
 

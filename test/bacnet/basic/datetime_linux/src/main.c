@@ -5,11 +5,13 @@
  */
 #include <stdbool.h>
 #include <stdlib.h>
+#include <sys/time.h>
 #include <time.h>
 #include <zephyr/ztest.h>
 #include "bacnet/datetime.h"
 
 static unsigned Time_Change_Count;
+static unsigned Subsecond_Change_Count;
 static bool Observer_Read_Succeeded;
 
 static void test_datetime_change_callback(
@@ -22,6 +24,31 @@ static void test_datetime_change_callback(
     Time_Change_Count++;
     Observer_Read_Succeeded =
         datetime_local(&local_time.date, &local_time.time, NULL, NULL);
+}
+
+static void test_subsecond_change_callback(
+    BACNET_DATETIME_CHANGE change, const BACNET_DATE_TIME *standard_time)
+{
+    (void)change;
+    (void)standard_time;
+    Subsecond_Change_Count++;
+}
+
+/**
+ * @brief Absolute hundredths difference, wrapping across the second boundary.
+ */
+static int hundredths_delta(uint8_t actual, uint8_t expected)
+{
+    int delta = (int)actual - (int)expected;
+
+    if (delta < 0) {
+        delta = -delta;
+    }
+    if (delta > 50) {
+        delta = 100 - delta;
+    }
+
+    return delta;
 }
 
 static void check_local_time(
@@ -143,13 +170,117 @@ static void test_host_timezone_partial_utc(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(datetime_linux, test_host_subsecond_offset)
+#else
+static void test_host_subsecond_offset(void)
+#endif
+{
+    static DATETIME_CHANGE_NOTIFICATION notification = {
+        NULL, test_subsecond_change_callback
+    };
+    BACNET_DATE_TIME standard_time = { 0 };
+    BACNET_DATE_TIME readback = { 0 };
+    BACNET_DATE date = { 0 };
+    BACNET_DATE read_date = { 0 };
+    BACNET_TIME time = { 0 };
+    BACNET_TIME read_time = { 0 };
+    struct timeval tv = { 0 };
+    uint8_t preserved = 0;
+    int delta = 0;
+
+    zassert_equal(setenv("TZ", "America/New_York", 1), 0, NULL);
+    tzset();
+    datetime_reset();
+    datetime_init();
+    datetime_timesync_deadband_set(0);
+    datetime_change_notification_add(&notification);
+
+    zassert_true(datetime_standard(&standard_time), NULL);
+    standard_time.time.hundredths = 80;
+    datetime_standard_set(&standard_time);
+    zassert_true(datetime_standard(&readback), NULL);
+    zassert_equal(readback.date.year, standard_time.date.year, NULL);
+    zassert_equal(readback.date.month, standard_time.date.month, NULL);
+    zassert_equal(readback.date.day, standard_time.date.day, NULL);
+    zassert_equal(readback.time.hour, standard_time.time.hour, NULL);
+    zassert_equal(readback.time.min, standard_time.time.min, NULL);
+    zassert_equal(readback.time.sec, standard_time.time.sec, NULL);
+    zassert_true(
+        hundredths_delta(readback.time.hundredths, 80) <= 1, "hundredths %u",
+        readback.time.hundredths);
+
+    standard_time.time.hundredths = 20;
+    datetime_standard_set(&standard_time);
+    zassert_true(datetime_standard(&readback), NULL);
+    zassert_equal(readback.time.sec, standard_time.time.sec, NULL);
+    zassert_true(
+        hundredths_delta(readback.time.hundredths, 20) <= 1, "hundredths %u",
+        readback.time.hundredths);
+
+    datetime_set_date(&date, 2024, 1, 15);
+    datetime_set_time(&time, 10, 0, 0, 80);
+    datetime_timesync(&date, &time, false);
+    zassert_true(datetime_local(&read_date, &read_time, NULL, NULL), NULL);
+    zassert_equal(read_date.year, 2024, NULL);
+    zassert_equal(read_date.month, 1, NULL);
+    zassert_equal(read_date.day, 15, NULL);
+    zassert_equal(read_time.hour, 10, NULL);
+    zassert_equal(read_time.min, 0, NULL);
+    zassert_equal(read_time.sec, 0, NULL);
+    zassert_true(
+        hundredths_delta(read_time.hundredths, 80) <= 1, "hundredths %u",
+        read_time.hundredths);
+
+    datetime_timesync_deadband_set(200);
+    Subsecond_Change_Count = 0;
+    datetime_set_time(&time, 10, 0, 0, 80);
+    datetime_timesync(&date, &time, false);
+    zassert_equal(Subsecond_Change_Count, 0, NULL);
+
+    datetime_set_time(&time, 10, 0, 0, 20);
+    datetime_timesync(&date, &time, false);
+    zassert_equal(Subsecond_Change_Count, 1, NULL);
+    zassert_true(datetime_local(&read_date, &read_time, NULL, NULL), NULL);
+    zassert_equal(read_time.sec, 0, NULL);
+    zassert_true(
+        hundredths_delta(read_time.hundredths, 20) <= 1, "hundredths %u",
+        read_time.hundredths);
+    preserved = read_time.hundredths;
+
+    datetime_timesync_deadband_set(0);
+    datetime_set_date(&date, 2024, 1, 16);
+    datetime_timesync(&date, NULL, false);
+    zassert_true(datetime_local(&read_date, &read_time, NULL, NULL), NULL);
+    zassert_equal(read_date.day, 16, NULL);
+    zassert_equal(read_time.hour, 10, NULL);
+    zassert_equal(read_time.min, 0, NULL);
+    zassert_equal(read_time.sec, 0, NULL);
+    zassert_true(
+        hundredths_delta(read_time.hundredths, preserved) <= 1, "hundredths %u",
+        read_time.hundredths);
+
+    datetime_reset();
+    zassert_equal(gettimeofday(&tv, NULL), 0, NULL);
+    zassert_true(datetime_local(&read_date, &read_time, NULL, NULL), NULL);
+    delta =
+        hundredths_delta(read_time.hundredths, (uint8_t)(tv.tv_usec / 10000));
+    if (delta > 1) {
+        zassert_equal(gettimeofday(&tv, NULL), 0, NULL);
+        delta = hundredths_delta(
+            read_time.hundredths, (uint8_t)(tv.tv_usec / 10000));
+    }
+    zassert_true(delta <= 1, "hundredths %u", read_time.hundredths);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(datetime_linux, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
     ztest_test_suite(
         datetime_linux, ztest_unit_test(test_host_timezone_sync),
-        ztest_unit_test(test_host_timezone_partial_utc));
+        ztest_unit_test(test_host_timezone_partial_utc),
+        ztest_unit_test(test_host_subsecond_offset));
     ztest_run_test_suite(datetime_linux);
 }
 #endif
