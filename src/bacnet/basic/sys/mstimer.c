@@ -118,11 +118,18 @@ void mstimer_reset(struct mstimer *t)
  * @note A periodic timer will drift if this function is used to reset
  * it. For periodic timers, use the mstimer_reset() function instead.
  * @param t A pointer to the timer.
+ * @return The time elapsed since the timer was last started.
  * @sa mstimer_reset()
  */
-void mstimer_restart(struct mstimer *t)
+unsigned long mstimer_restart(struct mstimer *t)
 {
-    t->start = mstimer_now();
+    unsigned long now, elapsed;
+
+    now = mstimer_now();
+    elapsed = now - t->start;
+    t->start = now;
+
+    return elapsed;
 }
 
 /**
