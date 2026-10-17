@@ -231,6 +231,7 @@ list(APPEND testdirs
   bacnet/basic/sys/filename
   bacnet/basic/sys/keylist
   bacnet/basic/sys/linear
+  bacnet/basic/sys/mstimer
   bacnet/basic/sys/ringbuf
   bacnet/basic/sys/state_name
   bacnet/basic/sys/sbuf
