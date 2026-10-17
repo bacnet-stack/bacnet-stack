@@ -21,6 +21,7 @@ set(ZTST_DIR "${TST_DIR}/ztest/src")
 
 add_compile_definitions(
     BACNET_BIG_ENDIAN=0
+    BACNET_ADDRESS_CACHE
     BACNET_TIME_MASTER
     CONFIG_ZTEST=1
     )
@@ -39,6 +40,8 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/authentication_factor_format.c
     ${SRC_DIR}/bacnet/bacaction.c
     ${SRC_DIR}/bacnet/bacaddr.c
+    ${SRC_DIR}/bacnet/basic/binding/address.c
+    ${SRC_DIR}/bacnet/basic/sys/keylist.c
     ${SRC_DIR}/bacnet/bacapp.c
     ${SRC_DIR}/bacnet/bacdcode.c
     ${SRC_DIR}/bacnet/bacdest.c

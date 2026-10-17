@@ -5,6 +5,7 @@
  */
 #include <stdbool.h>
 #include <stdint.h>
+#include "bacnet/bacaddr.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/service/s_ts.h"
 #include "bacnet/datetime.h"
@@ -19,6 +20,8 @@ unsigned Test_Local_Sync_Count;
 unsigned Test_UTC_Sync_Count;
 BACNET_DATE_TIME Test_Local_Sync_Time;
 BACNET_DATE_TIME Test_UTC_Sync_Time;
+BACNET_ADDRESS Test_Local_Sync_Address;
+BACNET_ADDRESS Test_UTC_Sync_Address;
 
 bool datetime_local(
     BACNET_DATE *bdate,
@@ -75,7 +78,9 @@ void test_device_time_sync_set(uint32_t interval, bool align, uint32_t offset)
 void Send_TimeSync_Remote(
     BACNET_ADDRESS *dest, const BACNET_DATE *bdate, const BACNET_TIME *btime)
 {
-    (void)dest;
+    if (dest) {
+        bacnet_address_copy(&Test_Local_Sync_Address, dest);
+    }
     datetime_set(&Test_Local_Sync_Time, bdate, btime);
     Test_Local_Sync_Count++;
 }
@@ -83,7 +88,9 @@ void Send_TimeSync_Remote(
 void Send_TimeSyncUTC_Remote(
     BACNET_ADDRESS *dest, const BACNET_DATE *bdate, const BACNET_TIME *btime)
 {
-    (void)dest;
+    if (dest) {
+        bacnet_address_copy(&Test_UTC_Sync_Address, dest);
+    }
     datetime_set(&Test_UTC_Sync_Time, bdate, btime);
     Test_UTC_Sync_Count++;
 }
