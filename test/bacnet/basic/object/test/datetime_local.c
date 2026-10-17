@@ -46,6 +46,35 @@ bool datetime_local(
     return true;
 }
 
+bool datetime_zone(
+    BACNET_DATE_TIME *local_time,
+    int16_t *utc_offset_minutes,
+    int8_t *dst_adjust_minutes)
+{
+    BACNET_DATE_TIME bdatetime = { 0 };
+
+    bdatetime.date = BACnet_Date;
+    bdatetime.time = BACnet_Time;
+    if (datetime_wildcard_present(&bdatetime)) {
+        return false;
+    }
+    if (local_time) {
+        datetime_copy(local_time, &bdatetime);
+    }
+    if (utc_offset_minutes) {
+        *utc_offset_minutes = UTC_Offset_Minutes;
+    }
+    if (dst_adjust_minutes) {
+        if (DST_Active) {
+            *dst_adjust_minutes = -60;
+        } else {
+            *dst_adjust_minutes = 0;
+        }
+    }
+
+    return true;
+}
+
 void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
 {
     BACNET_DATE_TIME current = { 0 };

@@ -330,20 +330,27 @@ static void handler_timesync_send(BACNET_DATE_TIME *current_date_time)
 {
     unsigned index = 0;
     BACNET_ADDRESS dest = { 0 };
+    BACNET_DATE_TIME local_time = { 0 };
     BACNET_DATE_TIME utc_time = { 0 };
     int16_t utc_offset = 0;
-    bool dst_active = false;
+    int8_t dst_adjust = 0;
+    bool zoned = false;
 
+    /* Local time, standard offset, and daylight adjustment come from one
+       sample. The adjustment is the host's daylight value. */
+    zoned = datetime_zone(&local_time, &utc_offset, &dst_adjust);
+    if (!zoned) {
+        datetime_copy(&local_time, current_date_time);
+    }
     for (index = 0; index < MAX_TIME_SYNC_RECIPIENTS; index++) {
         if (handler_timesync_recipient_destination(
                 &Time_Sync_Recipients[index].recipient, &dest)) {
-            Send_TimeSync_Remote(
-                &dest, &current_date_time->date, &current_date_time->time);
+            Send_TimeSync_Remote(&dest, &local_time.date, &local_time.time);
         }
     }
-    if (!datetime_local(NULL, NULL, &utc_offset, &dst_active) ||
+    if (!zoned ||
         !datetime_local_to_utc(
-            &utc_time, current_date_time, utc_offset, dst_active ? -60 : 0)) {
+            &utc_time, &local_time, utc_offset, dst_adjust)) {
         return;
     }
     for (index = 0; index < MAX_TIME_SYNC_RECIPIENTS; index++) {
@@ -506,6 +513,7 @@ void handler_timesync_init(void)
         Time_Sync_Recipients[i].recipient.tag = BACNET_RECIPIENT_TAG_MAX;
         Time_Sync_UTC_Recipients[i].recipient.tag = BACNET_RECIPIENT_TAG_MAX;
     }
+    datetime_set_values(&Next_Sync_Time, 0, 0, 0, 0, 0, 0, 0);
 }
 #endif
 

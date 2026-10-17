@@ -28,6 +28,7 @@ extern BACNET_ADDRESS Test_Local_Sync_Address;
 extern BACNET_ADDRESS Test_UTC_Sync_Address;
 extern void test_datetime_local_set(
     const BACNET_DATE_TIME *date_time, int16_t utc_offset, bool dst_active);
+extern void test_datetime_dst_adjust_set(int8_t dst_adjust_minutes);
 extern void
 test_device_time_sync_set(uint32_t interval, bool align, uint32_t offset);
 
@@ -247,6 +248,48 @@ static void test_handler_timesync_sends_and_alignment(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(h_ts_tests, test_handler_timesync_half_hour_dst)
+#else
+static void test_handler_timesync_half_hour_dst(void)
+#endif
+{
+    BACNET_DATE_TIME current = { 0 };
+    BACNET_ADDRESS address = { 0 };
+
+    handler_timesync_init();
+    Test_Local_Sync_Count = 0;
+    Test_UTC_Sync_Count = 0;
+    address.net = 1;
+    address.len = 1;
+    address.adr[0] = 7;
+    zassert_true(handler_timesync_recipient_address_set(0, &address), NULL);
+    zassert_true(handler_timesync_utc_recipient_address_set(0, &address), NULL);
+
+    /* UTC+10:30 standard time and a 30-minute daylight advance.
+       12:00 local is 01:00 UTC. */
+    datetime_set_values(&current, 2024, 1, 15, 12, 0, 0, 0);
+    test_datetime_local_set(&current, -630, true);
+    test_datetime_dst_adjust_set(-30);
+    test_device_time_sync_set(60, false, 0);
+    handler_timesync_task(&current);
+    zassert_equal(Test_Local_Sync_Count, 1, NULL);
+    zassert_equal(Test_UTC_Sync_Count, 1, NULL);
+    zassert_equal(Test_Local_Sync_Time.time.hour, 12, NULL);
+    zassert_equal(Test_Local_Sync_Time.time.min, 0, NULL);
+    zassert_equal(Test_UTC_Sync_Time.date.day, 15, NULL);
+    zassert_equal(Test_UTC_Sync_Time.time.hour, 1, NULL);
+    zassert_equal(Test_UTC_Sync_Time.time.min, 0, NULL);
+
+    /* The same standard offset with daylight time inactive. */
+    datetime_set_values(&current, 2024, 7, 15, 12, 0, 0, 0);
+    test_datetime_local_set(&current, -630, false);
+    handler_timesync_task(&current);
+    zassert_equal(Test_UTC_Sync_Count, 2, NULL);
+    zassert_equal(Test_UTC_Sync_Time.time.hour, 1, NULL);
+    zassert_equal(Test_UTC_Sync_Time.time.min, 30, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(h_ts_tests, test_handler_timesync_device_recipients)
 #else
 static void test_handler_timesync_device_recipients(void)
@@ -358,6 +401,7 @@ void test_main(void)
     ztest_test_suite(
         h_ts_tests, ztest_unit_test(test_handler_timesync_recipient_lists),
         ztest_unit_test(test_handler_timesync_sends_and_alignment),
+        ztest_unit_test(test_handler_timesync_half_hour_dst),
         ztest_unit_test(test_handler_timesync_device_recipients));
     ztest_run_test_suite(h_ts_tests);
 }

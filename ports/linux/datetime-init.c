@@ -87,26 +87,116 @@ static bool timestamp_in_deadband(struct timeval t0, struct timeval t1)
 }
 
 /**
- * @brief Convert a local struct tm value to UTC calendar fields using the
- * host timezone offset and daylight-saving state, without gmtime().
- * @param local_tm [in] Local time, including tm_isdst
+ * @brief Minutes that daylight time is ahead of standard time.
+ * @param timeinfo [in] Local time sample, including tm_isdst and tm_gmtoff
+ * @return Daylight adjustment in minutes, or 0 when it is not active
+ *
+ * tm_gmtoff is seconds east of UTC for this sample. timezone is seconds
+ * west of UTC for standard time. Their sum is the daylight adjustment,
+ * which is not necessarily 3600 seconds.
+ */
+static int datetime_daylight_minutes(const struct tm *timeinfo)
+{
+    long east_seconds = 0;
+
+    if (!timeinfo || (timeinfo->tm_isdst <= 0)) {
+        return 0;
+    }
+    tzset();
+    east_seconds = (long)timeinfo->tm_gmtoff + timezone;
+
+    return (int)(east_seconds / 60);
+}
+
+/**
+ * @brief Actual UTC offset of a local sample, in minutes west of UTC.
+ * @param timeinfo [in] Local time sample, including tm_gmtoff
+ * @return Offset of this sample, including daylight-saving time
+ */
+static int16_t datetime_actual_offset_minutes(const struct tm *timeinfo)
+{
+    return (int16_t)(-(timeinfo->tm_gmtoff / 60));
+}
+
+/**
+ * @brief Standard-time UTC offset of a local sample, in minutes west of UTC.
+ * @param timeinfo [in] Local time sample
+ * @return BACnet UTC offset for standard time
+ */
+static int16_t datetime_standard_offset_minutes(const struct tm *timeinfo)
+{
+    return (int16_t)(datetime_actual_offset_minutes(timeinfo) +
+                     datetime_daylight_minutes(timeinfo));
+}
+
+/**
+ * @brief Daylight adjustment of a local sample, in minutes west of UTC.
+ * @param timeinfo [in] Local time sample
+ * @return Normally 0, -60, or another negative value such as -30
+ */
+static int8_t datetime_dst_adjust_minutes(const struct tm *timeinfo)
+{
+    return (int8_t)(-datetime_daylight_minutes(timeinfo));
+}
+
+/**
+ * @brief Read the offset host clock into a local broken-down time.
+ * @param timeinfo [out] Receives the local time, or NULL
+ * @param microseconds [out] Receives the offset microseconds, or NULL
+ * @return true if the clock was read
+ *
+ * The caller holds the datetime lock. The result is copied out of the
+ * localtime() buffer before the function returns.
+ */
+static bool datetime_sample(struct tm *timeinfo, long *microseconds)
+{
+    struct timeval tv = { 0 };
+    struct tm *converted = NULL;
+    time_t seconds = 0;
+    long usec = 0;
+
+    if (gettimeofday(&tv, NULL) != 0) {
+        return false;
+    }
+    seconds = tv.tv_sec;
+    usec = (long)tv.tv_usec;
+    time_offset_apply(&seconds, &usec);
+    converted = localtime(&seconds);
+    if (!converted) {
+        return false;
+    }
+    if (timeinfo) {
+        *timeinfo = *converted;
+    }
+    if (microseconds) {
+        *microseconds = usec;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Convert a sampled local time to UTC calendar fields.
+ * @param local_tm [in] Local time from localtime(), including tm_gmtoff
  * @param utc_tm [in,out] Receives the UTC year, month, day, hour, minute,
  * and second; other members are unchanged
+ *
+ * tm_gmtoff is the offset of this sample and already includes daylight
+ * time, so the conversion does not assume a 60-minute adjustment.
+ * gmtime() is not used, because it shares storage with localtime().
  */
 static void datetime_tm_utc_fields(const struct tm *local_tm, struct tm *utc_tm)
 {
     BACNET_DATE_TIME local_time = { 0 };
     BACNET_DATE_TIME utc_time = { 0 };
 
-    tzset();
     datetime_set_values(
         &local_time, (uint16_t)(local_tm->tm_year + 1900),
         (uint8_t)(local_tm->tm_mon + 1), (uint8_t)local_tm->tm_mday,
         (uint8_t)local_tm->tm_hour, (uint8_t)local_tm->tm_min,
         (uint8_t)local_tm->tm_sec, 0);
     (void)datetime_local_to_utc(
-        &utc_time, &local_time, (int16_t)(timezone / 60),
-        (local_tm->tm_isdst > 0) ? -60 : 0);
+        &utc_time, &local_time, datetime_actual_offset_minutes(local_tm), 0);
     utc_tm->tm_year = (int)utc_time.date.year - 1900;
     utc_tm->tm_mon = (int)utc_time.date.month - 1;
     utc_tm->tm_mday = utc_time.date.day;
@@ -236,45 +326,27 @@ bool datetime_local(
     bool *dst_active)
 {
     bool status = false;
-    struct tm *timeinfo = NULL;
-    struct timeval tv = { 0 };
-    time_t seconds = 0;
+    struct tm timeinfo = { 0 };
     long microseconds = 0;
 
     datetime_lock();
-    if (gettimeofday(&tv, NULL) == 0) {
-        seconds = tv.tv_sec;
-        microseconds = (long)tv.tv_usec;
-        time_offset_apply(&seconds, &microseconds);
-        timeinfo = localtime(&seconds);
-        if (timeinfo) {
-            status = true;
-            if (bdate) {
-                datetime_set_date(
-                    bdate, (uint16_t)(timeinfo->tm_year + 1900),
-                    (uint8_t)(timeinfo->tm_mon + 1),
-                    (uint8_t)timeinfo->tm_mday);
-            }
-            if (btime) {
-                datetime_set_time(
-                    btime, (uint8_t)timeinfo->tm_hour,
-                    (uint8_t)timeinfo->tm_min, (uint8_t)timeinfo->tm_sec,
-                    (uint8_t)(microseconds / 10000));
-            }
-            if (dst_active) {
-                *dst_active = (timeinfo->tm_isdst > 0);
-            }
-            if (utc_offset_minutes) {
-#if defined(__time_gmtoff) || defined(_DEFAULT_SOURCE) || defined(__linux__)
-                *utc_offset_minutes =
-                    (int16_t)(-(timeinfo->tm_gmtoff -
-                                ((timeinfo->tm_isdst > 0) ? 3600 : 0)) /
-                              60);
-#else
-                tzset();
-                *utc_offset_minutes = (int16_t)(timezone / 60);
-#endif
-            }
+    if (datetime_sample(&timeinfo, &microseconds)) {
+        status = true;
+        if (bdate) {
+            datetime_set_date(
+                bdate, (uint16_t)(timeinfo.tm_year + 1900),
+                (uint8_t)(timeinfo.tm_mon + 1), (uint8_t)timeinfo.tm_mday);
+        }
+        if (btime) {
+            datetime_set_time(
+                btime, (uint8_t)timeinfo.tm_hour, (uint8_t)timeinfo.tm_min,
+                (uint8_t)timeinfo.tm_sec, (uint8_t)(microseconds / 10000));
+        }
+        if (dst_active) {
+            *dst_active = (timeinfo.tm_isdst > 0);
+        }
+        if (utc_offset_minutes) {
+            *utc_offset_minutes = datetime_standard_offset_minutes(&timeinfo);
         }
     }
     datetime_unlock();
@@ -345,19 +417,73 @@ void datetime_standard_set(const BACNET_DATE_TIME *standard_time)
  */
 bool datetime_standard(BACNET_DATE_TIME *standard_time)
 {
-    BACNET_DATE date = { 0 };
-    BACNET_TIME time = { 0 };
-    bool dst = false;
+    struct tm timeinfo = { 0 };
+    long microseconds = 0;
+    int8_t dst_adjust = 0;
+    bool status = false;
 
-    if (!standard_time || !datetime_local(&date, &time, NULL, &dst)) {
+    if (!standard_time) {
         return false;
     }
-    datetime_set(standard_time, &date, &time);
-    if (dst) {
-        datetime_add_minutes(standard_time, -60);
+    datetime_lock();
+    status = datetime_sample(&timeinfo, &microseconds);
+    if (status) {
+        datetime_set_values(
+            standard_time, (uint16_t)(timeinfo.tm_year + 1900),
+            (uint8_t)(timeinfo.tm_mon + 1), (uint8_t)timeinfo.tm_mday,
+            (uint8_t)timeinfo.tm_hour, (uint8_t)timeinfo.tm_min,
+            (uint8_t)timeinfo.tm_sec, (uint8_t)(microseconds / 10000));
+        dst_adjust = datetime_dst_adjust_minutes(&timeinfo);
+    }
+    datetime_unlock();
+    if (status && (dst_adjust != 0)) {
+        datetime_add_minutes(standard_time, dst_adjust);
     }
 
-    return true;
+    return status;
+}
+
+/**
+ * @brief Read local time, the standard UTC offset, and the daylight adjustment.
+ * @param local_time [out] Receives the local date and time, or NULL
+ * @param utc_offset_minutes [out] Receives the standard-time offset, or NULL
+ * @param dst_adjust_minutes [out] Receives the daylight adjustment, or NULL
+ * @return true if the clock was read
+ *
+ * All returned values come from one clock sample. dst_adjust_minutes is
+ * minutes west of UTC: 0 when daylight-saving time is inactive, and otherwise
+ * the host adjustment (normally -60, or -30 where daylight time advances
+ * half an hour).
+ */
+bool datetime_zone(
+    BACNET_DATE_TIME *local_time,
+    int16_t *utc_offset_minutes,
+    int8_t *dst_adjust_minutes)
+{
+    struct tm timeinfo = { 0 };
+    long microseconds = 0;
+    bool status = false;
+
+    datetime_lock();
+    status = datetime_sample(&timeinfo, &microseconds);
+    if (status) {
+        if (local_time) {
+            datetime_set_values(
+                local_time, (uint16_t)(timeinfo.tm_year + 1900),
+                (uint8_t)(timeinfo.tm_mon + 1), (uint8_t)timeinfo.tm_mday,
+                (uint8_t)timeinfo.tm_hour, (uint8_t)timeinfo.tm_min,
+                (uint8_t)timeinfo.tm_sec, (uint8_t)(microseconds / 10000));
+        }
+        if (utc_offset_minutes) {
+            *utc_offset_minutes = datetime_standard_offset_minutes(&timeinfo);
+        }
+        if (dst_adjust_minutes) {
+            *dst_adjust_minutes = datetime_dst_adjust_minutes(&timeinfo);
+        }
+    }
+    datetime_unlock();
+
+    return status;
 }
 
 /**

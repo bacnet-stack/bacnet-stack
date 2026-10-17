@@ -137,6 +137,50 @@ bool datetime_local(
 }
 
 /**
+ * @brief Read local time, the standard UTC offset, and the daylight adjustment.
+ * @param local_time [out] Receives the local date and time, or NULL
+ * @param utc_offset_minutes [out] Receives the standard-time offset, or NULL
+ * @param dst_adjust_minutes [out] Receives the daylight adjustment, or NULL
+ * @return true
+ *
+ * All returned values come from one clock sample. This clock advances local
+ * time by 60 minutes while daylight-saving time is active.
+ */
+bool datetime_zone(
+    BACNET_DATE_TIME *local_time,
+    int16_t *utc_offset_minutes,
+    int8_t *dst_adjust_minutes)
+{
+    BACNET_DATE_TIME sample = { 0 };
+    bool daylight_savings = false;
+
+    datetime_lock();
+    datetime_sync_locked();
+    datetime_copy(&sample, &BACnet_Date_Time);
+    daylight_savings =
+        datetime_dst_active(&DST_Range, &BACnet_Date_Time, DST_Enabled);
+    if (daylight_savings) {
+        datetime_add_minutes(&sample, 60);
+    }
+    if (utc_offset_minutes) {
+        *utc_offset_minutes = UTC_Offset_Minutes;
+    }
+    if (dst_adjust_minutes) {
+        if (daylight_savings) {
+            *dst_adjust_minutes = -60;
+        } else {
+            *dst_adjust_minutes = 0;
+        }
+    }
+    datetime_unlock();
+    if (local_time) {
+        datetime_copy(local_time, &sample);
+    }
+
+    return true;
+}
+
+/**
  * @brief Set the clock to a local standard-time date and time.
  * @param standard_time [in] Standard-time value to set
  *

@@ -384,6 +384,11 @@ bool datetime_local(
     int16_t *utc_offset_minutes,
     bool *dst_active);
 BACNET_STACK_EXPORT
+bool datetime_zone(
+    BACNET_DATE_TIME *local_time,
+    int16_t *utc_offset_minutes,
+    int8_t *dst_adjust_minutes);
+BACNET_STACK_EXPORT
 void datetime_standard_set(const BACNET_DATE_TIME *standard_time);
 BACNET_STACK_EXPORT
 bool datetime_standard(BACNET_DATE_TIME *standard_time);

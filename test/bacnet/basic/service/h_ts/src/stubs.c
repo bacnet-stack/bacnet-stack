@@ -13,6 +13,7 @@
 static BACNET_DATE_TIME Test_Date_Time;
 static int16_t Test_UTC_Offset = 300;
 static bool Test_DST_Active;
+static int8_t Test_DST_Adjust = -60;
 static uint32_t Test_Time_Sync_Interval;
 static uint32_t Test_Interval_Offset;
 static bool Test_Align_Intervals;
@@ -51,6 +52,34 @@ void test_datetime_local_set(
     datetime_copy(&Test_Date_Time, date_time);
     Test_UTC_Offset = utc_offset;
     Test_DST_Active = dst_active;
+    Test_DST_Adjust = -60;
+}
+
+bool datetime_zone(
+    BACNET_DATE_TIME *local_time,
+    int16_t *utc_offset_minutes,
+    int8_t *dst_adjust_minutes)
+{
+    if (local_time) {
+        datetime_copy(local_time, &Test_Date_Time);
+    }
+    if (utc_offset_minutes) {
+        *utc_offset_minutes = Test_UTC_Offset;
+    }
+    if (dst_adjust_minutes) {
+        if (Test_DST_Active) {
+            *dst_adjust_minutes = Test_DST_Adjust;
+        } else {
+            *dst_adjust_minutes = 0;
+        }
+    }
+
+    return true;
+}
+
+void test_datetime_dst_adjust_set(int8_t dst_adjust_minutes)
+{
+    Test_DST_Adjust = dst_adjust_minutes;
 }
 
 bool Device_Align_Intervals(void)

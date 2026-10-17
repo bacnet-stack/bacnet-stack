@@ -170,6 +170,82 @@ static void test_host_timezone_partial_utc(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(datetime_linux, test_host_half_hour_dst)
+#else
+static void test_host_half_hour_dst(void)
+#endif
+{
+    BACNET_DATE_TIME standard_time = { 0 };
+    BACNET_DATE_TIME readback = { 0 };
+    BACNET_DATE date = { 0 };
+    BACNET_TIME time = { 0 };
+    int16_t utc_offset = 0;
+    bool dst_active = false;
+
+    /* Standard time is UTC+10:30 and daylight time is UTC+11. */
+    zassert_equal(setenv("TZ", "LHST-10:30LHDT-11,M10.1.0,M4.1.0", 1), 0, NULL);
+    tzset();
+    datetime_reset();
+    datetime_init();
+    datetime_timesync_deadband_set(0);
+
+    datetime_set_date(&date, 2024, 1, 15);
+    datetime_set_time(&time, 12, 0, 0, 0);
+    datetime_timesync(&date, &time, false);
+    zassert_true(datetime_local(&date, &time, &utc_offset, &dst_active), NULL);
+    zassert_equal(date.year, 2024, NULL);
+    zassert_equal(date.month, 1, NULL);
+    zassert_equal(date.day, 15, NULL);
+    zassert_equal(time.hour, 12, NULL);
+    zassert_equal(time.min, 0, NULL);
+    zassert_equal(utc_offset, -630, NULL);
+    zassert_true(dst_active, NULL);
+    zassert_true(datetime_standard(&standard_time), NULL);
+    zassert_equal(standard_time.time.hour, 11, NULL);
+    zassert_equal(standard_time.time.min, 30, NULL);
+
+    /* A date-only UTC request keeps 01:00 UTC, which is still 12:00 local. */
+    datetime_set_date(&date, 2024, 1, 16);
+    datetime_timesync(&date, NULL, true);
+    zassert_true(datetime_local(&date, &time, &utc_offset, &dst_active), NULL);
+    zassert_equal(date.year, 2024, NULL);
+    zassert_equal(date.month, 1, NULL);
+    zassert_equal(date.day, 16, NULL);
+    zassert_equal(time.hour, 12, NULL);
+    zassert_equal(time.min, 0, NULL);
+    zassert_equal(utc_offset, -630, NULL);
+    zassert_true(dst_active, NULL);
+
+    datetime_set_values(&standard_time, 2024, 1, 16, 13, 0, 0, 0);
+    datetime_standard_set(&standard_time);
+    zassert_true(datetime_standard(&readback), NULL);
+    zassert_equal(readback.date.day, 16, NULL);
+    zassert_equal(readback.time.hour, 13, NULL);
+    zassert_equal(readback.time.min, 0, NULL);
+    zassert_true(datetime_local(&date, &time, NULL, &dst_active), NULL);
+    zassert_equal(time.hour, 13, NULL);
+    zassert_equal(time.min, 30, NULL);
+    zassert_true(dst_active, NULL);
+
+    /* The same offset outside daylight time: 12:00 local is 01:30 UTC. */
+    datetime_set_date(&date, 2024, 7, 15);
+    datetime_set_time(&time, 12, 0, 0, 0);
+    datetime_timesync(&date, &time, false);
+    zassert_true(datetime_local(&date, &time, &utc_offset, &dst_active), NULL);
+    zassert_equal(time.hour, 12, NULL);
+    zassert_equal(time.min, 0, NULL);
+    zassert_equal(utc_offset, -630, NULL);
+    zassert_false(dst_active, NULL);
+    datetime_set_date(&date, 2024, 7, 16);
+    datetime_timesync(&date, NULL, true);
+    zassert_true(datetime_local(&date, &time, &utc_offset, &dst_active), NULL);
+    zassert_equal(date.day, 16, NULL);
+    zassert_equal(time.hour, 12, NULL);
+    zassert_equal(time.min, 0, NULL);
+    zassert_false(dst_active, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(datetime_linux, test_host_subsecond_offset)
 #else
 static void test_host_subsecond_offset(void)
@@ -280,6 +356,7 @@ void test_main(void)
     ztest_test_suite(
         datetime_linux, ztest_unit_test(test_host_timezone_sync),
         ztest_unit_test(test_host_timezone_partial_utc),
+        ztest_unit_test(test_host_half_hour_dst),
         ztest_unit_test(test_host_subsecond_offset));
     ztest_run_test_suite(datetime_linux);
 }
