@@ -517,7 +517,8 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
             datetime_add_minutes(&standard_time, -60);
         }
     }
-    if (!datetime_timesync_in_deadband(&current, &standard_time)) {
+    if (!DateTime_Valid ||
+        !datetime_timesync_in_deadband(&current, &standard_time)) {
         datetime_copy(&BACnet_Date_Time, &standard_time);
         mstimer_restart(&Date_Timer);
         DateTime_Millisecond_Remainder = 0;

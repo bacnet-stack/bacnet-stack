@@ -279,6 +279,9 @@ void bacnet_basic_task(void)
     BACNET_ADDRESS src = { 0 };
     uint32_t elapsed_milliseconds = 0;
     uint32_t elapsed_seconds = 0;
+#if defined(BACNET_TIME_MASTER)
+    BACNET_DATE_TIME current_date_time = { 0 };
+#endif
 
     /* hello, World! */
     if (Device_ID != Device_Object_Instance_Number()) {
@@ -302,14 +305,10 @@ void bacnet_basic_task(void)
         handler_cov_timer_seconds(elapsed_seconds);
 #endif
 #if defined(BACNET_TIME_MASTER)
-        {
-            BACNET_DATE_TIME current_date_time = { 0 };
-
-            if (datetime_local(
-                    &current_date_time.date, &current_date_time.time, NULL,
-                    NULL)) {
-                handler_timesync_task(&current_date_time);
-            }
+        if (datetime_valid() &&
+            datetime_local(
+                &current_date_time.date, &current_date_time.time, NULL, NULL)) {
+            handler_timesync_task(&current_date_time);
         }
 #endif
     }
