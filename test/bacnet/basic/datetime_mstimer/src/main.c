@@ -9,6 +9,8 @@
 #include "bacnet/datetime.h"
 
 static unsigned long Fake_Milliseconds;
+/* Added to Fake_Milliseconds on every mstimer_now() sample. */
+static unsigned long Now_Advance;
 static unsigned Lock_Count;
 static unsigned Unlock_Count;
 static unsigned Observer_One_Count;
@@ -18,6 +20,8 @@ static BACNET_DATETIME_CHANGE Last_Change;
 
 unsigned long mstimer_now(void)
 {
+    Fake_Milliseconds += Now_Advance;
+
     return Fake_Milliseconds;
 }
 
@@ -72,6 +76,7 @@ static void test_datetime_backend(void)
     unsigned notifications = 0;
 
     Fake_Milliseconds = 0;
+    Now_Advance = 0;
     Lock_Count = 0;
     Unlock_Count = 0;
     Observer_One_Count = 0;
@@ -191,6 +196,8 @@ static void test_datetime_timesync_partial(void)
     BACNET_TIME time = { 0 };
     bool dst_active = false;
 
+    Now_Advance = 0;
+    Fake_Milliseconds = 0;
     datetime_lock_callback_set(NULL, NULL);
     datetime_reset();
     datetime_dst_date_range_set(3, 10, 11, 3);
@@ -246,13 +253,45 @@ static void test_datetime_timesync_partial(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(datetime_mstimer, test_datetime_sync_keeps_sampled_ticks)
+#else
+static void test_datetime_sync_keeps_sampled_ticks(void)
+#endif
+{
+    BACNET_DATE_TIME standard_time = { 0 };
+    BACNET_DATE_TIME read_standard = { 0 };
+    unsigned i = 0;
+
+    Now_Advance = 0;
+    Fake_Milliseconds = 0;
+    datetime_lock_callback_set(NULL, NULL);
+    datetime_reset();
+    datetime_set_values(&standard_time, 2024, 1, 1, 0, 0, 0, 0);
+    datetime_standard_set(&standard_time);
+    /* Each clock read samples mstimer_now(), and that sample moves
+     * the monotonic clock by 1 ms. The origin must advance by the
+     * sampled amount so those ticks stay on the BACnet clock. */
+    Now_Advance = 1;
+    for (i = 0; i < 1000U; i++) {
+        zassert_true(datetime_standard(&read_standard), NULL);
+    }
+    Now_Advance = 0;
+    zassert_equal(Fake_Milliseconds, 1000, NULL);
+    zassert_equal(read_standard.time.hour, 0, NULL);
+    zassert_equal(read_standard.time.min, 0, NULL);
+    zassert_equal(read_standard.time.sec, 1, NULL);
+    zassert_equal(read_standard.time.hundredths, 0, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(datetime_mstimer, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
 {
     ztest_test_suite(
         datetime_mstimer, ztest_unit_test(test_datetime_backend),
-        ztest_unit_test(test_datetime_timesync_partial));
+        ztest_unit_test(test_datetime_timesync_partial),
+        ztest_unit_test(test_datetime_sync_keeps_sampled_ticks));
     ztest_run_test_suite(datetime_mstimer);
 }
 #endif

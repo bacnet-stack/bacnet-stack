@@ -53,11 +53,11 @@ static void datetime_sync_locked(void)
     unsigned long hundredths = 0;
 
     datetime_initialize_locked();
-    milliseconds = mstimer_elapsed(&Date_Timer);
+    /* One sample measures the elapsed time and moves the origin. */
+    milliseconds = mstimer_restart(&Date_Timer);
     milliseconds += DateTime_Millisecond_Remainder;
     DateTime_Millisecond_Remainder = milliseconds % 10UL;
     elapsed_milliseconds = milliseconds - DateTime_Millisecond_Remainder;
-    mstimer_restart(&Date_Timer);
     if (elapsed_milliseconds) {
         elapsed_seconds = elapsed_milliseconds / 1000UL;
         milliseconds = elapsed_milliseconds % 1000UL;
