@@ -19,6 +19,26 @@
 /* define our epic beginnings */
 #define BACNET_EPOCH_YEAR 1900
 
+static unsigned DateTime_Observer_One_Count;
+static unsigned DateTime_Observer_Two_Count;
+static BACNET_DATE_TIME DateTime_Observer_Time;
+
+static void datetime_observer_one(
+    BACNET_DATETIME_CHANGE change, const BACNET_DATE_TIME *standard_time)
+{
+    (void)change;
+    DateTime_Observer_One_Count++;
+    datetime_copy(&DateTime_Observer_Time, standard_time);
+}
+
+static void datetime_observer_two(
+    BACNET_DATETIME_CHANGE change, const BACNET_DATE_TIME *standard_time)
+{
+    (void)change;
+    (void)standard_time;
+    DateTime_Observer_Two_Count++;
+}
+
 /**
  * @addtogroup bacnet_tests
  * @{
@@ -596,7 +616,7 @@ static void testDatetimeConvertUTC(void)
 {
     BACNET_DATE_TIME local_time;
     BACNET_DATE_TIME utc_time;
-    /* values are positive east of UTC and negative west of UTC */
+    /* BACnet UTC_Offset is positive west of UTC. */
     int16_t utc_offset_minutes = 0;
     int8_t dst_adjust_minutes = 0;
 
@@ -605,15 +625,69 @@ static void testDatetimeConvertUTC(void)
     testDatetimeConvertUTCSpecific(
         &utc_time, &local_time, utc_offset_minutes, dst_adjust_minutes);
     /* check a timezone West of UTC */
-    utc_offset_minutes = -6 * 60;
+    utc_offset_minutes = 6 * 60;
     dst_adjust_minutes = -60;
     testDatetimeConvertUTCSpecific(
         &utc_time, &local_time, utc_offset_minutes, dst_adjust_minutes);
     /* check a timezone East of UTC */
-    utc_offset_minutes = 6 * 60;
+    utc_offset_minutes = -6 * 60;
     dst_adjust_minutes = 60;
     testDatetimeConvertUTCSpecific(
         &utc_time, &local_time, utc_offset_minutes, dst_adjust_minutes);
+}
+
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_datetime, testDatetimeBACnetUTCOffsetSign)
+#else
+static void testDatetimeBACnetUTCOffsetSign(void)
+#endif
+{
+    BACNET_DATE_TIME utc_time = { 0 };
+    BACNET_DATE_TIME local_time = { 0 };
+    BACNET_DATE_TIME round_trip = { 0 };
+    bool status = false;
+
+    datetime_set_values(&utc_time, 2024, 1, 15, 17, 0, 0, 0);
+    status = datetime_utc_to_local(&local_time, &utc_time, 300, 0);
+    zassert_true(status, NULL);
+    zassert_equal(local_time.time.hour, 12, NULL);
+    status = datetime_local_to_utc(&round_trip, &local_time, 300, 0);
+    zassert_true(status, NULL);
+    zassert_equal(datetime_compare(&utc_time, &round_trip), 0, NULL);
+}
+
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_datetime, testDatetimeObserversAndDeadband)
+#else
+static void testDatetimeObserversAndDeadband(void)
+#endif
+{
+    static DATETIME_CHANGE_NOTIFICATION observer_one = {
+        NULL, datetime_observer_one
+    };
+    static DATETIME_CHANGE_NOTIFICATION observer_two = {
+        NULL, datetime_observer_two
+    };
+    BACNET_DATE_TIME current = { 0 };
+    BACNET_DATE_TIME requested = { 0 };
+
+    DateTime_Observer_One_Count = 0;
+    DateTime_Observer_Two_Count = 0;
+    datetime_change_notification_add(&observer_one);
+    datetime_change_notification_add(&observer_two);
+    datetime_set_values(&current, 2024, 1, 15, 12, 0, 0, 50);
+    datetime_set_values(&requested, 2024, 1, 15, 12, 0, 1, 49);
+    datetime_timesync_deadband_set(1000);
+    zassert_true(datetime_timesync_in_deadband(&current, &requested), NULL);
+    requested.time.hundredths = 51;
+    zassert_false(datetime_timesync_in_deadband(&current, &requested), NULL);
+    datetime_timesync_deadband_set(0);
+    zassert_false(datetime_timesync_in_deadband(&current, &current), NULL);
+
+    datetime_change_notify(DATETIME_CHANGE_TIME, &current);
+    zassert_equal(DateTime_Observer_One_Count, 1, NULL);
+    zassert_equal(DateTime_Observer_Two_Count, 1, NULL);
+    zassert_equal(datetime_compare(&DateTime_Observer_Time, &current), 0, NULL);
 }
 /**
  * @}
@@ -634,8 +708,9 @@ void test_main(void)
         ztest_unit_test(testDatetimeCodec),
         ztest_unit_test(testWildcardDateTime),
         ztest_unit_test(testBACnetDateTimeSeconds),
-        ztest_unit_test(testDayOfYear),
-        ztest_unit_test(testDatetimeConvertUTC));
+        ztest_unit_test(testDayOfYear), ztest_unit_test(testDatetimeConvertUTC),
+        ztest_unit_test(testDatetimeBACnetUTCOffsetSign),
+        ztest_unit_test(testDatetimeObserversAndDeadband));
 
     ztest_run_test_suite(bacnet_datetime);
 }

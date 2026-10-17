@@ -12,6 +12,8 @@
 #include <bacnet/bactext.h>
 #include <bacnet/proplist.h>
 
+extern void datetime_utc_offset_minutes_set_accept(bool accept);
+
 /**
  * @addtogroup bacnet_tests
  * @{
@@ -61,6 +63,11 @@ static void test_Device_Write_Property_Range(void)
     wpdata.object_instance = Device_Object_Instance_Number();
     wpdata.array_index = BACNET_ARRAY_ALL;
 
+    status = Device_Write_Property_Local(NULL);
+    zassert_false(status, NULL);
+    status = Device_Write_Property(NULL);
+    zassert_false(status, NULL);
+
     wpdata.object_property = PROP_NUMBER_OF_APDU_RETRIES;
     wpdata.application_data_len = bacnet_unsigned_application_encode(
         wpdata.application_data, sizeof(wpdata.application_data),
@@ -87,6 +94,48 @@ static void test_Device_Write_Property_Range(void)
     zassert_false(status, NULL);
     zassert_equal(wpdata.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
     zassert_equal(Device_Vendor_Identifier(), 1234, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Device_UTC_Offset_Write)
+#else
+static void test_Device_UTC_Offset_Write(void)
+#endif
+{
+    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
+    bool status = false;
+
+    Device_Init(NULL);
+    datetime_utc_offset_minutes_set_accept(true);
+    wpdata.object_type = OBJECT_DEVICE;
+    wpdata.object_instance = Device_Object_Instance_Number();
+    wpdata.object_property = PROP_UTC_OFFSET;
+    wpdata.array_index = BACNET_ARRAY_ALL;
+    wpdata.application_data_len = bacnet_signed_application_encode(
+        wpdata.application_data, sizeof(wpdata.application_data), 300);
+    status = Device_Write_Property(&wpdata);
+    zassert_true(status, NULL);
+    zassert_equal(Device_UTC_Offset(), 300, NULL);
+
+    wpdata.application_data_len = bacnet_signed_application_encode(
+        wpdata.application_data, sizeof(wpdata.application_data), -1440);
+    status = Device_Write_Property(&wpdata);
+    zassert_true(status, NULL);
+    zassert_equal(Device_UTC_Offset(), -1440, NULL);
+
+    wpdata.application_data_len = bacnet_signed_application_encode(
+        wpdata.application_data, sizeof(wpdata.application_data), 1441);
+    status = Device_Write_Property(&wpdata);
+    zassert_false(status, NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+
+    datetime_utc_offset_minutes_set_accept(false);
+    wpdata.application_data_len = bacnet_signed_application_encode(
+        wpdata.application_data, sizeof(wpdata.application_data), 0);
+    status = Device_Write_Property(&wpdata);
+    zassert_false(status, NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_WRITE_ACCESS_DENIED, NULL);
+    datetime_utc_offset_minutes_set_accept(true);
 }
 
 /**
@@ -811,6 +860,7 @@ void test_main(void)
         device_tests, ztest_unit_test(testDevice),
         ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Write_Property_Range),
+        ztest_unit_test(test_Device_UTC_Offset_Write),
         ztest_unit_test(test_Device_Backup_Failure_Timeout_Internal_Access),
         ztest_unit_test(test_Device_Backup_Failure_Timeout_Configuration_File),
         ztest_unit_test(test_Routed_Device_DCC_Remains_Blocked),
@@ -822,6 +872,7 @@ void test_main(void)
         device_tests, ztest_unit_test(testDevice),
         ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Write_Property_Range),
+        ztest_unit_test(test_Device_UTC_Offset_Write),
         ztest_unit_test(test_Routed_Device_DCC_Remains_Blocked),
         ztest_unit_test(test_Routed_Device_Reinitialize));
 #elif defined(BACNET_BACKUP_RESTORE)
@@ -829,13 +880,15 @@ void test_main(void)
         device_tests, ztest_unit_test(testDevice),
         ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Write_Property_Range),
+        ztest_unit_test(test_Device_UTC_Offset_Write),
         ztest_unit_test(test_Device_Backup_Failure_Timeout_Internal_Access),
         ztest_unit_test(test_Device_Backup_Failure_Timeout_Configuration_File));
 #else
     ztest_test_suite(
         device_tests, ztest_unit_test(testDevice),
         ztest_unit_test(test_Device_Data_Sharing),
-        ztest_unit_test(test_Device_Write_Property_Range));
+        ztest_unit_test(test_Device_Write_Property_Range),
+        ztest_unit_test(test_Device_UTC_Offset_Write));
 #endif
 
     ztest_run_test_suite(device_tests);

@@ -1412,6 +1412,7 @@ static const int32_t Device_Properties_Optional[] = {
     PROP_LAST_RESTART_REASON,
 #if defined(BACNET_TIME_MASTER)
     PROP_TIME_SYNCHRONIZATION_RECIPIENTS,
+    PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS,
     PROP_TIME_SYNCHRONIZATION_INTERVAL,
     PROP_ALIGN_INTERVALS,
     PROP_INTERVAL_OFFSET,
@@ -2666,9 +2667,9 @@ int32_t Device_UTC_Offset(void)
     return UTC_Offset;
 }
 
-void Device_UTC_Offset_Set(int16_t offset)
+bool Device_UTC_Offset_Set(int16_t offset)
 {
-    UTC_Offset = offset;
+    return datetime_utc_offset_minutes_set(offset);
 }
 
 bool Device_Daylight_Savings_Status(void)
@@ -3259,6 +3260,15 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 apdu_len = BACNET_STATUS_ABORT;
             }
             break;
+        case PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS:
+            apdu_len =
+                handler_timesync_encode_utc_recipients(&apdu[0], apdu_max);
+            if (apdu_len < 0) {
+                rpdata->error_code =
+                    ERROR_CODE_ABORT_SEGMENTATION_NOT_SUPPORTED;
+                apdu_len = BACNET_STATUS_ABORT;
+            }
+            break;
         case PROP_TIME_SYNCHRONIZATION_INTERVAL:
             apdu_len = encode_application_unsigned(
                 &apdu[0], Device_Time_Sync_Interval());
@@ -3453,6 +3463,17 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
     uint32_t minutes = 0;
 #endif
 
+    if (wp_data == NULL) {
+        return false;
+    }
+#if defined(BACNET_TIME_MASTER)
+    if (wp_data->object_property == PROP_TIME_SYNCHRONIZATION_RECIPIENTS) {
+        return handler_timesync_recipient_write(wp_data);
+    }
+    if (wp_data->object_property == PROP_UTC_TIME_SYNCHRONIZATION_RECIPIENTS) {
+        return handler_timesync_utc_recipient_write(wp_data);
+    }
+#endif
     /* decode the some of the request */
     len = bacapp_decode_known_property(
         wp_data->application_data, wp_data->application_data_len, &value,
@@ -3685,10 +3706,14 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_SIGNED_INT);
             if (status) {
-                if ((value.type.Signed_Int < (12 * 60)) &&
-                    (value.type.Signed_Int > (-12 * 60))) {
-                    Device_UTC_Offset_Set(value.type.Signed_Int);
-                    status = true;
+                if ((value.type.Signed_Int <= (24 * 60)) &&
+                    (value.type.Signed_Int >= (-24 * 60))) {
+                    status =
+                        Device_UTC_Offset_Set((int16_t)value.type.Signed_Int);
+                    if (!status) {
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                    }
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;

@@ -20,6 +20,11 @@
 
 /** @file datetime.c  Manipulate BACnet Date and Time values */
 
+static DATETIME_CHANGE_NOTIFICATION *DateTime_Change_Notifications;
+static uint32_t DateTime_TimeSync_Deadband;
+static datetime_lock_callback_t DateTime_Lock_Callback;
+static datetime_lock_callback_t DateTime_Unlock_Callback;
+
 /* BACnet Date */
 /* year = years since 1900 through 2155 */
 /* month 1=Jan */
@@ -1248,11 +1253,11 @@ void datetime_wildcard_set(BACNET_DATE_TIME *bdatetime)
  * @brief Converts UTC to local time
  * @param local_time - the BACnet Date and Time structure to hold local time
  * @param utc_time - the BACnet Date and Time structure to hold UTC time
- * @param utc_offset_minutes - number of minutes offset from UTC
- *  Values are positive East of UTC and negative West of UTC
- *  For example, -6*60 represents 6.00 hours West of UTC
- * @param dst_adjust_minutes - number of minutes to adjust local time
- *  Values are positive East of UTC and negative West of UTC
+ * @param utc_offset_minutes - BACnet UTC_Offset, in minutes west of UTC.
+ *  For example, +300 means UTC-5, so 17:00 UTC becomes 12:00 local standard
+ *  time.
+ * @param dst_adjust_minutes - daylight-saving adjustment expressed as minutes
+ *  west of UTC (normally -60 while daylight saving time is active).
  * @return true if the time is converted
  */
 bool datetime_utc_to_local(
@@ -1278,14 +1283,14 @@ bool datetime_utc_to_local(
 }
 
 /**
- * @brief Converts UTC to local time
+ * @brief Converts local time to UTC
  * @param utc_time - the BACnet Date and Time structure to hold UTC time
  * @param local_time - the BACnet Date and Time structure to hold local time
- * @param utc_offset_minutes - number of minutes offset from UTC
- *  Values are positive East of UTC and negative West of UTC
- *  For example, -6*60 represents 6.00 hours West of UTC
- * @param dst_adjust_minutes - number of minutes to adjust local time
- *  Values are positive East of UTC and negative West of UTC
+ * @param utc_offset_minutes - BACnet UTC_Offset, in minutes west of UTC.
+ *  For example, +300 means UTC-5, so 12:00 local standard time becomes
+ *  17:00 UTC.
+ * @param dst_adjust_minutes - daylight-saving adjustment expressed as minutes
+ *  west of UTC (normally -60 while daylight saving time is active).
  * @return true if the time is converted
  */
 bool datetime_local_to_utc(
@@ -1306,6 +1311,152 @@ bool datetime_local_to_utc(
     }
 
     return status;
+}
+
+/**
+ * @brief Register a datetime change observer.
+ * @param notification [in] Observer node and callback to register
+ *
+ * A notification node is registered at most once and must remain valid for
+ * as long as it is linked into the observer list.
+ */
+void datetime_change_notification_add(
+    DATETIME_CHANGE_NOTIFICATION *notification)
+{
+    DATETIME_CHANGE_NOTIFICATION *current = NULL;
+
+    if (!notification || !notification->callback) {
+        return;
+    }
+    current = DateTime_Change_Notifications;
+    while (current) {
+        if (current == notification) {
+            return;
+        }
+        if (!current->next) {
+            notification->next = NULL;
+            current->next = notification;
+            return;
+        }
+        current = current->next;
+    }
+    notification->next = NULL;
+    DateTime_Change_Notifications = notification;
+}
+
+/**
+ * @brief Notify all registered observers of a datetime configuration change.
+ * @param change [in] Type of change
+ * @param standard_time [in] Current standard-time value
+ */
+void datetime_change_notify(
+    BACNET_DATETIME_CHANGE change, const BACNET_DATE_TIME *standard_time)
+{
+    DATETIME_CHANGE_NOTIFICATION *current = DateTime_Change_Notifications;
+    DATETIME_CHANGE_NOTIFICATION *next = NULL;
+
+    while (current) {
+        next = current->next;
+        if (current->callback) {
+            current->callback(change, standard_time);
+        }
+        current = next;
+    }
+}
+
+/**
+ * @brief Set the TimeSynchronization deadband.
+ * @param milliseconds [in] Maximum difference to ignore, in milliseconds
+ */
+void datetime_timesync_deadband_set(uint32_t milliseconds)
+{
+    DateTime_TimeSync_Deadband = milliseconds;
+}
+
+/**
+ * @brief Get the TimeSynchronization deadband.
+ * @return Deadband in milliseconds
+ */
+uint32_t datetime_timesync_deadband(void)
+{
+    return DateTime_TimeSync_Deadband;
+}
+
+/**
+ * @brief Determine whether two valid datetimes are within the deadband.
+ * @param current [in] Current standard-time value
+ * @param requested [in] Requested standard-time value
+ * @return true if their absolute difference is at most the configured
+ * deadband; false if either value is invalid or the deadband is zero
+ */
+bool datetime_timesync_in_deadband(
+    const BACNET_DATE_TIME *current, const BACNET_DATE_TIME *requested)
+{
+    uint64_t current_milliseconds = 0;
+    uint64_t requested_milliseconds = 0;
+    uint64_t difference = 0;
+    uint32_t current_days = 0;
+    uint32_t requested_days = 0;
+    uint32_t current_time = 0;
+    uint32_t requested_time = 0;
+
+    if (!current || !requested || !DateTime_TimeSync_Deadband ||
+        !datetime_is_valid(&current->date, &current->time) ||
+        !datetime_is_valid(&requested->date, &requested->time)) {
+        return false;
+    }
+    current_days = datetime_days_since_epoch(&current->date);
+    requested_days = datetime_days_since_epoch(&requested->date);
+    current_time = datetime_seconds_since_midnight(&current->time);
+    requested_time = datetime_seconds_since_midnight(&requested->time);
+    current_milliseconds = ((uint64_t)current_days * UINT64_C(86400000)) +
+        ((uint64_t)current_time * UINT64_C(1000)) +
+        ((uint64_t)current->time.hundredths * UINT64_C(10));
+    requested_milliseconds = ((uint64_t)requested_days * UINT64_C(86400000)) +
+        ((uint64_t)requested_time * UINT64_C(1000)) +
+        ((uint64_t)requested->time.hundredths * UINT64_C(10));
+    if (current_milliseconds > requested_milliseconds) {
+        difference = current_milliseconds - requested_milliseconds;
+    } else {
+        difference = requested_milliseconds - current_milliseconds;
+    }
+
+    return difference <= DateTime_TimeSync_Deadband;
+}
+
+/**
+ * @brief Register or clear the datetime lock callback pair.
+ * @param lock [in] Lock callback
+ * @param unlock [in] Matching unlock callback
+ *
+ * Both callbacks are registered only when both are non-NULL; otherwise both
+ * callbacks are cleared.
+ */
+void datetime_lock_callback_set(
+    datetime_lock_callback_t lock, datetime_lock_callback_t unlock)
+{
+    DateTime_Lock_Callback = lock && unlock ? lock : NULL;
+    DateTime_Unlock_Callback = lock && unlock ? unlock : NULL;
+}
+
+/**
+ * @brief Invoke the registered datetime lock callback, if any.
+ */
+void datetime_lock(void)
+{
+    if (DateTime_Lock_Callback) {
+        DateTime_Lock_Callback();
+    }
+}
+
+/**
+ * @brief Invoke the registered datetime unlock callback, if any.
+ */
+void datetime_unlock(void)
+{
+    if (DateTime_Unlock_Callback) {
+        DateTime_Unlock_Callback();
+    }
 }
 
 /**

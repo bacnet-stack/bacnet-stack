@@ -110,6 +110,10 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added the test-websockets Makefile target to the root and test Makefiles.
+  It builds and runs the existing BACnet/SC websocket test. Changed the
+  BACnet/SC test targets to build in separate subfolders of the test build
+  folder. Parallel builds of these targets no longer affect each other.
 * Added dynamic instances to the Notification Class object. Replaced the fixed
   per-device arrays with keylists. Added the Notification_Class_Create(),
   Notification_Class_Delete(), and Notification_Class_Cleanup() functions.

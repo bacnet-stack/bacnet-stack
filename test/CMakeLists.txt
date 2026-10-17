@@ -155,6 +155,7 @@ list(APPEND testdirs
   bacnet/basic/binding/address
   bacnet/basic/bbmd
   bacnet/basic/bbmd6
+  bacnet/basic/datetime_mstimer
   bacnet/basic/bzll
   bacnet/basic/npdu/h_npdu
   # basic/object
@@ -212,6 +213,7 @@ list(APPEND testdirs
   bacnet/basic/service/h_arf
   bacnet/basic/service/h_awf
   bacnet/basic/service/h_cov
+  bacnet/basic/service/h_ts
   bacnet/basic/service/h_pt
   bacnet/basic/service/h_rpm_a
   bacnet/basic/service/h_rr
@@ -266,6 +268,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   message(STATUS "Added ports specific tests for linux")
 
   list(APPEND testdirs
+  bacnet/basic/datetime_linux
   ports/linux/bsc_event
   ports/linux/bip_subnet
   ports/linux/dlmstp_linux

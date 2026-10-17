@@ -274,7 +274,7 @@ Pull Request: [#1352](https://github.com/bacnet-stack/bacnet-stack/pull/1352).
 [CVE-2026-49341](https://www.cve.org/CVERecord?id=CVE-2026-49341) -
 Uncontrolled recursion in Timer object writeback path leads to remote server stack overflow.
 [GHSA-7r8r-2rj2-5wvr](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-7r8r-2rj2-5wvr).
-Patched versions: 1.5.1, 1.6.0
+Patched versions: 1.4.4, 1.5.1, 1.6.0
 Pull Request: [#1347](https://github.com/bacnet-stack/bacnet-stack/pull/1347)
 
 [CVE-2026-47217](https://www.cve.org/CVERecord?id=CVE-2026-47217) -
