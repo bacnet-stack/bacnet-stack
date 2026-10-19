@@ -265,8 +265,9 @@ int gettimeofday(struct timeval *tp, void *tzp)
  * @param bdate - the BACnet Date structure to hold date
  * @param btime - the BACnet Time structure to hold time
  * @param hundredths - hundredths of a second [0..99]
- * @param utc_offset_minutes - number of minutes offset from UTC
- * For example, -6*60 represents 6.00 hours behind UTC/GMT
+ * @param utc_offset_minutes - BACnet UTC_Offset in minutes: local standard
+ * time is UTC minus this value (135-2024 12.11.25). For example,
+ * +6*60 represents 6.00 hours behind UTC/GMT. Positive = WEST of UTC.
  * @param dst_active - true if DST is enabled and active
  * @param tblock - the struct tm to convert
  *
@@ -319,8 +320,9 @@ static void datetime_from_tm(
  * @brief Get the date, time, timezone, and UTC offset from system
  * @param utc_time - the BACnet Date and Time structure to hold UTC time
  * @param local_time - the BACnet Date and Time structure to hold local time
- * @param utc_offset_minutes - number of minutes offset from UTC
- * For example, -6*60 represents 6.00 hours behind UTC/GMT
+ * @param utc_offset_minutes - BACnet UTC_Offset in minutes: local standard
+ * time is UTC minus this value (135-2024 12.11.25). For example,
+ * +6*60 represents 6.00 hours behind UTC/GMT. Positive = WEST of UTC.
  * @param true if DST is enabled and active
  * @return true if local time was retrieved
  */
