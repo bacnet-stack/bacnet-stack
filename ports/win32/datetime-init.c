@@ -36,7 +36,9 @@ long int timezone;
 int gettimeofday(struct timeval *tp, void *tzp);
 #endif
 
-static time_t Time_Offset; /* Time offset in seconds */
+/* Difference between the BACnet clock and the host clock. Kept so time
+ * can be set without changing the operating-system clock. */
+static struct timeval Time_Offset;
 
 /**
  * @brief Wrapper for localtime that works across different compilers.
@@ -104,12 +106,43 @@ static bool datetime_time(struct tm *newtime, struct tm **tblock)
 }
 
 /**
- * @brief Calculate the time offset from the system clock.
- * @return Time offset in seconds
+ * @brief Calculate the difference between two times
+ * @param t0 minuend
+ * @param t1 subtrahend
+ * @return t0 - t1, with tv_usec normalized to [0..999999]
  */
-static time_t time_difference(struct timeval t0, struct timeval t1)
+static struct timeval timeval_diff(struct timeval t0, struct timeval t1)
 {
-    return (t0.tv_sec - t1.tv_sec) + (t0.tv_usec - t1.tv_usec) / 1000000;
+    struct timeval diff;
+
+    diff.tv_sec = t0.tv_sec - t1.tv_sec;
+    diff.tv_usec = t0.tv_usec - t1.tv_usec;
+    if (diff.tv_usec < 0) {
+        diff.tv_usec += 1000000;
+        diff.tv_sec -= 1;
+    }
+
+    return diff;
+}
+
+/**
+ * @brief Calculate the sum of two times
+ * @param t0 first addend
+ * @param t1 second addend
+ * @return t0 + t1, with tv_usec normalized to [0..999999]
+ */
+static struct timeval timeval_sum(struct timeval t0, struct timeval t1)
+{
+    struct timeval sum;
+
+    sum.tv_sec = t0.tv_sec + t1.tv_sec;
+    sum.tv_usec = t0.tv_usec + t1.tv_usec;
+    if (sum.tv_usec >= 1000000) {
+        sum.tv_usec -= 1000000;
+        sum.tv_sec += 1;
+    }
+
+    return sum;
 }
 
 /**
@@ -146,17 +179,17 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
     }
     if (gettimeofday(&tv_sys, NULL) == 0) {
         if (utc) {
-            Time_Offset = time_difference(tv_inp, tv_sys) -
-                (timezone - timeinfo->tm_isdst * 3600);
-
+            Time_Offset = timeval_diff(tv_inp, tv_sys);
+            Time_Offset.tv_sec -= (timezone - timeinfo->tm_isdst * 3600);
         } else {
-            Time_Offset = time_difference(tv_inp, tv_sys);
+            Time_Offset = timeval_diff(tv_inp, tv_sys);
         }
         debug_log_fprintf(
             DEBUG_LOG_INFO, stderr,
-            "TimeSync offset = %ld seconds at %02d:%02d:%02d.%03d\n",
-            (long)Time_Offset, tv_sys.tv_sec / 3600, (tv_sys.tv_sec / 60) % 60,
-            tv_sys.tv_sec % 60, tv_inp.tv_usec / 1000);
+            "TimeSync offset = %ld.%06ld seconds at %02d:%02d:%02d.%03d\n",
+            (long)Time_Offset.tv_sec, (long)Time_Offset.tv_usec,
+            tv_sys.tv_sec / 3600, (tv_sys.tv_sec / 60) % 60, tv_sys.tv_sec % 60,
+            tv_inp.tv_usec / 1000);
     }
     return;
 }
@@ -301,12 +334,10 @@ bool datetime_local(
     struct tm *tblock = NULL;
     struct tm newtime = { 0 };
     struct timeval tv = { 0 };
-    time_t to = 0;
     time_t seconds = 0;
 
     if (gettimeofday(&tv, NULL) == 0) {
-        to = Time_Offset;
-        tv.tv_sec += to;
+        tv = timeval_sum(tv, Time_Offset);
         seconds = tv.tv_sec;
         if (datetime_localtime(&newtime, &seconds, &tblock)) {
             datetime_from_tm(
