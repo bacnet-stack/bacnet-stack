@@ -279,6 +279,40 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
 }
 
 /**
+ * @brief Get the local standard time, which never includes the DST adjustment
+ * @param standard_time [out] The local standard date and time
+ * @return true if successful, false on error
+ * @note The clock stores local standard time, so it is returned as is.
+ *  Use datetime_local() to get the wall-clock time with DST applied.
+ */
+bool datetime_standard(BACNET_DATE_TIME *standard_time)
+{
+    if (!standard_time) {
+        return false;
+    }
+    datetime_sync();
+    datetime_copy(standard_time, &BACnet_Date_Time);
+
+    return true;
+}
+
+/**
+ * @brief Set the local standard time, without a DST adjustment
+ * @param standard_time [in] The local standard date and time
+ * @note This is not a time synchronization notification.
+ *  Use it to load a hardware RTC that holds standard time at power up
+ *  or after a time synchronization.
+ */
+void datetime_standard_set(const BACNET_DATE_TIME *standard_time)
+{
+    if (!standard_time) {
+        return;
+    }
+    datetime_copy(&BACnet_Date_Time, standard_time);
+    mstimer_restart(&Date_Timer);
+}
+
+/**
  * @brief Reset the local date and time, UTC offset, and DST rule to defaults
  * @note Explicit return to defaults, intended for unit tests.
  */

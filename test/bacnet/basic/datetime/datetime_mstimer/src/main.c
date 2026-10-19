@@ -308,6 +308,76 @@ static void test_datetime_config_change(void)
     check_local(2026, 7, 1, 12, 0, 0, true);
 }
 
+/**
+ * @brief Test the standard time API
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(datetime_mstimer_tests, test_datetime_standard)
+#else
+static void test_datetime_standard(void)
+#endif
+{
+    BACNET_DATE_TIME standard = { 0 };
+    BACNET_DATE_TIME rtc = { 0 };
+    BACNET_DATE bdate = { 0 };
+    BACNET_TIME btime = { 0 };
+
+    Fake_Milliseconds = 0;
+    datetime_init_defaults();
+    datetime_dst_enabled_set(true);
+    datetime_dst_date_range_set(4, 1, 10, 31);
+
+    /* NULL handling */
+    zassert_false(datetime_standard(NULL), NULL);
+    datetime_standard_set(NULL);
+
+    /* load standard time as if from a hardware RTC at power up */
+    datetime_set_values(&rtc, 2026, 7, 1, 11, 0, 0, 0);
+    datetime_standard_set(&rtc);
+    zassert_true(datetime_standard(&standard), NULL);
+    zassert_equal(datetime_compare(&standard, &rtc), 0, NULL);
+    /* local time has the DST adjustment applied */
+    check_local(2026, 7, 1, 12, 0, 0, true);
+
+    /* the standard time runs with the millisecond timer */
+    Fake_Milliseconds = 5000;
+    zassert_true(datetime_standard(&standard), NULL);
+    zassert_equal(standard.time.hour, 11, NULL);
+    zassert_equal(standard.time.sec, 5, NULL);
+    check_local(2026, 7, 1, 12, 0, 5, true);
+
+    /* standard time is unchanged when DST is disabled or not in range */
+    datetime_dst_enabled_set(false);
+    zassert_true(datetime_standard(&standard), NULL);
+    zassert_equal(standard.time.hour, 11, NULL);
+    zassert_equal(standard.time.sec, 5, NULL);
+    check_local(2026, 7, 1, 11, 0, 5, false);
+    datetime_dst_enabled_set(true);
+
+    /* standard time after a wall-clock time sync with DST active */
+    set_time(&bdate, &btime, 2026, 7, 1, 12, 0, 0);
+    datetime_timesync(&bdate, &btime, false);
+    zassert_true(datetime_standard(&standard), NULL);
+    zassert_equal(standard.date.month, 7, NULL);
+    zassert_equal(standard.time.hour, 11, NULL);
+    zassert_equal(standard.time.min, 0, NULL);
+
+    /* standard time across midnight when DST is active */
+    datetime_set_values(&rtc, 2026, 7, 1, 23, 30, 0, 0);
+    datetime_standard_set(&rtc);
+    check_local(2026, 7, 2, 0, 30, 0, true);
+    zassert_true(datetime_standard(&standard), NULL);
+    zassert_equal(standard.date.day, 1, NULL);
+    zassert_equal(standard.time.hour, 23, NULL);
+
+    /* set restarts the timer: the elapsed time is not added after the set */
+    Fake_Milliseconds = 20000;
+    datetime_standard_set(&rtc);
+    zassert_true(datetime_standard(&standard), NULL);
+    zassert_equal(standard.time.min, 30, NULL);
+    zassert_equal(standard.time.sec, 0, NULL);
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(datetime_mstimer_tests, NULL, NULL, NULL, NULL, NULL);
 #else
@@ -318,7 +388,8 @@ void test_main(void)
         ztest_unit_test(test_datetime_timesync_local),
         ztest_unit_test(test_datetime_dst_changeover),
         ztest_unit_test(test_datetime_timesync_utc),
-        ztest_unit_test(test_datetime_config_change));
+        ztest_unit_test(test_datetime_config_change),
+        ztest_unit_test(test_datetime_standard));
 
     ztest_run_test_suite(datetime_mstimer_tests);
 }
