@@ -2393,9 +2393,14 @@ int32_t Device_UTC_Offset(void)
     return utc_offset_minutes;
 }
 
-void Device_UTC_Offset_Set(int16_t offset)
+/**
+ * @brief Set the UTC offset of the local clock
+ * @param offset [in] The UTC offset in minutes
+ * @return true if the clock accepted the UTC offset
+ */
+bool Device_UTC_Offset_Set(int16_t offset)
 {
-    datetime_utc_offset_minutes_set(offset);
+    return datetime_utc_offset_minutes_set(offset);
 }
 
 bool Device_Daylight_Savings_Status(void)
@@ -3470,10 +3475,10 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_SIGNED_INT);
             if (status) {
-                if ((value.type.Signed_Int < (12 * 60)) &&
-                    (value.type.Signed_Int > (-12 * 60))) {
+                if ((value.type.Signed_Int <= (24 * 60)) &&
+                    (value.type.Signed_Int >= (-24 * 60))) {
                     status =
-                        datetime_utc_offset_minutes_set(value.type.Signed_Int);
+                        Device_UTC_Offset_Set((int16_t)value.type.Signed_Int);
                     if (!status) {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
                         wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
