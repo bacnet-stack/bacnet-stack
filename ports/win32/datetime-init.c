@@ -186,7 +186,8 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
         }
         debug_log_fprintf(
             DEBUG_LOG_INFO, stderr,
-            "TimeSync offset = %ld.%06ld seconds at %02d:%02d:%02d.%03d\n",
+            "TimeSync offset = %ld seconds + %ld microseconds at "
+            "%02d:%02d:%02d.%03d\n",
             (long)Time_Offset.tv_sec, (long)Time_Offset.tv_usec,
             tv_sys.tv_sec / 3600, (tv_sys.tv_sec / 60) % 60, tv_sys.tv_sec % 60,
             tv_inp.tv_usec / 1000);

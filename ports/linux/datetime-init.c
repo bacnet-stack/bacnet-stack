@@ -101,8 +101,8 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
         }
 #if PRINT_ENABLED
         debug_printf(
-            "Time offset = %ld.%06ld seconds\n", (long)Time_Offset.tv_sec,
-            (long)Time_Offset.tv_usec);
+            "Time offset = %ld seconds + %ld microseconds\n",
+            (long)Time_Offset.tv_sec, (long)Time_Offset.tv_usec);
 #endif
     }
     return;
