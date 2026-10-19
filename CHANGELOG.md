@@ -196,6 +196,9 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed the mstimer_restart() function to return the elapsed milliseconds
+  since the timer start. The function reads the clock once for the elapsed
+  time and the new start time. Added unit tests for the mstimer API. (#1575)
 * Changed the bacfile_posix_file_size_set() function to resize a file with
   standard C stdio functions only. The function no longer needs fileno() or
   ftruncate(). Added unit tests for the POSIX File object port in
@@ -256,6 +259,25 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the Device_UTC_Offset_Set() function. It now returns bool and passes
+  the value to datetime_utc_offset_minutes_set(). The UTC_Offset
+  WriteProperty in the Device object and in apps/piface accepts -1440 to
+  +1440 minutes. It returns WRITE_ACCESS_DENIED when the clock refuses the
+  value. Changed bacnet_basic_init() to always register the TimeSync and
+  UTCTimeSync handlers, with datetime_timesync() as the default set callback.
+  The 1-second task of the basic server calls handler_timesync_task() when
+  BACNET_TIME_MASTER is defined. Added unit tests. (#1579)
+* Fixed the mstimer based date and time clock. It now stores the local
+  standard time. The datetime_local() function adds 60 minutes when DST is
+  active, so a DST changeover takes effect on the next read. Added the
+  datetime_standard(), datetime_standard_set(), and datetime_init_defaults()
+  functions. The datetime_init() function now initializes only once. Fixed the
+  comments of datetime_utc_to_local() and datetime_local_to_utc() to state
+  that the UTC offset is in minutes west of UTC. Added unit tests. (#1578)
+* Fixed the Linux, BSD, and Win32 datetime-init.c files. The time offset
+  now keeps microsecond resolution. Before, the offset used whole seconds
+  and the hundredths field of datetime_local() was wrong after a
+  TimeSynchronization. (#1577)
 * Fixed the bacfile_posix_write_record_data() function to ignore one trailing
   newline in the record data. The function still rejects a newline in any
   other position. (#1570)
