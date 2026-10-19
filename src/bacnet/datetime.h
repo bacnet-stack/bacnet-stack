@@ -386,6 +386,9 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc);
 /* Initialization for integration with a clock */
 BACNET_STACK_EXPORT
 void datetime_init(void);
+/* explicit return to defaults (unit tests) */
+BACNET_STACK_EXPORT
+void datetime_init_defaults(void);
 
 #ifdef __cplusplus
 }

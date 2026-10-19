@@ -25,6 +25,8 @@ static struct daylight_savings_data DST_Range;
 static bool DST_Enabled;
 /* local time based on mstimer */
 static struct mstimer Date_Timer;
+/* true once the defaults were loaded */
+static bool Initialized;
 
 /**
  * @brief Synchronize the local time from the millisecond timer
@@ -255,10 +257,26 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
 }
 
 /**
- * @brief Initialize the local date and time timer
+ * @brief Reset the local date and time, UTC offset, and DST rule to defaults
+ * @note Explicit return to defaults, intended for unit tests.
+ */
+void datetime_init_defaults(void)
+{
+    Initialized = true;
+    memset(&BACnet_Date_Time, 0, sizeof(BACnet_Date_Time));
+    UTC_Offset_Minutes = 0;
+    DST_Enabled = false;
+    dst_init_defaults(&DST_Range);
+    mstimer_set(&Date_Timer, 0);
+}
+
+/**
+ * @brief Initialize the local date and time timer once.
+ *  Later calls do not reset the DST rule, UTC offset, or time.
  */
 void datetime_init(void)
 {
-    dst_init_defaults(&DST_Range);
-    mstimer_set(&Date_Timer, 0);
+    if (!Initialized) {
+        datetime_init_defaults();
+    }
 }

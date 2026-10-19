@@ -156,6 +156,7 @@ list(APPEND testdirs
   bacnet/basic/bbmd
   bacnet/basic/bbmd6
   bacnet/basic/bzll
+  bacnet/basic/datetime/datetime_mstimer
   bacnet/basic/npdu/h_npdu
   # basic/object
   bacnet/basic/object/acc
