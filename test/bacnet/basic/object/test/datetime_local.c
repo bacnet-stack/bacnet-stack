@@ -9,10 +9,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "bacnet/datetime.h"
+#include "datetime_local.h"
 
 static BACNET_DATE BACnet_Date;
 static BACNET_TIME BACnet_Time;
 static int16_t UTC_Offset_Minutes;
+static bool UTC_Offset_Accept = true;
 static bool DST_Active;
 
 bool datetime_local(
@@ -66,9 +68,21 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
  */
 bool datetime_utc_offset_minutes_set(int16_t minutes)
 {
+    if (!UTC_Offset_Accept) {
+        return false;
+    }
     UTC_Offset_Minutes = minutes;
 
     return true;
+}
+
+/**
+ * @brief Select whether the stub accepts writes of the UTC offset
+ * @param accept [in] true to accept, false to refuse
+ */
+void datetime_local_utc_offset_accept_set(bool accept)
+{
+    UTC_Offset_Accept = accept;
 }
 
 void datetime_init(void)
