@@ -259,6 +259,16 @@ static void test_datetime_timesync_utc(void)
     set_time(&bdate, &btime, 2026, 1, 15, 17, 0, 0);
     datetime_timesync(&bdate, &btime, true);
     check_local(2026, 1, 15, 11, 0, 0, false);
+
+    /* BACnet UTC offset is positive west of UTC: US Eastern is +300 */
+    datetime_utc_offset_minutes_set(300);
+    set_time(&bdate, &btime, 2026, 1, 15, 17, 0, 0);
+    datetime_timesync(&bdate, &btime, true);
+    check_local(2026, 1, 15, 12, 0, 0, false);
+    /* a UTC time that crosses midnight */
+    set_time(&bdate, &btime, 2026, 1, 15, 3, 0, 0);
+    datetime_timesync(&bdate, &btime, true);
+    check_local(2026, 1, 14, 22, 0, 0, false);
 }
 
 /**
