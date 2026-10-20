@@ -50,6 +50,10 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the Linux datetime-init.c file. The time offset now keeps
+  microsecond resolution. Before, the offset used whole seconds
+  and the hundredths field of datetime_local() was wrong after a
+  TimeSynchronization. (#1577)
 * Fixed the Linux MS/TP initialization build failure with warnings treated as
   errors by preserving the const qualifier of the default RS-485 interface name.
 * Fixed the BACnetTimerStateChangeValue no-value [0] encoding. The encoder
