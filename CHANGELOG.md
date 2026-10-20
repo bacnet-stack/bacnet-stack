@@ -51,6 +51,14 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the Device_UTC_Offset_Set() function. It now passes the value to
+  datetime_utc_offset_minutes_set(). The UTC_Offset WriteProperty in the
+  Device object and in apps/piface accepts -1440 to +1440 minutes. It
+  returns WRITE_ACCESS_DENIED when the clock refuses the value. Changed
+  bacnet_basic_init() to always register the TimeSync and UTCTimeSync
+  handlers, with datetime_timesync() as the default set callback. The
+  1-second task of the basic server calls handler_timesync_task() when
+  BACNET_TIME_MASTER is defined. Added unit tests. (#1579)
 * Fixed the mstimer based date and time clock. It now stores the local
   standard time. The datetime_local() function adds 60 minutes when DST is
   active, so a DST changeover takes effect on the next read. Added the
