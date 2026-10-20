@@ -51,6 +51,10 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the Linux datetime-init.c file. The time offset now keeps
+  microsecond resolution. Before, the offset could leave the tv_usec field
+  out of range, and the hundredths field of datetime_local() was wrong after
+  a TimeSynchronization. (#1577)
 * Fixed the Linux dlmstp_init() function to use a const pointer for the
   interface name from RS485_Interface(). This removes a discarded-qualifiers
   compiler error.
