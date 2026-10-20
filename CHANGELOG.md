@@ -50,6 +50,10 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the undefined datetime_utc_offset_minutes_set() linker error in the
+  Linux, BSD (macOS), and Windows ports. Their datetime-init.c now defines it
+  and returns false, so the UTC_Offset WriteProperty returns
+  WRITE_ACCESS_DENIED because the system time zone sets the UTC offset.
 * Fixed the Device_UTC_Offset_Set() function. It now returns bool and passes
   the value to datetime_utc_offset_minutes_set(). The UTC_Offset
   WriteProperty in the Device object and in apps/piface accepts -1440 to

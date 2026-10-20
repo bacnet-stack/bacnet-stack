@@ -100,6 +100,18 @@ bool datetime_local(
 }
 
 /**
+ * @brief Set the UTC offset in minutes
+ * @param minutes [in] The UTC offset in minutes
+ * @return false, since the UTC offset comes from the system time zone
+ */
+bool datetime_utc_offset_minutes_set(int16_t minutes)
+{
+    (void)minutes;
+
+    return false;
+}
+
+/**
  * initialize the date time
  */
 void datetime_init(void)
