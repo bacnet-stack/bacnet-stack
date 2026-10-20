@@ -51,6 +51,11 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the link error "undefined reference to
+  datetime_utc_offset_minutes_set" in the Linux, BSD, and Windows ports. Added
+  the datetime_utc_offset_minutes_set() function to the datetime-init.c file of
+  each port. It returns false because the time zone of the host operating
+  system is authoritative.
 * Fixed the Device_UTC_Offset_Set() function. It now passes the value to
   datetime_utc_offset_minutes_set(). The UTC_Offset WriteProperty in the
   Device object and in apps/piface accepts -1440 to +1440 minutes. It
