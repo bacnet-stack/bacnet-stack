@@ -10,6 +10,7 @@
 #include <bacnet/basic/object/device.h>
 #include <bacnet/basic/service/h_apdu.h>
 #include <bacnet/bactext.h>
+#include <datetime_local.h>
 #include <property_test.h>
 
 /**
@@ -64,6 +65,9 @@ static void test_Device_Write_Property_Range(void)
 #endif
 {
     BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
+    const int16_t utc_offset_good[] = { 0, -60, 300, -1440, 1440 };
+    const int16_t utc_offset_bad[] = { -1441, 1441 };
+    unsigned i;
     bool status = false;
 
     Device_Init(NULL);
@@ -100,6 +104,36 @@ static void test_Device_Write_Property_Range(void)
     zassert_false(status, NULL);
     zassert_equal(wpdata.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
     zassert_equal(Device_Vendor_Identifier(), 1234, NULL);
+
+    /* UTC_Offset: the clock accepts the write, so it reads back */
+    datetime_local_utc_offset_accept_set(true);
+    wpdata.object_property = PROP_UTC_OFFSET;
+    for (i = 0; i < ARRAY_SIZE(utc_offset_good); i++) {
+        wpdata.application_data_len = encode_application_signed(
+            wpdata.application_data, utc_offset_good[i]);
+        status = Device_Write_Property(&wpdata);
+        zassert_true(status, "UTC_Offset=%d", utc_offset_good[i]);
+        zassert_equal(Device_UTC_Offset(), utc_offset_good[i], NULL);
+    }
+    for (i = 0; i < ARRAY_SIZE(utc_offset_bad); i++) {
+        wpdata.application_data_len = encode_application_signed(
+            wpdata.application_data, utc_offset_bad[i]);
+        status = Device_Write_Property(&wpdata);
+        zassert_false(status, "UTC_Offset=%d", utc_offset_bad[i]);
+        zassert_equal(wpdata.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+        zassert_equal(Device_UTC_Offset(), 1440, NULL);
+    }
+    /* the clock refuses the write */
+    datetime_local_utc_offset_accept_set(false);
+    wpdata.application_data_len =
+        encode_application_signed(wpdata.application_data, -120);
+    status = Device_Write_Property(&wpdata);
+    zassert_false(status, NULL);
+    zassert_equal(wpdata.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_WRITE_ACCESS_DENIED, NULL);
+    zassert_equal(Device_UTC_Offset(), 1440, NULL);
+    zassert_false(Device_UTC_Offset_Set(-120), NULL);
+    datetime_local_utc_offset_accept_set(true);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
