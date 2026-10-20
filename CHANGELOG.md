@@ -51,6 +51,13 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the mstimer based date and time clock. It now stores the local
+  standard time. The datetime_local() function adds 60 minutes when DST is
+  active, so a DST changeover takes effect on the next read. Added the
+  datetime_standard(), datetime_standard_set(), and datetime_init_defaults()
+  functions. The datetime_init() function now initializes only once. Fixed the
+  comments of datetime_utc_to_local() and datetime_local_to_utc() to state
+  that the UTC offset is in minutes west of UTC. Added unit tests. (#1578)
 * Fixed the Linux datetime-init.c file. The time offset now keeps
   microsecond resolution. Before, the offset could leave the tv_usec field
   out of range, and the hundredths field of datetime_local() was wrong after

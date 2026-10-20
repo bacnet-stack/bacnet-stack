@@ -330,6 +330,11 @@ bool datetime_local(
     BACNET_TIME *btime,
     int16_t *utc_offset_minutes,
     bool *dst_active);
+/* local standard time API (millisecond timer based clock) */
+BACNET_STACK_EXPORT
+bool datetime_standard(BACNET_DATE_TIME *standard_time);
+BACNET_STACK_EXPORT
+void datetime_standard_set(const BACNET_DATE_TIME *standard_time);
 /* UTC Offset API */
 BACNET_STACK_EXPORT
 int16_t datetime_utc_offset_minutes(void);
@@ -371,6 +376,9 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc);
 /* Initialization for integration with a clock */
 BACNET_STACK_EXPORT
 void datetime_init(void);
+/* explicit return to defaults (unit tests) */
+BACNET_STACK_EXPORT
+void datetime_init_defaults(void);
 
 #ifdef __cplusplus
 }
