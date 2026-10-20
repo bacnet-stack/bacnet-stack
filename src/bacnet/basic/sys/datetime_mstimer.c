@@ -17,7 +17,7 @@
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/datetime.h"
 
-/* local time */
+/* local standard time (never includes the DST adjustment) */
 static BACNET_DATE_TIME BACnet_Date_Time;
 static int16_t UTC_Offset_Minutes;
 /* starting and stopping dates/times to determine DST */
@@ -25,6 +25,8 @@ static struct daylight_savings_data DST_Range;
 static bool DST_Enabled;
 /* local time based on mstimer */
 static struct mstimer Date_Timer;
+/* true once the defaults were loaded */
+static bool Initialized;
 
 /**
  * @brief Synchronize the local time from the millisecond timer
@@ -47,8 +49,14 @@ static void datetime_sync(void)
     }
 }
 
+/* number of minutes that DST adds to local standard time */
+#define DST_ADJUST_MINUTES (60L)
+
 /**
  * @brief Get the local determination of daylight savings time being active
+ * @param dst [in] The DST rule
+ * @param bdatetime [in] The local standard time
+ * @param enabled [in] The Daylight Savings Enabled flag
  * @return true if DST is active, false otherwise
  */
 static bool datetime_dst_active(
@@ -82,19 +90,26 @@ bool datetime_local(
     int16_t *utc_offset_minutes,
     bool *dst_active)
 {
+    BACNET_DATE_TIME local_time = { 0 };
+    bool dst;
+
     datetime_sync();
+    datetime_copy(&local_time, &BACnet_Date_Time);
+    dst = datetime_dst_active(&DST_Range, &local_time, DST_Enabled);
+    if (dst) {
+        datetime_add_minutes(&local_time, DST_ADJUST_MINUTES);
+    }
     if (bdate) {
-        datetime_copy_date(bdate, &BACnet_Date_Time.date);
+        datetime_copy_date(bdate, &local_time.date);
     }
     if (btime) {
-        datetime_copy_time(btime, &BACnet_Date_Time.time);
+        datetime_copy_time(btime, &local_time.time);
     }
     if (utc_offset_minutes) {
         *utc_offset_minutes = UTC_Offset_Minutes;
     }
     if (dst_active) {
-        *dst_active =
-            datetime_dst_active(&DST_Range, &BACnet_Date_Time, DST_Enabled);
+        *dst_active = dst;
     }
 
     return true;
@@ -228,35 +243,92 @@ bool datetime_dst_date_range_set(
  * @param bdate [in] The date to set
  * @param btime [in] The time to set
  * @param utc [in] true if originating from an UTCTimeSynchronization request
+ * @note The clock stores local standard time. UTC is converted using the
+ *  UTC offset. Local wall-clock time is converted by removing the DST
+ *  adjustment when DST is active. A wall-clock time that is repeated at the
+ *  end of DST is stored as standard time.
  */
 void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
 {
     BACNET_DATE_TIME local_time = { 0 };
-    const int32_t dst_adjust_minutes = 60L;
+    BACNET_DATE_TIME standard_time = { 0 };
 
+    datetime_copy_date(&local_time.date, bdate);
+    datetime_copy_time(&local_time.time, btime);
     if (utc) {
-        if (bdate && btime) {
-            datetime_copy_date(&local_time.date, bdate);
-            datetime_copy_time(&local_time.time, btime);
-            datetime_add_minutes(&local_time, UTC_Offset_Minutes);
-            if (datetime_dst_active(&DST_Range, &local_time, DST_Enabled)) {
-                datetime_add_minutes(&local_time, dst_adjust_minutes);
-            }
-            datetime_copy(&BACnet_Date_Time, &local_time);
-            mstimer_restart(&Date_Timer);
-        }
+        datetime_utc_to_local(
+            &standard_time, &local_time, UTC_Offset_Minutes, 0);
     } else {
-        datetime_copy_date(&BACnet_Date_Time.date, bdate);
-        datetime_copy_time(&BACnet_Date_Time.time, btime);
-        mstimer_restart(&Date_Timer);
+        datetime_copy(&standard_time, &local_time);
+        if (datetime_dst_active(&DST_Range, &standard_time, DST_Enabled)) {
+            /* not standard time, unless the wall-clock time is
+               a daylight time that was one hour earlier in standard time */
+            datetime_add_minutes(&standard_time, -DST_ADJUST_MINUTES);
+            if (!datetime_dst_active(&DST_Range, &standard_time, DST_Enabled)) {
+                /* time that does not exist (spring forward gap) */
+                datetime_copy(&standard_time, &local_time);
+            }
+        }
     }
+    datetime_copy(&BACnet_Date_Time, &standard_time);
+    mstimer_restart(&Date_Timer);
 }
 
 /**
- * @brief Initialize the local date and time timer
+ * @brief Get the local standard time, which never includes the DST adjustment
+ * @param standard_time [out] The local standard date and time
+ * @return true if successful, false on error
+ * @note The clock stores local standard time, so it is returned as is.
+ *  Use datetime_local() to get the wall-clock time with DST applied.
+ */
+bool datetime_standard(BACNET_DATE_TIME *standard_time)
+{
+    if (!standard_time) {
+        return false;
+    }
+    datetime_sync();
+    datetime_copy(standard_time, &BACnet_Date_Time);
+
+    return true;
+}
+
+/**
+ * @brief Set the local standard time, without a DST adjustment
+ * @param standard_time [in] The local standard date and time
+ * @note This is not a time synchronization notification.
+ *  Use it to load a hardware RTC that holds standard time at power up
+ *  or after a time synchronization.
+ */
+void datetime_standard_set(const BACNET_DATE_TIME *standard_time)
+{
+    if (!standard_time) {
+        return;
+    }
+    datetime_copy(&BACnet_Date_Time, standard_time);
+    mstimer_restart(&Date_Timer);
+}
+
+/**
+ * @brief Reset the local date and time, UTC offset, and DST rule to defaults
+ * @note Explicit return to defaults, intended for unit tests.
+ */
+void datetime_init_defaults(void)
+{
+    Initialized = true;
+    memset(&BACnet_Date_Time, 0, sizeof(BACnet_Date_Time));
+    UTC_Offset_Minutes = 0;
+    DST_Enabled = false;
+    dst_init_defaults(&DST_Range);
+    mstimer_set(&Date_Timer, 0);
+}
+
+/**
+ * @brief Initialize the local date and time timer once.
+ *  Later calls do not reset the DST rule, UTC offset, or time.
  */
 void datetime_init(void)
 {
-    dst_init_defaults(&DST_Range);
-    mstimer_set(&Date_Timer, 0);
+    if (!Initialized) {
+        datetime_init_defaults();
+    }
 }

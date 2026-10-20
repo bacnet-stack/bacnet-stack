@@ -596,7 +596,7 @@ static void testDatetimeConvertUTC(void)
 {
     BACNET_DATE_TIME local_time;
     BACNET_DATE_TIME utc_time;
-    /* values are positive east of UTC and negative west of UTC */
+    /* BACnet UTC_Offset is positive west of UTC and negative east of UTC */
     int16_t utc_offset_minutes = 0;
     int8_t dst_adjust_minutes = 0;
 
