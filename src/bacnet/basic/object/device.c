@@ -3371,7 +3371,8 @@ static int Read_Property_Common(
     }
     apdu = rpdata->application_data;
     if (property_list_common(rpdata->object_property)) {
-        apdu_len = property_list_common_encode(rpdata, Object_Instance_Number);
+        apdu_len = property_list_common_encode(
+            rpdata, Device_Object_Instance_Number());
     } else if (rpdata->object_property == PROP_OBJECT_NAME) {
         characterstring_init_ansi(&char_string, "");
         if (pObject->Object_Name) {

@@ -403,46 +403,16 @@ uint32_t Routed_Device_Index_To_Instance(unsigned index)
 }
 
 /**
- * For a given object instance-number, determines a 1..N-1 index
- * of Device objects where N is MAX_NUM_DEVICES
- *
- * @param  object_instance - object-instance number of the object
- * @return  index for the given instance-number, or 0 if not valid.
- */
-static uint32_t Routed_Device_Instance_To_Index(uint32_t Instance_Number)
-{
-    int i;
-
-    for (i = 0; i < BACNET_MIN(MAX_NUM_DEVICES, Num_Managed_Devices); i++) {
-        if (Devices[i].bacObj.Object_Instance_Number == Instance_Number) {
-            /* Found Instance, so return the Device Index Number */
-            return i;
-        }
-    }
-
-    /* We did not find instance... so simply return an Index of 0
-       All gateways will have at least a single root Device Object */
-    return 0;
-}
-
-/**
- * Determines if a given Device instance is valid
+ * Determines if a given Device instance is the currently addressed Device.
+ * The current Device index is not changed.
  *
  * @param  object_id - object-instance number of the object
  * @return  true if the instance is valid, and false if not
  */
 bool Routed_Device_Valid_Object_Instance_Number(uint32_t object_id)
 {
-    bool valid = false;
-    DEVICE_OBJECT_DATA *pDev = NULL;
-
-    iCurrent_Device_Idx = Routed_Device_Instance_To_Index(object_id);
-    pDev = &Devices[iCurrent_Device_Idx];
-    if (pDev->bacObj.Object_Instance_Number == object_id) {
-        valid = true;
-    }
-
-    return valid;
+    return Devices[iCurrent_Device_Idx].bacObj.Object_Instance_Number ==
+        object_id;
 }
 
 bool Routed_Device_Name(
@@ -535,8 +505,9 @@ bool Routed_Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OBJECT_NAME:
-            status =
-                write_property_string_valid(wp_data, &value, MAX_DEV_NAME_LEN);
+            /* the stored name needs room for the nul terminator */
+            status = write_property_string_valid(
+                wp_data, &value, MAX_DEV_NAME_LEN - 1);
             if (status) {
                 Routed_Device_Set_Object_Name(
                     characterstring_encoding(&value.type.Character_String),

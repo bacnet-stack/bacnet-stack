@@ -186,6 +186,7 @@ list(APPEND testdirs
   bacnet/basic/object/credential_data_input
   bacnet/basic/object/csv
   bacnet/basic/object/device
+  bacnet/basic/object/gw_device
   bacnet/basic/object/iv
   bacnet/basic/object/lc
   bacnet/basic/object/lo
