@@ -1071,16 +1071,18 @@ bool Analog_Output_Encode_Value_List(
     struct object_data *pObject;
     const bool in_alarm = false;
     bool fault = false;
-    const bool overridden = false;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if (pObject->Reliability != RELIABILITY_NO_FAULT_DETECTED) {
             fault = true;
         }
+        /* the reported Present_Value is the baseline for COV_Increment
+           checks, even if it changed after the COV flag was set */
+        pObject->Prior_Value = Analog_Output_Present_Value(object_instance);
         status = cov_value_list_encode_real(
-            value_list, pObject->Prior_Value, in_alarm, fault, overridden,
-            pObject->Out_Of_Service);
+            value_list, pObject->Prior_Value, in_alarm, fault,
+            pObject->Overridden, pObject->Out_Of_Service);
     }
 
     return status;
