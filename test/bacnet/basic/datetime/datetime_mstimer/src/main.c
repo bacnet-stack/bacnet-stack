@@ -467,6 +467,60 @@ static void test_datetime_standard_changed(void)
     zassert_false(datetime_standard_changed(), NULL);
 }
 
+/**
+ * @brief Test the clock keeps the sub-second remainder between reads
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(datetime_mstimer_tests, test_datetime_remainder)
+#else
+static void test_datetime_remainder(void)
+#endif
+{
+    BACNET_DATE bdate = { 0 };
+    BACNET_TIME btime = { 0 };
+    BACNET_DATE_TIME start_time = { 0 }, now_time = { 0 };
+    uint32_t elapsed_ms;
+    unsigned long ms;
+
+    Fake_Milliseconds = 0;
+    datetime_init_defaults();
+    set_time(&bdate, &btime, 2026, 1, 15, 10, 0, 0);
+    datetime_timesync(&bdate, &btime, false);
+    datetime_standard(&start_time);
+    /* read every 1.5 seconds for 60 seconds */
+    for (ms = 1500; ms <= 60000; ms += 1500) {
+        Fake_Milliseconds = ms;
+        zassert_true(datetime_standard(&now_time), NULL);
+    }
+    elapsed_ms = (datetime_seconds_since_epoch(&now_time) -
+                  datetime_seconds_since_epoch(&start_time)) *
+        1000UL;
+    elapsed_ms += now_time.time.hundredths * 10UL;
+    zassert_true(
+        (elapsed_ms >= 59990UL) && (elapsed_ms <= 60010UL), "elapsed=%u",
+        (unsigned)elapsed_ms);
+
+    /* TimeSync at .50 seconds, read after 600 ms, expect +1.10 seconds */
+    Fake_Milliseconds = 100000;
+    datetime_set_time(&btime, 10, 0, 0, 50);
+    datetime_timesync(&bdate, &btime, false);
+    Fake_Milliseconds = 100600;
+    zassert_true(datetime_standard(&now_time), NULL);
+    zassert_equal(now_time.time.sec, 1, "sec=%u", now_time.time.sec);
+    zassert_equal(
+        now_time.time.hundredths, 10, "hundredths=%u",
+        now_time.time.hundredths);
+
+    /* a remainder under 10 ms is kept in the timer */
+    Fake_Milliseconds = 100605;
+    datetime_standard(&now_time);
+    Fake_Milliseconds = 100610;
+    datetime_standard(&now_time);
+    zassert_equal(
+        now_time.time.hundredths, 11, "hundredths=%u",
+        now_time.time.hundredths);
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(datetime_mstimer_tests, NULL, NULL, NULL, NULL, NULL);
 #else
@@ -479,7 +533,8 @@ void test_main(void)
         ztest_unit_test(test_datetime_timesync_utc),
         ztest_unit_test(test_datetime_config_change),
         ztest_unit_test(test_datetime_standard),
-        ztest_unit_test(test_datetime_standard_changed));
+        ztest_unit_test(test_datetime_standard_changed),
+        ztest_unit_test(test_datetime_remainder));
 
     ztest_run_test_suite(datetime_mstimer_tests);
 }

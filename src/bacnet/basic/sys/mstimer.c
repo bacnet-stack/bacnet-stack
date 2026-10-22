@@ -133,6 +133,31 @@ unsigned long mstimer_restart(struct mstimer *t)
 }
 
 /**
+ * @brief Consume whole units of elapsed time from the timer
+ *
+ * This function moves the start point of the timer forward by a whole
+ * number of units. The partial unit stays in the timer, so no time is lost
+ * between calls, unlike the mstimer_restart() function.
+ *
+ * @param t A pointer to the timer.
+ * @param unit The size of one unit in milliseconds. Zero is treated as 1.
+ * @return The number of whole units that were consumed.
+ * @sa mstimer_restart()
+ */
+unsigned long mstimer_consume(struct mstimer *t, unsigned long unit)
+{
+    unsigned long units;
+
+    if (!unit) {
+        unit = 1;
+    }
+    units = (mstimer_now() - t->start) / unit;
+    t->start += units * unit;
+
+    return units;
+}
+
+/**
  * @brief Check if a timer has expired.
  *
  * This function tests if a timer has expired and returns true or

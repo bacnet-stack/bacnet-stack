@@ -234,6 +234,58 @@ static void test_mstimer_restart(void)
 }
 
 /**
+ * @brief Test mstimer_consume() keeps the partial unit in the timer
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(mstimer_tests, test_mstimer_consume)
+#else
+static void test_mstimer_consume(void)
+#endif
+{
+    struct mstimer timer = { 0 };
+
+    Now_Advance = 0;
+    Fake_Milliseconds = 1000;
+    mstimer_set(&timer, 0);
+    zassert_equal(mstimer_consume(&timer, 10), 0, NULL);
+    zassert_equal(timer.start, 1000, NULL);
+
+    /* whole units are consumed and the partial unit stays */
+    Fake_Milliseconds = 1037;
+    zassert_equal(mstimer_consume(&timer, 10), 3, NULL);
+    zassert_equal(timer.start, 1030, NULL);
+    zassert_equal(mstimer_elapsed(&timer), 7, NULL);
+
+    /* the kept remainder is added to the next elapsed time */
+    Fake_Milliseconds = 1046;
+    zassert_equal(mstimer_consume(&timer, 10), 1, NULL);
+    zassert_equal(timer.start, 1040, NULL);
+    zassert_equal(mstimer_elapsed(&timer), 6, NULL);
+
+    /* less than one unit consumes nothing */
+    Fake_Milliseconds = 1049;
+    zassert_equal(mstimer_consume(&timer, 10), 0, NULL);
+    zassert_equal(timer.start, 1040, NULL);
+
+    /* a unit of zero is treated as one millisecond */
+    zassert_equal(mstimer_consume(&timer, 0), 9, NULL);
+    zassert_equal(timer.start, 1049, NULL);
+
+    /* the interval is not changed */
+    mstimer_set(&timer, 5000);
+    Fake_Milliseconds = 2500;
+    zassert_equal(mstimer_consume(&timer, 1000), 1, NULL);
+    zassert_equal(mstimer_interval(&timer), 5000, NULL);
+
+    /* Unsigned wrap: elapsed is the distance across the rollover. */
+    Fake_Milliseconds = ULONG_MAX - 10UL;
+    mstimer_set(&timer, 0);
+    Fake_Milliseconds = 25;
+    zassert_equal(mstimer_consume(&timer, 10), 3, NULL);
+    zassert_equal(mstimer_elapsed(&timer), 6, NULL);
+}
+
+/**
  * @brief Test mstimer_expire()
  */
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -336,6 +388,7 @@ void test_main(void)
         ztest_unit_test(test_mstimer_elapsed_remaining_expired),
         ztest_unit_test(test_mstimer_reset),
         ztest_unit_test(test_mstimer_restart),
+        ztest_unit_test(test_mstimer_consume),
         ztest_unit_test(test_mstimer_expire),
         ztest_unit_test(test_mstimer_callback));
 

@@ -45,6 +45,8 @@ void mstimer_reset(struct mstimer *t);
 BACNET_STACK_EXPORT
 unsigned long mstimer_restart(struct mstimer *t);
 BACNET_STACK_EXPORT
+unsigned long mstimer_consume(struct mstimer *t, unsigned long unit);
+BACNET_STACK_EXPORT
 int mstimer_expired(const struct mstimer *t);
 BACNET_STACK_EXPORT
 void mstimer_expire(struct mstimer *t);

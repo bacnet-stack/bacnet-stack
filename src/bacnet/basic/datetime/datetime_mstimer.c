@@ -36,19 +36,19 @@ static bool Initialized;
  */
 static void datetime_sync(void)
 {
-    bacnet_time_t seconds, elapsed_seconds;
-    unsigned long milliseconds;
+    bacnet_time_t seconds;
+    unsigned long hundredths;
 
-    milliseconds = mstimer_elapsed(&Date_Timer);
-    elapsed_seconds = milliseconds / 1000UL;
-    if (elapsed_seconds) {
-        mstimer_restart(&Date_Timer);
-        seconds = datetime_seconds_since_epoch(&BACnet_Date_Time);
-        seconds += elapsed_seconds;
-        datetime_since_epoch_seconds(&BACnet_Date_Time, seconds);
-        /* generate a hundredths value */
-        milliseconds -= (elapsed_seconds * 1000UL);
-        BACnet_Date_Time.time.hundredths = milliseconds / 10;
+    /* the timer keeps the part of a hundredth that is not consumed */
+    hundredths = mstimer_consume(&Date_Timer, 10UL);
+    if (hundredths) {
+        hundredths += BACnet_Date_Time.time.hundredths;
+        if (hundredths >= 100UL) {
+            seconds = datetime_seconds_since_epoch(&BACnet_Date_Time);
+            seconds += hundredths / 100UL;
+            datetime_since_epoch_seconds(&BACnet_Date_Time, seconds);
+        }
+        BACnet_Date_Time.time.hundredths = hundredths % 100UL;
     }
 }
 
