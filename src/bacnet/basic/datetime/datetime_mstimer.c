@@ -17,8 +17,12 @@
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/datetime.h"
 
-/* local standard time (never includes the DST adjustment) */
-static BACNET_DATE_TIME BACnet_Date_Time;
+/* local standard time (never includes the DST adjustment).
+   Starts at the epoch so that a read before the first set is valid
+   (135-2024 12.11.23 and 12.11.24). */
+static BACNET_DATE_TIME BACnet_Date_Time = {
+    { BACNET_DATE_YEAR_EPOCH, 1, 1, BACNET_DAY_OF_WEEK_EPOCH }, { 0, 0, 0, 0 }
+};
 /* true when datetime_timesync() stores a different date or time.
    datetime_standard_changed() clears it. */
 static bool Standard_Time_Changed;
@@ -345,7 +349,8 @@ bool datetime_standard_changed(void)
 void datetime_init_defaults(void)
 {
     Initialized = true;
-    memset(&BACnet_Date_Time, 0, sizeof(BACnet_Date_Time));
+    datetime_set_values(
+        &BACnet_Date_Time, BACNET_DATE_YEAR_EPOCH, 1, 1, 0, 0, 0, 0);
     Standard_Time_Changed = false;
     UTC_Offset_Minutes = 0;
     DST_Enabled = false;

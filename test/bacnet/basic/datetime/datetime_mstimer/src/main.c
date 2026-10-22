@@ -5,6 +5,7 @@
  * @copyright SPDX-License-Identifier: MIT
  */
 #include <zephyr/ztest.h>
+#include <bacnet/bacdcode.h>
 #include <bacnet/datetime.h>
 #include <bacnet/basic/sys/mstimer.h>
 
@@ -91,10 +92,67 @@ static void test_datetime_init_defaults(void)
     zassert_equal(start_month, 3, NULL);
     status = datetime_local(&bdate, &btime, &utc_offset, &dst_active);
     zassert_true(status, NULL);
-    zassert_equal(bdate.year, 0, NULL);
+    zassert_equal(bdate.year, BACNET_DATE_YEAR_EPOCH, NULL);
+    zassert_equal(bdate.month, 1, NULL);
+    zassert_equal(bdate.day, 1, NULL);
+    zassert_equal(bdate.wday, BACNET_WEEKDAY_MONDAY, NULL);
     zassert_equal(btime.hour, 0, NULL);
+    zassert_equal(btime.min, 0, NULL);
+    zassert_equal(btime.sec, 0, NULL);
+    zassert_equal(btime.hundredths, 0, NULL);
     zassert_equal(utc_offset, 0, NULL);
     zassert_false(dst_active, NULL);
+}
+
+/**
+ * @brief Test the clock starts at a valid date and time and keeps running
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(datetime_mstimer_tests, test_datetime_start_value)
+#else
+static void test_datetime_start_value(void)
+#endif
+{
+    BACNET_DATE bdate = { 0 };
+    BACNET_TIME btime = { 0 };
+    BACNET_DATE_TIME bdatetime = { 0 };
+    uint8_t apdu[32] = { 0 };
+    BACNET_DATE test_date = { 0 };
+    int len;
+
+    Fake_Milliseconds = 0;
+    datetime_init_defaults();
+    zassert_true(datetime_local(&bdate, &btime, NULL, NULL), NULL);
+    zassert_equal(bdate.year, BACNET_DATE_YEAR_EPOCH, NULL);
+    zassert_equal(bdate.month, 1, NULL);
+    zassert_equal(bdate.day, 1, NULL);
+    zassert_equal(bdate.wday, BACNET_WEEKDAY_MONDAY, NULL);
+    zassert_equal(btime.sec, 0, NULL);
+    zassert_equal(btime.hundredths, 0, NULL);
+    /* an encoded Local_Date has valid month, day, and weekday */
+    len = bacnet_date_application_encode(apdu, sizeof(apdu), &bdate);
+    zassert_true(len > 0, NULL);
+    len = bacnet_date_application_decode(apdu, sizeof(apdu), &test_date);
+    zassert_true(len > 0, NULL);
+    zassert_true(
+        datetime_ymd_is_valid(test_date.year, test_date.month, test_date.day),
+        NULL);
+    zassert_true(test_date.wday >= 1 && test_date.wday <= 7, NULL);
+
+    /* the clock keeps running from the start value */
+    Fake_Milliseconds = 90 * 1000UL + 250;
+    zassert_true(datetime_standard(&bdatetime), NULL);
+    zassert_equal(bdatetime.date.year, BACNET_DATE_YEAR_EPOCH, NULL);
+    zassert_equal(bdatetime.date.month, 1, NULL);
+    zassert_equal(bdatetime.date.day, 1, NULL);
+    zassert_equal(bdatetime.time.min, 1, NULL);
+    zassert_equal(bdatetime.time.sec, 30, NULL);
+    zassert_equal(bdatetime.time.hundredths, 25, NULL);
+    Fake_Milliseconds = 86400UL * 1000UL;
+    zassert_true(datetime_standard(&bdatetime), NULL);
+    zassert_equal(bdatetime.date.day, 2, NULL);
+    zassert_equal(bdatetime.date.wday, BACNET_WEEKDAY_TUESDAY, NULL);
+    zassert_equal(bdatetime.time.hour, 0, NULL);
 }
 
 static void set_time(
@@ -528,6 +586,7 @@ void test_main(void)
 {
     ztest_test_suite(
         datetime_mstimer_tests, ztest_unit_test(test_datetime_init_defaults),
+        ztest_unit_test(test_datetime_start_value),
         ztest_unit_test(test_datetime_timesync_local),
         ztest_unit_test(test_datetime_dst_changeover),
         ztest_unit_test(test_datetime_timesync_utc),
