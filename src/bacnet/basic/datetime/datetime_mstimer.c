@@ -19,6 +19,9 @@
 
 /* local standard time (never includes the DST adjustment) */
 static BACNET_DATE_TIME BACnet_Date_Time;
+/* true when datetime_timesync() stores a different date or time.
+   datetime_standard_changed() clears it. */
+static bool Standard_Time_Changed;
 static int16_t UTC_Offset_Minutes;
 /* starting and stopping dates/times to determine DST */
 static struct daylight_savings_data DST_Range;
@@ -250,13 +253,15 @@ bool datetime_dst_date_range_set(
  * @note The clock stores local standard time. UTC is converted using the
  *  UTC offset. Local wall-clock time is converted by removing the DST
  *  adjustment when DST is active. A wall-clock time that is repeated at the
- *  end of DST is stored as standard time.
+ *  end of DST is stored as standard time. This function sets the
+ *  standard-time changed flag when the stored date or time changes.
  */
 void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
 {
     BACNET_DATE_TIME local_time = { 0 };
     BACNET_DATE_TIME standard_time = { 0 };
 
+    datetime_sync();
     datetime_copy_date(&local_time.date, bdate);
     datetime_copy_time(&local_time.time, btime);
     if (utc) {
@@ -274,7 +279,10 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
             }
         }
     }
-    datetime_copy(&BACnet_Date_Time, &standard_time);
+    if (!(datetime_same(&BACnet_Date_Time, &standard_time))) {
+        Standard_Time_Changed = true;
+        datetime_copy(&BACnet_Date_Time, &standard_time);
+    }
     mstimer_restart(&Date_Timer);
 }
 
@@ -313,6 +321,24 @@ void datetime_standard_set(const BACNET_DATE_TIME *standard_time)
 }
 
 /**
+ * @brief Get and clear the standard-time changed flag
+ * @return true if datetime_timesync() stored a different date or time
+ *  since the previous call
+ * @note The call clears the flag. Call datetime_standard() after
+ *  this function. A later timesync sets the flag again when the
+ *  date or the time changes.
+ */
+bool datetime_standard_changed(void)
+{
+    bool changed;
+
+    changed = Standard_Time_Changed;
+    Standard_Time_Changed = false;
+
+    return changed;
+}
+
+/**
  * @brief Reset the local date and time, UTC offset, and DST rule to defaults
  * @note Explicit return to defaults, intended for unit tests.
  */
@@ -320,6 +346,7 @@ void datetime_init_defaults(void)
 {
     Initialized = true;
     memset(&BACnet_Date_Time, 0, sizeof(BACnet_Date_Time));
+    Standard_Time_Changed = false;
     UTC_Offset_Minutes = 0;
     DST_Enabled = false;
     dst_init_defaults(&DST_Range);

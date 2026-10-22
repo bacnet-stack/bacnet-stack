@@ -378,6 +378,95 @@ static void test_datetime_standard(void)
     zassert_equal(standard.time.sec, 0, NULL);
 }
 
+/**
+ * @brief Test the standard-time changed flag
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(datetime_mstimer_tests, test_datetime_standard_changed)
+#else
+static void test_datetime_standard_changed(void)
+#endif
+{
+    BACNET_DATE bdate = { 0 };
+    BACNET_TIME btime = { 0 };
+    BACNET_DATE_TIME rtc = { 0 };
+
+    Fake_Milliseconds = 0;
+    datetime_init_defaults();
+    zassert_false(datetime_standard_changed(), NULL);
+
+    /* local timesync sets the latch when the time changes.
+       The read clears it. A repeat of the same time does not. */
+    set_time(&bdate, &btime, 2026, 1, 15, 10, 0, 0);
+    datetime_timesync(&bdate, &btime, false);
+    zassert_true(datetime_standard_changed(), NULL);
+    zassert_false(datetime_standard_changed(), NULL);
+    datetime_timesync(&bdate, &btime, false);
+    zassert_false(datetime_standard_changed(), NULL);
+
+    /* a later sync keeps a latch that the application has not read */
+    set_time(&bdate, &btime, 2026, 1, 15, 10, 30, 0);
+    datetime_timesync(&bdate, &btime, false);
+    datetime_timesync(&bdate, &btime, false);
+    zassert_true(datetime_standard_changed(), NULL);
+
+    /* a date change sets the latch */
+    set_time(&bdate, &btime, 2026, 1, 16, 10, 30, 0);
+    datetime_timesync(&bdate, &btime, false);
+    zassert_true(datetime_standard_changed(), NULL);
+
+    /* UTC timesync sets the latch only when standard time changes.
+       The offset set does not. 16:30 UTC is 10:30 standard. */
+    datetime_utc_offset_minutes_set(360);
+    zassert_false(datetime_standard_changed(), NULL);
+    set_time(&bdate, &btime, 2026, 1, 16, 16, 30, 0);
+    datetime_timesync(&bdate, &btime, true);
+    zassert_false(datetime_standard_changed(), NULL);
+    /* 18:00 UTC is 12:00 standard */
+    set_time(&bdate, &btime, 2026, 1, 16, 18, 0, 0);
+    datetime_timesync(&bdate, &btime, true);
+    zassert_true(datetime_standard_changed(), NULL);
+
+    /* standard set stores time and does not set the latch */
+    datetime_set_values(&rtc, 2026, 7, 1, 23, 30, 0, 0);
+    datetime_standard_set(NULL);
+    zassert_false(datetime_standard_changed(), NULL);
+    datetime_standard_set(&rtc);
+    zassert_false(datetime_standard_changed(), NULL);
+    datetime_standard_set(&rtc);
+    zassert_false(datetime_standard_changed(), NULL);
+
+    /* DST and offset changes do not store standard time.
+       Enabling DST moves the wall-clock date across midnight. */
+    zassert_true(datetime_dst_date_range_set(4, 1, 10, 31), NULL);
+    zassert_false(datetime_standard_changed(), NULL);
+    datetime_dst_enabled_set(true);
+    zassert_false(datetime_standard_changed(), NULL);
+    check_local(2026, 7, 2, 0, 30, 0, true);
+    /* wall-clock 00:30 is standard 23:30. The stored time is the same. */
+    set_time(&bdate, &btime, 2026, 7, 2, 0, 30, 0);
+    datetime_timesync(&bdate, &btime, false);
+    zassert_false(datetime_standard_changed(), NULL);
+    zassert_true(
+        datetime_dst_ordinal_range_set(
+            3, 2, BACNET_WEEKDAY_SUNDAY, 11, 1, BACNET_WEEKDAY_SUNDAY),
+        NULL);
+    zassert_false(datetime_standard_changed(), NULL);
+    zassert_true(datetime_utc_offset_minutes_set(300), NULL);
+    zassert_false(datetime_standard_changed(), NULL);
+
+    /* the free-running timer updates standard time without a set */
+    Fake_Milliseconds = 5000;
+    check_local(2026, 7, 2, 0, 30, 5, true);
+    zassert_false(datetime_standard_changed(), NULL);
+
+    /* init defaults clears a latch that the read did not consume */
+    set_time(&bdate, &btime, 2026, 1, 15, 10, 0, 0);
+    datetime_timesync(&bdate, &btime, false);
+    datetime_init_defaults();
+    zassert_false(datetime_standard_changed(), NULL);
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(datetime_mstimer_tests, NULL, NULL, NULL, NULL, NULL);
 #else
@@ -389,7 +478,8 @@ void test_main(void)
         ztest_unit_test(test_datetime_dst_changeover),
         ztest_unit_test(test_datetime_timesync_utc),
         ztest_unit_test(test_datetime_config_change),
-        ztest_unit_test(test_datetime_standard));
+        ztest_unit_test(test_datetime_standard),
+        ztest_unit_test(test_datetime_standard_changed));
 
     ztest_run_test_suite(datetime_mstimer_tests);
 }
