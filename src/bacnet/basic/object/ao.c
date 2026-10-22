@@ -326,6 +326,20 @@ Analog_Output_Present_Value_COV_Detect(struct object_data *pObject, float value)
 }
 
 /**
+ * @brief Flag a COV notification caused by a Status_Flags change.
+ *  The notification reports the current Present_Value, so it becomes
+ *  the baseline for later COV_Increment checks.
+ * @param  pObject - specific object with valid data
+ * @param  object_instance - object-instance number of the object
+ */
+static void Analog_Output_Status_Flags_COV_Set(
+    struct object_data *pObject, uint32_t object_instance)
+{
+    pObject->Changed = true;
+    pObject->Prior_Value = Analog_Output_Present_Value(object_instance);
+}
+
+/**
  * For a given object instance-number, sets the relinquish-default value
  *
  * @param  object_instance - object-instance number of the object
@@ -717,7 +731,7 @@ void Analog_Output_Out_Of_Service_Set(uint32_t object_instance, bool value)
     if (pObject) {
         if (pObject->Out_Of_Service != value) {
             pObject->Out_Of_Service = value;
-            pObject->Changed = true;
+            Analog_Output_Status_Flags_COV_Set(pObject, object_instance);
         }
     }
 }
@@ -755,7 +769,7 @@ void Analog_Output_Overridden_Set(uint32_t object_instance, bool value)
     if (pObject) {
         if (pObject->Overridden != value) {
             pObject->Overridden = value;
-            pObject->Changed = true;
+            Analog_Output_Status_Flags_COV_Set(pObject, object_instance);
         }
     }
 }
@@ -815,7 +829,7 @@ bool Analog_Output_Reliability_Set(
             fault = Analog_Output_Object_Fault(pObject);
             pObject->Reliability = value;
             if (fault != Analog_Output_Object_Fault(pObject)) {
-                pObject->Changed = true;
+                Analog_Output_Status_Flags_COV_Set(pObject, object_instance);
             }
             status = true;
         }
@@ -1071,7 +1085,6 @@ bool Analog_Output_Encode_Value_List(
     struct object_data *pObject;
     const bool in_alarm = false;
     bool fault = false;
-    const bool overridden = false;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -1079,8 +1092,8 @@ bool Analog_Output_Encode_Value_List(
             fault = true;
         }
         status = cov_value_list_encode_real(
-            value_list, pObject->Prior_Value, in_alarm, fault, overridden,
-            pObject->Out_Of_Service);
+            value_list, Analog_Output_Present_Value(object_instance), in_alarm,
+            fault, pObject->Overridden, pObject->Out_Of_Service);
     }
 
     return status;
