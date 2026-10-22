@@ -17,8 +17,12 @@
 #include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/datetime.h"
 
-/* local standard time (never includes the DST adjustment) */
-static BACNET_DATE_TIME BACnet_Date_Time;
+/* local standard time (never includes the DST adjustment).
+   Starts at the epoch so that a read before the first set is valid
+   (135-2024 12.11.23 and 12.11.24). */
+static BACNET_DATE_TIME BACnet_Date_Time = {
+    { BACNET_DATE_YEAR_EPOCH, 1, 1, BACNET_DAY_OF_WEEK_EPOCH }, { 0, 0, 0, 0 }
+};
 /* true when datetime_timesync() stores a different date or time.
    datetime_standard_changed() clears it. */
 static bool Standard_Time_Changed;
@@ -36,19 +40,19 @@ static bool Initialized;
  */
 static void datetime_sync(void)
 {
-    bacnet_time_t seconds, elapsed_seconds;
-    unsigned long milliseconds;
+    bacnet_time_t seconds;
+    unsigned long hundredths;
 
-    milliseconds = mstimer_elapsed(&Date_Timer);
-    elapsed_seconds = milliseconds / 1000UL;
-    if (elapsed_seconds) {
-        mstimer_restart(&Date_Timer);
-        seconds = datetime_seconds_since_epoch(&BACnet_Date_Time);
-        seconds += elapsed_seconds;
-        datetime_since_epoch_seconds(&BACnet_Date_Time, seconds);
-        /* generate a hundredths value */
-        milliseconds -= (elapsed_seconds * 1000UL);
-        BACnet_Date_Time.time.hundredths = milliseconds / 10;
+    /* the timer keeps the part of a hundredth that is not consumed */
+    hundredths = mstimer_restart_unit(&Date_Timer, 10UL);
+    if (hundredths) {
+        hundredths += BACnet_Date_Time.time.hundredths;
+        if (hundredths >= 100UL) {
+            seconds = datetime_seconds_since_epoch(&BACnet_Date_Time);
+            seconds += hundredths / 100UL;
+            datetime_since_epoch_seconds(&BACnet_Date_Time, seconds);
+        }
+        BACnet_Date_Time.time.hundredths = hundredths % 100UL;
     }
 }
 
@@ -345,7 +349,8 @@ bool datetime_standard_changed(void)
 void datetime_init_defaults(void)
 {
     Initialized = true;
-    memset(&BACnet_Date_Time, 0, sizeof(BACnet_Date_Time));
+    datetime_set_values(
+        &BACnet_Date_Time, BACNET_DATE_YEAR_EPOCH, 1, 1, 0, 0, 0, 0);
     Standard_Time_Changed = false;
     UTC_Offset_Minutes = 0;
     DST_Enabled = false;
