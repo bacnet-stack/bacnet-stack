@@ -19,6 +19,8 @@
 
 /* local standard time (never includes the DST adjustment) */
 static BACNET_DATE_TIME BACnet_Date_Time;
+/* set when standard time is stored by a timesync or standard set */
+static bool Standard_Time_Changed;
 static int16_t UTC_Offset_Minutes;
 /* starting and stopping dates/times to determine DST */
 static struct daylight_savings_data DST_Range;
@@ -276,6 +278,7 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
     }
     datetime_copy(&BACnet_Date_Time, &standard_time);
     mstimer_restart(&Date_Timer);
+    Standard_Time_Changed = true;
 }
 
 /**
@@ -310,6 +313,24 @@ void datetime_standard_set(const BACNET_DATE_TIME *standard_time)
     }
     datetime_copy(&BACnet_Date_Time, standard_time);
     mstimer_restart(&Date_Timer);
+    Standard_Time_Changed = true;
+}
+
+/**
+ * @brief Get the standard-time changed flag
+ * @return true if standard time was set since the flag was cleared
+ */
+bool datetime_standard_changed(void)
+{
+    return Standard_Time_Changed;
+}
+
+/**
+ * @brief Clear the standard-time changed flag
+ */
+void datetime_standard_changed_clear(void)
+{
+    Standard_Time_Changed = false;
 }
 
 /**
@@ -320,6 +341,7 @@ void datetime_init_defaults(void)
 {
     Initialized = true;
     memset(&BACnet_Date_Time, 0, sizeof(BACnet_Date_Time));
+    Standard_Time_Changed = false;
     UTC_Offset_Minutes = 0;
     DST_Enabled = false;
     dst_init_defaults(&DST_Range);
