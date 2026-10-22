@@ -368,6 +368,50 @@ static void testAnalogOutput_COV_Value_List(void)
     Analog_Output_Delete(instance);
     Analog_Output_Cleanup();
 }
+
+/**
+ * @brief Test that the COV_Increment baseline follows the Present_Value
+ *  that is actually encoded for a pending Status_Flags notification
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ao_tests, testAnalogOutput_COV_Reported_Baseline)
+#else
+static void testAnalogOutput_COV_Reported_Baseline(void)
+#endif
+{
+    const uint32_t instance = 989;
+    BACNET_PROPERTY_VALUE value_list[2] = { 0 };
+
+    value_list[0].next = &value_list[1];
+    value_list[1].next = NULL;
+
+    Analog_Output_Init();
+    zassert_not_equal(
+        Analog_Output_Create(instance), BACNET_MAX_INSTANCE, NULL);
+    Analog_Output_COV_Increment_Set(instance, 2.0f);
+    zassert_true(Analog_Output_Present_Value_Set(instance, 11.0f, 8), NULL);
+
+    /* status change at 11, then a write within the increment before the
+       notification is encoded: the notification reports 12 */
+    Analog_Output_Change_Of_Value_Clear(instance);
+    Analog_Output_Out_Of_Service_Set(instance, true);
+    zassert_true(Analog_Output_Change_Of_Value(instance), NULL);
+    Analog_Output_Change_Of_Value_Clear(instance);
+    zassert_true(Analog_Output_Present_Value_Set(instance, 12.0f, 8), NULL);
+    zassert_false(Analog_Output_Change_Of_Value(instance), NULL);
+    zassert_true(Analog_Output_Encode_Value_List(instance, value_list), NULL);
+    zassert_within(value_list[0].value.type.Real, 12.0f, 0.001f, NULL);
+
+    /* later increment checks use the reported 12, not the earlier 11:
+       13 is within 2.0 of 12 and 10 is 2.0 away from 12 */
+    zassert_true(Analog_Output_Present_Value_Set(instance, 13.0f, 8), NULL);
+    zassert_false(Analog_Output_Change_Of_Value(instance), NULL);
+    zassert_true(Analog_Output_Present_Value_Set(instance, 10.0f, 8), NULL);
+    zassert_true(Analog_Output_Change_Of_Value(instance), NULL);
+
+    Analog_Output_Delete(instance);
+    Analog_Output_Cleanup();
+}
 /**
  * @}
  */
@@ -384,7 +428,8 @@ void test_main(void)
         ztest_unit_test(testAnalogOutput_Priority_6_Reserved),
         ztest_unit_test(testAnalogOutput_Priority_Array_Unknown_Instance),
         ztest_unit_test(testAnalogOutput_COV),
-        ztest_unit_test(testAnalogOutput_COV_Value_List));
+        ztest_unit_test(testAnalogOutput_COV_Value_List),
+        ztest_unit_test(testAnalogOutput_COV_Reported_Baseline));
 
     ztest_run_test_suite(ao_tests);
 }
