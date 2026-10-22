@@ -176,7 +176,7 @@ static void test_mstimer_reset(void)
 }
 
 /**
- * @brief Test mstimer_restart() elapsed return and single-sample origin
+ * @brief Test mstimer_restart() sets the start to the current time
  */
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(mstimer_tests, test_mstimer_restart)
@@ -185,7 +185,6 @@ static void test_mstimer_restart(void)
 #endif
 {
     struct mstimer timer = { 0 };
-    unsigned long elapsed = 0;
     unsigned long interval = 5000;
 
     Now_Advance = 0;
@@ -196,8 +195,7 @@ static void test_mstimer_restart(void)
 
     Fake_Milliseconds = 2500;
     zassert_equal(mstimer_elapsed(&timer), 1500, NULL);
-    elapsed = mstimer_restart(&timer);
-    zassert_equal(elapsed, 1500, NULL);
+    mstimer_restart(&timer);
     zassert_equal(timer.start, Fake_Milliseconds, NULL);
     zassert_equal(mstimer_interval(&timer), interval, NULL);
     zassert_equal(mstimer_elapsed(&timer), 0, NULL);
@@ -208,16 +206,13 @@ static void test_mstimer_restart(void)
     Fake_Milliseconds = 1000;
     mstimer_set(&timer, interval);
     Fake_Milliseconds = 6100;
-    elapsed = mstimer_restart(&timer);
-    zassert_equal(elapsed, 5100, NULL);
+    mstimer_restart(&timer);
     zassert_equal(timer.start, 6100, NULL);
     zassert_equal(mstimer_remaining(&timer), interval, NULL);
 
-    /* The clock moves inside this mstimer_now() sample. The returned
-     * elapsed time includes that movement, and the new origin does too. */
+    /* The clock moves inside the mstimer_now() sample used as the origin. */
     Now_Advance = 7;
-    elapsed = mstimer_restart(&timer);
-    zassert_equal(elapsed, 7, NULL);
+    mstimer_restart(&timer);
     zassert_equal(timer.start, Fake_Milliseconds, NULL);
     Now_Advance = 0;
     zassert_equal(mstimer_elapsed(&timer), 0, NULL);
@@ -227,19 +222,18 @@ static void test_mstimer_restart(void)
     mstimer_set(&timer, interval);
     Fake_Milliseconds = 25;
     zassert_equal(mstimer_elapsed(&timer), 36, NULL);
-    elapsed = mstimer_restart(&timer);
-    zassert_equal(elapsed, 36, NULL);
+    mstimer_restart(&timer);
     zassert_equal(timer.start, 25, NULL);
     zassert_equal(mstimer_elapsed(&timer), 0, NULL);
 }
 
 /**
- * @brief Test mstimer_consume() keeps the partial unit in the timer
+ * @brief Test mstimer_restart_unit() keeps the partial unit in the timer
  */
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(mstimer_tests, test_mstimer_consume)
+ZTEST(mstimer_tests, test_mstimer_restart_unit)
 #else
-static void test_mstimer_consume(void)
+static void test_mstimer_restart_unit(void)
 #endif
 {
     struct mstimer timer = { 0 };
@@ -247,41 +241,41 @@ static void test_mstimer_consume(void)
     Now_Advance = 0;
     Fake_Milliseconds = 1000;
     mstimer_set(&timer, 0);
-    zassert_equal(mstimer_consume(&timer, 10), 0, NULL);
+    zassert_equal(mstimer_restart_unit(&timer, 10), 0, NULL);
     zassert_equal(timer.start, 1000, NULL);
 
     /* whole units are consumed and the partial unit stays */
     Fake_Milliseconds = 1037;
-    zassert_equal(mstimer_consume(&timer, 10), 3, NULL);
+    zassert_equal(mstimer_restart_unit(&timer, 10), 3, NULL);
     zassert_equal(timer.start, 1030, NULL);
     zassert_equal(mstimer_elapsed(&timer), 7, NULL);
 
     /* the kept remainder is added to the next elapsed time */
     Fake_Milliseconds = 1046;
-    zassert_equal(mstimer_consume(&timer, 10), 1, NULL);
+    zassert_equal(mstimer_restart_unit(&timer, 10), 1, NULL);
     zassert_equal(timer.start, 1040, NULL);
     zassert_equal(mstimer_elapsed(&timer), 6, NULL);
 
     /* less than one unit consumes nothing */
     Fake_Milliseconds = 1049;
-    zassert_equal(mstimer_consume(&timer, 10), 0, NULL);
+    zassert_equal(mstimer_restart_unit(&timer, 10), 0, NULL);
     zassert_equal(timer.start, 1040, NULL);
 
     /* a unit of zero is treated as one millisecond */
-    zassert_equal(mstimer_consume(&timer, 0), 9, NULL);
+    zassert_equal(mstimer_restart_unit(&timer, 0), 9, NULL);
     zassert_equal(timer.start, 1049, NULL);
 
     /* the interval is not changed */
     mstimer_set(&timer, 5000);
     Fake_Milliseconds = 2500;
-    zassert_equal(mstimer_consume(&timer, 1000), 1, NULL);
+    zassert_equal(mstimer_restart_unit(&timer, 1000), 1, NULL);
     zassert_equal(mstimer_interval(&timer), 5000, NULL);
 
     /* Unsigned wrap: elapsed is the distance across the rollover. */
     Fake_Milliseconds = ULONG_MAX - 10UL;
     mstimer_set(&timer, 0);
     Fake_Milliseconds = 25;
-    zassert_equal(mstimer_consume(&timer, 10), 3, NULL);
+    zassert_equal(mstimer_restart_unit(&timer, 10), 3, NULL);
     zassert_equal(mstimer_elapsed(&timer), 6, NULL);
 }
 
@@ -388,7 +382,7 @@ void test_main(void)
         ztest_unit_test(test_mstimer_elapsed_remaining_expired),
         ztest_unit_test(test_mstimer_reset),
         ztest_unit_test(test_mstimer_restart),
-        ztest_unit_test(test_mstimer_consume),
+        ztest_unit_test(test_mstimer_restart_unit),
         ztest_unit_test(test_mstimer_expire),
         ztest_unit_test(test_mstimer_callback));
 

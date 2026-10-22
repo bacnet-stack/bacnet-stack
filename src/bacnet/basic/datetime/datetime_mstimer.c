@@ -44,7 +44,7 @@ static void datetime_sync(void)
     unsigned long hundredths;
 
     /* the timer keeps the part of a hundredth that is not consumed */
-    hundredths = mstimer_consume(&Date_Timer, 10UL);
+    hundredths = mstimer_restart_unit(&Date_Timer, 10UL);
     if (hundredths) {
         hundredths += BACnet_Date_Time.time.hundredths;
         if (hundredths >= 100UL) {
