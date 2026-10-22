@@ -326,20 +326,6 @@ Analog_Output_Present_Value_COV_Detect(struct object_data *pObject, float value)
 }
 
 /**
- * @brief Flag a COV notification caused by a Status_Flags change.
- *  The notification reports the current Present_Value, so it becomes
- *  the baseline for later COV_Increment checks.
- * @param  pObject - specific object with valid data
- * @param  object_instance - object-instance number of the object
- */
-static void Analog_Output_Status_Flags_COV_Set(
-    struct object_data *pObject, uint32_t object_instance)
-{
-    pObject->Changed = true;
-    pObject->Prior_Value = Analog_Output_Present_Value(object_instance);
-}
-
-/**
  * For a given object instance-number, sets the relinquish-default value
  *
  * @param  object_instance - object-instance number of the object
@@ -731,7 +717,7 @@ void Analog_Output_Out_Of_Service_Set(uint32_t object_instance, bool value)
     if (pObject) {
         if (pObject->Out_Of_Service != value) {
             pObject->Out_Of_Service = value;
-            Analog_Output_Status_Flags_COV_Set(pObject, object_instance);
+            pObject->Changed = true;
         }
     }
 }
@@ -769,7 +755,7 @@ void Analog_Output_Overridden_Set(uint32_t object_instance, bool value)
     if (pObject) {
         if (pObject->Overridden != value) {
             pObject->Overridden = value;
-            Analog_Output_Status_Flags_COV_Set(pObject, object_instance);
+            pObject->Changed = true;
         }
     }
 }
@@ -829,7 +815,7 @@ bool Analog_Output_Reliability_Set(
             fault = Analog_Output_Object_Fault(pObject);
             pObject->Reliability = value;
             if (fault != Analog_Output_Object_Fault(pObject)) {
-                Analog_Output_Status_Flags_COV_Set(pObject, object_instance);
+                pObject->Changed = true;
             }
             status = true;
         }
