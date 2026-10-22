@@ -395,34 +395,46 @@ static void test_datetime_standard_changed(void)
     datetime_init_defaults();
     zassert_false(datetime_standard_changed(), NULL);
 
-    /* local timesync sets the latch, including a repeat of the same time */
+    /* local timesync sets the latch when the time changes.
+       The read clears it. A repeat of the same time does not. */
     set_time(&bdate, &btime, 2026, 1, 15, 10, 0, 0);
     datetime_timesync(&bdate, &btime, false);
     zassert_true(datetime_standard_changed(), NULL);
-    datetime_standard_changed_clear();
     zassert_false(datetime_standard_changed(), NULL);
     datetime_timesync(&bdate, &btime, false);
-    zassert_true(datetime_standard_changed(), NULL);
-    datetime_standard_changed_clear();
+    zassert_false(datetime_standard_changed(), NULL);
 
-    /* UTC timesync sets the latch. The offset set does not. */
+    /* a later sync keeps a latch that the application has not read */
+    set_time(&bdate, &btime, 2026, 1, 15, 10, 30, 0);
+    datetime_timesync(&bdate, &btime, false);
+    datetime_timesync(&bdate, &btime, false);
+    zassert_true(datetime_standard_changed(), NULL);
+
+    /* a date change sets the latch */
+    set_time(&bdate, &btime, 2026, 1, 16, 10, 30, 0);
+    datetime_timesync(&bdate, &btime, false);
+    zassert_true(datetime_standard_changed(), NULL);
+
+    /* UTC timesync sets the latch only when standard time changes.
+       The offset set does not. 16:30 UTC is 10:30 standard. */
     datetime_utc_offset_minutes_set(360);
     zassert_false(datetime_standard_changed(), NULL);
-    set_time(&bdate, &btime, 2026, 1, 15, 16, 0, 0);
+    set_time(&bdate, &btime, 2026, 1, 16, 16, 30, 0);
+    datetime_timesync(&bdate, &btime, true);
+    zassert_false(datetime_standard_changed(), NULL);
+    /* 18:00 UTC is 12:00 standard */
+    set_time(&bdate, &btime, 2026, 1, 16, 18, 0, 0);
     datetime_timesync(&bdate, &btime, true);
     zassert_true(datetime_standard_changed(), NULL);
-    datetime_standard_changed_clear();
 
-    /* standard set stores time. A NULL argument does not. */
+    /* standard set stores time and does not set the latch */
     datetime_set_values(&rtc, 2026, 7, 1, 23, 30, 0, 0);
     datetime_standard_set(NULL);
     zassert_false(datetime_standard_changed(), NULL);
     datetime_standard_set(&rtc);
-    zassert_true(datetime_standard_changed(), NULL);
-    datetime_standard_changed_clear();
+    zassert_false(datetime_standard_changed(), NULL);
     datetime_standard_set(&rtc);
-    zassert_true(datetime_standard_changed(), NULL);
-    datetime_standard_changed_clear();
+    zassert_false(datetime_standard_changed(), NULL);
 
     /* DST and offset changes do not store standard time.
        Enabling DST moves the wall-clock date across midnight. */
@@ -431,6 +443,10 @@ static void test_datetime_standard_changed(void)
     datetime_dst_enabled_set(true);
     zassert_false(datetime_standard_changed(), NULL);
     check_local(2026, 7, 2, 0, 30, 0, true);
+    /* wall-clock 00:30 is standard 23:30. The stored time is the same. */
+    set_time(&bdate, &btime, 2026, 7, 2, 0, 30, 0);
+    datetime_timesync(&bdate, &btime, false);
+    zassert_false(datetime_standard_changed(), NULL);
     zassert_true(
         datetime_dst_ordinal_range_set(
             3, 2, BACNET_WEEKDAY_SUNDAY, 11, 1, BACNET_WEEKDAY_SUNDAY),
@@ -444,9 +460,9 @@ static void test_datetime_standard_changed(void)
     check_local(2026, 7, 2, 0, 30, 5, true);
     zassert_false(datetime_standard_changed(), NULL);
 
-    /* init defaults clears a latch that is already set */
+    /* init defaults clears a latch that the read did not consume */
+    set_time(&bdate, &btime, 2026, 1, 15, 10, 0, 0);
     datetime_timesync(&bdate, &btime, false);
-    zassert_true(datetime_standard_changed(), NULL);
     datetime_init_defaults();
     zassert_false(datetime_standard_changed(), NULL);
 }
