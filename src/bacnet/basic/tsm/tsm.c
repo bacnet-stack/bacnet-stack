@@ -41,10 +41,60 @@ static BACNET_TSM_DATA TSM_List[MAX_TSM_TRANSACTIONS];
 static uint8_t Current_Invoke_ID = 1;
 
 static tsm_timeout_function Timeout_Function;
+/* invoke ID release notification callbacks */
+static struct tsm_free_invoke_id_notification Free_Invoke_ID_Notification_Head;
 
 void tsm_set_timeout_handler(tsm_timeout_function pFunction)
 {
     Timeout_Function = pFunction;
+}
+
+/**
+ * @brief Add an invoke ID release notification callback.
+ *  The callback is called each time tsm_free_invoke_id() releases
+ *  an invoke ID, so that modules which store an invoke ID can
+ *  forget it before the TSM reuses it for another transaction.
+ * @param notification - pointer to the notification structure,
+ *  owned by the caller and kept valid while registered
+ */
+void tsm_free_invoke_id_notification_add(
+    struct tsm_free_invoke_id_notification *notification)
+{
+    struct tsm_free_invoke_id_notification *head;
+
+    if (!notification) {
+        return;
+    }
+    head = &Free_Invoke_ID_Notification_Head;
+    do {
+        if (head->next == notification) {
+            /* already here! */
+            break;
+        } else if (!head->next) {
+            /* first available node */
+            notification->next = NULL;
+            head->next = notification;
+            break;
+        }
+        head = head->next;
+    } while (head);
+}
+
+/**
+ * @brief Call all registered invoke ID release notification callbacks
+ * @param invokeID - the invoke ID that was released
+ */
+static void tsm_free_invoke_id_notify(uint8_t invokeID)
+{
+    struct tsm_free_invoke_id_notification *head;
+
+    head = &Free_Invoke_ID_Notification_Head;
+    do {
+        if (head->callback) {
+            head->callback(invokeID);
+        }
+        head = head->next;
+    } while (head);
 }
 
 /** Find the given Invoke-Id in the list and
@@ -379,6 +429,9 @@ void tsm_free_invoke_id(uint8_t invokeID)
         plist = &TSM_List[index];
         plist->state = TSM_STATE_IDLE;
         plist->InvokeID = 0;
+        if (invokeID) {
+            tsm_free_invoke_id_notify(invokeID);
+        }
     }
 }
 

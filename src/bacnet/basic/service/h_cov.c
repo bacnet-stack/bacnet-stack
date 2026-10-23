@@ -301,6 +301,44 @@ int handler_cov_encode_subscriptions(uint8_t *apdu, int apdu_size)
     return apdu_len;
 }
 
+/** Clear any subscription invoke ID that the TSM has released.
+ *  Called by the TSM each time an invoke ID is freed, so that a
+ *  subscription never holds an invoke ID that the TSM may reuse
+ *  for another transaction.
+ * @param invoke_id - the invoke ID released by the TSM
+ */
+static void cov_tsm_free_invoke_id_handler(uint8_t invoke_id)
+{
+    int index = 0;
+    BACNET_COV_HANDLER_SUBSCRIPTION *subscription = NULL;
+#ifdef BAC_ROUTING
+    uint16_t current_dev_id = Routed_Device_Object_Index();
+    uint16_t dev_id = 0;
+#endif
+
+    if (invoke_id == 0) {
+        return;
+    }
+#ifdef BAC_ROUTING
+    for (dev_id = 0; dev_id < Get_Num_Managed_Devices(); dev_id++) {
+        Set_Routed_Device_Object_Index(dev_id);
+#endif
+        for (index = 0; index < Keylist_Count(COV_Subscriptions); index++) {
+            subscription = Keylist_Data_Index(COV_Subscriptions, index);
+            if (subscription && (subscription->invokeID == invoke_id)) {
+                subscription->invokeID = 0;
+            }
+        }
+#ifdef BAC_ROUTING
+    }
+    Set_Routed_Device_Object_Index(current_dev_id);
+#endif
+}
+
+static struct tsm_free_invoke_id_notification COV_TSM_Free_Notification = {
+    NULL, cov_tsm_free_invoke_id_handler
+};
+
 /** Handler to initialize the COV list, clearing and disabling each entry.
  * @ingroup DSCOV
  */
@@ -310,6 +348,8 @@ void handler_cov_init(void)
 #ifdef BAC_ROUTING
     uint16_t current_dev_id = Routed_Device_Object_Index();
     uint16_t dev_id = 0;
+
+    tsm_free_invoke_id_notification_add(&COV_TSM_Free_Notification);
     for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
         Set_Routed_Device_Object_Index(dev_id);
         if (!COV_Subscriptions) {
@@ -320,6 +360,7 @@ void handler_cov_init(void)
     }
     Set_Routed_Device_Object_Index(current_dev_id);
 #else
+    tsm_free_invoke_id_notification_add(&COV_TSM_Free_Notification);
     if (!COV_Subscriptions) {
         COV_Subscriptions = Keylist_Create();
     } else {
