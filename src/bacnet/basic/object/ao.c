@@ -1078,8 +1078,8 @@ bool Analog_Output_Encode_Value_List(
             fault = true;
         }
         status = cov_value_list_encode_real(
-            value_list, Analog_Output_Present_Value(object_instance), in_alarm,
-            fault, pObject->Overridden, pObject->Out_Of_Service);
+            value_list, pObject->Prior_Value, in_alarm, fault,
+            pObject->Overridden, pObject->Out_Of_Service);
     }
 
     return status;
