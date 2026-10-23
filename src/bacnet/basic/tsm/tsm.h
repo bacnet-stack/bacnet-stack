@@ -99,6 +99,8 @@ void tsm_timer_milliseconds(uint16_t milliseconds);
 BACNET_STACK_EXPORT
 void tsm_free_invoke_id(uint8_t invokeID);
 BACNET_STACK_EXPORT
+uint32_t tsm_invoke_id_generation(uint8_t invokeID);
+BACNET_STACK_EXPORT
 bool tsm_invoke_id_source_match(uint8_t invokeID, const BACNET_ADDRESS *src);
 /* use these in tandem */
 BACNET_STACK_EXPORT

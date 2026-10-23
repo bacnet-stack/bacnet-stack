@@ -7,6 +7,8 @@
 #include <zephyr/ztest.h>
 #include <bacnet/bacdef.h>
 #include <bacnet/cov.h>
+#include <bacnet/apdu.h>
+#include <bacnet/basic/tsm/tsm.h>
 #include <bacnet/basic/services.h>
 
 /**
@@ -327,6 +329,126 @@ static void test_h_cov_address_management(void)
 }
 
 /**
+ * @brief An acknowledged COV must not retain ownership of a reused invoke ID.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(h_cov_tests, test_h_cov_invoke_id_reuse)
+#else
+static void test_h_cov_invoke_id_reuse(void)
+#endif
+{
+    enum {
+        CLEANUP_RENEW,
+        CLEANUP_CANCEL,
+        CLEANUP_EXPIRE,
+        CLEANUP_ACTIVE,
+        CLEANUP_FAILED,
+        CLEANUP_COUNT
+    };
+    BACNET_ADDRESS src = { 0 };
+    BACNET_ADDRESS dest = { 0 };
+    BACNET_NPDU_DATA npdu_data = { 0 };
+    BACNET_CONFIRMED_SERVICE_DATA service_data = { 0 };
+    BACNET_SUBSCRIBE_COV_DATA cov_data = { 0 };
+    uint8_t service_request[128] = { 0 };
+    uint8_t pdu[MAX_PDU] = { 0 };
+    uint8_t saved_pdu[MAX_PDU] = { 0 };
+    uint8_t ack[3] = { PDU_TYPE_SIMPLE_ACK, 42,
+                       SERVICE_CONFIRMED_COV_NOTIFICATION };
+    uint16_t pdu_len = 0;
+    uint16_t saved_len = 0;
+    uint32_t generation;
+    unsigned action;
+    unsigned cleanup;
+    unsigned step;
+    int len;
+    bool idle;
+
+    zassert_equal(tsm_invoke_id_generation(0), 0, NULL);
+    src.mac_len = 1;
+    src.mac[0] = 1;
+    cov_data.subscriberProcessIdentifier = 1;
+    cov_data.monitoredObjectIdentifier.type = OBJECT_ANALOG_INPUT;
+    cov_data.issueConfirmedNotifications = true;
+    cov_data.lifetime = 10;
+    for (action = 0; action < (2 * CLEANUP_COUNT); action++) {
+        cleanup = action % CLEANUP_COUNT;
+        handler_cov_init();
+        cov_data.cancellationRequest = false;
+        len = cov_subscribe_service_request_encode(
+            service_request, sizeof(service_request), &cov_data);
+        handler_cov_subscribe(service_request, len, &src, &service_data);
+        tsm_invokeID_set(42);
+        idle = false;
+        for (step = 0; (step < 16) && !idle; step++) {
+            idle = handler_cov_fsm();
+        }
+        zassert_true(idle, NULL);
+        zassert_false(tsm_invoke_id_free(42), NULL);
+        generation = tsm_invoke_id_generation(42);
+        zassert_not_equal(generation, 0, NULL);
+        zassert_true(
+            tsm_get_transaction_pdu(42, &dest, &npdu_data, pdu, &pdu_len),
+            NULL);
+        zassert_true(bacnet_address_same(&src, &dest), NULL);
+
+        if (action < CLEANUP_COUNT) {
+            /* Reuse the acknowledged ID in the same or a different slot. */
+            apdu_handler(&src, ack, sizeof(ack));
+            zassert_true(tsm_invoke_id_free(42), NULL);
+            zassert_equal(tsm_invoke_id_generation(42), 0, NULL);
+            if ((action % 2) == 0) {
+                tsm_invokeID_set(43);
+                zassert_equal(tsm_next_free_invokeID(), 43, NULL);
+            }
+            tsm_invokeID_set(42);
+            zassert_equal(tsm_next_free_invokeID(), 42, NULL);
+            zassert_not_equal(tsm_invoke_id_generation(42), generation, NULL);
+            tsm_set_confirmed_unsegmented_transaction(
+                42, &src, &npdu_data, pdu, pdu_len);
+        }
+        if (cleanup == CLEANUP_FAILED) {
+            /* A failed replacement must also remain owned by its caller. */
+            for (step = 0; step <= apdu_retries(); step++) {
+                tsm_timer_milliseconds(apdu_timeout());
+            }
+            zassert_true(tsm_invoke_id_failed(42), NULL);
+        }
+        if (cleanup < CLEANUP_EXPIRE) {
+            cov_data.cancellationRequest = (cleanup == CLEANUP_CANCEL);
+            len = cov_subscribe_service_request_encode(
+                service_request, sizeof(service_request), &cov_data);
+            handler_cov_subscribe(service_request, len, &src, &service_data);
+        } else if (cleanup == CLEANUP_EXPIRE) {
+            handler_cov_timer_seconds(cov_data.lifetime);
+        } else {
+            idle = false;
+            for (step = 0; (step < 16) && !idle; step++) {
+                idle = handler_cov_fsm();
+            }
+            zassert_true(idle, NULL);
+        }
+        if ((action >= CLEANUP_COUNT) && (cleanup != CLEANUP_ACTIVE)) {
+            zassert_true(tsm_invoke_id_free(42), "cleanup action %u", action);
+        } else {
+            zassert_false(tsm_invoke_id_free(42), "cleanup action %u", action);
+            zassert_true(
+                tsm_get_transaction_pdu(
+                    42, &dest, &npdu_data, saved_pdu, &saved_len),
+                NULL);
+            zassert_equal(saved_len, pdu_len, NULL);
+            zassert_mem_equal(saved_pdu, pdu, pdu_len, NULL);
+            zassert_true(bacnet_address_same(&src, &dest), NULL);
+            zassert_equal(
+                tsm_invoke_id_failed(42), (cleanup == CLEANUP_FAILED), NULL);
+        }
+        tsm_free_invoke_id(43);
+        tsm_free_invoke_id(42);
+    }
+    handler_cov_init();
+}
+
+/**
  * @}
  */
 
@@ -341,7 +463,8 @@ void test_main(void)
         ztest_unit_test(test_h_cov_subscribe_error_cases),
         ztest_unit_test(test_h_cov_subscribe_out_of_space),
         ztest_unit_test(test_h_cov_timer_expiration),
-        ztest_unit_test(test_h_cov_address_management));
+        ztest_unit_test(test_h_cov_address_management),
+        ztest_unit_test(test_h_cov_invoke_id_reuse));
 
     ztest_run_test_suite(h_cov_tests);
 }

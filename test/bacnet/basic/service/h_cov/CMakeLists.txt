@@ -34,6 +34,7 @@ include_directories(
 add_executable(${PROJECT_NAME}
     # File(s) under test
     ${SRC_DIR}/bacnet/basic/service/h_cov.c
+    ${SRC_DIR}/bacnet/basic/service/h_apdu.c
     # Support files and stubs (pathname alphabetical)
     ${SRC_DIR}/bacnet/access_rule.c
     ${SRC_DIR}/bacnet/authentication_factor.c
@@ -77,7 +78,6 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/reject.c
     # Test and test library files
     ./src/main.c
-    ${TST_DIR}/bacnet/basic/object/test/apdu_mock.c
     ${TST_DIR}/bacnet/basic/object/test/bip_mock.c
     ${TST_DIR}/bacnet/basic/object/test/device_mock.c
     ${ZTST_DIR}/ztest_mock.c
