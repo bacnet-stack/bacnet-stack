@@ -52,6 +52,7 @@ typedef struct BACnet_COV_Handler_Subscription {
     BACNET_COV_HANDLER_SUBSCRIPTION_FLAGS flag;
     unsigned dest_index;
     uint8_t invokeID; /* for confirmed COV */
+    uint32_t invoke_generation;
     uint32_t subscriberProcessIdentifier;
     uint32_t lifetime; /* optional */
     BACNET_OBJECT_ID monitoredObjectIdentifier;
@@ -366,10 +367,12 @@ static bool cov_list_subscribe(
                  cov_data->subscriberProcessIdentifier) &&
                 address_match) {
                 existing_entry = true;
-                if (subscription->invokeID) {
+                if (subscription->invokeID &&
+                    (tsm_invoke_id_generation(subscription->invokeID) ==
+                     subscription->invoke_generation)) {
                     tsm_free_invoke_id(subscription->invokeID);
-                    subscription->invokeID = 0;
                 }
+                subscription->invokeID = 0;
                 if (cov_data->cancellationRequest) {
                     cov_subscription_delete(index);
                     cov_address_remove_unused();
@@ -486,6 +489,8 @@ static bool cov_send_request(
         invoke_id = tsm_next_free_invokeID();
         if (invoke_id) {
             cov_subscription->invokeID = invoke_id;
+            cov_subscription->invoke_generation =
+                tsm_invoke_id_generation(invoke_id);
             len = ccov_notify_encode_apdu(
                 &Handler_Transmit_Buffer[pdu_len],
                 sizeof(Handler_Transmit_Buffer) - pdu_len, invoke_id,
@@ -546,7 +551,9 @@ static void cov_lifetime_expiration_handler(
                 subscription->lifetime);
 #endif
             if (subscription->flag.issueConfirmedNotifications) {
-                if (subscription->invokeID) {
+                if (subscription->invokeID &&
+                    (tsm_invoke_id_generation(subscription->invokeID) ==
+                     subscription->invoke_generation)) {
                     tsm_free_invoke_id(subscription->invokeID);
                     subscription->invokeID = 0;
                 }
@@ -714,7 +721,8 @@ bool handler_cov_fsm(void)
             if (subscription &&
                 (subscription->flag.issueConfirmedNotifications) &&
                 (subscription->invokeID)) {
-                if (tsm_invoke_id_free(subscription->invokeID)) {
+                if (tsm_invoke_id_generation(subscription->invokeID) !=
+                    subscription->invoke_generation) {
                     subscription->invokeID = 0;
                 } else if (tsm_invoke_id_failed(subscription->invokeID)) {
                     tsm_free_invoke_id(subscription->invokeID);

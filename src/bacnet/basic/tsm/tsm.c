@@ -36,6 +36,8 @@ uint8_t Handler_Transmit_Buffer[MAX_PDU];
 /* declare space for the TSM transactions, and set it up in the init. */
 /* table rules: an Invoke ID = 0 is an unused spot in the table */
 static BACNET_TSM_DATA TSM_List[MAX_TSM_TRANSACTIONS];
+static uint32_t TSM_Generation[MAX_TSM_TRANSACTIONS];
+static uint32_t Current_Generation;
 
 /* invoke ID for incrementing between subsequent calls. */
 static uint8_t Current_Invoke_ID = 1;
@@ -198,6 +200,11 @@ uint8_t tsm_next_free_invokeID(void)
                 index = tsm_find_first_free_index();
                 if (index != MAX_TSM_TRANSACTIONS) {
                     plist = &TSM_List[index];
+                    Current_Generation++;
+                    if (Current_Generation == 0) {
+                        Current_Generation = 1;
+                    }
+                    TSM_Generation[index] = Current_Generation;
                     plist->InvokeID = invokeID = Current_Invoke_ID;
                     plist->state = TSM_STATE_IDLE;
                     plist->RequestTimer = apdu_timeout();
@@ -363,6 +370,23 @@ void tsm_timer_milliseconds(uint16_t milliseconds)
             }
         }
     }
+}
+
+/**
+ * @brief Return the allocation generation of a reserved invoke ID.
+ * @param invokeID Invoke ID to look up.
+ * @return Nonzero generation, or zero if the invoke ID is free.
+ */
+uint32_t tsm_invoke_id_generation(uint8_t invokeID)
+{
+    uint8_t index;
+
+    index = tsm_find_invokeID_index(invokeID);
+    if ((invokeID != 0) && (index < MAX_TSM_TRANSACTIONS)) {
+        return TSM_Generation[index];
+    }
+
+    return 0;
 }
 
 /** Frees the invokeID and sets its state to IDLE
