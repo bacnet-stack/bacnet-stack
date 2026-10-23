@@ -14,6 +14,105 @@
 #include <bacnet/proplist.h>
 
 /**
+ * @brief Verify the encoded identity and wildcard substitution for a Device.
+ */
+static void check_device_object_identifier(uint32_t instance)
+{
+    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
+    uint32_t object_instance = 0;
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int len = 0;
+
+    rpdata.object_type = OBJECT_DEVICE;
+    rpdata.object_instance = instance;
+    rpdata.object_property = PROP_OBJECT_IDENTIFIER;
+    rpdata.array_index = BACNET_ARRAY_ALL;
+    rpdata.application_data = apdu;
+    rpdata.application_data_len = sizeof(apdu);
+    len = Device_Read_Property(&rpdata);
+    zassert_true(len > 0, NULL);
+    zassert_equal(
+        bacnet_object_id_application_decode(
+            apdu, len, &object_type, &object_instance),
+        len, NULL);
+    zassert_equal(object_type, OBJECT_DEVICE, NULL);
+    zassert_equal(object_instance, instance, NULL);
+    zassert_equal(rpdata.object_instance, instance, NULL);
+
+    /* The RP service resolves the wildcard before Device_Read_Property. */
+    rpdata.object_instance = BACNET_MAX_INSTANCE;
+    len = property_list_common_encode(&rpdata, Device_Object_Instance_Number());
+    zassert_true(len > 0, NULL);
+    zassert_equal(
+        bacnet_object_id_application_decode(
+            apdu, len, &object_type, &object_instance),
+        len, NULL);
+    zassert_equal(object_type, OBJECT_DEVICE, NULL);
+    zassert_equal(object_instance, instance, NULL);
+    zassert_equal(rpdata.object_instance, instance, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Device_Object_Identifier)
+#else
+static void test_Device_Object_Identifier(void)
+#endif
+{
+    Device_Init(NULL);
+    zassert_true(Device_Set_Object_Instance_Number(260001), NULL);
+    check_device_object_identifier(260001);
+}
+
+#if defined(BAC_ROUTING)
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Routed_Device_Object_Identifier)
+#else
+static void test_Routed_Device_Object_Identifier(void)
+#endif
+{
+    BACNET_CHARACTER_STRING object_name = { 0 };
+    const uint32_t instances[] = { 990064, 957600, 957664 };
+    unsigned i = 0;
+    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+
+    Device_Init(NULL);
+    zassert_true(Device_Set_Object_Instance_Number(260001), NULL);
+    Routing_Device_Init(instances[0]);
+    characterstring_init_ansi(&object_name, "Routed Device");
+    for (i = 1; i < ARRAY_SIZE(instances); i++) {
+        zassert_equal(
+            Add_Routed_Device(instances[i], &object_name, ""), i, NULL);
+    }
+    for (i = 0; i < ARRAY_SIZE(instances); i++) {
+        zassert_true(Set_Routed_Device_Object_Index(i), NULL);
+        check_device_object_identifier(instances[i]);
+    }
+    /* only the addressed Device object exists in a routed device */
+    zassert_true(Set_Routed_Device_Object_Index(1), NULL);
+    rpdata.object_type = OBJECT_DEVICE;
+    rpdata.array_index = BACNET_ARRAY_ALL;
+    rpdata.application_data = apdu;
+    rpdata.application_data_len = sizeof(apdu);
+    for (i = 0; i < ARRAY_SIZE(instances) + 1; i++) {
+        if (i == 1) {
+            continue;
+        }
+        rpdata.object_instance =
+            (i < ARRAY_SIZE(instances)) ? instances[i] : 123456;
+        rpdata.object_property = PROP_OBJECT_NAME;
+        zassert_equal(Device_Read_Property(&rpdata), BACNET_STATUS_ERROR, NULL);
+        zassert_equal(rpdata.error_class, ERROR_CLASS_OBJECT, NULL);
+        zassert_equal(rpdata.error_code, ERROR_CODE_UNKNOWN_OBJECT, NULL);
+        zassert_equal(
+            Routed_Device_Object_Instance_Number(), instances[1], NULL);
+    }
+    zassert_true(Set_Routed_Device_Object_Index(0), NULL);
+}
+#endif
+
+/**
  * @addtogroup bacnet_tests
  * @{
  */
@@ -842,33 +941,35 @@ void test_main(void)
 {
 #if defined(BAC_ROUTING) && defined(BACNET_BACKUP_RESTORE)
     ztest_test_suite(
-        device_tests, ztest_unit_test(testDevice),
-        ztest_unit_test(test_Device_Data_Sharing),
+        device_tests, ztest_unit_test(test_Device_Object_Identifier),
+        ztest_unit_test(testDevice), ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Write_Property_Range),
         ztest_unit_test(test_Device_Backup_Failure_Timeout_Internal_Access),
         ztest_unit_test(test_Device_Backup_Failure_Timeout_Configuration_File),
+        ztest_unit_test(test_Routed_Device_Object_Identifier),
         ztest_unit_test(test_Routed_Device_DCC_Remains_Blocked),
         ztest_unit_test(test_Routed_Device_Reinitialize),
         ztest_unit_test(test_Routed_Device_Backup_Restore_Independence),
         ztest_unit_test(test_Routed_Device_Backup_Countdown_Per_Device));
 #elif defined(BAC_ROUTING)
     ztest_test_suite(
-        device_tests, ztest_unit_test(testDevice),
-        ztest_unit_test(test_Device_Data_Sharing),
+        device_tests, ztest_unit_test(test_Device_Object_Identifier),
+        ztest_unit_test(testDevice), ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Write_Property_Range),
+        ztest_unit_test(test_Routed_Device_Object_Identifier),
         ztest_unit_test(test_Routed_Device_DCC_Remains_Blocked),
         ztest_unit_test(test_Routed_Device_Reinitialize));
 #elif defined(BACNET_BACKUP_RESTORE)
     ztest_test_suite(
-        device_tests, ztest_unit_test(testDevice),
-        ztest_unit_test(test_Device_Data_Sharing),
+        device_tests, ztest_unit_test(test_Device_Object_Identifier),
+        ztest_unit_test(testDevice), ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Write_Property_Range),
         ztest_unit_test(test_Device_Backup_Failure_Timeout_Internal_Access),
         ztest_unit_test(test_Device_Backup_Failure_Timeout_Configuration_File));
 #else
     ztest_test_suite(
-        device_tests, ztest_unit_test(testDevice),
-        ztest_unit_test(test_Device_Data_Sharing),
+        device_tests, ztest_unit_test(test_Device_Object_Identifier),
+        ztest_unit_test(testDevice), ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Write_Property_Range));
 #endif
 
