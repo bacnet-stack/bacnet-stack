@@ -328,6 +328,17 @@ static void testAnalogOutput_COV_Overridden(void)
     zassert_not_equal(
         Analog_Output_Create(instance), BACNET_MAX_INSTANCE, NULL);
 
+    /* a change within COV_Increment does not update the COV baseline, but
+       the value list must still report the current Present_Value */
+    Analog_Output_COV_Increment_Set(instance, 2.0f);
+    zassert_true(Analog_Output_Present_Value_Set(instance, 10.0f, 8), NULL);
+    Analog_Output_Change_Of_Value_Clear(instance);
+    zassert_true(Analog_Output_Present_Value_Set(instance, 11.0f, 8), NULL);
+    zassert_false(Analog_Output_Change_Of_Value(instance), NULL);
+    zassert_true(Analog_Output_Encode_Value_List(instance, value_list), NULL);
+    zassert_equal(value_list[0].propertyIdentifier, PROP_PRESENT_VALUE, NULL);
+    zassert_within(value_list[0].value.type.Real, 11.0f, 0.001f, NULL);
+
     Analog_Output_Change_Of_Value_Clear(instance);
     Analog_Output_Overridden_Set(instance, true);
     zassert_true(Analog_Output_Change_Of_Value(instance), NULL);
