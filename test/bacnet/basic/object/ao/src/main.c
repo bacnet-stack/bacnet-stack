@@ -344,6 +344,91 @@ static void testAnalogOutput_COV_Overridden(void)
     Analog_Output_Delete(instance);
     Analog_Output_Cleanup();
 }
+
+/**
+ * @brief Test that a Status_Flags change saves the Present_Value at the
+ *  time of the change for the COV value list, and that the saved value
+ *  is the new COV_Increment baseline
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ao_tests, testAnalogOutput_COV_Status_Flags_Prior_Value)
+#else
+static void testAnalogOutput_COV_Status_Flags_Prior_Value(void)
+#endif
+{
+    const uint32_t instance = 989;
+    BACNET_PROPERTY_VALUE value_list[2] = { 0 };
+    BACNET_BIT_STRING *flags;
+
+    value_list[0].next = &value_list[1];
+    value_list[1].next = NULL;
+    flags = &value_list[1].value.type.Bit_String;
+
+    Analog_Output_Init();
+    zassert_not_equal(
+        Analog_Output_Create(instance), BACNET_MAX_INSTANCE, NULL);
+    Analog_Output_COV_Increment_Set(instance, 2.0f);
+    zassert_true(Analog_Output_Present_Value_Set(instance, 10.0f, 8), NULL);
+    zassert_true(Analog_Output_Change_Of_Value(instance), NULL);
+    Analog_Output_Change_Of_Value_Clear(instance);
+
+    /* a change within COV_Increment is not reported: the value list
+       (and the initial notification of a new subscriber) reports the
+       value of the last change of value */
+    zassert_true(Analog_Output_Present_Value_Set(instance, 11.0f, 8), NULL);
+    zassert_false(Analog_Output_Change_Of_Value(instance), NULL);
+    zassert_true(Analog_Output_Encode_Value_List(instance, value_list), NULL);
+    zassert_equal(value_list[0].propertyIdentifier, PROP_PRESENT_VALUE, NULL);
+    zassert_within(value_list[0].value.type.Real, 10.0f, 0.001f, NULL);
+
+    /* Out_Of_Service change: report the Present_Value at that time */
+    Analog_Output_Out_Of_Service_Set(instance, true);
+    zassert_true(Analog_Output_Change_Of_Value(instance), NULL);
+    Analog_Output_Change_Of_Value_Clear(instance);
+    /* a later change within COV_Increment does not alter the report */
+    zassert_true(Analog_Output_Present_Value_Set(instance, 12.0f, 8), NULL);
+    zassert_false(Analog_Output_Change_Of_Value(instance), NULL);
+    zassert_true(Analog_Output_Encode_Value_List(instance, value_list), NULL);
+    zassert_within(value_list[0].value.type.Real, 11.0f, 0.001f, NULL);
+    zassert_true(bitstring_bit(flags, STATUS_FLAG_OUT_OF_SERVICE), NULL);
+    /* the baseline is now 11: 13 is equal to COV_Increment from 11 */
+    zassert_true(Analog_Output_Present_Value_Set(instance, 13.0f, 8), NULL);
+    zassert_true(Analog_Output_Change_Of_Value(instance), NULL);
+    Analog_Output_Change_Of_Value_Clear(instance);
+
+    /* Overridden change: report the Present_Value at that time */
+    zassert_true(Analog_Output_Present_Value_Set(instance, 14.0f, 8), NULL);
+    zassert_false(Analog_Output_Change_Of_Value(instance), NULL);
+    Analog_Output_Overridden_Set(instance, true);
+    zassert_true(Analog_Output_Change_Of_Value(instance), NULL);
+    zassert_true(Analog_Output_Encode_Value_List(instance, value_list), NULL);
+    zassert_within(value_list[0].value.type.Real, 14.0f, 0.001f, NULL);
+    zassert_true(bitstring_bit(flags, STATUS_FLAG_OVERRIDDEN), NULL);
+    Analog_Output_Change_Of_Value_Clear(instance);
+
+    /* Fault change: report the Present_Value at that time */
+    zassert_true(Analog_Output_Present_Value_Set(instance, 15.0f, 8), NULL);
+    zassert_false(Analog_Output_Change_Of_Value(instance), NULL);
+    zassert_true(
+        Analog_Output_Reliability_Set(instance, RELIABILITY_NO_SENSOR), NULL);
+    zassert_true(Analog_Output_Change_Of_Value(instance), NULL);
+    zassert_true(Analog_Output_Encode_Value_List(instance, value_list), NULL);
+    zassert_within(value_list[0].value.type.Real, 15.0f, 0.001f, NULL);
+    zassert_true(bitstring_bit(flags, STATUS_FLAG_FAULT), NULL);
+    Analog_Output_Change_Of_Value_Clear(instance);
+
+    /* a Reliability change without a Fault change does not alter the
+       report or the baseline */
+    zassert_true(Analog_Output_Present_Value_Set(instance, 16.0f, 8), NULL);
+    zassert_true(
+        Analog_Output_Reliability_Set(instance, RELIABILITY_OVER_RANGE), NULL);
+    zassert_false(Analog_Output_Change_Of_Value(instance), NULL);
+    zassert_true(Analog_Output_Encode_Value_List(instance, value_list), NULL);
+    zassert_within(value_list[0].value.type.Real, 15.0f, 0.001f, NULL);
+
+    Analog_Output_Delete(instance);
+    Analog_Output_Cleanup();
+}
 /**
  * @}
  */
@@ -360,7 +445,8 @@ void test_main(void)
         ztest_unit_test(testAnalogOutput_Priority_6_Reserved),
         ztest_unit_test(testAnalogOutput_Priority_Array_Unknown_Instance),
         ztest_unit_test(testAnalogOutput_COV),
-        ztest_unit_test(testAnalogOutput_COV_Overridden));
+        ztest_unit_test(testAnalogOutput_COV_Overridden),
+        ztest_unit_test(testAnalogOutput_COV_Status_Flags_Prior_Value));
 
     ztest_run_test_suite(ao_tests);
 }
