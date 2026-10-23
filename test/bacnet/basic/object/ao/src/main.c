@@ -309,8 +309,7 @@ static void testAnalogOutput_COV(void)
 
 /**
  * @brief Test that the COV value list reports the current Present_Value and
- *  Status_Flags, and that a Status_Flags notification resets the
- *  COV_Increment baseline to the reported Present_Value
+ *  Status_Flags without changing the object COV_Increment baseline
  */
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(ao_tests, testAnalogOutput_COV_Value_List)
@@ -345,8 +344,7 @@ static void testAnalogOutput_COV_Value_List(void)
     zassert_equal(value_list[1].propertyIdentifier, PROP_STATUS_FLAGS, NULL);
     zassert_false(bitstring_bit(flags, STATUS_FLAG_OVERRIDDEN), NULL);
 
-    /* a status flag notification reports Present_Value 11 and rebases the
-       COV_Increment check on it: 12 is within 2.0 of 11, 13 is not */
+    /* encoding Status_Flags preserves the object baseline of 10 */
     Analog_Output_Overridden_Set(instance, true);
     zassert_true(Analog_Output_Change_Of_Value(instance), NULL);
     zassert_true(Analog_Output_Encode_Value_List(instance, value_list), NULL);
@@ -354,9 +352,10 @@ static void testAnalogOutput_COV_Value_List(void)
     zassert_true(bitstring_bit(flags, STATUS_FLAG_OVERRIDDEN), NULL);
     Analog_Output_Change_Of_Value_Clear(instance);
     zassert_true(Analog_Output_Present_Value_Set(instance, 12.0f, 8), NULL);
-    zassert_false(Analog_Output_Change_Of_Value(instance), NULL);
-    zassert_true(Analog_Output_Present_Value_Set(instance, 13.0f, 8), NULL);
     zassert_true(Analog_Output_Change_Of_Value(instance), NULL);
+    Analog_Output_Change_Of_Value_Clear(instance);
+    zassert_true(Analog_Output_Present_Value_Set(instance, 13.0f, 8), NULL);
+    zassert_false(Analog_Output_Change_Of_Value(instance), NULL);
 
     Analog_Output_Overridden_Set(instance, false);
     Analog_Output_Out_Of_Service_Set(instance, true);
@@ -370,13 +369,12 @@ static void testAnalogOutput_COV_Value_List(void)
 }
 
 /**
- * @brief Test that the COV_Increment baseline follows the Present_Value
- *  that is actually encoded for a pending Status_Flags notification
+ * @brief Test that encoding a value list preserves the object COV baseline
  */
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(ao_tests, testAnalogOutput_COV_Reported_Baseline)
+ZTEST(ao_tests, testAnalogOutput_COV_Encode_Preserves_Baseline)
 #else
-static void testAnalogOutput_COV_Reported_Baseline(void)
+static void testAnalogOutput_COV_Encode_Preserves_Baseline(void)
 #endif
 {
     const uint32_t instance = 989;
@@ -402,10 +400,10 @@ static void testAnalogOutput_COV_Reported_Baseline(void)
     zassert_true(Analog_Output_Encode_Value_List(instance, value_list), NULL);
     zassert_within(value_list[0].value.type.Real, 12.0f, 0.001f, NULL);
 
-    /* later increment checks use the reported 12, not the earlier 11:
-       13 is within 2.0 of 12 and 10 is 2.0 away from 12 */
+    /* later object increment checks still use the baseline of 11 */
     zassert_true(Analog_Output_Present_Value_Set(instance, 13.0f, 8), NULL);
-    zassert_false(Analog_Output_Change_Of_Value(instance), NULL);
+    zassert_true(Analog_Output_Change_Of_Value(instance), NULL);
+    Analog_Output_Change_Of_Value_Clear(instance);
     zassert_true(Analog_Output_Present_Value_Set(instance, 10.0f, 8), NULL);
     zassert_true(Analog_Output_Change_Of_Value(instance), NULL);
 
@@ -429,7 +427,7 @@ void test_main(void)
         ztest_unit_test(testAnalogOutput_Priority_Array_Unknown_Instance),
         ztest_unit_test(testAnalogOutput_COV),
         ztest_unit_test(testAnalogOutput_COV_Value_List),
-        ztest_unit_test(testAnalogOutput_COV_Reported_Baseline));
+        ztest_unit_test(testAnalogOutput_COV_Encode_Preserves_Baseline));
 
     ztest_run_test_suite(ao_tests);
 }

@@ -68,9 +68,35 @@ void Device_getCurrentDateTime(BACNET_DATE_TIME *DateTime)
     }
 }
 
+static read_property_function Mock_Read_Property;
+static object_cov_function Mock_COV;
+static object_cov_clear_function Mock_COV_Clear;
+static object_value_list_function Mock_Value_List;
+
+/**
+ * @brief Test hook: route the Device COV functions to object functions
+ * @param read_property - ReadProperty function, or NULL for the default
+ * @param cov - COV function, or NULL for the default
+ * @param cov_clear - COV clear function, or NULL for the default
+ * @param value_list - value list function, or NULL for the default
+ */
+void Device_COV_Functions_Set(
+    read_property_function read_property,
+    object_cov_function cov,
+    object_cov_clear_function cov_clear,
+    object_value_list_function value_list)
+{
+    Mock_Read_Property = read_property;
+    Mock_COV = cov;
+    Mock_COV_Clear = cov_clear;
+    Mock_Value_List = value_list;
+}
+
 int Device_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
-    (void)rpdata;
+    if (Mock_Read_Property) {
+        return Mock_Read_Property(rpdata);
+    }
     return 0;
 }
 
@@ -91,14 +117,18 @@ bool Device_Value_List_Supported(BACNET_OBJECT_TYPE object_type)
 bool Device_COV(BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
 {
     (void)object_type;
-    (void)object_instance;
+    if (Mock_COV) {
+        return Mock_COV(object_instance);
+    }
     return false;
 }
 
 void Device_COV_Clear(BACNET_OBJECT_TYPE object_type, uint32_t object_instance)
 {
     (void)object_type;
-    (void)object_instance;
+    if (Mock_COV_Clear) {
+        Mock_COV_Clear(object_instance);
+    }
 }
 
 bool Device_Encode_Value_List(
@@ -107,8 +137,9 @@ bool Device_Encode_Value_List(
     BACNET_PROPERTY_VALUE *value_list)
 {
     (void)object_type;
-    (void)object_instance;
-    (void)value_list;
+    if (Mock_Value_List) {
+        return Mock_Value_List(object_instance, value_list);
+    }
     return true;
 }
 
