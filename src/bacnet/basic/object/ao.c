@@ -1045,7 +1045,8 @@ bool Analog_Output_Change_Of_Value(uint32_t object_instance)
 }
 
 /**
- * @brief Clear the COV change flag
+ * @brief Clear the COV change flag and use the current Present_Value
+ *  as the COV_Increment reference value
  * @param object_instance - object-instance number of the object
  */
 void Analog_Output_Change_Of_Value_Clear(uint32_t object_instance)
@@ -1055,6 +1056,7 @@ void Analog_Output_Change_Of_Value_Clear(uint32_t object_instance)
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         pObject->Changed = false;
+        pObject->Prior_Value = Analog_Output_Present_Value(object_instance);
     }
 }
 
@@ -1071,7 +1073,6 @@ bool Analog_Output_Encode_Value_List(
     struct object_data *pObject;
     const bool in_alarm = false;
     bool fault = false;
-    const bool overridden = false;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -1079,8 +1080,8 @@ bool Analog_Output_Encode_Value_List(
             fault = true;
         }
         status = cov_value_list_encode_real(
-            value_list, pObject->Prior_Value, in_alarm, fault, overridden,
-            pObject->Out_Of_Service);
+            value_list, Analog_Output_Present_Value(object_instance), in_alarm,
+            fault, pObject->Overridden, pObject->Out_Of_Service);
     }
 
     return status;
