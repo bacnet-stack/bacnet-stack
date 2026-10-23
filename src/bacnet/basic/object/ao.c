@@ -1077,9 +1077,6 @@ bool Analog_Output_Encode_Value_List(
         if (pObject->Reliability != RELIABILITY_NO_FAULT_DETECTED) {
             fault = true;
         }
-        /* the reported Present_Value is the baseline for COV_Increment
-           checks, even if it changed after the COV flag was set */
-        pObject->Prior_Value = Analog_Output_Present_Value(object_instance);
         status = cov_value_list_encode_real(
             value_list, pObject->Prior_Value, in_alarm, fault,
             pObject->Overridden, pObject->Out_Of_Service);
