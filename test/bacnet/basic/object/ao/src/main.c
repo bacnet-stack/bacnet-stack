@@ -371,7 +371,8 @@ static void testAnalogOutput_COV_Status_Flags_Current_Value(void)
     zassert_true(Analog_Output_Change_Of_Value(instance), NULL);
     Analog_Output_Change_Of_Value_Clear(instance);
 
-    /* encoding reports the current value without changing the object baseline */
+    /* encoding reports the current value without changing the object baseline
+     */
     zassert_true(Analog_Output_Present_Value_Set(instance, 11.0f, 8), NULL);
     zassert_false(Analog_Output_Change_Of_Value(instance), NULL);
     zassert_true(Analog_Output_Encode_Value_List(instance, value_list), NULL);
@@ -382,7 +383,8 @@ static void testAnalogOutput_COV_Status_Flags_Current_Value(void)
     Analog_Output_Out_Of_Service_Set(instance, true);
     zassert_true(Analog_Output_Change_Of_Value(instance), NULL);
     Analog_Output_Change_Of_Value_Clear(instance);
-    /* a later change within COV_Increment is still encoded as the current value */
+    /* a later change within COV_Increment is still encoded as the current value
+     */
     zassert_true(Analog_Output_Present_Value_Set(instance, 12.0f, 8), NULL);
     zassert_false(Analog_Output_Change_Of_Value(instance), NULL);
     zassert_true(Analog_Output_Encode_Value_List(instance, value_list), NULL);

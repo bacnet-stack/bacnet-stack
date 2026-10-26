@@ -19,6 +19,7 @@
 
 /* Mock functions for Device_ */
 #include <bacnet/basic/object/device.h>
+#include <bacnet/basic/object/ao.h>
 
 /* Mocks have been moved to bacnet/basic/object/test/ */
 
@@ -42,6 +43,8 @@ static bool Real_Value;
 static bool Increment_Readable;
 static bool Send_Succeeds;
 static unsigned Notifications[3];
+static float Reported_Values[3];
+static BACNET_BIT_STRING Reported_Flags[3];
 
 /**
  * @brief ReadProperty function of the monitored test object
@@ -118,8 +121,12 @@ static int cov_test_send_pdu(
     BACNET_ADDRESS source = { 0 };
     BACNET_ADDRESS destination = { 0 };
     BACNET_NPDU_DATA decoded_npdu = { 0 };
-    BACNET_UNSIGNED_INTEGER process_id = 0;
+    BACNET_PROPERTY_VALUE values[2] = { 0 };
+    BACNET_COV_DATA data = { 0 };
+    uint32_t process_id;
+    uint8_t invoke_id = 0;
     int offset = 0;
+    int header_len = 0;
 
     (void)dest;
     (void)npdu_data;
@@ -131,13 +138,33 @@ static int cov_test_send_pdu(
     if ((offset > 0) && (offset + 2 < pdu_len) &&
         (pdu[offset] == PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST) &&
         (pdu[offset + 1] == SERVICE_UNCONFIRMED_COV_NOTIFICATION)) {
-        offset += 2;
+        header_len = 2;
+    } else if (
+        (offset > 0) && (offset + 4 < pdu_len) &&
+        (pdu[offset] == PDU_TYPE_CONFIRMED_SERVICE_REQUEST) &&
+        (pdu[offset + 3] == SERVICE_CONFIRMED_COV_NOTIFICATION)) {
+        header_len = 4;
+        invoke_id = pdu[offset + 2];
+    }
+    if (header_len) {
+        offset += header_len;
+        bacapp_property_value_list_init(values, 2);
+        data.listOfValues = values;
         zassert_true(
-            bacnet_unsigned_context_decode(
-                &pdu[offset], pdu_len - offset, 0, &process_id) > 0,
+            cov_notify_decode_service_request(
+                &pdu[offset], pdu_len - offset, &data) > 0,
             NULL);
+        process_id = data.subscriberProcessIdentifier;
         if (process_id < 3) {
             Notifications[process_id]++;
+            if (values[0].value.tag == BACNET_APPLICATION_TAG_REAL) {
+                Reported_Values[process_id] = values[0].value.type.Real;
+            }
+            Reported_Flags[process_id] = values[1].value.type.Bit_String;
+        }
+        /* Simulate a successful client ACK after capturing the notification. */
+        if (invoke_id) {
+            tsm_free_invoke_id(invoke_id);
         }
     }
 
@@ -171,6 +198,8 @@ static void cov_test_setup(void)
     Increment_Readable = true;
     Send_Succeeds = true;
     memset(Notifications, 0, sizeof(Notifications));
+    memset(Reported_Values, 0, sizeof(Reported_Values));
+    memset(Reported_Flags, 0, sizeof(Reported_Flags));
     Device_COV_Functions_Set(
         cov_test_read_property, cov_test_object_cov, cov_test_object_cov_clear,
         cov_test_object_value_list);
@@ -763,6 +792,102 @@ static void test_h_cov_failed_send_reference(void)
 }
 
 /**
+ * @brief Subscribe to the real Analog Output used by the regression test
+ */
+static void cov_test_ao_subscribe(uint32_t process_id, bool confirmed)
+{
+    uint8_t request[128] = { 0 };
+    BACNET_ADDRESS src = { 0 };
+    BACNET_CONFIRMED_SERVICE_DATA service = { 0 };
+    BACNET_SUBSCRIBE_COV_DATA data = { 0 };
+    int len;
+
+    data.subscriberProcessIdentifier = process_id;
+    data.monitoredObjectIdentifier.type = OBJECT_ANALOG_OUTPUT;
+    data.monitoredObjectIdentifier.instance = 990;
+    data.issueConfirmedNotifications = confirmed;
+    data.lifetime = 300;
+    len = cov_subscribe_service_request_encode(request, sizeof(request), &data);
+    zassert_true(len > 0, NULL);
+    handler_cov_subscribe(request, len, &src, &service);
+    cov_test_cycle();
+}
+
+/**
+ * @brief Verify actual AO notification values during subscriptions and renewals
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(h_cov_tests, test_h_cov_ao_reported_reference)
+#else
+static void test_h_cov_ao_reported_reference(void)
+#endif
+{
+    const uint32_t instance = 990;
+    unsigned mode;
+    unsigned step;
+    float value;
+    bool confirmed;
+
+    for (mode = 0; mode < 2; mode++) {
+        confirmed = (mode != 0);
+        cov_test_setup();
+        Analog_Output_Init();
+        zassert_not_equal(
+            Analog_Output_Create(instance), BACNET_MAX_INSTANCE, NULL);
+        Analog_Output_COV_Increment_Set(instance, 2.0f);
+        zassert_true(Analog_Output_Present_Value_Set(instance, 10.0f, 8), NULL);
+        Device_COV_Functions_Set(
+            Analog_Output_Read_Property, Analog_Output_Change_Of_Value,
+            Analog_Output_Change_Of_Value_Clear,
+            Analog_Output_Encode_Value_List);
+        cov_test_ao_subscribe(1, confirmed);
+        zassert_equal(Notifications[1], 1, NULL);
+        zassert_within(Reported_Values[1], 10.0f, 0.001f, NULL);
+
+        zassert_true(Analog_Output_Present_Value_Set(instance, 11.5f, 8), NULL);
+        cov_test_cycle();
+        cov_test_ao_subscribe(2, confirmed);
+        zassert_equal(Notifications[1], 1, NULL);
+        zassert_within(Reported_Values[2], 11.5f, 0.001f, NULL);
+        zassert_true(Analog_Output_Present_Value_Set(instance, 12.5f, 8), NULL);
+        cov_test_cycle();
+        zassert_equal(Notifications[1], 2, NULL);
+        zassert_within(Reported_Values[1], 12.5f, 0.001f, NULL);
+        zassert_equal(Notifications[2], 1, NULL);
+
+        /* Repeated renewals must report current values without starving A. */
+        for (step = 1; step <= 12; step++) {
+            value = 12.5f + (float)step * 0.5f;
+            zassert_true(
+                Analog_Output_Present_Value_Set(instance, value, 8), NULL);
+            cov_test_cycle();
+            cov_test_ao_subscribe(2, confirmed);
+            zassert_within(Reported_Values[2], value, 0.001f, NULL);
+            zassert_true(value - Reported_Values[1] < 2.0f, NULL);
+        }
+        zassert_within(Reported_Values[1], 18.5f, 0.001f, NULL);
+
+        Analog_Output_Overridden_Set(instance, true);
+        cov_test_cycle();
+        zassert_within(Reported_Values[1], 18.5f, 0.001f, NULL);
+        zassert_within(Reported_Values[2], 18.5f, 0.001f, NULL);
+        zassert_true(
+            bitstring_bit(&Reported_Flags[1], STATUS_FLAG_OVERRIDDEN), NULL);
+        zassert_true(
+            bitstring_bit(&Reported_Flags[2], STATUS_FLAG_OVERRIDDEN), NULL);
+        /* A pending notification must encode the current value, not 20.5. */
+        zassert_true(Analog_Output_Present_Value_Set(instance, 20.5f, 8), NULL);
+        zassert_true(Analog_Output_Present_Value_Set(instance, 22.0f, 8), NULL);
+        cov_test_cycle();
+        zassert_within(Reported_Values[1], 22.0f, 0.001f, NULL);
+        zassert_within(Reported_Values[2], 22.0f, 0.001f, NULL);
+        cov_test_teardown();
+        Analog_Output_Delete(instance);
+        Analog_Output_Cleanup();
+    }
+}
+
+/**
  * @brief Test the object COV flag detection for non-REAL values and for
  *  an unreadable COV_Increment
  */
@@ -814,7 +939,8 @@ void test_main(void)
         ztest_unit_test(test_h_cov_zero_increment),
         ztest_unit_test(test_h_cov_renewed_reference),
         ztest_unit_test(test_h_cov_failed_send_reference),
-        ztest_unit_test(test_h_cov_legacy_detection));
+        ztest_unit_test(test_h_cov_legacy_detection),
+        ztest_unit_test(test_h_cov_ao_reported_reference));
 
     ztest_run_test_suite(h_cov_tests);
 }
