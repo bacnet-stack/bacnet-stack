@@ -302,6 +302,50 @@ static void testPresentValue(void)
 }
 
 /**
+ * @brief Test that a malformed Date_List write is rejected without looping
+ */
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_calendar, testDateListWriteMalformed)
+#else
+static void testDateListWriteMalformed(void)
+#endif
+{
+    const uint32_t instance = 1;
+    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
+    /* context tag 2 (Week-N-Day) octet string with 2 octets instead of 3 */
+    const uint8_t bad_week_n_day[] = { 0x2A, 0x01, 0x02 };
+    /* valid Week-N-Day entry followed by the malformed one */
+    const uint8_t good_then_bad[] = {
+        0x2B, 0x01, 0x02, 0x03, 0x2A, 0x01, 0x02
+    };
+    bool status;
+
+    Calendar_Init();
+    zassert_equal(Calendar_Create(instance), instance, NULL);
+
+    wpdata.object_type = OBJECT_CALENDAR;
+    wpdata.object_instance = instance;
+    wpdata.object_property = PROP_DATE_LIST;
+    wpdata.array_index = BACNET_ARRAY_ALL;
+
+    memcpy(wpdata.application_data, bad_week_n_day, sizeof(bad_week_n_day));
+    wpdata.application_data_len = sizeof(bad_week_n_day);
+    status = Calendar_Write_Property(&wpdata);
+    zassert_false(status, NULL);
+    zassert_equal(wpdata.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(0, Calendar_Date_List_Count(instance), NULL);
+
+    memcpy(wpdata.application_data, good_then_bad, sizeof(good_then_bad));
+    wpdata.application_data_len = sizeof(good_then_bad);
+    status = Calendar_Write_Property(&wpdata);
+    zassert_false(status, NULL);
+    zassert_equal(wpdata.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_true(Calendar_Date_List_Count(instance) <= 1, NULL);
+
+    zassert_true(Calendar_Delete(instance), NULL);
+}
+
+/**
  * @}
  */
 
@@ -312,7 +356,8 @@ void test_main(void)
 {
     ztest_test_suite(
         calendar_tests, ztest_unit_test(testCalendar),
-        ztest_unit_test(testPresentValue));
+        ztest_unit_test(testPresentValue),
+        ztest_unit_test(testDateListWriteMalformed));
 
     ztest_run_test_suite(calendar_tests);
 }

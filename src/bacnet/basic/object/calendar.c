@@ -701,13 +701,17 @@ bool Calendar_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 len = bacnet_calendar_entry_decode(
                     &wp_data->application_data[iOffset],
                     wp_data->application_data_len - iOffset, &entry);
-                if (len == BACNET_STATUS_REJECT) {
+                if (len <= 0) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
                     return false;
                 }
                 iOffset += len;
-                Calendar_Date_List_Add(wp_data->object_instance, &entry);
+                if (!Calendar_Date_List_Add(wp_data->object_instance, &entry)) {
+                    wp_data->error_class = ERROR_CLASS_RESOURCES;
+                    wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                    return false;
+                }
             }
             pv = Calendar_Present_Value(wp_data->object_instance);
             status = Calendar_Present_Value_Write(
