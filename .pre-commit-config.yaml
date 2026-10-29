@@ -12,7 +12,7 @@
 #   pre-commit uninstall
 
 # Just in case exclude build and .git folders. Others are for external files.
-exclude: build|\.git|external/|BACnet\-Server\.X/|tools/(avstack|check\-stack\-usage|memap)|test/ztest/
+exclude: build|^\.git/|external/|BACnet\-Server\.X/|tools/(avstack|check\-stack\-usage|memap)|test/ztest/
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
