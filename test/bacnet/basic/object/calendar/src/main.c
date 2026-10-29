@@ -315,6 +315,7 @@ static void testDateListWriteMalformed(void)
     /* context tag 2 (Week-N-Day) octet string with 2 octets instead of 3 */
     const uint8_t bad_week_n_day[] = { 0x2A, 0x01, 0x02 };
     /* valid Week-N-Day entry followed by the malformed one */
+    const uint8_t good_only[] = { 0x2B, 0x01, 0x02, 0x03 };
     const uint8_t good_then_bad[] = {
         0x2B, 0x01, 0x02, 0x03, 0x2A, 0x01, 0x02
     };
@@ -322,6 +323,7 @@ static void testDateListWriteMalformed(void)
 
     Calendar_Init();
     zassert_equal(Calendar_Create(instance), instance, NULL);
+    Calendar_Write_Enable(instance);
 
     wpdata.object_type = OBJECT_CALENDAR;
     wpdata.object_instance = instance;
@@ -333,6 +335,7 @@ static void testDateListWriteMalformed(void)
     status = Calendar_Write_Property(&wpdata);
     zassert_false(status, NULL);
     zassert_equal(wpdata.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
     zassert_equal(0, Calendar_Date_List_Count(instance), NULL);
 
     memcpy(wpdata.application_data, good_then_bad, sizeof(good_then_bad));
@@ -340,7 +343,15 @@ static void testDateListWriteMalformed(void)
     status = Calendar_Write_Property(&wpdata);
     zassert_false(status, NULL);
     zassert_equal(wpdata.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
     zassert_true(Calendar_Date_List_Count(instance) <= 1, NULL);
+
+    /* control: a valid-only write is accepted */
+    memcpy(wpdata.application_data, good_only, sizeof(good_only));
+    wpdata.application_data_len = sizeof(good_only);
+    status = Calendar_Write_Property(&wpdata);
+    zassert_true(status, NULL);
+    zassert_equal(1, Calendar_Date_List_Count(instance), NULL);
 
     zassert_true(Calendar_Delete(instance), NULL);
 }
