@@ -149,6 +149,13 @@ static void test_BACnetCalendarEntry_WeekNDay(void)
     zassert_equal(
         entry.type.WeekNDay.dayofweek, test_entry.type.WeekNDay.dayofweek,
         NULL);
+    /* Week-N-Day octet string of 2 octets instead of 3 is an error, never
+       a positive length */
+    apdu[0] = 0x2A;
+    apdu[1] = 0x01;
+    apdu[2] = 0x02;
+    test_len = bacnet_calendar_entry_decode(apdu, 3, &test_entry);
+    zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
 }
 
 /**

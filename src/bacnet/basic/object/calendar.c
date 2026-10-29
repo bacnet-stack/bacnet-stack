@@ -242,6 +242,30 @@ static void Calendar_Date_List_Clean(OS_Keylist list)
 }
 
 /**
+ * @brief Append a copy of a Calendar entry to the end of a date-list
+ * @param  list - the list to append to
+ * @param  value - Calendar entry to copy
+ * @return  true if the entry is appended successfully.
+ */
+static bool
+Calendar_Date_List_Append(OS_Keylist list, const BACNET_CALENDAR_ENTRY *value)
+{
+    BACNET_CALENDAR_ENTRY *entry;
+
+    entry = calloc(1, sizeof(BACNET_CALENDAR_ENTRY));
+    if (!entry) {
+        return false;
+    }
+    *entry = *value;
+    if (Keylist_Data_Add(list, Keylist_Count(list), entry) < 0) {
+        free(entry);
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * For a given object instance-number, returns the Calendar entity by index.
  *
  * @param  object_instance - object-instance number of the object
@@ -274,8 +298,6 @@ Calendar_Date_List_Get(uint32_t object_instance, uint8_t index)
 bool Calendar_Date_List_Add(
     uint32_t object_instance, const BACNET_CALENDAR_ENTRY *value)
 {
-    int index = 0;
-    BACNET_CALENDAR_ENTRY *entry;
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
@@ -283,19 +305,7 @@ bool Calendar_Date_List_Add(
         return false;
     }
 
-    entry = calloc(1, sizeof(BACNET_CALENDAR_ENTRY));
-    if (!entry) {
-        return false;
-    }
-    *entry = *value;
-    index = Keylist_Data_Add(
-        pObject->Date_List, Keylist_Count(pObject->Date_List), entry);
-    if (index < 0) {
-        free(entry);
-        return false;
-    }
-
-    return true;
+    return Calendar_Date_List_Append(pObject->Date_List, value);
 }
 
 /**
@@ -581,6 +591,75 @@ static bool Calendar_Description_Write(
 }
 
 /**
+ * @brief Replace the date-list using write-property context. The new list
+ *  is staged and committed only if every entry decodes and allocates, so
+ *  the existing list is preserved on failure.
+ * @param wp_data [in,out] Write property request/response context.
+ * @return true if the date-list was replaced and present-value updated.
+ */
+static bool Calendar_Date_List_Write(BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    BACNET_CALENDAR_ENTRY entry = { 0 };
+    struct object_data *pObject;
+    OS_Keylist staged_list;
+    OS_Keylist old_list;
+    int len;
+    int iOffset = 0;
+    bool pv_old;
+    bool pv;
+
+    pObject = Keylist_Data(Object_List, wp_data->object_instance);
+    if (!pObject) {
+        wp_data->error_class = ERROR_CLASS_OBJECT;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        return false;
+    }
+    if (!pObject->Write_Enabled) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        return false;
+    }
+    pv_old = Calendar_Present_Value(wp_data->object_instance);
+    staged_list = Keylist_Create();
+    if (!staged_list) {
+        wp_data->error_class = ERROR_CLASS_RESOURCES;
+        wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+        return false;
+    }
+    /* decode all packed */
+    while (iOffset < wp_data->application_data_len) {
+        len = bacnet_calendar_entry_decode(
+            &wp_data->application_data[iOffset],
+            wp_data->application_data_len - iOffset, &entry);
+        if (len <= 0) {
+            Calendar_Date_List_Clean(staged_list);
+            Keylist_Delete(staged_list);
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            return false;
+        }
+        iOffset += len;
+        if (!Calendar_Date_List_Append(staged_list, &entry)) {
+            Calendar_Date_List_Clean(staged_list);
+            Keylist_Delete(staged_list);
+            wp_data->error_class = ERROR_CLASS_RESOURCES;
+            wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            return false;
+        }
+    }
+    /* commit the staged list */
+    old_list = pObject->Date_List;
+    pObject->Date_List = staged_list;
+    Calendar_Date_List_Clean(old_list);
+    Keylist_Delete(old_list);
+    pv = Calendar_Present_Value(wp_data->object_instance);
+
+    return Calendar_Present_Value_Write(
+        wp_data->object_instance, pv_old, pv, wp_data->priority,
+        &wp_data->error_class, &wp_data->error_code);
+}
+
+/**
  * ReadProperty handler for this object.  For the given ReadProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -655,64 +734,45 @@ bool Calendar_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
-    int iOffset;
-    BACNET_CALENDAR_ENTRY entry;
-    bool pv_old;
-    bool pv;
+    BACNET_CHARACTER_STRING char_string = { 0 };
 
     /* Valid data? */
     if (wp_data == NULL) {
         return false;
     }
-    /* decode the some of the request */
-    len = bacapp_decode_application_data(
-        wp_data->application_data, wp_data->application_data_len, &value);
-    /* FIXME: len < application_data_len: more data? */
-    if (len < 0) {
-        /* error while decoding - a value larger than we can handle */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
     switch (wp_data->object_property) {
         case PROP_OBJECT_NAME:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
-            if (status) {
-                status = Calendar_Object_Name_Write(
-                    wp_data, &value.type.Character_String);
+            len = bacnet_character_string_application_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &char_string);
+            if (len <= 0) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                if (len < 0) {
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
+                } else {
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                }
+                return false;
             }
+            status = Calendar_Object_Name_Write(wp_data, &char_string);
             break;
         case PROP_DESCRIPTION:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
-            if (status) {
-                status = Calendar_Description_Write(
-                    wp_data, &value.type.Character_String);
+            len = bacnet_character_string_application_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &char_string);
+            if (len <= 0) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                if (len < 0) {
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
+                } else {
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                }
+                return false;
             }
+            status = Calendar_Description_Write(wp_data, &char_string);
             break;
         case PROP_DATE_LIST:
-            pv_old = Calendar_Present_Value(wp_data->object_instance);
-            Calendar_Date_List_Delete_All(wp_data->object_instance);
-            iOffset = 0;
-            /* decode all packed */
-            while (iOffset < wp_data->application_data_len) {
-                len = bacnet_calendar_entry_decode(
-                    &wp_data->application_data[iOffset],
-                    wp_data->application_data_len - iOffset, &entry);
-                if (len == BACNET_STATUS_REJECT) {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                    return false;
-                }
-                iOffset += len;
-                Calendar_Date_List_Add(wp_data->object_instance, &entry);
-            }
-            pv = Calendar_Present_Value(wp_data->object_instance);
-            status = Calendar_Present_Value_Write(
-                wp_data->object_instance, pv_old, pv, wp_data->priority,
-                &wp_data->error_class, &wp_data->error_code);
+            status = Calendar_Date_List_Write(wp_data);
             break;
         default:
             if (property_lists_member(
