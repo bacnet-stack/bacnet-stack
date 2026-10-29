@@ -614,6 +614,11 @@ static bool Calendar_Date_List_Write(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return false;
     }
+    if (!pObject->Write_Enabled) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        return false;
+    }
     pv_old = Calendar_Present_Value(wp_data->object_instance);
     staged_list = Keylist_Create();
     if (!staged_list) {
