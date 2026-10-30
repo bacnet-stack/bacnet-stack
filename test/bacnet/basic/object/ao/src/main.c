@@ -346,14 +346,13 @@ static void testAnalogOutput_COV_Overridden(void)
 }
 
 /**
- * @brief Test that a Status_Flags change saves the Present_Value at the
- *  time of the change for the COV value list, and that the saved value
- *  is the new COV_Increment baseline
+ * @brief Test that Status_Flags changes update the object baseline, while
+ *  the COV value list reports the current Present_Value
  */
 #if defined(CONFIG_ZTEST_NEW_API)
-ZTEST(ao_tests, testAnalogOutput_COV_Status_Flags_Prior_Value)
+ZTEST(ao_tests, testAnalogOutput_COV_Status_Flags_Current_Value)
 #else
-static void testAnalogOutput_COV_Status_Flags_Prior_Value(void)
+static void testAnalogOutput_COV_Status_Flags_Current_Value(void)
 #endif
 {
     const uint32_t instance = 989;
@@ -372,24 +371,24 @@ static void testAnalogOutput_COV_Status_Flags_Prior_Value(void)
     zassert_true(Analog_Output_Change_Of_Value(instance), NULL);
     Analog_Output_Change_Of_Value_Clear(instance);
 
-    /* a change within COV_Increment is not reported: the value list
-       (and the initial notification of a new subscriber) reports the
-       value of the last change of value */
+    /* encoding reports the current value without changing the object baseline
+     */
     zassert_true(Analog_Output_Present_Value_Set(instance, 11.0f, 8), NULL);
     zassert_false(Analog_Output_Change_Of_Value(instance), NULL);
     zassert_true(Analog_Output_Encode_Value_List(instance, value_list), NULL);
     zassert_equal(value_list[0].propertyIdentifier, PROP_PRESENT_VALUE, NULL);
-    zassert_within(value_list[0].value.type.Real, 10.0f, 0.001f, NULL);
+    zassert_within(value_list[0].value.type.Real, 11.0f, 0.001f, NULL);
 
     /* Out_Of_Service change: report the Present_Value at that time */
     Analog_Output_Out_Of_Service_Set(instance, true);
     zassert_true(Analog_Output_Change_Of_Value(instance), NULL);
     Analog_Output_Change_Of_Value_Clear(instance);
-    /* a later change within COV_Increment does not alter the report */
+    /* a later change within COV_Increment is still encoded as the current value
+     */
     zassert_true(Analog_Output_Present_Value_Set(instance, 12.0f, 8), NULL);
     zassert_false(Analog_Output_Change_Of_Value(instance), NULL);
     zassert_true(Analog_Output_Encode_Value_List(instance, value_list), NULL);
-    zassert_within(value_list[0].value.type.Real, 11.0f, 0.001f, NULL);
+    zassert_within(value_list[0].value.type.Real, 12.0f, 0.001f, NULL);
     zassert_true(bitstring_bit(flags, STATUS_FLAG_OUT_OF_SERVICE), NULL);
     /* the baseline is now 11: 13 is equal to COV_Increment from 11 */
     zassert_true(Analog_Output_Present_Value_Set(instance, 13.0f, 8), NULL);
@@ -417,14 +416,15 @@ static void testAnalogOutput_COV_Status_Flags_Prior_Value(void)
     zassert_true(bitstring_bit(flags, STATUS_FLAG_FAULT), NULL);
     Analog_Output_Change_Of_Value_Clear(instance);
 
-    /* a Reliability change without a Fault change does not alter the
-       report or the baseline */
+    /* a Reliability change without a Fault change preserves the baseline */
     zassert_true(Analog_Output_Present_Value_Set(instance, 16.0f, 8), NULL);
     zassert_true(
         Analog_Output_Reliability_Set(instance, RELIABILITY_OVER_RANGE), NULL);
     zassert_false(Analog_Output_Change_Of_Value(instance), NULL);
     zassert_true(Analog_Output_Encode_Value_List(instance, value_list), NULL);
-    zassert_within(value_list[0].value.type.Real, 15.0f, 0.001f, NULL);
+    zassert_within(value_list[0].value.type.Real, 16.0f, 0.001f, NULL);
+    zassert_true(Analog_Output_Present_Value_Set(instance, 17.0f, 8), NULL);
+    zassert_true(Analog_Output_Change_Of_Value(instance), NULL);
 
     Analog_Output_Delete(instance);
     Analog_Output_Cleanup();
@@ -446,7 +446,7 @@ void test_main(void)
         ztest_unit_test(testAnalogOutput_Priority_Array_Unknown_Instance),
         ztest_unit_test(testAnalogOutput_COV),
         ztest_unit_test(testAnalogOutput_COV_Overridden),
-        ztest_unit_test(testAnalogOutput_COV_Status_Flags_Prior_Value));
+        ztest_unit_test(testAnalogOutput_COV_Status_Flags_Current_Value));
 
     ztest_run_test_suite(ao_tests);
 }
