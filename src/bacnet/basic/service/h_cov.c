@@ -802,7 +802,8 @@ bool handler_cov_fsm(void)
                     cov_increment_read(
                         object_type, object_instance, &cov_increment);
                 if (subscription->flag.increment_evaluated) {
-                    if (subscription->last_present_value > present_value) {
+                    if (isgreater(
+                            subscription->last_present_value, present_value)) {
                         cov_delta =
                             subscription->last_present_value - present_value;
                     } else {
@@ -812,7 +813,8 @@ bool handler_cov_fsm(void)
                     status = subscription->flag.reference_valid &&
                         (!bitstring_same(
                              &status_flags, &subscription->last_status_flags) ||
-                         ((cov_delta > 0.0f) && (cov_delta >= cov_increment)));
+                         (isgreater(cov_delta, 0.0f) &&
+                          isgreaterequal(cov_delta, cov_increment)));
                 } else {
                     status = Device_COV(object_type, object_instance);
                 }
