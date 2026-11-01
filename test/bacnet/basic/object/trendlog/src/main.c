@@ -37,6 +37,11 @@ static void test_Trend_Log_ReadProperty(void)
         OBJECT_TRENDLOG, object_instance, Trend_Log_Property_Lists,
         Trend_Log_Read_Property, Trend_Log_Write_Property,
         known_fail_property_list);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Trend_Log_Name_Duplicate, Trend_Log_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Trend_Log_Description_Duplicate,
+        Trend_Log_Description);
 }
 
 static void test_Trend_Log_ReadRange_BySequence(void)

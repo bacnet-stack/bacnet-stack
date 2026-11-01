@@ -127,6 +127,11 @@ static void testProgramObject(void)
         Program_Read_Property, Program_Write_Property, skip_fail_property_list);
     bacnet_object_name_ascii_test(
         object_instance, Program_Name_Set, Program_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Program_Name_Duplicate, Program_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Program_Description_Duplicate,
+        Program_Description_ANSI);
     Program_Writable_Property_List(object_instance, &writable_properties);
     zassert_not_null(writable_properties, NULL);
     zassert_true(

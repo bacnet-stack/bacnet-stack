@@ -11,6 +11,7 @@
  */
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/bacfile.h>
+#include <property_test.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -65,6 +66,8 @@ static void test_BACnet_File_Object(void)
         required_property++;
     }
 
+    bacnet_object_name_ascii_duplicate_test(
+        instance, bacfile_object_name_duplicate, bacfile_name_ansi);
     bacfile_cleanup();
 
     return;

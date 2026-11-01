@@ -57,12 +57,18 @@ bool Network_Port_Object_Name(
 BACNET_STACK_EXPORT
 bool Network_Port_Name_Set(uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
+bool Network_Port_Name_Duplicate(
+    uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
 const char *Network_Port_Object_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 const char *Network_Port_Description(uint32_t instance);
 BACNET_STACK_EXPORT
 bool Network_Port_Description_Set(uint32_t instance, const char *new_name);
+BACNET_STACK_EXPORT
+bool Network_Port_Description_Duplicate(
+    uint32_t instance, const char *new_name);
 
 BACNET_STACK_EXPORT
 BACNET_RELIABILITY Network_Port_Reliability(uint32_t object_instance);

@@ -262,6 +262,30 @@ bool Structured_View_Name_Set(uint32_t object_instance, const char *new_name)
 }
 
 /**
+ * @brief For a given object instance-number, sets the object-name
+ *  by duplicating (copying) an ANSI C string.
+ * @note The object name must be unique within this device.
+ * @param object_instance object-instance number of the object
+ * @param new_name ANSI C string to copy, or NULL to clear it.
+ * @return true if object-name was set. The object-name is unchanged on
+ *  failure (object not found, string too long, or out of memory).
+ */
+bool Structured_View_Name_Duplicate(
+    uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        status = bacnet_character_cstring_strndup(
+            &pObject->Object_Name, new_name, SIZE_MAX);
+    }
+
+    return status;
+}
+
+/**
  * @brief Return the object name C string
  * @param object_instance [in] BACnet object instance number
  * @return object name or NULL if not found
@@ -317,6 +341,29 @@ bool Structured_View_Description_Set(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = bacnet_character_cstring_set(&pObject->Description, new_name);
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the description
+ *  by duplicating (copying) an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name ANSI C string to copy, or NULL to clear it.
+ * @return true if description was set. The description is unchanged on
+ *  failure (object not found, string too long, or out of memory).
+ */
+bool Structured_View_Description_Duplicate(
+    uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        status = bacnet_character_cstring_strndup(
+            &pObject->Description, new_name, SIZE_MAX);
     }
 
     return status;

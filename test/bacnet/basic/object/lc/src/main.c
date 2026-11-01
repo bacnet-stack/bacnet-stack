@@ -834,6 +834,11 @@ static void test_Load_Control_Read_Write_Property(void)
         skip_fail_property_list);
     bacnet_object_name_ascii_test(
         object_instance, Load_Control_Name_Set, Load_Control_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Load_Control_Name_Duplicate, Load_Control_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Load_Control_Description_Duplicate,
+        Load_Control_Description);
     status = Load_Control_Description_Set(
         object_instance, "load-control-description");
     zassert_true(status, NULL);

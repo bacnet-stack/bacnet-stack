@@ -535,6 +535,12 @@ static void test_network_port(void)
         bacnet_object_name_ascii_test(
             object_instance, Network_Port_Name_Set,
             Network_Port_Object_Name_ASCII);
+        bacnet_object_name_ascii_duplicate_test(
+            object_instance, Network_Port_Name_Duplicate,
+            Network_Port_Object_Name_ASCII);
+        bacnet_object_name_ascii_duplicate_test(
+            object_instance, Network_Port_Description_Duplicate,
+            Network_Port_Description);
         port++;
         Network_Port_Changes_Activate();
         zassert_false(Network_Port_Changes_Pending(object_instance), NULL);

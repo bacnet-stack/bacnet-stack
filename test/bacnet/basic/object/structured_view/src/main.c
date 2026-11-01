@@ -318,6 +318,11 @@ static void test_object_structured_view(void)
         skip_fail_property_list);
     bacnet_object_name_ascii_test(
         instance, Structured_View_Name_Set, Structured_View_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Structured_View_Name_Duplicate, Structured_View_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Structured_View_Description_Duplicate,
+        Structured_View_Description);
     /* there is no WriteProperty test for structured view - use get/set */
     status = Structured_View_Name_Set(instance, test_name);
     zassert_true(status, NULL);

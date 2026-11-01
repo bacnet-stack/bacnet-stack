@@ -134,6 +134,12 @@ static void testLifeSafetyZone(void)
     zassert_true(status, NULL);
     zassert_true(
         strcmp(Life_Safety_Zone_Description(object_instance), "") == 0, NULL);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Life_Safety_Zone_Name_Duplicate,
+        Life_Safety_Zone_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Life_Safety_Zone_Description_Duplicate,
+        Life_Safety_Zone_Description);
     /* cleanup */
     status = Life_Safety_Zone_Delete(object_instance);
 }

@@ -49,6 +49,12 @@ static void testMultistateValue(void)
     bacnet_object_name_ascii_test(
         object_instance, Multistate_Value_Name_Set,
         Multistate_Value_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Multistate_Value_Name_Duplicate,
+        Multistate_Value_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Multistate_Value_Description_Duplicate,
+        Multistate_Value_Description);
     status = Multistate_Value_Delete(object_instance);
     zassert_true(status, NULL);
 }

@@ -47,6 +47,12 @@ static void testMultistateInput(void)
     bacnet_object_name_ascii_test(
         object_instance, Multistate_Input_Name_Set,
         Multistate_Input_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Multistate_Input_Name_Duplicate,
+        Multistate_Input_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Multistate_Input_Description_Duplicate,
+        Multistate_Input_Description);
     status = Multistate_Input_Delete(object_instance);
     zassert_true(status, NULL);
 }
@@ -138,7 +144,8 @@ static void testMultistateInput_Writable_Properties(void)
     zassert_not_equal(
         Multistate_Input_Create(instance), BACNET_MAX_INSTANCE, NULL);
 
-    /* write-disabled (default for ms-input): list skips PROP_PRESENT_VALUE */
+    /* write-disabled (default for ms-input): list skips PROP_PRESENT_VALUE
+     */
     zassert_false(Multistate_Input_Write_Enabled(instance), NULL);
     Multistate_Input_Writable_Property_List(instance, &properties);
     zassert_not_null(properties, NULL);

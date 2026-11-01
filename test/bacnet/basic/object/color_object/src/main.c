@@ -9,6 +9,7 @@
 #include <zephyr/ztest.h>
 #include <bacnet/bactext.h>
 #include <bacnet/basic/object/color_object.h>
+#include <property_test.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -137,6 +138,10 @@ static void testColorObject(void)
     zassert_true(status, NULL);
     test_name = Color_Name_ASCII(instance);
     zassert_equal(test_name, NULL, NULL);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Color_Name_Duplicate, Color_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Color_Description_Duplicate, Color_Description);
     /* cleanup */
     status = Color_Delete(instance);
     zassert_true(status, NULL);

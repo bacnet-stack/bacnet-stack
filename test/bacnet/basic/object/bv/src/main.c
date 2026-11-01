@@ -108,6 +108,11 @@ static void testBinary_Value(void)
         skip_fail_property_list);
     bacnet_object_name_ascii_test(
         object_instance, Binary_Value_Name_Set, Binary_Value_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Binary_Value_Name_Duplicate, Binary_Value_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Binary_Value_Description_Duplicate,
+        Binary_Value_Description);
     status = Binary_Value_Delete(object_instance);
     zassert_true(status, NULL);
 }

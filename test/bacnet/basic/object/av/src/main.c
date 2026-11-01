@@ -49,6 +49,11 @@ static void testAnalog_Value(void)
         skip_fail_property_list);
     bacnet_object_name_ascii_test(
         object_instance, Analog_Value_Name_Set, Analog_Value_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Analog_Value_Name_Duplicate, Analog_Value_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Analog_Value_Description_Duplicate,
+        Analog_Value_Description);
     status = Analog_Value_Delete(object_instance);
     zassert_true(status, NULL);
 }

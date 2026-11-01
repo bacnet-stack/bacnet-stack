@@ -190,6 +190,10 @@ static void testSchedule(void)
 
     bacnet_object_name_ascii_test(
         object_instance, Schedule_Name_Set, Schedule_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Schedule_Name_Duplicate, Schedule_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Schedule_Description_Duplicate, Schedule_Description);
     /* regression: Schedule_Object_Name() must populate its output
      * parameter unconditionally, rather than reading it before it is
      * written. Pre-load the output with a non-UTF-8 encoding/content

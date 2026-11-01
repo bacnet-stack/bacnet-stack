@@ -9,6 +9,7 @@
 #include <zephyr/ztest.h>
 #include <bacnet/bactext.h>
 #include <bacnet/basic/object/color_temperature.h>
+#include <property_test.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -152,6 +153,12 @@ static void testColorTemperature(void)
     status = Color_Temperature_Description_Set(instance, NULL);
     zassert_true(status, NULL);
     zassert_equal(strcmp(Color_Temperature_Description(instance), ""), 0, NULL);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Color_Temperature_Name_Duplicate,
+        Color_Temperature_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Color_Temperature_Description_Duplicate,
+        Color_Temperature_Description);
     char_string.length = 0;
     characterstring_init_ansi(&char_string, "written name");
     wpdata.object_type = OBJECT_COLOR_TEMPERATURE;

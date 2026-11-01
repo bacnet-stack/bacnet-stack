@@ -371,6 +371,29 @@ bool Trend_Log_Name_Set(uint32_t object_instance, const char *new_name)
 }
 
 /**
+ * @brief For a given object instance-number, sets the object-name
+ *  by duplicating (copying) an ANSI C string.
+ * @note The object name must be unique within this device.
+ * @param object_instance object-instance number of the object
+ * @param new_name ANSI C string to copy, or NULL to clear it.
+ * @return true if object-name was set. The object-name is unchanged on
+ *  failure (object not found, string too long, or out of memory).
+ */
+bool Trend_Log_Name_Duplicate(uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    TL_LOG_INFO *CurrentLog;
+
+    if (object_instance < MAX_TREND_LOGS) {
+        CurrentLog = &LogInfo[object_instance];
+        status = bacnet_character_cstring_strndup(
+            &CurrentLog->Object_Name, new_name, SIZE_MAX);
+    }
+
+    return status;
+}
+
+/**
  * @brief Return the object name C string.
  * @param object_instance - BACnet object instance number.
  * @return object name or NULL if not found.
@@ -458,6 +481,29 @@ bool Trend_Log_Description_Set(uint32_t object_instance, const char *new_name)
         CurrentLog = &LogInfo[object_instance];
         status =
             bacnet_character_cstring_set(&CurrentLog->Description, new_name);
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the description
+ *  by duplicating (copying) an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name ANSI C string to copy, or NULL to clear it.
+ * @return true if description was set. The description is unchanged on
+ *  failure (object not found, string too long, or out of memory).
+ */
+bool Trend_Log_Description_Duplicate(
+    uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    TL_LOG_INFO *CurrentLog;
+
+    if (object_instance < MAX_TREND_LOGS) {
+        CurrentLog = &LogInfo[object_instance];
+        status = bacnet_character_cstring_strndup(
+            &CurrentLog->Description, new_name, SIZE_MAX);
     }
 
     return status;

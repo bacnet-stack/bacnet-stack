@@ -10,6 +10,7 @@
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/csv.h>
 #include <bacnet/bactext.h>
+#include <property_test.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -169,6 +170,13 @@ static void testCharacterString_Value_name_description_write(void)
     status = characterstring_ansi_same(
         &value.type.Character_String, test_description);
     zassert_true(status, NULL);
+
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, CharacterString_Value_Name_Duplicate,
+        CharacterString_Value_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, CharacterString_Value_Description_Duplicate,
+        CharacterString_Value_Description);
 
     status = CharacterString_Value_Delete(object_instance);
     zassert_true(status, NULL);

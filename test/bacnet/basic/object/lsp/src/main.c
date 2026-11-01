@@ -8,6 +8,7 @@
 #include <zephyr/ztest.h>
 #include <bacnet/bactext.h>
 #include <bacnet/basic/object/lsp.h>
+#include <property_test.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -151,6 +152,12 @@ static void testLifeSafetyPoint(void)
     zassert_true(status, NULL);
     zassert_true(
         strcmp(Life_Safety_Point_Description(instance), "") == 0, NULL);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Life_Safety_Point_Name_Duplicate,
+        Life_Safety_Point_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Life_Safety_Point_Description_Duplicate,
+        Life_Safety_Point_Description);
     /* cleanup */
     status = Life_Safety_Point_Delete(instance);
     zassert_true(status, NULL);

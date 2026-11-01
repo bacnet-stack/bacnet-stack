@@ -168,6 +168,10 @@ static void test_Channel_Property_Read_Write(void)
     zassert_true(status, NULL);
     test_name = Channel_Name_ASCII(instance);
     zassert_equal(test_name, NULL, NULL);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Channel_Name_Duplicate, Channel_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Channel_Description_Duplicate, Channel_Description);
 
     /* test specific WriteProperty values - common configuration */
     wp_data.object_type = OBJECT_CHANNEL;

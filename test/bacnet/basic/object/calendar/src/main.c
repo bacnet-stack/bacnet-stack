@@ -10,6 +10,7 @@
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/calendar.h>
 #include <bacnet/bactext.h>
+#include <property_test.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -188,6 +189,11 @@ static void testCalendar(void)
     zassert_true(
         strcmp(Calendar_Description(instance), updated_description) == 0,
         "description should match updated value");
+    /* test the duplicate (copy) name/description APIs */
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Calendar_Name_Duplicate, Calendar_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Calendar_Description_Duplicate, Calendar_Description);
     /* check the delete function */
     status = Calendar_Delete(instance);
     zassert_true(status, NULL);

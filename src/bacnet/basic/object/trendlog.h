@@ -139,12 +139,17 @@ bool Trend_Log_Object_Name(
 BACNET_STACK_EXPORT
 bool Trend_Log_Name_Set(uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
+bool Trend_Log_Name_Duplicate(uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
 const char *Trend_Log_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 const char *Trend_Log_Description(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Trend_Log_Description_Set(uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
+bool Trend_Log_Description_Duplicate(
+    uint32_t object_instance, const char *new_name);
 
 BACNET_STACK_EXPORT
 uint32_t Trend_Log_Total_Record_Count(uint32_t object_instance);

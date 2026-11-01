@@ -74,12 +74,18 @@ bool Alert_Enrollment_Object_Name(
 BACNET_STACK_EXPORT
 bool Alert_Enrollment_Name_Set(uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
+bool Alert_Enrollment_Name_Duplicate(
+    uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
 const char *Alert_Enrollment_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 const char *Alert_Enrollment_Description(uint32_t instance);
 BACNET_STACK_EXPORT
 bool Alert_Enrollment_Description_Set(uint32_t instance, const char *new_name);
+BACNET_STACK_EXPORT
+bool Alert_Enrollment_Description_Duplicate(
+    uint32_t object_instance, const char *new_name);
 
 BACNET_STACK_EXPORT
 BACNET_OBJECT_ID Alert_Enrollment_Present_Value(uint32_t object_instance);

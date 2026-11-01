@@ -81,6 +81,29 @@ static bool Write_Property_Internal(BACNET_WRITE_PROPERTY_DATA *wp_data)
 }
 
 /**
+ * @brief Get the object-name as a C string, or NULL when it is the default
+ */
+static const char *Command_Name_Test_ASCII(uint32_t object_instance)
+{
+    static char name[MAX_CHARACTER_STRING_BYTES + 1];
+    char default_name[32];
+    BACNET_CHARACTER_STRING char_string;
+
+    if (!Command_Object_Name(object_instance, &char_string)) {
+        return NULL;
+    }
+    snprintf(
+        default_name, sizeof(default_name), "COMMAND-%lu",
+        (unsigned long)object_instance);
+    if (characterstring_ansi_same(&char_string, default_name)) {
+        return NULL;
+    }
+    characterstring_ansi_copy(name, sizeof(name), &char_string);
+
+    return name;
+}
+
+/**
  * @addtogroup bacnet_tests
  * @{
  */
@@ -133,6 +156,10 @@ static void test_object_command(void)
     bacnet_object_properties_read_write_test(
         OBJECT_COMMAND, object_instance, Command_Property_Lists,
         Command_Read_Property, Command_Write_Property, skip_fail_property_list);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Command_Name_Duplicate, Command_Name_Test_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Command_Description_Duplicate, Command_Description);
 
     status = Command_Delete(object_instance);
     zassert_true(status, NULL);

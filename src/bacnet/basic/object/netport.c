@@ -584,6 +584,29 @@ bool Network_Port_Name_Set(uint32_t object_instance, const char *new_name)
 }
 
 /**
+ * @brief For a given object instance-number, sets the object-name
+ *  by duplicating (copying) an ANSI C string.
+ * @note The object name must be unique within this device.
+ * @param object_instance object-instance number of the object
+ * @param new_name ANSI C string to copy, or NULL to clear it.
+ * @return true if object-name was set. The object-name is unchanged on
+ *  failure (object not found, string too long, or out of memory).
+ */
+bool Network_Port_Name_Duplicate(uint32_t object_instance, const char *new_name)
+{
+    unsigned index = 0; /* offset from instance lookup */
+    bool status = false;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        status = bacnet_character_cstring_strndup(
+            &Object_List[index].Object_Name, new_name, SIZE_MAX);
+    }
+
+    return status;
+}
+
+/**
  * @brief For a given object instance-number, returns the ASCII object-name
  * @param  object_instance - object-instance number of the object
  * @return ASCII C string object name, or NULL if not found or not set.
@@ -638,6 +661,28 @@ bool Network_Port_Description_Set(uint32_t instance, const char *new_name)
     if (index < BACNET_NETWORK_PORTS_MAX) {
         status = bacnet_character_cstring_set(
             &Object_List[index].Description, new_name);
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the description
+ *  by duplicating (copying) an ANSI C string.
+ * @param instance object-instance number of the object
+ * @param new_name ANSI C string to copy, or NULL to clear it.
+ * @return true if description was set. The description is unchanged on
+ *  failure (object not found, string too long, or out of memory).
+ */
+bool Network_Port_Description_Duplicate(uint32_t instance, const char *new_name)
+{
+    unsigned index = 0; /* offset from instance lookup */
+    bool status = false;
+
+    index = Network_Port_Instance_To_Index(instance);
+    if (index < BACNET_NETWORK_PORTS_MAX) {
+        status = bacnet_character_cstring_strndup(
+            &Object_List[index].Description, new_name, SIZE_MAX);
     }
 
     return status;

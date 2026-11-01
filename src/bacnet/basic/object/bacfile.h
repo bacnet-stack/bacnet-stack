@@ -39,6 +39,9 @@ bool bacfile_object_name(
 BACNET_STACK_EXPORT
 bool bacfile_object_name_set(uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
+bool bacfile_object_name_duplicate(
+    uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
 const char *bacfile_name_ansi(uint32_t object_instance);
 
 BACNET_STACK_EXPORT

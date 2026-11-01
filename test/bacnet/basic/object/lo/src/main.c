@@ -288,6 +288,11 @@ static void testLightingOutput(void)
     zassert_true(status, NULL);
     test_name = Lighting_Output_Description(instance);
     zassert_equal(test_name, sample_name, NULL);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Lighting_Output_Name_Duplicate, Lighting_Output_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Lighting_Output_Description_Duplicate,
+        Lighting_Output_Description);
     /* test local control API */
     lighting_command.operation = BACNET_LIGHTS_NONE;
     /* configure all the lighting command parameters */

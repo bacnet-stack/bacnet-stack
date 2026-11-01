@@ -96,6 +96,10 @@ static void testAuditlog(void)
     /* test object name */
     bacnet_object_name_ascii_test(
         instance, Audit_Log_Name_Set, Audit_Log_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Audit_Log_Name_Duplicate, Audit_Log_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Audit_Log_Description_Duplicate, Audit_Log_Description);
     /* test WriteProperty to object name and description */
     characterstring_init_ansi(&object_name, "audit-log-write-name");
     wp_data.object_property = PROP_OBJECT_NAME;

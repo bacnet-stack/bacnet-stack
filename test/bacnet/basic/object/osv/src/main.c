@@ -73,6 +73,12 @@ static void testOctetString_Value(void)
     bacnet_object_name_ascii_test(
         object_instance, OctetString_Value_Name_Set,
         OctetString_Value_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, OctetString_Value_Name_Duplicate,
+        OctetString_Value_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, OctetString_Value_Description_Duplicate,
+        OctetString_Value_Description);
     OctetString_Value_Writable_Property_List(
         object_instance, &writable_properties);
     zassert_not_null(writable_properties, NULL);

@@ -180,11 +180,16 @@ bool Schedule_Object_Name(
 BACNET_STACK_EXPORT
 bool Schedule_Name_Set(uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
+bool Schedule_Name_Duplicate(uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
 const char *Schedule_Name_ASCII(uint32_t object_instance);
 BACNET_STACK_EXPORT
 const char *Schedule_Description(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Schedule_Description_Set(uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
+bool Schedule_Description_Duplicate(
+    uint32_t object_instance, const char *new_name);
 
 BACNET_STACK_EXPORT
 int Schedule_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);

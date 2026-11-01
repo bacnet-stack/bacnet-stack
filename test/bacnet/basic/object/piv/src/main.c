@@ -70,6 +70,12 @@ static void testPositiveInteger_Value(void)
     bacnet_object_name_ascii_test(
         object_instance, PositiveInteger_Value_Name_Set,
         PositiveInteger_Value_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, PositiveInteger_Value_Name_Duplicate,
+        PositiveInteger_Value_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, PositiveInteger_Value_Description_Duplicate,
+        PositiveInteger_Value_Description);
     PositiveInteger_Value_Writable_Property_List(
         object_instance, &writable_properties);
     zassert_not_null(writable_properties, NULL);

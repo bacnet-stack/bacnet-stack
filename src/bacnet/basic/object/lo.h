@@ -121,12 +121,18 @@ bool Lighting_Output_Object_Name(
 BACNET_STACK_EXPORT
 bool Lighting_Output_Name_Set(uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
+bool Lighting_Output_Name_Duplicate(
+    uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
 const char *Lighting_Output_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 const char *Lighting_Output_Description(uint32_t instance);
 BACNET_STACK_EXPORT
 bool Lighting_Output_Description_Set(uint32_t instance, const char *new_name);
+BACNET_STACK_EXPORT
+bool Lighting_Output_Description_Duplicate(
+    uint32_t object_instance, const char *new_name);
 
 BACNET_STACK_EXPORT
 bool Lighting_Output_Out_Of_Service(uint32_t instance);

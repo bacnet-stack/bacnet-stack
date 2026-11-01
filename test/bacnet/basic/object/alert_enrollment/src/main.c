@@ -43,7 +43,13 @@ static void testAlert_Enrollment(void)
     bacnet_object_name_ascii_test(
         object_instance, Alert_Enrollment_Name_Set,
         Alert_Enrollment_Name_ASCII);
-    /* cleanup */
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Alert_Enrollment_Name_Duplicate,
+        Alert_Enrollment_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Alert_Enrollment_Description_Duplicate,
+        Alert_Enrollment_Description);
+
     status = Alert_Enrollment_Delete(object_instance);
     zassert_true(status, NULL);
     zassert_false(Alert_Enrollment_Valid_Instance(object_instance), NULL);

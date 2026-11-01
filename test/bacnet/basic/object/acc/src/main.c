@@ -97,6 +97,10 @@ static void test_Accumulator(void)
     status = Accumulator_Name_Set(instance - 1, test_name);
     zassert_false(status, NULL);
     zassert_is_null(Accumulator_Name(instance - 1), NULL);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Accumulator_Name_Duplicate, Accumulator_Name);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Accumulator_Description_Duplicate, Accumulator_Description);
     Accumulator_Writable_Property_List(instance, &writable_properties);
     zassert_not_null(writable_properties, NULL);
     /* context API */

@@ -9,6 +9,7 @@
 #include <zephyr/ztest.h>
 #include <bacnet/bactext.h>
 #include <bacnet/basic/object/blo.h>
+#include <property_test.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -191,6 +192,13 @@ static void testBinaryLightingOutput(void)
             Binary_Lighting_Output_Description(instance),
             "written description"),
         0, NULL);
+    /* test the duplicate (copy) name/description APIs */
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Binary_Lighting_Output_Name_Duplicate,
+        Binary_Lighting_Output_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Binary_Lighting_Output_Description_Duplicate,
+        Binary_Lighting_Output_Description);
     /* check the delete function */
     status = Binary_Lighting_Output_Delete(instance);
     zassert_true(status, NULL);

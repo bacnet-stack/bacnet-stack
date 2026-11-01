@@ -180,8 +180,11 @@ static void test_Timer_Read_Write(void)
     zassert_true(status, NULL);
     test_name = Timer_Name_ASCII(instance);
     zassert_equal(test_name, NULL, NULL);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Timer_Name_Duplicate, Timer_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Timer_Description_Duplicate, Timer_Description_ANSI);
 
-    /* test specific WriteProperty values - common configuration */
     wp_data.object_type = OBJECT_TIMER;
     wp_data.object_instance = instance;
     wp_data.array_index = BACNET_ARRAY_ALL;
