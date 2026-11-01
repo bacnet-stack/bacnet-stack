@@ -22,13 +22,7 @@
  */
 static void testCharacterString_Value(void)
 {
-    uint8_t apdu[MAX_APDU] = { 0 };
-    int len = 0, test_len = 0;
-    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
-    const int32_t *pRequired = NULL;
-    const int32_t *pOptional = NULL;
-    const int32_t *pProprietary = NULL;
+    const int32_t skip_fail_property_list[] = { -1 };
     unsigned count = 0;
     bool status = false;
     uint32_t object_instance = BACNET_MAX_INSTANCE;
@@ -37,61 +31,14 @@ static void testCharacterString_Value(void)
     object_instance = CharacterString_Value_Create(object_instance);
     count = CharacterString_Value_Count();
     zassert_true(count == 1, NULL);
-    rpdata.application_data = &apdu[0];
-    rpdata.application_data_len = sizeof(apdu);
-    rpdata.object_type = OBJECT_CHARACTERSTRING_VALUE;
-    rpdata.object_instance = CharacterString_Value_Index_To_Instance(0);
-    rpdata.array_index = BACNET_ARRAY_ALL;
-    status = CharacterString_Value_Valid_Instance(rpdata.object_instance);
+    object_instance = CharacterString_Value_Index_To_Instance(0);
+    status = CharacterString_Value_Valid_Instance(object_instance);
     zassert_true(status, NULL);
-    CharacterString_Value_Property_Lists(&pRequired, &pOptional, &pProprietary);
-    while ((*pRequired) >= 0) {
-        rpdata.object_property = *pRequired;
-        len = CharacterString_Value_Read_Property(&rpdata);
-        zassert_true(len >= 0, NULL);
-        if (len >= 0) {
-            test_len = bacapp_decode_known_property(
-                rpdata.application_data, len, &value, rpdata.object_type,
-                rpdata.object_property);
-            if (len != test_len) {
-                printf(
-                    "property '%s': failed to decode!\n",
-                    bactext_property_name(rpdata.object_property));
-            }
-            if (rpdata.object_property == PROP_PRIORITY_ARRAY) {
-                /* FIXME: known fail to decode */
-                len = test_len;
-            }
-            zassert_equal(len, test_len, NULL);
-        } else {
-            printf(
-                "property '%s': failed to read!\n",
-                bactext_property_name(rpdata.object_property));
-        }
-        pRequired++;
-    }
-    while ((*pOptional) != -1) {
-        rpdata.object_property = *pOptional;
-        rpdata.array_index = BACNET_ARRAY_ALL;
-        len = CharacterString_Value_Read_Property(&rpdata);
-        zassert_not_equal(len, BACNET_STATUS_ERROR, NULL);
-        if (len > 0) {
-            test_len = bacapp_decode_application_data(
-                rpdata.application_data, (uint8_t)rpdata.application_data_len,
-                &value);
-            if (len != test_len) {
-                printf(
-                    "property '%s': failed to decode!\n",
-                    bactext_property_name(rpdata.object_property));
-            }
-            zassert_true(test_len >= 0, NULL);
-        } else {
-            printf(
-                "property '%s': failed to read!\n",
-                bactext_property_name(rpdata.object_property));
-        }
-        pOptional++;
-    }
+    bacnet_object_properties_read_write_test(
+        OBJECT_CHARACTERSTRING_VALUE, object_instance,
+        CharacterString_Value_Property_Lists,
+        CharacterString_Value_Read_Property,
+        CharacterString_Value_Write_Property, skip_fail_property_list);
 }
 
 /**
