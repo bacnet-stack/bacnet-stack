@@ -1329,6 +1329,35 @@ if(BACDL_BSC)
   add_executable(sc-hub apps/sc-hub/main.c)
   target_link_libraries(sc-hub PRIVATE ${PROJECT_NAME})
 endif()
+
+  # target:output-name pairs, matching the executable names of the Makefile build
+  set(BACNET_STACK_APPS
+    abort:bacabort ack-alarm:bacackalarm add-list-element:bacale
+    apdu:bacapdu create-object:bacco dcc:bacdcc delete-object:bacdo
+    dmbrcap:dmbrcap epics:bacepics error:bacerror event:bacevent
+    gateway:bacgateway gateway2:bacgateway2 getevent:bacge iam:baciam
+    iamrouter:baciamr initrouter:bacinitr modbusgw:modbusgw
+    mstpcap:mstpcap mstpcrc:mstpcrc netnumis:bacnni piface:bacpiface
+    bacbasic:bacbasic bacdiscover:bacdiscover bacmini:bacmini
+    bacpoll:bacpoll ptransfer:bacpt readbdt:bacrbdt readfdt:bacrfdt
+    readfile:bacarf readprop:bacrp readpropm:bacrpm readrange:bacrr
+    reinit:bacrd remove-list-element:bacrle router:router
+    router-ipv6:router-ipv6 router-mstp:router-mstp sc-hub:bacschub
+    scov:bacscov server:bacserv timesync:bacts ucov:bacucov
+    uevent:bacuevent uptransfer:bacupt whatisnetnum:bacwinn
+    whoami:bacwhoami whohas:bacwh whois:bacwi whoisrouter:bacwir
+    writefile:bacawf writegroup:bacwg writeprop:bacwp writepropm:bacwpm
+    youare:bacyouare)
+  set(BACNET_STACK_APP_TARGETS)
+  foreach(app ${BACNET_STACK_APPS})
+    string(REPLACE ":" ";" app_pair ${app})
+    list(GET app_pair 0 app_target)
+    list(GET app_pair 1 app_output)
+    if(TARGET ${app_target})
+      set_target_properties(${app_target} PROPERTIES OUTPUT_NAME ${app_output})
+      list(APPEND BACNET_STACK_APP_TARGETS ${app_target})
+    endif()
+  endforeach()
 endif()
 
 #
@@ -1345,6 +1374,13 @@ install(
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
+
+if(BACNET_STACK_BUILD_APPS)
+  install(
+    TARGETS ${BACNET_STACK_APP_TARGETS}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    COMPONENT apps)
+endif()
 
 install(
   EXPORT ${PROJECT_NAME}Targets

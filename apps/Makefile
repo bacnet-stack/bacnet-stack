@@ -14,6 +14,11 @@ OBJDUMP 	= $(PREFIX)objdump
 # Passing parameters via command line or from Makefile export to this one
 BACNET_DEFINES ?=
 
+# Install locations (lowercase because PREFIX is the compiler tool prefix)
+DESTDIR ?=
+prefix ?= /usr/local
+bindir ?= $(prefix)/bin
+
 # BACnet Library
 BACNET_LIB_DIR = $(realpath ./lib)
 BACNET_LIB_NAME = bacnet
@@ -339,6 +344,12 @@ $(BACNET_LIB_TARGET):
 
 clean:
 	$(MAKE) BACDL=all -C lib clean
+
+.PHONY: install
+install:
+	for dir in $(filter-out lib,$(SUBDIRS)); do \
+		$(MAKE) -C $$dir install || exit 1; \
+	done
 
 .PHONY: gateway
 gateway: $(BACNET_LIB_TARGET)

@@ -92,7 +92,7 @@ clean:
 
 .PHONY: install
 install: ${TARGET_BIN}
-	install -m 755 ${TARGET_BIN} /usr/local/bin/
+	install -D -m 0755 ${TARGET_BIN} $(DESTDIR)$(bindir)/${TARGET_BIN}
 
 .PHONY: include
 include: .depend
