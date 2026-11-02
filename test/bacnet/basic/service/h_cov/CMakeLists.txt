@@ -34,6 +34,9 @@ include_directories(
 add_executable(${PROJECT_NAME}
     # File(s) under test
     ${SRC_DIR}/bacnet/basic/service/h_cov.c
+    ${SRC_DIR}/bacnet/basic/object/ao.c
+    ${SRC_DIR}/bacnet/proplist.c
+    ${SRC_DIR}/bacnet/wp.c
     # Support files and stubs (pathname alphabetical)
     ${SRC_DIR}/bacnet/access_rule.c
     ${SRC_DIR}/bacnet/authentication_factor.c
