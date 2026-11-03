@@ -62,6 +62,10 @@ SRC = main.c \
 # TARGET_EXT is defined by the parent apps/Makefile (.exe or empty)
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
+# Install locations (defaults match apps/Makefile for standalone use)
+prefix ?= /usr/local
+bindir ?= $(prefix)/bin
+
 OBJS += ${SRC:.c=.o}
 
 # Add sys directory so cJSON.h can be found

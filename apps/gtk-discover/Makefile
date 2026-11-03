@@ -15,6 +15,10 @@ SOURCES = main.c \
 # TARGET_EXT is defined in apps/Makefile as .exe or nothing
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
+# Install locations (defaults match apps/Makefile for standalone use)
+prefix ?= /usr/local
+bindir ?= $(prefix)/bin
+
 # GTK Configuration
 GTK_CFLAGS = $(shell pkg-config --cflags gtk+-3.0)
 GTK_LIBS = $(shell pkg-config --libs gtk+-3.0)
