@@ -17,6 +17,13 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured the Calendar_Write_Property() function for the Date_List property.
+  The function now rejects a calendar entry length from
+  bacnet_calendar_entry_decode() that is not positive. Before, a Week-N-Day
+  entry with a bad octet string length could cause an infinite loop, memory
+  allocation without limit, or a read before the start of the buffer. The
+  function also checks the result of Calendar_Date_List_Add().
+  Added unit tests. (#1595)
 * Secured the TSM and h_apdu confirmed-reply handlers. A response with a
   matching Invoke ID from a different address no longer frees the pending
   client transaction. The handlers now compare the remote address of a routed
@@ -110,6 +117,27 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added an install target to the Makefile build and install rules to the
+  CMake build for the example applications. The Makefile target copies each
+  application to $(DESTDIR)$(bindir). The default bindir is /usr/local/bin.
+  A plain "make install" uses the datalink options of the last full build
+  from apps/build.config. The CMake build sets the output names of the
+  applications to the Makefile names, for example bacrp. With
+  BUILD_SHARED_LIBS, the CMake build sets an INSTALL_RPATH to the library
+  directory. Documented the install commands in README.md and
+  bin/readme.txt. (#1598)
+* Added the Name_Duplicate and Description_Duplicate functions to the basic
+  objects that store Object_Name and Description as a
+  BACNET_CHARACTER_CSTRING, for example Analog_Input_Name_Duplicate(). The
+  functions copy the C string with bacnet_character_cstring_strndup(). The
+  functions reject a string that is too long and keep the old value. Added
+  bacnet_object_name_ascii_duplicate_test() to the object test helper.
+  (#1597)
+* Added the datetime_standard_changed() function to the mstimer based date
+  and time clock. The datetime_timesync() function sets the flag when it
+  changes the stored standard date or time. The datetime_standard_set()
+  function does not set the flag. The datetime_standard_changed() function
+  returns and clears the flag. Added unit tests. (#1580)
 * Added dynamic instances to the Notification Class object. Replaced the fixed
   per-device arrays with keylists. Added the Notification_Class_Create(),
   Notification_Class_Delete(), and Notification_Class_Cleanup() functions.
@@ -196,9 +224,6 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
-* Changed the mstimer_restart() function to return the elapsed milliseconds
-  since the timer start. The function reads the clock once for the elapsed
-  time and the new start time. Added unit tests for the mstimer API. (#1575)
 * Changed the bacfile_posix_file_size_set() function to resize a file with
   standard C stdio functions only. The function no longer needs fileno() or
   ftruncate(). Added unit tests for the POSIX File object port in
@@ -259,6 +284,34 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the COV handler to keep the COV_Increment reference for each
+  subscription. For an object with a REAL Present_Value and a COV_Increment
+  property, the handler compares the current Present_Value and Status_Flags
+  with the last values that it sent to that subscription. Other object types
+  use Device_COV() as before. The Analog Output COV value list now encodes
+  the current Present_Value. Added unit tests. (#1588)
+* Fixed the COV handler to clear the invoke ID of a confirmed COV
+  subscription when the TSM frees the invoke ID. Added the
+  tsm_free_invoke_id_notification_add() function. The tsm_free_invoke_id()
+  function calls each registered callback when it frees a valid invoke ID.
+  Before, a renew, cancel, or expiry of an old subscription could free a new
+  transaction with the same invoke ID. Added a unit test. (#1592)
+* Fixed the Analog Output COV value list to encode the Overridden flag of
+  the object. Before, the flag was always false. The object now saves the
+  Present_Value in Prior_Value when Out_Of_Service, Overridden, or the fault
+  state changes. Added unit tests. (#1584, #1591)
+* Fixed the mstimer based date and time clock to keep the sub-second
+  remainder. Added the mstimer_restart_unit() function. The function moves
+  the timer start forward by whole units of elapsed time and returns the
+  number of whole units. Changed the mstimer_restart() function back to
+  return void. The clock now starts at 1900-01-01 (Monday) 00:00:00.00.
+  Added unit tests. (#1585)
+* Fixed ReadProperty of a routed Device object. The Object_Identifier
+  property now returns the instance of the addressed routed Device, not the
+  instance of the gateway Device. A request for the instance of a different
+  Device in the routing table now returns UNKNOWN_OBJECT. The Device object
+  now rejects an Object_Name write that is too long for the name buffer.
+  Added unit tests for gw_device.c. (#1583)
 * Fixed the Device_UTC_Offset_Set() function. It now returns bool and passes
   the value to datetime_utc_offset_minutes_set(). The UTC_Offset
   WriteProperty in the Device object and in apps/piface accepts -1440 to
