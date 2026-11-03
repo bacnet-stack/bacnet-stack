@@ -158,3 +158,21 @@ set_tests_properties(test_${basename}_backup_restore PROPERTIES
     FIXTURES_REQUIRED fixture_${basename}_backup_restore)
 set_tests_properties(build_${basename}_backup_restore PROPERTIES
     FIXTURES_SETUP fixture_${basename}_backup_restore)
+
+# BAC_ROUTING test binary.
+add_executable(${PROJECT_NAME}_bac_routing ${TEST_DEVICE_SOURCES})
+target_sources(${PROJECT_NAME}_bac_routing PRIVATE
+    ${SRC_DIR}/bacnet/basic/object/gateway/gw_device.c
+    )
+target_compile_definitions(${PROJECT_NAME}_bac_routing PRIVATE
+    BAC_ROUTING
+    )
+add_test(NAME build_${basename}_bac_routing
+    COMMAND ${CMAKE_COMMAND} --build "${CMAKE_BINARY_DIR}" --config $<CONFIG>
+            --target ${PROJECT_NAME}_bac_routing)
+add_test(NAME test_${basename}_bac_routing
+    COMMAND $<TARGET_FILE:${PROJECT_NAME}_bac_routing>)
+set_tests_properties(test_${basename}_bac_routing PROPERTIES
+    FIXTURES_REQUIRED fixture_${basename}_bac_routing)
+set_tests_properties(build_${basename}_bac_routing PROPERTIES
+    FIXTURES_SETUP fixture_${basename}_bac_routing)

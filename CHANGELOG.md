@@ -50,6 +50,12 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed ReadProperty of a routed Device object. The Object_Identifier
+  property now returns the instance of the addressed routed Device, not the
+  instance of the gateway Device. A request for the instance of a different
+  Device in the routing table now returns UNKNOWN_OBJECT. The Device object
+  now rejects an Object_Name write that is too long for the name buffer.
+  Added unit tests for gw_device.c. (#1583)
 * Fixed the undefined datetime_utc_offset_minutes_set() linker error in the
   Linux, BSD (macOS), and Windows ports. Their datetime-init.c now defines it
   and returns false, so the UTC_Offset WriteProperty returns
