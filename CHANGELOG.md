@@ -48,6 +48,12 @@ The git repositories are hosted at the following sites:
   functions to the File object. Added record count support to the POSIX,
   RAM, and static RAM file backends. (#1566)
 
+### Changed
+
+* Changed the GitHub workflows to use the ubuntu-24.04 runner instead of
+  ubuntu-latest. This fixes the broken CI pipeline. Changed the pre-commit
+  exclude pattern to match only the .git folder.
+
 ### Fixed
 
 * Fixed the COV handler to clear the invoke ID of a confirmed COV
