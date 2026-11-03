@@ -51,6 +51,15 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed ReadProperty of a routed Device object. The Object_Identifier
+  property now returns the instance of the addressed routed Device and not the
+  instance of the gateway Device. The instance check of a routed Device now
+  compares the requested instance with the addressed Device only, and it does
+  not change the current Device index. A request for the instance of another
+  Device in the routing table now returns UNKNOWN_OBJECT. Fixed the
+  Object_Name WriteProperty of a routed Device to reject a name that is too
+  long for the stored name buffer. Added unit tests for the routed Device
+  functions in gw_device.c. (#1583)
 * Fixed the link error "undefined reference to
   datetime_utc_offset_minutes_set" in the Linux, BSD, and Windows ports. Added
   the datetime_utc_offset_minutes_set() function to the datetime-init.c file of
