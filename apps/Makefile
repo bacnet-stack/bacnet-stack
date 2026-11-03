@@ -1,4 +1,13 @@
 #
+# The configuration of the last full build is saved so that a plain
+# "make install" selects the same applications. Variables given on the
+# command line or in the environment take precedence over saved values.
+BUILD_CONFIG := $(CURDIR)/build.config
+ifneq (,$(filter install,$(MAKECMDGOALS)))
+-include $(BUILD_CONFIG)
+endif
+
+#
 # Set PREFIX to prepend to GCC compiler tools for cross-compilation.
 # Assumes rm and cp are natively available
 #
@@ -336,6 +345,15 @@ $(foreach TGT, $(TARGETS), $(patsubst %, %.$(TGT), $(SUBDIRS))):
 	$(info recipe: $@...)
 	$(MAKE) -C $(subst ., , $@)
 
+all:
+	@printf '%s\n' \
+		'BACDL ?= $(BACDL)' \
+		$(if $(BACDL),,'BACDL_DEFINE ?= $(BACDL_DEFINE)') \
+		'BBMD ?= $(BBMD)' \
+		'BBMD6 ?= $(BBMD6)' \
+		'BACNET_PORT ?= $(BACNET_PORT)' \
+		'PREFIX ?= $(PREFIX)' > $(BUILD_CONFIG)
+
 .PHONY: lib
 lib: lib/Makefile Makefile $(BACNET_LIB_TARGET)
 
@@ -344,6 +362,7 @@ $(BACNET_LIB_TARGET):
 
 clean:
 	$(MAKE) BACDL=all -C lib clean
+	rm -f $(BUILD_CONFIG)
 
 .PHONY: install
 install:
