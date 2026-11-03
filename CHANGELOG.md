@@ -50,6 +50,10 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the Analog Output COV value list to encode the Overridden flag of
+  the object. Before, the flag was always false. The object now saves the
+  Present_Value in Prior_Value when Out_Of_Service, Overridden, or the fault
+  state changes. Added unit tests. (#1584, #1591)
 * Fixed the mstimer based date and time clock to keep the sub-second
   remainder. The clock moves the timer start forward by whole hundredths of
   a second, so the remainder stays in the timer. Before, the clock lost
