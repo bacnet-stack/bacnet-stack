@@ -348,6 +348,34 @@ int handler_cov_encode_subscriptions(uint8_t *apdu, int max_apdu)
     return 0;
 }
 
+/** Clear any subscription invoke ID that the TSM has released.
+ *  Called by the TSM each time an invoke ID is freed, so that a
+ *  subscription never holds an invoke ID that the TSM may reuse
+ *  for another transaction.
+ * @param invoke_id - the invoke ID released by the TSM
+ */
+static void cov_tsm_free_invoke_id_handler(uint8_t invoke_id)
+{
+    unsigned dev_index = 0;
+    unsigned index = 0;
+
+    if (invoke_id == 0) {
+        return;
+    }
+    for (dev_index = 0; dev_index < MAX_NUM_DEVICES; dev_index++) {
+        for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
+            if (COV_Subscriptions_List[dev_index][index].invokeID ==
+                invoke_id) {
+                COV_Subscriptions_List[dev_index][index].invokeID = 0;
+            }
+        }
+    }
+}
+
+static struct tsm_free_invoke_id_notification COV_TSM_Free_Notification = {
+    NULL, cov_tsm_free_invoke_id_handler
+};
+
 /** Handler to initialize the COV list, clearing and disabling each entry.
  * @ingroup DSCOV
  */
@@ -357,6 +385,10 @@ void handler_cov_init(void)
 #ifdef BAC_ROUTING
     uint16_t current_dev_id = Routed_Device_Object_Index();
     uint16_t dev_id = 0;
+#endif
+
+    tsm_free_invoke_id_notification_add(&COV_TSM_Free_Notification);
+#ifdef BAC_ROUTING
     for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
         Set_Routed_Device_Object_Index(dev_id);
         for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {

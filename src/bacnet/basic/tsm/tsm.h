@@ -30,10 +30,23 @@ BACNET_STACK_EXPORT extern uint8_t Handler_Transmit_Buffer[MAX_PDU];
 }
 #endif /* __cplusplus */
 
+/**
+ * @brief Callback for when the TSM releases an invoke ID
+ * @param invoke_id - the invoke ID that was released and may be reused
+ */
+typedef void (*tsm_free_invoke_id_callback)(uint8_t invoke_id);
+/* linked list structure for invoke ID release notifications */
+struct tsm_free_invoke_id_notification;
+struct tsm_free_invoke_id_notification {
+    struct tsm_free_invoke_id_notification *next;
+    tsm_free_invoke_id_callback callback;
+};
+
 #if (!MAX_TSM_TRANSACTIONS)
 #define tsm_free_invoke_id(x) (void)x;
 #define tsm_invoke_id_source_match(invokeID, src) \
     ((void)(invokeID), (void)(src), true)
+#define tsm_free_invoke_id_notification_add(x) (void)x;
 #else
 typedef enum {
     TSM_STATE_IDLE,
@@ -98,6 +111,9 @@ void tsm_timer_milliseconds(uint16_t milliseconds);
 /* free the invoke ID when the reply comes back */
 BACNET_STACK_EXPORT
 void tsm_free_invoke_id(uint8_t invokeID);
+BACNET_STACK_EXPORT
+void tsm_free_invoke_id_notification_add(
+    struct tsm_free_invoke_id_notification *notification);
 BACNET_STACK_EXPORT
 bool tsm_invoke_id_source_match(uint8_t invokeID, const BACNET_ADDRESS *src);
 /* use these in tandem */

@@ -200,6 +200,7 @@ list(APPEND testdirs
   bacnet/basic/service/h_apdu
   bacnet/basic/service/h_arf
   bacnet/basic/service/h_awf
+  bacnet/basic/service/h_cov
   bacnet/basic/service/h_rpm_a
   bacnet/basic/service/s_getevent
   # basic/server
