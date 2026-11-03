@@ -68,6 +68,10 @@ bsc:
 apps:
 	$(MAKE) -s -C apps all
 
+.PHONY: install
+install:
+	$(MAKE) -s -C apps install
+
 .PHONY: lib
 lib:
 	$(MAKE) -s -C apps $@

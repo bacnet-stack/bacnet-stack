@@ -15,6 +15,10 @@ SOURCES = main.c \
 # TARGET_EXT is defined in apps/Makefile as .exe or nothing
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
+# Install locations (defaults match apps/Makefile for standalone use)
+prefix ?= /usr/local
+bindir ?= $(prefix)/bin
+
 # GTK Configuration
 GTK_CFLAGS = $(shell pkg-config --cflags gtk+-3.0)
 GTK_LIBS = $(shell pkg-config --libs gtk+-3.0)
@@ -68,8 +72,9 @@ clean:
 	rm -f core ${TARGET_BIN} ${OBJECTS} $(TARGET).map ${BACNET_LIB_TARGET}
 
 # Install target (optional)
-install: $(TARGET)
-	install -D $(TARGET_BIN) $(DESTDIR)/usr/local/bin/$(TARGET_BIN)
+install: $(TARGET_BIN)
+	install -d "$(DESTDIR)$(bindir)"
+	install -m 0755 $(TARGET_BIN) "$(DESTDIR)$(bindir)/$(TARGET_BIN)"
 
 # Debug target
 debug: CFLAGS += -g -DDEBUG
@@ -81,7 +86,7 @@ help:
 	@echo "  all        - Build the GTK BACnet Discovery application"
 	@echo "  debug      - Build with debug symbols and DEBUG flag"
 	@echo "  clean      - Remove built files"
-	@echo "  install    - Install the application to /usr/local/bin"
+	@echo "  install    - Install the application to $(DESTDIR)$(bindir)"
 	@echo "  help       - Show this help message"
 	@echo ""
 	@echo "Prerequisites:"

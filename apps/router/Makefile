@@ -79,4 +79,9 @@ depend:
 clean:
 	rm -f core ${TARGET_BIN} ${OBJS} $(TARGET).map
 
+.PHONY: install
+install: ${TARGET_BIN}
+	install -d "$(DESTDIR)$(bindir)"
+	install -m 0755 ${TARGET_BIN} "$(DESTDIR)$(bindir)/${TARGET_BIN}"
+
 include: .depend
