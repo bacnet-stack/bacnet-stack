@@ -314,12 +314,38 @@ int handler_cov_encode_subscriptions(uint8_t *apdu, int max_apdu)
     return 0;
 }
 
+/** Clear any subscription invoke ID that the TSM has released.
+ *  Called by the TSM each time an invoke ID is freed, so that a
+ *  subscription never holds an invoke ID that the TSM may reuse
+ *  for another transaction.
+ * @param invoke_id - the invoke ID released by the TSM
+ */
+static void cov_tsm_free_invoke_id_handler(uint8_t invoke_id)
+{
+    unsigned index = 0;
+
+    if (invoke_id == 0) {
+        return;
+    }
+    for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
+        if (COV_Subscriptions[index].invokeID == invoke_id) {
+            COV_Subscriptions[index].invokeID = 0;
+        }
+    }
+}
+
+static struct tsm_free_invoke_id_notification COV_TSM_Free_Notification = {
+    NULL, cov_tsm_free_invoke_id_handler
+};
+
 /** Handler to initialize the COV list, clearing and disabling each entry.
  * @ingroup DSCOV
  */
 void handler_cov_init(void)
 {
     unsigned index = 0;
+
+    tsm_free_invoke_id_notification_add(&COV_TSM_Free_Notification);
 
     for (index = 0; index < MAX_COV_SUBCRIPTIONS; index++) {
         /* initialize with invalid COV address */

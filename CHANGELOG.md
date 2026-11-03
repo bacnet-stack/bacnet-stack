@@ -51,6 +51,12 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the COV handler to clear the invoke ID of a confirmed COV
+  subscription when the TSM frees the invoke ID. Added the
+  tsm_free_invoke_id_notification_add() function. The tsm_free_invoke_id()
+  function calls each registered callback when it frees a valid invoke ID.
+  Before, a renew, cancel, or expiry of an old subscription could free a new
+  transaction with the same invoke ID. (#1592)
 * Fixed the mstimer based date and time clock to keep the sub-second
   remainder. Added the mstimer_restart_unit() function. The function moves
   the timer start forward by whole units of elapsed time and returns the
