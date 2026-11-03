@@ -81,6 +81,7 @@ clean:
 
 .PHONY: install
 install: ${TARGET_BIN}
-	install -D -m 0755 ${TARGET_BIN} $(DESTDIR)$(bindir)/${TARGET_BIN}
+	install -d $(DESTDIR)$(bindir)
+	install -m 0755 ${TARGET_BIN} $(DESTDIR)$(bindir)/${TARGET_BIN}
 
 include: .depend
