@@ -16,6 +16,13 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured the Calendar_Write_Property() function for the Date_List property.
+  The function now rejects a calendar entry length from
+  bacnet_calendar_entry_decode() that is not positive. Before, a Week-N-Day
+  entry with a bad octet string length could cause an infinite loop, memory
+  allocation without limit, or a read before the start of the buffer. The
+  function also checks the result of Calendar_Date_List_Add().
+  Added unit tests. (#1595)
 * Secured the TSM and h_apdu confirmed-reply handlers. A response with a
   matching Invoke ID from a different address no longer frees the pending
   client transaction. The handlers now compare the remote address of a routed
