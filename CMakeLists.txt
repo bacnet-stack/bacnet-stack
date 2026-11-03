@@ -1376,21 +1376,43 @@ install(
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
 
 if(BACNET_STACK_BUILD_APPS)
-  # Installed apps must locate the installed shared library relative to
-  # their own location. Windows needs no RPATH: DLLs install to BINDIR.
+  # Installed apps need an RPATH to locate the installed shared library.
+  # Windows needs no RPATH: DLLs install to BINDIR.
   if(BUILD_SHARED_LIBS AND NOT WIN32 AND BACNET_STACK_APP_TARGETS)
     if(APPLE)
       set(BACNET_STACK_RPATH_ORIGIN "@loader_path")
     else()
       set(BACNET_STACK_RPATH_ORIGIN "$ORIGIN")
     endif()
-    file(RELATIVE_PATH BACNET_STACK_BIN_TO_LIB_DIR
-      ${CMAKE_INSTALL_FULL_BINDIR} ${CMAKE_INSTALL_FULL_LIBDIR})
-    if(BACNET_STACK_BIN_TO_LIB_DIR)
-      set(BACNET_STACK_APP_INSTALL_RPATH
-        "${BACNET_STACK_RPATH_ORIGIN}/${BACNET_STACK_BIN_TO_LIB_DIR}")
+    # A relative install dir moves with "cmake --install --prefix" and an
+    # absolute one does not, so an origin-relative RPATH is only valid when
+    # both dirs are relative or both are absolute. Otherwise, use the
+    # absolute library dir.
+    set(BACNET_STACK_APP_RPATH_WARN OFF)
+    if(IS_ABSOLUTE "${CMAKE_INSTALL_BINDIR}")
+      set(BACNET_STACK_BINDIR_IS_ABSOLUTE ON)
     else()
-      set(BACNET_STACK_APP_INSTALL_RPATH "${BACNET_STACK_RPATH_ORIGIN}")
+      set(BACNET_STACK_BINDIR_IS_ABSOLUTE OFF)
+    endif()
+    if(IS_ABSOLUTE "${CMAKE_INSTALL_LIBDIR}")
+      set(BACNET_STACK_LIBDIR_IS_ABSOLUTE ON)
+    else()
+      set(BACNET_STACK_LIBDIR_IS_ABSOLUTE OFF)
+    endif()
+    if(BACNET_STACK_BINDIR_IS_ABSOLUTE STREQUAL BACNET_STACK_LIBDIR_IS_ABSOLUTE)
+      file(RELATIVE_PATH BACNET_STACK_BIN_TO_LIB_DIR
+        ${CMAKE_INSTALL_FULL_BINDIR} ${CMAKE_INSTALL_FULL_LIBDIR})
+      if(BACNET_STACK_BIN_TO_LIB_DIR)
+        set(BACNET_STACK_APP_INSTALL_RPATH
+          "${BACNET_STACK_RPATH_ORIGIN}/${BACNET_STACK_BIN_TO_LIB_DIR}")
+      else()
+        set(BACNET_STACK_APP_INSTALL_RPATH "${BACNET_STACK_RPATH_ORIGIN}")
+      endif()
+    else()
+      set(BACNET_STACK_APP_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
+      # With only BINDIR absolute, the library moves with the install-time
+      # prefix but the RPATH does not.
+      set(BACNET_STACK_APP_RPATH_WARN ${BACNET_STACK_BINDIR_IS_ABSOLUTE})
     endif()
     foreach(app_target ${BACNET_STACK_APP_TARGETS})
       set_property(TARGET ${app_target} APPEND PROPERTY
@@ -1401,6 +1423,20 @@ if(BACNET_STACK_BUILD_APPS)
     TARGETS ${BACNET_STACK_APP_TARGETS}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     COMPONENT apps)
+  if(BACNET_STACK_APP_RPATH_WARN)
+    install(CODE "
+      get_filename_component(bacnet_lib_dir
+        \"\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}\" ABSOLUTE)
+      if(NOT bacnet_lib_dir STREQUAL \"${CMAKE_INSTALL_FULL_LIBDIR}\")
+        message(WARNING \"BACnet apps installed to absolute BINDIR \"
+          \"${CMAKE_INSTALL_FULL_BINDIR} have RPATH \"
+          \"${CMAKE_INSTALL_FULL_LIBDIR}, but the shared library is \"
+          \"installed to \${bacnet_lib_dir}. Reconfigure with \"
+          \"CMAKE_INSTALL_PREFIX=\${CMAKE_INSTALL_PREFIX} or set \"
+          \"LD_LIBRARY_PATH to locate the library.\")
+      endif()
+      " COMPONENT apps)
+  endif()
 endif()
 
 install(
