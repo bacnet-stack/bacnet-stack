@@ -51,6 +51,10 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the Analog Output COV value list to encode the Overridden flag of
+  the object. Before, the flag was always false. The object now saves the
+  Present_Value in Prior_Value when Out_Of_Service, Overridden, or the fault
+  state changes. Added unit tests. (#1584, #1591)
 * Fixed ReadProperty of a routed Device object. The Object_Identifier
   property now returns the instance of the addressed routed Device and not the
   instance of the gateway Device. The instance check of a routed Device now

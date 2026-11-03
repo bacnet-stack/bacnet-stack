@@ -291,6 +291,23 @@ Analog_Output_Present_Value_COV_Detect(struct object_data *pObject, float value)
 }
 
 /**
+ * @brief Flag a Status_Flags change of value, and save the Present_Value
+ *  at the time of the change for the COV notification. The saved value
+ *  is also the new COV_Increment baseline, because all COV subscribers
+ *  receive it.
+ * @param  object_instance - object-instance number of the object
+ * @param  pObject - specific object with valid data
+ */
+static void Analog_Output_Status_Flags_COV_Set(
+    uint32_t object_instance, struct object_data *pObject)
+{
+    if (pObject) {
+        pObject->Changed = true;
+        pObject->Prior_Value = Analog_Output_Present_Value(object_instance);
+    }
+}
+
+/**
  * For a given object instance-number, sets the relinquish-default value
  *
  * @param  object_instance - object-instance number of the object
@@ -681,7 +698,7 @@ void Analog_Output_Out_Of_Service_Set(uint32_t object_instance, bool value)
     if (pObject) {
         if (pObject->Out_Of_Service != value) {
             pObject->Out_Of_Service = value;
-            pObject->Changed = true;
+            Analog_Output_Status_Flags_COV_Set(object_instance, pObject);
         }
     }
 }
@@ -719,7 +736,7 @@ void Analog_Output_Overridden_Set(uint32_t object_instance, bool value)
     if (pObject) {
         if (pObject->Overridden != value) {
             pObject->Overridden = value;
-            pObject->Changed = true;
+            Analog_Output_Status_Flags_COV_Set(object_instance, pObject);
         }
     }
 }
@@ -779,7 +796,7 @@ bool Analog_Output_Reliability_Set(
             fault = Analog_Output_Object_Fault(pObject);
             pObject->Reliability = value;
             if (fault != Analog_Output_Object_Fault(pObject)) {
-                pObject->Changed = true;
+                Analog_Output_Status_Flags_COV_Set(object_instance, pObject);
             }
             status = true;
         }
@@ -952,6 +969,11 @@ void Analog_Output_Change_Of_Value_Clear(uint32_t object_instance)
 
 /**
  * @brief Encode the Value List for Present-Value and Status-Flags
+ * @note The encoded Present_Value is the value at the time of the last
+ *  change of value (Prior_Value), so that all COV subscribers receive the
+ *  same value. The initial notification after a SubscribeCOV can report a
+ *  Present_Value that differs from the current Present_Value by less than
+ *  the COV_Increment.
  * @param object_instance - object-instance number of the object
  * @param  value_list - #BACNET_PROPERTY_VALUE with at least 2 entries
  * @return true if values were encoded
@@ -963,7 +985,6 @@ bool Analog_Output_Encode_Value_List(
     struct object_data *pObject;
     const bool in_alarm = false;
     bool fault = false;
-    const bool overridden = false;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -971,8 +992,8 @@ bool Analog_Output_Encode_Value_List(
             fault = true;
         }
         status = cov_value_list_encode_real(
-            value_list, pObject->Prior_Value, in_alarm, fault, overridden,
-            pObject->Out_Of_Service);
+            value_list, pObject->Prior_Value, in_alarm, fault,
+            pObject->Overridden, pObject->Out_Of_Service);
     }
 
     return status;
