@@ -46,6 +46,8 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed the github/codeql-action version in the CodeQL workflow from 4.38.3
+  to 4.39.1. (#1594)
 * Changed the github workflows to use the ubuntu-24.04 runner image instead of
   ubuntu-latest. This fixes the broken CI pipeline. Changed the pre-commit
   exclude pattern to match only the .git folder.
