@@ -50,6 +50,11 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the mstimer based date and time clock to keep the sub-second
+  remainder. The clock moves the timer start forward by whole hundredths of
+  a second, so the remainder stays in the timer. Before, the clock lost
+  time when it was read at intervals that are not whole seconds. The clock
+  now starts at 1900-01-01 (Monday) 00:00:00.00. Added unit tests. (#1585)
 * Fixed ReadProperty of a routed Device object. The Object_Identifier
   property now returns the instance of the addressed routed Device, not the
   instance of the gateway Device. A request for the instance of a different
