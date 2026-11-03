@@ -51,6 +51,12 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the mstimer based date and time clock to keep the sub-second
+  remainder. Added the mstimer_restart_unit() function. The function moves
+  the timer start forward by whole units of elapsed time and returns the
+  number of whole units. Changed the mstimer_restart() function back to
+  return void. The clock now starts at 1900-01-01 (Monday) 00:00:00.00.
+  Added unit tests. (#1585)
 * Fixed the Analog Output COV value list to encode the Overridden flag of
   the object. Before, the flag was always false. The object now saves the
   Present_Value in Prior_Value when Out_Of_Service, Overridden, or the fault
