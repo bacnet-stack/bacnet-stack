@@ -4,7 +4,9 @@
 # command line or in the environment take precedence over saved values.
 BUILD_CONFIG := $(CURDIR)/build.config
 ifneq (,$(filter install,$(MAKECMDGOALS)))
+ifeq (,$(filter clean all,$(MAKECMDGOALS)))
 -include $(BUILD_CONFIG)
+endif
 endif
 
 #
