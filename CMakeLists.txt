@@ -1376,6 +1376,27 @@ install(
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
 
 if(BACNET_STACK_BUILD_APPS)
+  # Installed apps must locate the installed shared library relative to
+  # their own location. Windows needs no RPATH: DLLs install to BINDIR.
+  if(BUILD_SHARED_LIBS AND NOT WIN32 AND BACNET_STACK_APP_TARGETS)
+    if(APPLE)
+      set(BACNET_STACK_RPATH_ORIGIN "@loader_path")
+    else()
+      set(BACNET_STACK_RPATH_ORIGIN "$ORIGIN")
+    endif()
+    file(RELATIVE_PATH BACNET_STACK_BIN_TO_LIB_DIR
+      ${CMAKE_INSTALL_FULL_BINDIR} ${CMAKE_INSTALL_FULL_LIBDIR})
+    if(BACNET_STACK_BIN_TO_LIB_DIR)
+      set(BACNET_STACK_APP_INSTALL_RPATH
+        "${BACNET_STACK_RPATH_ORIGIN}/${BACNET_STACK_BIN_TO_LIB_DIR}")
+    else()
+      set(BACNET_STACK_APP_INSTALL_RPATH "${BACNET_STACK_RPATH_ORIGIN}")
+    endif()
+    foreach(app_target ${BACNET_STACK_APP_TARGETS})
+      set_property(TARGET ${app_target} APPEND PROPERTY
+        INSTALL_RPATH "${BACNET_STACK_APP_INSTALL_RPATH}")
+    endforeach()
+  endif()
   install(
     TARGETS ${BACNET_STACK_APP_TARGETS}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
