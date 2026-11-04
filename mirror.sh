@@ -14,5 +14,5 @@ cd $mirror_tree
 echo "Cloning from source: $mirror_source"
 git clone --bare $mirror_source .
 echo "Pushing to destination: $mirror_dest"
-git push --mirror $mirror_dest
+git --git-dir=. push --mirror $mirror_dest
 cd -
