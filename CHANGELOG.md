@@ -60,6 +60,11 @@ The git repositories are hosted at the following sites:
   functions to the File object. Added record count support to the POSIX,
   RAM, and static RAM file backends. (#1566)
 
+### Changed
+
+* Changed the github/codeql-action workflow steps from 4.38.3 to 4.39.0.
+  (#1576)
+
 ### Fixed
 
 * Fixed the mstimer based date and time clock to keep the sub-second
