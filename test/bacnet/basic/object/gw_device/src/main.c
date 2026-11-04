@@ -167,7 +167,6 @@ static void test_Routed_Device_Index(void)
 {
     DEVICE_OBJECT_DATA *device;
     BACNET_ADDRESS *address;
-    BACNET_ADDRESS my_address = { 0 };
 
     test_setup();
     zassert_true(Set_Routed_Device_Object_Index(1), NULL);
