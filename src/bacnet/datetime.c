@@ -1247,12 +1247,14 @@ void datetime_wildcard_set(BACNET_DATE_TIME *bdatetime)
 /**
  * @brief Converts UTC to local time
  * @param local_time - the BACnet Date and Time structure to hold local time
- * @param utc_time - the BACnet Date and Time structure to hold UTC time
- * @param utc_offset_minutes - number of minutes offset from UTC
- *  Values are positive East of UTC and negative West of UTC
- *  For example, -6*60 represents 6.00 hours West of UTC
- * @param dst_adjust_minutes - number of minutes to adjust local time
- *  Values are positive East of UTC and negative West of UTC
+ * @param utc_time - the BACnet Date and Time structure with the UTC time
+ * @param utc_offset_minutes - BACnet UTC_Offset in minutes West of UTC
+ *  (local time = UTC time - offset). Values are positive West of UTC
+ *  and negative East of UTC. For example, US Eastern standard time
+ *  is 5 hours West of UTC, so the value is +5*60 = +300:
+ *  UTC 17:00 gives local 12:00.
+ * @param dst_adjust_minutes - number of minutes to subtract from the
+ *  local time in addition to the UTC offset (same sign as the offset)
  * @return true if the time is converted
  */
 bool datetime_utc_to_local(
@@ -1278,14 +1280,16 @@ bool datetime_utc_to_local(
 }
 
 /**
- * @brief Converts UTC to local time
+ * @brief Converts local time to UTC
  * @param utc_time - the BACnet Date and Time structure to hold UTC time
- * @param local_time - the BACnet Date and Time structure to hold local time
- * @param utc_offset_minutes - number of minutes offset from UTC
- *  Values are positive East of UTC and negative West of UTC
- *  For example, -6*60 represents 6.00 hours West of UTC
- * @param dst_adjust_minutes - number of minutes to adjust local time
- *  Values are positive East of UTC and negative West of UTC
+ * @param local_time - the BACnet Date and Time structure with the local time
+ * @param utc_offset_minutes - BACnet UTC_Offset in minutes West of UTC
+ *  (UTC time = local time + offset). Values are positive West of UTC
+ *  and negative East of UTC. For example, US Eastern standard time
+ *  is 5 hours West of UTC, so the value is +5*60 = +300:
+ *  local 12:00 gives UTC 17:00.
+ * @param dst_adjust_minutes - number of minutes to add to the
+ *  local time in addition to the UTC offset (same sign as the offset)
  * @return true if the time is converted
  */
 bool datetime_local_to_utc(
