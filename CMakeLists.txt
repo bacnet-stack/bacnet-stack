@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(
   bacnet-stack
-  VERSION 1.7.0
+  VERSION 1.8.0
   LANGUAGES C)
 
 #
