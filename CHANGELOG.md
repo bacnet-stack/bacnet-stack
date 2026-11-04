@@ -62,6 +62,10 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the Linux and Win32 datetime-init.c files. The time offset now keeps
+  microsecond resolution. Before, the offset used whole seconds and the
+  hundredths field of datetime_local() was wrong after a
+  TimeSynchronization. (#1577)
 * Fixed the top-level make mstpcap target to pass MAX_APDU=1476 to the
   compiler instead of make.
 * Fixed the bacfile_posix_write_record_data() function to ignore one trailing
