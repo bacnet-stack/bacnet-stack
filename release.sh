@@ -27,7 +27,7 @@ url_api='https://sourceforge.net/projects/bacnet/files'
 url_frs="${USERNAME},bacnet@frs.sourceforge.net:/home/frs/project/b/ba/bacnet"
 url_frs_tools="$url_frs/bacnet-tools"
 url_frs_source="$url_frs/bacnet-stack"
-work_tree=$(mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir')
+work_tree=${WORK_TREE:-$(mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir')}
 
 function bacnet_tag() {
     echo "Tagging Source Code $tag_name"
