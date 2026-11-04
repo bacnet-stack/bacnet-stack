@@ -27,6 +27,7 @@ add_compile_definitions(
 
 include_directories(
     ${SRC_DIR}
+    ${TST_DIR}/bacnet/basic/object/test
     ${TST_DIR}/ztest/include
     )
 
