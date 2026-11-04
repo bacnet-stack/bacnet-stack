@@ -16,6 +16,11 @@ or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories)
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
 
+Pre-Auth Infinite Loop and OOB Read/Write via Negative Decode Length in Calendar_Write_Property()
+[GHSA-cr23-59mg-h2rc](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-cr23-59mg-h2rc)
+Patched versions: 1.6.2
+Pull Request: [#1595](https://github.com/bacnet-stack/bacnet-stack/pull/1595).
+
 BACnet confirmed response source is not bound to the pending TSM transaction
 [GHSA-m3mw-mwm8-g846](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-m3mw-mwm8-g846)
 Patched versions: 1.6.2
@@ -64,6 +69,7 @@ Pull Request: [#1503](https://github.com/bacnet-stack/bacnet-stack/pull/1503).
 Deprecated Decoder Out-of-Bounds Read (BN-05)
 [GHSA-f96q-cj8v-939q](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-f96q-cj8v-939q)
 Patched versions: 1.6.1
+Pull Request: [#1470](https://github.com/bacnet-stack/bacnet-stack/pull/1470).
 
 Signed Integer Overflow in bacnet_enclosed_data_length() Leads to Heap Memory Corruption
 [GHSA-g68j-34rj-cmhv](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-g68j-34rj-cmhv)
