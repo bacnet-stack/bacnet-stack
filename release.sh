@@ -53,7 +53,7 @@ function bacnet_zip_apps() {
     cp $work_tree/bin/bvlc.bat $work_tree/$tools
     cp $work_tree/bin/readme.txt $work_tree/$tools
     cp $work_tree/apps/mstpcap/mstpcap.txt $work_tree/$tools
-    zip -r $work_tree/$tools.zip $work_tree/$tools
+    (cd $work_tree && zip -r $tools.zip $tools)
     rm $work_tree/$tools/*.exe
     rm $work_tree/$tools/*.bat
     mv $work_tree/$tools.zip $work_tree/$tools/$tools.zip
