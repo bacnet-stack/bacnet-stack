@@ -67,6 +67,12 @@ static void testInteger_Value(void)
     test_description = Integer_Value_Description_ANSI(object_instance);
     zassert_not_null(test_description, NULL);
     zassert_true(test_description[0] == '\0', NULL);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Integer_Value_Name_Duplicate,
+        Integer_Value_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Integer_Value_Description_Duplicate,
+        Integer_Value_Description_ANSI);
     /* cleanup */
     status = Integer_Value_Delete(object_instance);
     zassert_true(status, NULL);

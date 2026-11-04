@@ -61,16 +61,8 @@ static void Init_Service_Handlers(void)
         SERVICE_CONFIRMED_READ_PROPERTY, handler_read_property);
     apdu_set_confirmed_handler(
         SERVICE_CONFIRMED_READ_PROP_MULTIPLE, handler_read_property_multiple);
-    apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_WRITE_PROPERTY, handler_write_property);
-    apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE, handler_write_property_multiple);
-    apdu_set_confirmed_handler(
-        SERVICE_CONFIRMED_REINITIALIZE_DEVICE, handler_reinitialize_device);
-    apdu_set_unconfirmed_handler(
-        SERVICE_UNCONFIRMED_UTC_TIME_SYNCHRONIZATION, handler_timesync_utc);
-    apdu_set_unconfirmed_handler(
-        SERVICE_UNCONFIRMED_TIME_SYNCHRONIZATION, handler_timesync);
+    /* The hub only relays: no write services, no ReinitializeDevice
+       no time synchronization. */
 #if defined(BACNET_TIME_MASTER)
     handler_timesync_init();
 #endif

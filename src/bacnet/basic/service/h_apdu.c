@@ -645,11 +645,13 @@ void apdu_handler(
             invoke_id = apdu[1];
             service_choice = apdu[2];
             if (apdu_confirmed_simple_ack_service(service_choice)) {
-                if (Confirmed_ACK_Function[service_choice].simple != NULL) {
-                    Confirmed_ACK_Function[service_choice].simple(
-                        src, invoke_id);
+                if (tsm_invoke_id_source_match(invoke_id, src)) {
+                    if (Confirmed_ACK_Function[service_choice].simple != NULL) {
+                        Confirmed_ACK_Function[service_choice].simple(
+                            src, invoke_id);
+                    }
+                    tsm_free_invoke_id(invoke_id);
                 }
-                tsm_free_invoke_id(invoke_id);
             }
             break;
         case PDU_TYPE_COMPLEX_ACK:
@@ -673,15 +675,17 @@ void apdu_handler(
             service_request_len = apdu_len - (uint16_t)len;
             service_request = &apdu[len];
             if (!apdu_confirmed_simple_ack_service(service_choice)) {
-                if (service_choice < MAX_BACNET_CONFIRMED_SERVICE) {
-                    if (Confirmed_ACK_Function[service_choice].complex !=
-                        NULL) {
-                        Confirmed_ACK_Function[service_choice].complex(
-                            service_request, service_request_len, src,
-                            &service_ack_data);
+                if (tsm_invoke_id_source_match(invoke_id, src)) {
+                    if (service_choice < MAX_BACNET_CONFIRMED_SERVICE) {
+                        if (Confirmed_ACK_Function[service_choice].complex !=
+                            NULL) {
+                            Confirmed_ACK_Function[service_choice].complex(
+                                service_request, service_request_len, src,
+                                &service_ack_data);
+                        }
                     }
+                    tsm_free_invoke_id(invoke_id);
                 }
-                tsm_free_invoke_id(invoke_id);
             }
             break;
         case PDU_TYPE_SEGMENT_ACK:
@@ -698,23 +702,25 @@ void apdu_handler(
             /* prepare the service request buffer and length */
             service_request_len = apdu_len - 3;
             service_request = &apdu[3];
-            if (apdu_complex_error(service_choice)) {
-                if (Error_Function[service_choice].complex) {
-                    Error_Function[service_choice].complex(
-                        src, invoke_id, service_choice, service_request,
-                        service_request_len);
+            if (tsm_invoke_id_source_match(invoke_id, src)) {
+                if (apdu_complex_error(service_choice)) {
+                    if (Error_Function[service_choice].complex) {
+                        Error_Function[service_choice].complex(
+                            src, invoke_id, service_choice, service_request,
+                            service_request_len);
+                    }
+                } else if (service_choice < MAX_BACNET_CONFIRMED_SERVICE) {
+                    len = bacerror_decode_error_class_and_code(
+                        service_request, service_request_len, &error_class,
+                        &error_code);
+                    if ((len != 0) && (Error_Function[service_choice].error)) {
+                        Error_Function[service_choice].error(
+                            src, invoke_id, (BACNET_ERROR_CLASS)error_class,
+                            (BACNET_ERROR_CODE)error_code);
+                    }
                 }
-            } else if (service_choice < MAX_BACNET_CONFIRMED_SERVICE) {
-                len = bacerror_decode_error_class_and_code(
-                    service_request, service_request_len, &error_class,
-                    &error_code);
-                if ((len != 0) && (Error_Function[service_choice].error)) {
-                    Error_Function[service_choice].error(
-                        src, invoke_id, (BACNET_ERROR_CLASS)error_class,
-                        (BACNET_ERROR_CODE)error_code);
-                }
+                tsm_free_invoke_id(invoke_id);
             }
-            tsm_free_invoke_id(invoke_id);
             break;
         case PDU_TYPE_REJECT:
             if (apdu_len < 3) {
@@ -722,10 +728,12 @@ void apdu_handler(
             }
             invoke_id = apdu[1];
             reason = apdu[2];
-            if (Reject_Function) {
-                Reject_Function(src, invoke_id, reason);
+            if (tsm_invoke_id_source_match(invoke_id, src)) {
+                if (Reject_Function) {
+                    Reject_Function(src, invoke_id, reason);
+                }
+                tsm_free_invoke_id(invoke_id);
             }
-            tsm_free_invoke_id(invoke_id);
             break;
         case PDU_TYPE_ABORT:
             if (apdu_len < 3) {
@@ -734,10 +742,12 @@ void apdu_handler(
             server = apdu[0] & 0x01;
             invoke_id = apdu[1];
             reason = apdu[2];
-            if (Abort_Function) {
-                Abort_Function(src, invoke_id, reason, server);
+            if (tsm_invoke_id_source_match(invoke_id, src)) {
+                if (Abort_Function) {
+                    Abort_Function(src, invoke_id, reason, server);
+                }
+                tsm_free_invoke_id(invoke_id);
             }
-            tsm_free_invoke_id(invoke_id);
             break;
 #endif
         default:

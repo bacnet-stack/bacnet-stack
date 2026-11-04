@@ -29,6 +29,7 @@ static void test_BACnetTimerValue(void)
 #endif
 {
     uint8_t apdu[MAX_APDU];
+    uint8_t expected[MAX_APDU];
     int apdu_len, test_len, null_len;
     bool status;
     BACNET_TIMER_STATE_CHANGE_VALUE *value;
@@ -230,6 +231,10 @@ static void test_BACnetTimerValue(void)
     apdu_len = bacnet_timer_value_no_value_encode(apdu);
     zassert_not_equal(apdu_len, 0, NULL);
     zassert_equal(apdu_len, null_len, NULL);
+    /* no-value [0] Null is a primitive context tag with length 0 */
+    test_len = encode_context_null(expected, 0);
+    zassert_equal(apdu_len, test_len, NULL);
+    zassert_mem_equal(apdu, expected, test_len, NULL);
     test_len = bacnet_timer_value_no_value_decode(NULL, 0);
     zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
     test_len = bacnet_timer_value_no_value_decode(apdu, apdu_len);

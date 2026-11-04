@@ -65,6 +65,8 @@ const char *Accumulator_Name(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Accumulator_Name_Set(uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
+bool Accumulator_Name_Duplicate(uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
 bool Accumulator_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name);
 bool Accumulator_Object_Name_Set(
@@ -74,6 +76,9 @@ BACNET_STACK_EXPORT
 const char *Accumulator_Description(uint32_t instance);
 BACNET_STACK_EXPORT
 bool Accumulator_Description_Set(uint32_t instance, const char *new_name);
+BACNET_STACK_EXPORT
+bool Accumulator_Description_Duplicate(
+    uint32_t object_instance, const char *new_name);
 
 BACNET_STACK_EXPORT
 bool Accumulator_Units_Set(uint32_t instance, BACNET_ENGINEERING_UNITS units);

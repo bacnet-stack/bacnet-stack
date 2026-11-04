@@ -29,6 +29,7 @@
 #include <pthread.h>
 #include <termios.h>
 #include "msgqueue.h"
+#include "bacnet/version.h"
 #include "portthread.h"
 #include "network_layer.h"
 #include "ipmodule.h"
@@ -69,6 +70,18 @@ int main(int argc, char *argv[])
     MSG_DATA *msg_data = NULL;
     uint8_t *buff = NULL;
     int16_t buff_len = 0;
+    const char *filename = argv[0];
+
+    if ((argc > 1) && (strcmp(argv[1], "--version") == 0)) {
+        printf("%s %s\n", filename, BACNET_VERSION_TEXT);
+        printf("Copyright (C) 2012 by Andriy Sukhynyuk, Vasyl Tkhir, and "
+               "Andriy Ivasiv.\n"
+               "This is free software; see the source for copying "
+               "conditions.\n"
+               "There is NO warranty; not even for MERCHANTABILITY or\n"
+               "FITNESS FOR A PARTICULAR PURPOSE.\n");
+        return 0;
+    }
 
     atexit(cleanup);
 

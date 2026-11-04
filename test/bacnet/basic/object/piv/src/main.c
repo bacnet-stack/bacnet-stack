@@ -48,6 +48,12 @@ static void testPositiveInteger_Value(void)
     zassert_true(status, NULL);
     status = PositiveInteger_Value_Valid_Instance(object_instance - 1);
     zassert_false(status, NULL);
+    status = PositiveInteger_Value_Units_Set(object_instance, UNITS_VOLTS);
+    zassert_true(status, NULL);
+    zassert_equal(
+        PositiveInteger_Value_Units(object_instance), UNITS_VOLTS, NULL);
+    status = PositiveInteger_Value_Units_Set(object_instance + 1, UNITS_VOLTS);
+    zassert_false(status, NULL);
     index = PositiveInteger_Value_Instance_To_Index(object_instance);
     zassert_equal(index, 0, NULL);
     test_object_instance = PositiveInteger_Value_Index_To_Instance(index);
@@ -64,6 +70,12 @@ static void testPositiveInteger_Value(void)
     bacnet_object_name_ascii_test(
         object_instance, PositiveInteger_Value_Name_Set,
         PositiveInteger_Value_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, PositiveInteger_Value_Name_Duplicate,
+        PositiveInteger_Value_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, PositiveInteger_Value_Description_Duplicate,
+        PositiveInteger_Value_Description);
     PositiveInteger_Value_Writable_Property_List(
         object_instance, &writable_properties);
     zassert_not_null(writable_properties, NULL);

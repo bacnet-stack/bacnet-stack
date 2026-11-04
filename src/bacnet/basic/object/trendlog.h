@@ -68,8 +68,6 @@ typedef struct tl_data_record {
 #define TL_T_START_WILD 1 /* Start time is wild carded */
 #define TL_T_STOP_WILD 2 /* Stop Time is wild carded */
 
-#define TL_MAX_ENTRIES 1000 /* Entries per datalog */
-
 /* Structure containing config and status info for a Trend Log */
 
 typedef struct tl_log_info {
@@ -141,12 +139,17 @@ bool Trend_Log_Object_Name(
 BACNET_STACK_EXPORT
 bool Trend_Log_Name_Set(uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
+bool Trend_Log_Name_Duplicate(uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
 const char *Trend_Log_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 const char *Trend_Log_Description(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Trend_Log_Description_Set(uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
+bool Trend_Log_Description_Duplicate(
+    uint32_t object_instance, const char *new_name);
 
 BACNET_STACK_EXPORT
 uint32_t Trend_Log_Total_Record_Count(uint32_t object_instance);

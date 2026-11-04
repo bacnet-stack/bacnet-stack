@@ -44,6 +44,11 @@ static void testBinaryInput(void)
         skip_fail_property_list);
     bacnet_object_name_ascii_test(
         object_instance, Binary_Input_Name_Set, Binary_Input_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Binary_Input_Name_Duplicate, Binary_Input_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Binary_Input_Description_Duplicate,
+        Binary_Input_Description);
     status = Binary_Input_Delete(object_instance);
     zassert_true(status, NULL);
 }

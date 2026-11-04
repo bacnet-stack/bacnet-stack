@@ -23,6 +23,7 @@ set(ZTST_DIR "${TST_DIR}/ztest/src")
 add_compile_definitions(
     BACNET_BIG_ENDIAN=0
     BACFILE=1
+    BACNET_WRITE_FILE_RECORD_COUNT=3
     CONFIG_ZTEST=1
     )
 
@@ -77,6 +78,7 @@ add_executable(${PROJECT_NAME}
     ./src/main.c
     ${TST_DIR}/bacnet/basic/object/test/apdu_mock.c
     ${TST_DIR}/bacnet/basic/object/test/device_mock.c
+    ${TST_DIR}/bacnet/basic/object/test/property_test.c
     ${TST_DIR}/bacnet/basic/object/test/tsm_mock.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c

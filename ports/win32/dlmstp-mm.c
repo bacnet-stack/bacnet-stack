@@ -131,7 +131,6 @@ uint16_t dlmstp_receive(
     uint16_t pdu_len = 0;
     DWORD wait_status = 0;
 
-    (void)max_pdu;
     /* see if there is a packet available, and a place
        to put the reply (if necessary) and process it */
     wait_status = WaitForSingleObject(Receive_Packet_Flag, timeout);
@@ -144,11 +143,13 @@ uint16_t dlmstp_receive(
                         src, &Receive_Packet.address,
                         sizeof(Receive_Packet.address));
                 }
-                if (pdu) {
-                    memmove(
-                        pdu, &Receive_Packet.pdu, sizeof(Receive_Packet.pdu));
-                }
                 pdu_len = Receive_Packet.pdu_len;
+                if (pdu_len > max_pdu) {
+                    /* PDU is too large - drop it rather than truncate */
+                    pdu_len = 0;
+                } else if (pdu) {
+                    memmove(pdu, &Receive_Packet.pdu, pdu_len);
+                }
             }
             Receive_Packet.ready = false;
         }

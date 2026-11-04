@@ -53,6 +53,9 @@ bool Color_Temperature_Object_Name(
 BACNET_STACK_EXPORT
 bool Color_Temperature_Name_Set(uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
+bool Color_Temperature_Name_Duplicate(
+    uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
 const char *Color_Temperature_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
@@ -136,6 +139,9 @@ BACNET_STACK_EXPORT
 const char *Color_Temperature_Description(uint32_t instance);
 BACNET_STACK_EXPORT
 bool Color_Temperature_Description_Set(uint32_t instance, const char *new_name);
+BACNET_STACK_EXPORT
+bool Color_Temperature_Description_Duplicate(
+    uint32_t object_instance, const char *new_name);
 
 BACNET_STACK_EXPORT
 bool Color_Temperature_Write_Enabled(uint32_t instance);

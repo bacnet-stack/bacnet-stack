@@ -292,25 +292,32 @@ bool bitstring_same(
     int i; /* loop counter */
     int bytes_used = 0;
     uint8_t compare_mask = 0;
+    unsigned partial_bits = 0;
 
     if (bitstring1 && bitstring2) {
         bytes_used = (int)(bitstring1->bits_used / 8);
         if ((bitstring1->bits_used == bitstring2->bits_used) &&
-            (bytes_used <= MAX_BITSTRING_BYTES)) {
+            (bitstring1->bits_used <= bitstring_bits_capacity(bitstring1))) {
             /* compare fully used bytes */
             for (i = 0; i < bytes_used; i++) {
                 if (bitstring1->value[i] != bitstring2->value[i]) {
                     return false;
                 }
             }
-            /* compare only the relevant bits of last partly used byte */
-            compare_mask = 0xFF >> (8 - (bitstring1->bits_used % 8));
-            if ((bitstring1->value[bytes_used] & compare_mask) !=
-                (bitstring2->value[bytes_used] & compare_mask)) {
-                return false;
-            } else {
-                return true;
+            /* compare only the relevant bits of last partly used byte,
+               if any - bits_used may be an exact multiple of 8, in
+               which case there is no partial byte to compare, and
+               bytes_used may equal MAX_BITSTRING_BYTES, in which case
+               value[bytes_used] would be out of bounds */
+            partial_bits = bitstring1->bits_used % 8;
+            if (partial_bits > 0) {
+                compare_mask = (uint8_t)(0xFF >> (8 - partial_bits));
+                if ((bitstring1->value[bytes_used] & compare_mask) !=
+                    (bitstring2->value[bytes_used] & compare_mask)) {
+                    return false;
+                }
             }
+            return true;
         }
     }
 
@@ -1422,6 +1429,11 @@ bool bacnet_character_cstring_set(
 
     if (!char_string) {
         return false;
+    }
+    if (value && (value == char_string->buffer)) {
+        /* already referencing (or owning) this exact string: freeing
+           it first would leave a dangling reference */
+        return true;
     }
     if (value) {
         length = strlen(value);
@@ -2857,14 +2869,15 @@ char *bacnet_ultoa(unsigned long value, char *buffer, size_t size)
  * @brief trim characters from the left side of a string
  * @param str - string to trim
  * @param trimmedchars - characters to trim from the string
- * @return the trimmed string
+ * @return the trimmed string, NULL if str is NULL; str if trimmedchars is NULL
  */
 char *bacnet_ltrim(const char *str, const char *trimmedchars)
 {
-    if (str[0] == 0) {
+    if (!str || !trimmedchars) {
         return (char *)(uintptr_t)str;
     }
-    while (strchr(trimmedchars, *str)) {
+    /* strchr() matches the terminating NUL, so test for it explicitly */
+    while ((*str != 0) && strchr(trimmedchars, *str)) {
         str++;
     }
     return (char *)(uintptr_t)str;
@@ -2874,13 +2887,13 @@ char *bacnet_ltrim(const char *str, const char *trimmedchars)
  * @brief trim characters from the right side of a string
  * @param str - string to trim
  * @param trimmedchars - characters to trim from the string
- * @return the trimmed string
+ * @return the trimmed string, or NULL if str is NULL
  */
 char *bacnet_rtrim(char *str, const char *trimmedchars)
 {
     char *end;
 
-    if (str[0] == 0) {
+    if (!str || !trimmedchars || (str[0] == 0)) {
         return str;
     }
     end = str + strlen(str) - 1;

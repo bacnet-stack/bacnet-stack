@@ -19,39 +19,30 @@
 #include "bacnet/datetime.h"
 
 /**
- * Smaller version of BACnet_Application_Data_Value used in BACnetTimeValue
- *
- * This must be a separate struct to avoid recursive structure.
- * Keeping it small also helps keep the size of BACNET_APPLICATION_DATA_VALUE
- * small. Besides, schedule can't contain complex types.
+ *  This structure holds 'Any' primitive datatype as configured.
+ *  {
+ *     value ABSTRACT-SYNTAX.&Type
+ *     -- any primitive datatype;
+ *     -- complex types cannot be decoded
+ *  }
+ *  Used in Schedule object Present_Value and Schedule_Default properties,
+ *  for BACnetSpecialEvent and BACnetDailySchedule datatype properties
+ *  containing BACnetTimeValues.
  */
 typedef struct BACnet_Primitive_Data_Value {
     uint8_t tag; /* application tag data type */
     union {
-        /*
-         * ATTENTION! If a new type is added here, update
-         * `is_data_value_schedule_compatible()` in bactimevalue.c!
-         */
-
         /* NULL - not needed as it is encoded in the tag alone */
-#if defined(BACAPP_BOOLEAN)
         bool Boolean;
-#endif
-#if defined(BACAPP_UNSIGNED)
         BACNET_UNSIGNED_INTEGER Unsigned_Int;
-#endif
-#if defined(BACAPP_SIGNED)
+#if BACNET_USE_SIGNED
         int32_t Signed_Int;
 #endif
-#if defined(BACAPP_REAL)
         float Real;
-#endif
-#if defined(BACAPP_DOUBLE)
+#if BACNET_USE_DOUBLE
         double Double;
 #endif
-#if defined(BACAPP_ENUMERATED)
         uint32_t Enumerated;
-#endif
     } type;
 } BACNET_PRIMITIVE_DATA_VALUE;
 
@@ -65,17 +56,32 @@ extern "C" {
 #endif /* __cplusplus */
 struct BACnet_Application_Data_Value;
 
-/** returns 0 if OK, -1 on error */
 BACNET_STACK_EXPORT
-int bacnet_application_to_primitive_data_value(
-    BACNET_PRIMITIVE_DATA_VALUE *dest,
-    const struct BACnet_Application_Data_Value *src);
+int bacnet_primitive_value_encode(
+    uint8_t *apdu, const BACNET_PRIMITIVE_DATA_VALUE *value);
 
-/** returns 0 if OK, -1 on error */
 BACNET_STACK_EXPORT
-int bacnet_primitive_to_application_data_value(
-    struct BACnet_Application_Data_Value *dest,
-    const BACNET_PRIMITIVE_DATA_VALUE *src);
+int bacnet_primitive_value_application_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    uint8_t tag_data_type,
+    uint32_t len_value_type,
+    BACNET_PRIMITIVE_DATA_VALUE *value);
+
+BACNET_STACK_EXPORT
+int bacnet_primitive_value_decode(
+    const uint8_t *apdu,
+    uint32_t apdu_size,
+    BACNET_PRIMITIVE_DATA_VALUE *value);
+
+BACNET_STACK_EXPORT
+bool bacnet_primitive_value_same(
+    const BACNET_PRIMITIVE_DATA_VALUE *value,
+    const BACNET_PRIMITIVE_DATA_VALUE *test_value);
+
+BACNET_STACK_EXPORT
+bool bacnet_primitive_value_copy(
+    BACNET_PRIMITIVE_DATA_VALUE *dest, const BACNET_PRIMITIVE_DATA_VALUE *src);
 
 BACNET_STACK_EXPORT
 int bacnet_time_value_encode(uint8_t *apdu, const BACNET_TIME_VALUE *value);

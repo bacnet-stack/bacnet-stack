@@ -43,7 +43,13 @@ static void testAlert_Enrollment(void)
     bacnet_object_name_ascii_test(
         object_instance, Alert_Enrollment_Name_Set,
         Alert_Enrollment_Name_ASCII);
-    /* cleanup */
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Alert_Enrollment_Name_Duplicate,
+        Alert_Enrollment_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Alert_Enrollment_Description_Duplicate,
+        Alert_Enrollment_Description);
+
     status = Alert_Enrollment_Delete(object_instance);
     zassert_true(status, NULL);
     zassert_false(Alert_Enrollment_Valid_Instance(object_instance), NULL);
@@ -79,10 +85,13 @@ static void testAlert_Enrollment_APIs(void)
     /* present-value get/set */
     value.type = OBJECT_ANALOG_INPUT;
     value.instance = 42;
-    Alert_Enrollment_Present_Value_Set(instance, value);
+    status = Alert_Enrollment_Present_Value_Set(instance, value);
+    zassert_true(status, NULL);
     value = Alert_Enrollment_Present_Value(instance);
     zassert_equal(value.type, OBJECT_ANALOG_INPUT, NULL);
     zassert_equal(value.instance, 42, NULL);
+    status = Alert_Enrollment_Present_Value_Set(invalid_instance, value);
+    zassert_false(status, NULL);
 
     /* description get/set */
     zassert_equal(strcmp(Alert_Enrollment_Description(instance), ""), 0, NULL);

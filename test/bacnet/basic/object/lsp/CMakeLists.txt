@@ -26,6 +26,7 @@ add_compile_definitions(
 
 include_directories(
     ${SRC_DIR}
+    ${TST_DIR}/bacnet/basic/object/test
     ${TST_DIR}/ztest/include
     )
 
@@ -70,6 +71,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/channel_value.c
     ${SRC_DIR}/bacnet/secure_connect.c
     # Test and test library files
+    ${TST_DIR}/bacnet/basic/object/test/property_test.c
     ./src/main.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c

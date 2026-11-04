@@ -926,6 +926,166 @@ void datetime_wildcard_weekday_set(BACNET_DATE *bdate)
     }
 }
 
+/**
+ * @brief Compare a specific date's year against a BACnetDate year octet
+ *  value, which may be 'any' (X'FF', i.e. year 1900+255)
+ * @param date - specific date to compare
+ * @param year - year octet value to compare, or 'any' wildcard
+ * @return true if the date's year matches, including wildcards
+ */
+bool datetime_year_match(const BACNET_DATE *date, uint16_t year)
+{
+    if (year == (BACNET_DATE_YEAR_EPOCH + 0xff)) {
+        return true;
+    }
+    if (!date) {
+        return false;
+    }
+
+    return (year == date->year);
+}
+
+/**
+ * @brief Compare a specific date's month against a BACnetWeekNDay month
+ *  octet value, which may be odd (13), even (14), or 'any' (X'FF')
+ * @param date - specific date to compare
+ * @param month - month octet value to compare: 1-12, 13=odd, 14=even,
+ *  or X'FF'=any
+ * @return true if the date's month matches, including special values
+ */
+bool datetime_weeknday_month_match(const BACNET_DATE *date, uint8_t month)
+{
+    if (month == 0xff) {
+        return true;
+    }
+    if (!date) {
+        return false;
+    }
+
+    return (
+        (month == date->month) || ((month == 13) && (date->month % 2 == 1)) ||
+        ((month == 14) && (date->month % 2 == 0)));
+}
+
+/**
+ * @brief Compare a specific date's month against a BACnetDate month octet
+ *  value, which is either an exact month (1-12) or 'any' (X'FF')
+ * @param date - specific date to compare
+ * @param month - month octet value to compare: 1-12, or X'FF'=any
+ * @return true if the date's month matches, including wildcards
+ */
+bool datetime_date_month_match(const BACNET_DATE *date, uint8_t month)
+{
+    if (month == 0xff) {
+        return true;
+    }
+    if (!date) {
+        return false;
+    }
+
+    return (month == date->month);
+}
+
+/**
+ * @brief Compare a specific date's day-of-month against a BACnetDate day
+ *  octet value, which may be 'any' (X'FF')
+ * @param date - specific date to compare
+ * @param day - day octet value to compare, or 'any' wildcard
+ * @return true if the date's day-of-month matches, including wildcards
+ */
+bool datetime_day_match(const BACNET_DATE *date, uint8_t day)
+{
+    if (day == 0xff) {
+        return true;
+    }
+    if (!date) {
+        return false;
+    }
+
+    return (day == date->day);
+}
+
+/**
+ * @brief Compare a specific date's day-of-week against a BACnetDate or
+ *  BACnetWeekNDay day-of-week octet value, which may be 'any' (X'FF')
+ * @param date - specific date to compare, with a valid wday value
+ * @param dayofweek - day-of-week octet value to compare: 1=Monday-7=Sunday,
+ *  or X'FF'=any
+ * @return true if the date's day-of-week matches, including wildcards
+ */
+bool datetime_day_of_week_match(const BACNET_DATE *date, uint8_t dayofweek)
+{
+    if (dayofweek == 0xff) {
+        return true;
+    }
+    if (!date) {
+        return false;
+    }
+
+    return (dayofweek == date->wday);
+}
+
+/**
+ * @brief Compare a specific date's day-of-month against a BACnetWeekNDay
+ *  week-of-month octet value
+ * @param date - specific date to compare
+ * @param weekofmonth - week-of-month octet value to compare: 1=days 1-7,
+ *  2=days 8-14, 3=days 15-21, 4=days 22-28, 5=days 29-31, 6=last 7 days
+ *  of the month, or X'FF'=any week
+ * @return true if the date's day-of-month falls within the week-of-month,
+ *  including wildcards
+ */
+bool datetime_week_of_month_match(const BACNET_DATE *date, uint8_t weekofmonth)
+{
+    uint8_t day_to_end_month;
+
+    if (weekofmonth == 0xff) {
+        return true;
+    }
+    if (!date) {
+        return false;
+    }
+    switch (weekofmonth) {
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+            return (weekofmonth == ((date->day - 1) / 7 + 1));
+        case 6:
+            day_to_end_month =
+                days_per_month(date->year, date->month) - date->day;
+            return (day_to_end_month < 7);
+        default:
+            return false;
+    }
+}
+
+/**
+ * @brief Determine if a specific date matches a BACnetDate used as a date
+ *  pattern, where year, month, day, and day-of-week octets are evaluated
+ *  independently and an 'any' (wildcard) octet always matches
+ * @note if day-of-week is specified (1-7) it is required to match; per
+ *  IC135-2012-6 the day-of-week octet participates in the pattern match
+ *  and is not ignored, so a day-of-week that contradicts an otherwise
+ *  fully specified date results in a non-match
+ * @param date - specific date to compare
+ * @param pattern - BACnetDate value used as a date pattern
+ * @return true if the date matches all specified octets of the pattern
+ */
+bool datetime_date_pattern_match(
+    const BACNET_DATE *date, const BACNET_DATE *pattern)
+{
+    if (!pattern) {
+        return false;
+    }
+
+    return datetime_year_match(date, pattern->year) &&
+        datetime_date_month_match(date, pattern->month) &&
+        datetime_day_match(date, pattern->day) &&
+        datetime_day_of_week_match(date, pattern->wday);
+}
+
 /* Returns true if hour is a wildcard */
 bool datetime_wildcard_hour(const BACNET_TIME *btime)
 {
@@ -1087,12 +1247,14 @@ void datetime_wildcard_set(BACNET_DATE_TIME *bdatetime)
 /**
  * @brief Converts UTC to local time
  * @param local_time - the BACnet Date and Time structure to hold local time
- * @param utc_time - the BACnet Date and Time structure to hold UTC time
- * @param utc_offset_minutes - number of minutes offset from UTC
- *  Values are positive East of UTC and negative West of UTC
- *  For example, -6*60 represents 6.00 hours West of UTC
- * @param dst_adjust_minutes - number of minutes to adjust local time
- *  Values are positive East of UTC and negative West of UTC
+ * @param utc_time - the BACnet Date and Time structure with the UTC time
+ * @param utc_offset_minutes - BACnet UTC_Offset in minutes West of UTC
+ *  (local time = UTC time - offset). Values are positive West of UTC
+ *  and negative East of UTC. For example, US Eastern standard time
+ *  is 5 hours West of UTC, so the value is +5*60 = +300:
+ *  UTC 17:00 gives local 12:00.
+ * @param dst_adjust_minutes - number of minutes to subtract from the
+ *  local time in addition to the UTC offset (same sign as the offset)
  * @return true if the time is converted
  */
 bool datetime_utc_to_local(
@@ -1118,14 +1280,16 @@ bool datetime_utc_to_local(
 }
 
 /**
- * @brief Converts UTC to local time
+ * @brief Converts local time to UTC
  * @param utc_time - the BACnet Date and Time structure to hold UTC time
- * @param local_time - the BACnet Date and Time structure to hold local time
- * @param utc_offset_minutes - number of minutes offset from UTC
- *  Values are positive East of UTC and negative West of UTC
- *  For example, -6*60 represents 6.00 hours West of UTC
- * @param dst_adjust_minutes - number of minutes to adjust local time
- *  Values are positive East of UTC and negative West of UTC
+ * @param local_time - the BACnet Date and Time structure with the local time
+ * @param utc_offset_minutes - BACnet UTC_Offset in minutes West of UTC
+ *  (UTC time = local time + offset). Values are positive West of UTC
+ *  and negative East of UTC. For example, US Eastern standard time
+ *  is 5 hours West of UTC, so the value is +5*60 = +300:
+ *  local 12:00 gives UTC 17:00.
+ * @param dst_adjust_minutes - number of minutes to add to the
+ *  local time in addition to the UTC offset (same sign as the offset)
  * @return true if the time is converted
  */
 bool datetime_local_to_utc(
@@ -1365,7 +1529,7 @@ int bacnet_daterange_encode(uint8_t *apdu, const BACNET_DATE_RANGE *value)
  * @brief Decode BACnetDateRange complex data type
  * @param apdu - apdu buffer; NULL to only measure capacity needed
  * @param apdu_size - apdu buffer size
- * @param value - value to decode
+ * @param value - value to decode, or NULL to only get the length
  * @return number of bytes emitted, BACNET_STATUS_ERROR on error
  */
 int bacnet_daterange_decode(
@@ -1373,18 +1537,24 @@ int bacnet_daterange_decode(
 {
     int len = 0;
     int apdu_len = 0;
+    BACNET_DATE *startdate = NULL;
+    BACNET_DATE *enddate = NULL;
 
-    if (!apdu || !value) {
+    if (!apdu) {
         return BACNET_STATUS_ERROR;
     }
+    if (value) {
+        startdate = &value->startdate;
+        enddate = &value->enddate;
+    }
     len = bacnet_date_application_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, &value->startdate);
+        &apdu[apdu_len], apdu_size - apdu_len, startdate);
     if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
     apdu_len += len;
     len = bacnet_date_application_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, &value->enddate);
+        &apdu[apdu_len], apdu_size - apdu_len, enddate);
     if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
@@ -1432,7 +1602,7 @@ int bacnet_daterange_context_encode(
  * @param apdu - apdu buffer to decode
  * @param apdu_size - apdu buffer size
  * @param tag_number - context tag number
- * @param value - value to encode
+ * @param value - value to decode, or NULL to only get the length
  * @return number of bytes decoded, BACNET_STATUS_ERROR on error
  */
 int bacnet_daterange_context_decode(
@@ -1444,7 +1614,7 @@ int bacnet_daterange_context_decode(
     int apdu_len = 0;
     int len = 0;
 
-    if (!apdu || !value) {
+    if (!apdu) {
         return -1;
     }
     if (bacnet_is_opening_tag_number(

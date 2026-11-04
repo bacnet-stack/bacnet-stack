@@ -7,7 +7,9 @@
  * @copyright SPDX-License-Identifier: MIT
  */
 #include <stdint.h>
+#include <string.h>
 #include <zephyr/ztest.h>
+#include <bacnet/bacstr.h>
 #include <bacnet/bactext.h>
 #include <bacnet/property.h>
 #include <bacnet/rp.h>
@@ -483,4 +485,56 @@ void bacnet_object_name_ascii_test(
     zassert_true(status, NULL);
     test_name = ascii_get(object_instance);
     zassert_equal(test_name, NULL, NULL);
+}
+
+/**
+ * @brief Perform a test on the duplicate (copy) of an ASCII name or
+ *  description of an object
+ * @param object_instance The instance number of the object to test
+ * @param ascii_duplicate The function to duplicate the ASCII string
+ * @param ascii_get The function to get the ASCII string
+ * @note A NULL result or an empty string from ascii_get are both accepted
+ *  as a cleared value, since some getters return an empty string by default.
+ */
+void bacnet_object_name_ascii_duplicate_test(
+    uint32_t object_instance,
+    object_name_ascii_set_function ascii_duplicate,
+    object_name_ascii_function ascii_get)
+{
+    bool status = false;
+    const char *test_name = NULL;
+    const char *first_name = NULL;
+    char sample_name[] = "sample";
+    char long_name[MAX_CHARACTER_STRING_BYTES + 2];
+
+    status = ascii_duplicate(object_instance, sample_name);
+    zassert_true(status, NULL);
+    first_name = ascii_get(object_instance);
+    zassert_not_null(first_name, NULL);
+    zassert_equal(bacnet_strcmp(first_name, "sample"), 0, NULL);
+    /* the object has its own copy, not a reference to the caller buffer */
+    zassert_true(first_name != sample_name, NULL);
+    sample_name[0] = 'X';
+    test_name = ascii_get(object_instance);
+    zassert_equal(bacnet_strcmp(test_name, "sample"), 0, NULL);
+    /* duplicate again to replace the previous copy */
+    status = ascii_duplicate(object_instance, "another");
+    zassert_true(status, NULL);
+    test_name = ascii_get(object_instance);
+    zassert_equal(bacnet_strcmp(test_name, "another"), 0, NULL);
+    /* a string that is too long is rejected and the value is unchanged */
+    memset(long_name, 'a', sizeof(long_name) - 1);
+    long_name[sizeof(long_name) - 1] = 0;
+    status = ascii_duplicate(object_instance, long_name);
+    zassert_false(status, NULL);
+    test_name = ascii_get(object_instance);
+    zassert_equal(bacnet_strcmp(test_name, "another"), 0, NULL);
+    /* NULL clears the value */
+    status = ascii_duplicate(object_instance, NULL);
+    zassert_true(status, NULL);
+    test_name = ascii_get(object_instance);
+    zassert_true(test_name == NULL || test_name[0] == 0, NULL);
+    /* unknown object instance */
+    status = ascii_duplicate(BACNET_MAX_INSTANCE - 1, "unknown");
+    zassert_false(status, NULL);
 }

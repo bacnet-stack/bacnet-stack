@@ -1,4 +1,15 @@
 #
+# The configuration of the last full build is saved so that a plain
+# "make install" selects the same applications. Variables given on the
+# command line or in the environment take precedence over saved values.
+BUILD_CONFIG := $(CURDIR)/build.config
+ifneq (,$(filter install,$(MAKECMDGOALS)))
+ifeq (,$(filter clean all,$(MAKECMDGOALS)))
+-include $(BUILD_CONFIG)
+endif
+endif
+
+#
 # Set PREFIX to prepend to GCC compiler tools for cross-compilation.
 # Assumes rm and cp are natively available
 #
@@ -13,6 +24,11 @@ OBJDUMP 	= $(PREFIX)objdump
 
 # Passing parameters via command line or from Makefile export to this one
 BACNET_DEFINES ?=
+
+# Install locations (lowercase because PREFIX is the compiler tool prefix)
+DESTDIR ?=
+prefix ?= /usr/local
+bindir ?= $(prefix)/bin
 
 # BACnet Library
 BACNET_LIB_DIR = $(realpath ./lib)
@@ -246,6 +262,7 @@ BACNET_DEFINES += -DPRINT_ENABLED=1
 BACNET_DEFINES += -DBACAPP_ALL
 BACNET_DEFINES += -DBACNET_TIME_MASTER
 BACNET_DEFINES += -DBACNET_BACKUP_RESTORE
+BACNET_DEFINES += -DBACNET_ADDRESS_CACHE
 BACNET_DEFINES += -DBACNET_PROPERTY_LISTS=1
 BACNET_DEFINES += -DBACNET_PROTOCOL_REVISION=28
 
@@ -330,6 +347,15 @@ $(foreach TGT, $(TARGETS), $(patsubst %, %.$(TGT), $(SUBDIRS))):
 	$(info recipe: $@...)
 	$(MAKE) -C $(subst ., , $@)
 
+all:
+	@printf '%s\n' \
+		'BACDL ?= $(BACDL)' \
+		$(if $(BACDL),,'BACDL_DEFINE ?= $(BACDL_DEFINE)') \
+		'BBMD ?= $(BBMD)' \
+		'BBMD6 ?= $(BBMD6)' \
+		'BACNET_PORT ?= $(BACNET_PORT)' \
+		'PREFIX ?= $(PREFIX)' > $(BUILD_CONFIG)
+
 .PHONY: lib
 lib: lib/Makefile Makefile $(BACNET_LIB_TARGET)
 
@@ -338,6 +364,13 @@ $(BACNET_LIB_TARGET):
 
 clean:
 	$(MAKE) BACDL=all -C lib clean
+	rm -f $(BUILD_CONFIG)
+
+.PHONY: install
+install:
+	for dir in $(filter-out lib,$(SUBDIRS)); do \
+		$(MAKE) -C $$dir install || exit 1; \
+	done
 
 .PHONY: gateway
 gateway: $(BACNET_LIB_TARGET)

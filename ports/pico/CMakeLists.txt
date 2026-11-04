@@ -50,6 +50,7 @@ set(BACNET_COMMON_SOURCES
     ${BACNET_BASIC}/service/s_iam.c
     ${BACNET_BASIC}/service/s_ihave.c
     ${BACNET_BASIC}/sys/days.c
+    ${BACNET_BASIC}/sys/keylist.c
     ${BACNET_BASIC}/sys/dst.c
     ${BACNET_BASIC}/sys/debug.c
     ${BACNET_BASIC}/sys/ringbuf.c

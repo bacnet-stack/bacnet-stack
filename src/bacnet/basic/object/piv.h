@@ -53,6 +53,9 @@ BACNET_STACK_EXPORT
 bool PositiveInteger_Value_Name_Set(
     uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
+bool PositiveInteger_Value_Name_Duplicate(
+    uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
 const char *PositiveInteger_Value_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
@@ -81,6 +84,15 @@ const char *PositiveInteger_Value_Description(uint32_t instance);
 BACNET_STACK_EXPORT
 bool PositiveInteger_Value_Description_Set(
     uint32_t instance, const char *new_name);
+BACNET_STACK_EXPORT
+bool PositiveInteger_Value_Description_Duplicate(
+    uint32_t instance, const char *new_name);
+
+BACNET_STACK_EXPORT
+BACNET_ENGINEERING_UNITS PositiveInteger_Value_Units(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool PositiveInteger_Value_Units_Set(
+    uint32_t object_instance, BACNET_ENGINEERING_UNITS units);
 
 BACNET_STACK_EXPORT
 bool PositiveInteger_Value_Out_Of_Service(uint32_t instance);

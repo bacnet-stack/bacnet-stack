@@ -46,7 +46,7 @@ uint8_t Send_Private_Transfer_Request(
     const BACNET_APPLICATION_DATA_VALUE *value_list)
 {
     BACNET_ADDRESS dest;
-    BACNET_ADDRESS my_address;
+    BACNET_ADDRESS my_address = { 0 };
     unsigned max_apdu = 0;
     uint8_t invoke_id = 0;
     bool status = false;
@@ -84,6 +84,15 @@ uint8_t Send_Private_Transfer_Request(
     /* construct the NPDU */
     datalink_get_my_address(&my_address);
     npdu_encode_npdu_data(&npdu_data, true, MESSAGE_PRIORITY_NORMAL);
+    pdu_len = npdu_encode_pdu(NULL, &dest, &my_address, &npdu_data);
+    if ((pdu == NULL) || (pdu_len <= 0) || ((size_t)pdu_len >= max_pdu)) {
+        tsm_free_invoke_id(invoke_id);
+        debug_fprintf(
+            stderr,
+            "Failed to Send ConfirmedPrivateTransfer Request "
+            "(NPDU exceeds buffer size)!\n");
+        return 0;
+    }
     pdu_len = npdu_encode_pdu(&pdu[0], &dest, &my_address, &npdu_data);
     /* append the APDU */
     len = ptransfer_service_header_encode(

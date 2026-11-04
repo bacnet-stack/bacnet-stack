@@ -31,6 +31,11 @@
 #define MAX_TREND_LOGS 8
 #endif
 
+/* Deepness of each object */
+#ifndef TL_MAX_ENTRIES
+#define TL_MAX_ENTRIES 1000
+#endif
+
 static TL_DATA_REC Logs_Records[MAX_NUM_DEVICES][MAX_TREND_LOGS]
                                [TL_MAX_ENTRIES];
 #ifdef BAC_ROUTING
@@ -366,6 +371,29 @@ bool Trend_Log_Name_Set(uint32_t object_instance, const char *new_name)
 }
 
 /**
+ * @brief For a given object instance-number, sets the object-name
+ *  by duplicating (copying) an ANSI C string.
+ * @note The object name must be unique within this device.
+ * @param object_instance object-instance number of the object
+ * @param new_name ANSI C string to copy, or NULL to clear it.
+ * @return true if object-name was set. The object-name is unchanged on
+ *  failure (object not found, string too long, or out of memory).
+ */
+bool Trend_Log_Name_Duplicate(uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    TL_LOG_INFO *CurrentLog;
+
+    if (object_instance < MAX_TREND_LOGS) {
+        CurrentLog = &LogInfo[object_instance];
+        status = bacnet_character_cstring_strndup(
+            &CurrentLog->Object_Name, new_name, SIZE_MAX);
+    }
+
+    return status;
+}
+
+/**
  * @brief Return the object name C string.
  * @param object_instance - BACnet object instance number.
  * @return object name or NULL if not found.
@@ -453,6 +481,29 @@ bool Trend_Log_Description_Set(uint32_t object_instance, const char *new_name)
         CurrentLog = &LogInfo[object_instance];
         status =
             bacnet_character_cstring_set(&CurrentLog->Description, new_name);
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the description
+ *  by duplicating (copying) an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name ANSI C string to copy, or NULL to clear it.
+ * @return true if description was set. The description is unchanged on
+ *  failure (object not found, string too long, or out of memory).
+ */
+bool Trend_Log_Description_Duplicate(
+    uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    TL_LOG_INFO *CurrentLog;
+
+    if (object_instance < MAX_TREND_LOGS) {
+        CurrentLog = &LogInfo[object_instance];
+        status = bacnet_character_cstring_strndup(
+            &CurrentLog->Description, new_name, SIZE_MAX);
     }
 
     return status;
@@ -1371,6 +1422,11 @@ int TL_encode_by_position(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
 
     /* From here on in we only have a starting point and a positive count */
 
+    if ((pRequest->Range.RefIndex == 0) || (pRequest->Count <= 0)) {
+        /* list positions are numbered from 1, so there is nothing to
+           return for position 0 or for an empty range */
+        return (0);
+    }
     if (pRequest->Range.RefIndex >
         CurrentLog->ulRecordCount) { /* Nothing to return as we are past the
                                       end of the list */
@@ -1753,7 +1809,9 @@ int TL_encode_entry(uint8_t *apdu, int iLog, int iEntry)
 
     /* Convert from BACnet 1 based to 0 based array index and then
      * handle wrap around of the circular buffer */
-
+    if (iEntry < 1) {
+        return 0;
+    }
     if (LogInfo[iLog].ulRecordCount < TL_MAX_ENTRIES) {
         pSource = &Logs[iLog][(iEntry - 1) % TL_MAX_ENTRIES];
     } else {

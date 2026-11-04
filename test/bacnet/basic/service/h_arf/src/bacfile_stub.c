@@ -69,3 +69,19 @@ bool bacfile_read_stream_data(BACNET_ATOMIC_READ_FILE_DATA *data)
     (void)data;
     return true;
 }
+
+/** Control variables: record count reported by bacfile_record_count() */
+bool Bacfile_Record_Count_Known = false;
+size_t Bacfile_Record_Count_Result = 0;
+
+/**
+ * @brief Stub: report the number of records in the file
+ */
+bool bacfile_record_count(uint32_t object_instance, size_t *count)
+{
+    (void)object_instance;
+    if (count) {
+        *count = Bacfile_Record_Count_Result;
+    }
+    return Bacfile_Record_Count_Known;
+}

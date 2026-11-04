@@ -63,12 +63,17 @@ bool Audit_Log_Object_Name(
 BACNET_STACK_EXPORT
 bool Audit_Log_Name_Set(uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
+bool Audit_Log_Name_Duplicate(uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
 const char *Audit_Log_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 const char *Audit_Log_Description(uint32_t instance);
 BACNET_STACK_EXPORT
 bool Audit_Log_Description_Set(uint32_t instance, const char *new_name);
+BACNET_STACK_EXPORT
+bool Audit_Log_Description_Duplicate(
+    uint32_t object_instance, const char *new_name);
 
 BACNET_STACK_EXPORT
 int Audit_Log_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata);

@@ -55,6 +55,9 @@ BACNET_STACK_EXPORT
 bool CharacterString_Value_Name_Set(
     uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
+bool CharacterString_Value_Name_Duplicate(
+    uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
 const char *CharacterString_Value_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
@@ -72,6 +75,9 @@ const char *CharacterString_Value_Description(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool CharacterString_Value_Description_Set(
     uint32_t object_instance, const char *new_descr);
+BACNET_STACK_EXPORT
+bool CharacterString_Value_Description_Duplicate(
+    uint32_t object_instance, const char *new_name);
 
 BACNET_STACK_EXPORT
 bool CharacterString_Value_Out_Of_Service(uint32_t object_instance);

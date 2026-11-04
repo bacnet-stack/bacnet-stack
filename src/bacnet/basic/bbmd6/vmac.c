@@ -79,6 +79,8 @@ bool VMAC_Add(uint32_t device_id, const struct vmac_data *src)
                     debug_fprintf(
                         stderr, "VMAC %u added.\n", (unsigned int)device_id);
                 }
+            } else {
+                free(pVMAC);
             }
         }
     }
@@ -292,9 +294,18 @@ void VMAC_Cleanup(void)
  */
 void VMAC_Init(void)
 {
+    static bool VMAC_Cleanup_Registered;
+
+    if (VMAC_List) {
+        /* re-initializing would otherwise leak the existing list */
+        VMAC_Cleanup();
+    }
     VMAC_List = Keylist_Create();
     if (VMAC_List) {
-        atexit(VMAC_Cleanup);
+        if (!VMAC_Cleanup_Registered) {
+            atexit(VMAC_Cleanup);
+            VMAC_Cleanup_Registered = true;
+        }
         debug_fprintf(stderr, "VMAC List initialized.\n");
     }
 }

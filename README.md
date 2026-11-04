@@ -109,6 +109,24 @@ Windows Command Line
 
     c:\> build.bat
 
+The sample applications can be installed after they are built.
+The default location is /usr/local/bin. Use the prefix and DESTDIR
+variables to change the location:
+
+    $ make install
+    $ make DESTDIR=/tmp/stage prefix=/usr install
+
+The install target uses the datalink options of the last full build
+(for example, `make mstp` followed by `make install` installs the
+MS/TP applications). Options given to `make install` take precedence,
+so they must match the build, for example `make BACDL=mstp install`.
+
+The CMake build installs the sample applications with the same names:
+
+    $ cmake -S . -B build -DCMAKE_INSTALL_PREFIX=/usr
+    $ cmake --build build
+    $ cmake --install build
+
 The BACnet stack can be compiled by a variety of compilers.  The most common
 free compiler is GCC (or MinGW under Windows).  Makefile builds use GCC by
 default.

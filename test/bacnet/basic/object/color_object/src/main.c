@@ -9,6 +9,7 @@
 #include <zephyr/ztest.h>
 #include <bacnet/bactext.h>
 #include <bacnet/basic/object/color_object.h>
+#include <property_test.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -24,16 +25,8 @@ ZTEST(color_object_tests, testColorObject)
 static void testColorObject(void)
 #endif
 {
-    uint8_t apdu[MAX_APDU] = { 0 };
-    int len = 0;
-    int test_len = 0;
-    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
-    const int32_t *pRequired = NULL;
-    const int32_t *pOptional = NULL;
-    const int32_t *pProprietary = NULL;
+    const int32_t skip_fail_property_list[] = { -1 };
     const uint32_t instance = 123;
-    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
     bool status = false;
     unsigned index;
     const char *test_name = NULL;
@@ -46,88 +39,9 @@ static void testColorObject(void)
     index = Color_Instance_To_Index(instance);
     zassert_equal(index, 0, NULL);
 
-    rpdata.application_data = &apdu[0];
-    rpdata.application_data_len = sizeof(apdu);
-    rpdata.object_type = OBJECT_COLOR;
-    rpdata.object_instance = instance;
-    rpdata.object_property = PROP_OBJECT_IDENTIFIER;
-
-    Color_Property_Lists(&pRequired, &pOptional, &pProprietary);
-    while ((*pRequired) >= 0) {
-        rpdata.object_property = *pRequired;
-        rpdata.array_index = BACNET_ARRAY_ALL;
-        len = Color_Read_Property(&rpdata);
-        zassert_not_equal(
-            len, BACNET_STATUS_ERROR,
-            "property '%s': failed to ReadProperty!\n",
-            bactext_property_name(rpdata.object_property));
-        if (len >= 0) {
-            test_len = bacapp_decode_known_property(
-                rpdata.application_data, len, &value, rpdata.object_type,
-                rpdata.object_property);
-            zassert_equal(
-                len, test_len, "property '%s': failed to decode!\n",
-                bactext_property_name(rpdata.object_property));
-            /* check WriteProperty properties */
-            wpdata.object_type = rpdata.object_type;
-            wpdata.object_instance = rpdata.object_instance;
-            wpdata.object_property = rpdata.object_property;
-            wpdata.array_index = rpdata.array_index;
-            memcpy(&wpdata.application_data, rpdata.application_data, MAX_APDU);
-            wpdata.application_data_len = len;
-            wpdata.error_code = ERROR_CODE_SUCCESS;
-            status = Color_Write_Property(&wpdata);
-            if (!status) {
-                /* verify WriteProperty property is known */
-                zassert_not_equal(
-                    wpdata.error_code, ERROR_CODE_UNKNOWN_PROPERTY,
-                    "property '%s': WriteProperty Unknown!\n",
-                    bactext_property_name(rpdata.object_property));
-            }
-        }
-        pRequired++;
-    }
-    while ((*pOptional) != -1) {
-        rpdata.object_property = *pOptional;
-        rpdata.array_index = BACNET_ARRAY_ALL;
-        len = Color_Read_Property(&rpdata);
-        zassert_not_equal(
-            len, BACNET_STATUS_ERROR,
-            "property '%s': failed to ReadProperty!\n",
-            bactext_property_name(rpdata.object_property));
-        if (len > 0) {
-            test_len = bacapp_decode_application_data(
-                rpdata.application_data, (uint8_t)rpdata.application_data_len,
-                &value);
-            zassert_equal(
-                len, test_len, "property '%s': failed to decode!\n",
-                bactext_property_name(rpdata.object_property));
-            /* check WriteProperty properties */
-            wpdata.object_type = rpdata.object_type;
-            wpdata.object_instance = rpdata.object_instance;
-            wpdata.object_property = rpdata.object_property;
-            wpdata.array_index = rpdata.array_index;
-            memcpy(&wpdata.application_data, rpdata.application_data, MAX_APDU);
-            wpdata.application_data_len = len;
-            wpdata.error_code = ERROR_CODE_SUCCESS;
-            status = Color_Write_Property(&wpdata);
-            if (!status) {
-                /* verify WriteProperty property is known */
-                zassert_not_equal(
-                    wpdata.error_code, ERROR_CODE_UNKNOWN_PROPERTY,
-                    "property '%s': WriteProperty Unknown!\n",
-                    bactext_property_name(rpdata.object_property));
-            }
-        }
-        pOptional++;
-    }
-    /* check for unsupported property - use ALL */
-    rpdata.object_property = PROP_ALL;
-    len = Color_Read_Property(&rpdata);
-    zassert_equal(len, BACNET_STATUS_ERROR, NULL);
-    wpdata.object_property = PROP_ALL;
-    status = Color_Write_Property(&wpdata);
-    zassert_false(status, NULL);
+    bacnet_object_properties_read_write_test(
+        OBJECT_COLOR, instance, Color_Property_Lists, Color_Read_Property,
+        Color_Write_Property, skip_fail_property_list);
     /* test the ASCII name get/set */
     status = Color_Name_Set(instance, sample_name);
     zassert_true(status, NULL);
@@ -137,6 +51,10 @@ static void testColorObject(void)
     zassert_true(status, NULL);
     test_name = Color_Name_ASCII(instance);
     zassert_equal(test_name, NULL, NULL);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Color_Name_Duplicate, Color_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Color_Description_Duplicate, Color_Description);
     /* cleanup */
     status = Color_Delete(instance);
     zassert_true(status, NULL);

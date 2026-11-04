@@ -347,18 +347,24 @@ uint32_t Multistate_Output_Relinquish_Default(uint32_t object_instance)
 /**
  * @brief For a given object instance-number, sets the relinquish-default value
  * @param  object_instance - object-instance number of the object
- * @param  value - floating point analog output relinquish-default value
- * @return  true if values are within range and relinquish-default value is set.
+ * @param  value - integer multi-state relinquish-default value
+ * @return  true if the relinquish-default value is set.
  */
 bool Multistate_Output_Relinquish_Default_Set(
     uint32_t object_instance, uint32_t value)
 {
     bool status = false;
     struct object_data *pObject;
+    uint32_t old_value, new_value;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
+        old_value = Object_Present_Value(pObject);
         pObject->Relinquish_Default = value;
+        new_value = Object_Present_Value(pObject);
+        if (old_value != new_value) {
+            pObject->Changed = true;
+        }
         status = true;
     }
 
@@ -421,7 +427,8 @@ static bool Multistate_Output_Relinquish_Default_Write(
  * @brief For a given object instance-number, sets the present-value
  * @param  object_instance - object-instance number of the object
  * @param  value - integer multi-state value 1..N
- * @param  priority - priority-array index value 1..16
+ * @param  priority - priority-array index value 1..16, excluding 6
+ *  (reserved for Minimum On/Off)
  * @return  true if values are within range and present-value is set.
  */
 bool Multistate_Output_Present_Value_Set(
@@ -437,7 +444,8 @@ bool Multistate_Output_Present_Value_Set(
     if (pObject) {
         max_states = state_name_list_count(pObject->State_List);
         if ((value >= 1) && (value <= max_states) && (priority >= 1) &&
-            (priority <= BACNET_MAX_PRIORITY)) {
+            (priority <= BACNET_MAX_PRIORITY) &&
+            (priority != 6 /* reserved */)) {
             old_value = Object_Present_Value(pObject);
             pObject->Relinquished[priority - 1] = false;
             pObject->Priority_Array[priority - 1] = value;
@@ -456,7 +464,8 @@ bool Multistate_Output_Present_Value_Set(
  * @brief For a given object instance-number, sets the present-value
  * @param  object_instance - object-instance number of the object
  * @param  state_name - state name to set the present value to
- * @param  priority - priority-array index value 1..16
+ * @param  priority - priority-array index value 1..16, excluding 6
+ *  (reserved for Minimum On/Off)
  * @return  true if value is within range and present-value is set.
  */
 bool Multistate_Output_Present_Value_By_Name_Set(
@@ -530,7 +539,8 @@ uint32_t Multistate_Output_Priority_Array_Value(
 /**
  * @brief For a given object instance-number, relinquishes the present-value
  * @param  object_instance - object-instance number of the object
- * @param  priority - priority-array index value 1..16
+ * @param  priority - priority-array index value 1..16, excluding 6
+ *  (reserved for Minimum On/Off)
  * @return  true if values are within range and present-value is relinquished.
  */
 bool Multistate_Output_Present_Value_Relinquish(
@@ -543,7 +553,8 @@ bool Multistate_Output_Present_Value_Relinquish(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+        if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY) &&
+            (priority != 6 /* reserved */)) {
             old_value = Object_Present_Value(pObject);
             pObject->Relinquished[priority - 1] = true;
             pObject->Priority_Array[priority - 1] = 0;
@@ -760,6 +771,30 @@ bool Multistate_Output_Name_Set(uint32_t object_instance, const char *new_name)
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = bacnet_character_cstring_set(&pObject->Object_Name, new_name);
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the object-name
+ *  by duplicating (copying) an ANSI C string.
+ * @note The object name must be unique within this device.
+ * @param object_instance object-instance number of the object
+ * @param new_name ANSI C string to copy, or NULL to clear it.
+ * @return true if object-name was set. The object-name is unchanged on
+ *  failure (object not found, string too long, or out of memory).
+ */
+bool Multistate_Output_Name_Duplicate(
+    uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        status = bacnet_character_cstring_strndup(
+            &pObject->Object_Name, new_name, SIZE_MAX);
     }
 
     return status;
@@ -985,6 +1020,29 @@ bool Multistate_Output_Description_Set(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = bacnet_character_cstring_set(&pObject->Description, new_name);
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the description
+ *  by duplicating (copying) an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name ANSI C string to copy, or NULL to clear it.
+ * @return true if description was set. The description is unchanged on
+ *  failure (object not found, string too long, or out of memory).
+ */
+bool Multistate_Output_Description_Duplicate(
+    uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        status = bacnet_character_cstring_strndup(
+            &pObject->Description, new_name, SIZE_MAX);
     }
 
     return status;
@@ -1413,6 +1471,8 @@ bool Multistate_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->application_data_len);
             if (wp_data->error_code == ERROR_CODE_SUCCESS) {
                 status = true;
+            } else {
+                wp_data->error_class = bacerror_code_class(wp_data->error_code);
             }
             break;
         default:

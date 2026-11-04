@@ -16,6 +16,7 @@
 #include "bacnet/bacaddr.h"
 #include "bacnet/bacdcode.h"
 #include "bacnet/readrange.h"
+#include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/binding/address.h"
 
 /* we are likely compiling the demo command line tools if print enabled */
@@ -32,16 +33,17 @@
 static uint32_t Top_Protected_Entry;
 static uint32_t Own_Device_ID = 0xFFFFFFFF;
 
-/* The address cache is used for binding to BACnet devices */
-/* The number of entries corresponds to the number of */
-/* devices that might respond to an I-Am on the network. */
-/* If your device is a simple server and does not need to bind, */
-/* then you don't need to use this. */
+/* The address cache is used for binding to BACnet devices. */
+/* Entries are stored in a Keylist keyed by device instance. */
+/* MAX_ADDRESS_CACHE is the maximum number of entries. If the */
+/* cache is full, the oldest non-protected, non-static entry */
+/* is removed to make room. If your device is a simple server */
+/* and does not need to bind, then you don't need to use this. */
 #if !defined(MAX_ADDRESS_CACHE)
 #define MAX_ADDRESS_CACHE 255
 #endif
 
-static struct Address_Cache_Entry {
+struct Address_Cache_Entry {
     uint8_t Flags;
     uint32_t device_id;
     unsigned max_apdu;
@@ -51,7 +53,9 @@ static struct Address_Cache_Entry {
 #endif
     BACNET_ADDRESS address;
     uint32_t TimeToLive;
-} Address_Cache[MAX_ADDRESS_CACHE];
+};
+
+static OS_Keylist Address_Cache;
 
 /* State flags for cache entries */
 
@@ -74,58 +78,161 @@ static struct Address_Cache_Entry {
 #define BAC_ADDR_FOREVER 0xFFFFFFFF /* Permanent entry */
 
 /**
- * @brief Set the index of the first (top) address being protected.
- *
- * @param top_protected_entry_index  top protected index [0..n-1]
+ * @brief Create the address cache Keylist if it does not exist.
  */
-void address_protected_entry_index_set(uint32_t top_protected_entry_index)
+static void address_cache_ensure(void)
 {
-    if (top_protected_entry_index < MAX_ADDRESS_CACHE) {
-        Top_Protected_Entry = top_protected_entry_index;
+    if (!Address_Cache) {
+        Address_Cache = Keylist_Create();
     }
 }
 
 /**
- * @brief Set the address of our own device.
+ * @brief Return the number of entries stored in the address cache.
  *
- * @param own_id  Own device id
+ * @return Count of Keylist entries, or 0 if the list is not created.
  */
-void address_own_device_id_set(uint32_t own_id)
+static unsigned address_cache_size(void)
 {
-    Own_Device_ID = own_id;
+    address_cache_ensure();
+    if (!Address_Cache) {
+        return 0;
+    }
+
+    return (unsigned)Keylist_Count(Address_Cache);
 }
 
 /**
- * @brief Remove a device from the address list.
+ * @brief Find a cache entry by device instance.
  *
- * @param device_id  ID of the device
+ * @param device_id  Device instance
+ *
+ * @return Pointer to the entry, or NULL if not found.
  */
-void address_remove_device(uint32_t device_id)
+static struct Address_Cache_Entry *address_entry_by_device(uint32_t device_id)
+{
+    address_cache_ensure();
+    if (!Address_Cache) {
+        return NULL;
+    }
+
+    return Keylist_Data(Address_Cache, device_id);
+}
+
+/**
+ * @brief Find a cache entry by Keylist index.
+ *
+ * @param index  Zero-based Keylist index
+ *
+ * @return Pointer to the entry, or NULL if not found.
+ */
+static struct Address_Cache_Entry *address_entry_by_index(unsigned index)
+{
+    address_cache_ensure();
+    if (!Address_Cache) {
+        return NULL;
+    }
+
+    return Keylist_Data_Index(Address_Cache, (int)index);
+}
+
+/**
+ * @brief True when the entry is bound (in use and not a pending bind).
+ *
+ * @param pMatch  Cache entry
+ *
+ * @return true if bound
+ */
+static bool address_entry_bound(const struct Address_Cache_Entry *pMatch)
+{
+    if (!pMatch) {
+        return false;
+    }
+
+    return (
+        (pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
+        BAC_ADDR_IN_USE);
+}
+
+/**
+ * @brief Remove an entry from the Keylist and keep the protected prefix
+ * aligned. If the detached index was inside the protected range, later
+ * entries shift down, so Top_Protected_Entry is decremented.
+ *
+ * @param device_id  Device instance
+ *
+ * @return Pointer to the detached entry, or NULL if not found.
+ */
+static struct Address_Cache_Entry *address_entry_detach(uint32_t device_id)
 {
     struct Address_Cache_Entry *pMatch;
-    uint32_t index = 0;
+    int index;
 
-    for (index = 0; index < MAX_ADDRESS_CACHE; index++) {
-        pMatch = &Address_Cache[index];
-        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) &&
-            (pMatch->device_id == device_id)) {
-            pMatch->Flags = 0;
-            if (index < Top_Protected_Entry) {
-                Top_Protected_Entry--;
-            }
-            break;
+    if (!Address_Cache) {
+        return NULL;
+    }
+    index = Keylist_Index(Address_Cache, device_id);
+    pMatch = Keylist_Data_Delete(Address_Cache, device_id);
+    if (pMatch) {
+        if ((index >= 0) && ((unsigned)index < Top_Protected_Entry)) {
+            Top_Protected_Entry--;
         }
     }
 
-    return;
+    return pMatch;
 }
 
 /**
- * @brief Search the cache for the entry nearest expiry and delete it. Mark the
- * entry as reserved with a 1 hour TTL and return a pointer to the reserved
- * entry. Will not delete a static entry and returns NULL pointer if no
- * entry available to free up. Does not check for free entries as it is
- * assumed we are calling this due to the lack of those.
+ * @brief Insert an entry into the Keylist and keep the protected prefix
+ * aligned. If the new index falls inside the protected range, later
+ * protected entries shift up, so Top_Protected_Entry is incremented.
+ *
+ * @param device_id  Device instance used as the Keylist key
+ * @param pMatch  Cache entry to insert
+ *
+ * @return true if the entry was added
+ */
+static bool
+address_entry_attach(uint32_t device_id, struct Address_Cache_Entry *pMatch)
+{
+    int index;
+
+    if (!Address_Cache || !pMatch) {
+        return false;
+    }
+    index = Keylist_Data_Add(Address_Cache, device_id, pMatch);
+    if (index < 0) {
+        return false;
+    }
+    if ((unsigned)index < Top_Protected_Entry) {
+        Top_Protected_Entry++;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Remove an entry from the cache and free it.
+ *
+ * @param device_id  Device instance
+ */
+static void address_entry_delete(uint32_t device_id)
+{
+    struct Address_Cache_Entry *pMatch;
+
+    pMatch = address_entry_detach(device_id);
+    if (pMatch) {
+        free(pMatch);
+    }
+}
+
+/**
+ * @brief Search the cache for the entry nearest expiry and remove it from the
+ * Keylist. Mark the entry as reserved with a 1 hour TTL and return a pointer
+ * to the reserved entry so the caller can reuse it. Will not delete a static
+ * entry and returns NULL pointer if no entry available to free up. Does not
+ * check for free entries as it is assumed we are calling this due to the
+ * lack of those.
  *
  * @return Pointer to the entry that has been removed or NULL.
  */
@@ -134,19 +241,23 @@ static struct Address_Cache_Entry *address_remove_oldest(void)
     struct Address_Cache_Entry *pMatch;
     struct Address_Cache_Entry *pCandidate;
     uint32_t ulTime;
-    unsigned index;
+    unsigned index, count;
 
     pCandidate = NULL;
     if (Top_Protected_Entry > (MAX_ADDRESS_CACHE - 1)) {
         return pCandidate;
     }
+    count = address_cache_size();
     /* Longest possible non static time to live */
     ulTime = BAC_ADDR_FOREVER - 1;
 
     /* First pass - try only in use and bound entries */
 
-    for (index = Top_Protected_Entry; index < MAX_ADDRESS_CACHE; index++) {
-        pMatch = &Address_Cache[index];
+    for (index = Top_Protected_Entry; index < count; index++) {
+        pMatch = address_entry_by_index(index);
+        if (!pMatch) {
+            continue;
+        }
         if ((pMatch->Flags &
              (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ | BAC_ADDR_STATIC)) ==
             BAC_ADDR_IN_USE) {
@@ -160,15 +271,21 @@ static struct Address_Cache_Entry *address_remove_oldest(void)
 
     if (pCandidate != NULL) {
         /* Found something to free up */
-        pCandidate->Flags = BAC_ADDR_RESERVED;
-        /* only reserve it for a short while */
-        pCandidate->TimeToLive = BAC_ADDR_SHORT_TIME;
+        pCandidate = address_entry_detach(pCandidate->device_id);
+        if (pCandidate) {
+            pCandidate->Flags = BAC_ADDR_RESERVED;
+            /* only reserve it for a short while */
+            pCandidate->TimeToLive = BAC_ADDR_SHORT_TIME;
+        }
         return (pCandidate);
     }
 
-    /* Second pass - try in use and un bound as last resort */
-    for (index = 0; index < MAX_ADDRESS_CACHE; index++) {
-        pMatch = &Address_Cache[index];
+    /* Second pass - try in use and unbound as last resort */
+    for (index = 0; index < count; index++) {
+        pMatch = address_entry_by_index(index);
+        if (!pMatch) {
+            continue;
+        }
         if ((pMatch->Flags &
              (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ | BAC_ADDR_STATIC)) ==
             ((uint8_t)(BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ))) {
@@ -181,12 +298,51 @@ static struct Address_Cache_Entry *address_remove_oldest(void)
 
     if (pCandidate != NULL) {
         /* Found something to free up */
-        pCandidate->Flags = BAC_ADDR_RESERVED;
-        /* only reserve it for a short while */
-        pCandidate->TimeToLive = BAC_ADDR_SHORT_TIME;
+        pCandidate = address_entry_detach(pCandidate->device_id);
+        if (pCandidate) {
+            pCandidate->Flags = BAC_ADDR_RESERVED;
+            /* only reserve it for a short while */
+            pCandidate->TimeToLive = BAC_ADDR_SHORT_TIME;
+        }
     }
 
     return (pCandidate);
+}
+
+/**
+ * @brief Allocate a new cache entry, or reuse the oldest when the cache is
+ * full.
+ *
+ * @param device_id  Device instance used as the Keylist key
+ *
+ * @return Pointer to the new or reused entry, or NULL on failure.
+ */
+static struct Address_Cache_Entry *address_entry_create(uint32_t device_id)
+{
+    struct Address_Cache_Entry *pMatch;
+
+    pMatch = address_entry_by_device(device_id);
+    if (pMatch) {
+        return pMatch;
+    }
+    if (address_cache_size() >= MAX_ADDRESS_CACHE) {
+        pMatch = address_remove_oldest();
+        if (!pMatch) {
+            return NULL;
+        }
+    } else {
+        pMatch = calloc(1, sizeof(struct Address_Cache_Entry));
+        if (!pMatch) {
+            return NULL;
+        }
+    }
+    pMatch->device_id = device_id;
+    if (!address_entry_attach(device_id, pMatch)) {
+        free(pMatch);
+        return NULL;
+    }
+
+    return pMatch;
 }
 
 #ifdef BACNET_ADDRESS_CACHE_FILE
@@ -253,18 +409,54 @@ static void address_file_init(const char *pFilename)
 #endif
 
 /**
+ * @brief Set the index of the first (top) address being protected.
+ *
+ * @param top_protected_entry_index  top protected index [0..n-1]
+ */
+void address_protected_entry_index_set(uint32_t top_protected_entry_index)
+{
+    if (top_protected_entry_index < MAX_ADDRESS_CACHE) {
+        Top_Protected_Entry = top_protected_entry_index;
+    }
+}
+
+/**
+ * @brief Set the address of our own device.
+ *
+ * @param own_id  Own device id
+ */
+void address_own_device_id_set(uint32_t own_id)
+{
+    Own_Device_ID = own_id;
+}
+
+/**
+ * @brief Remove a device from the address list.
+ *
+ * @param device_id  ID of the device
+ */
+void address_remove_device(uint32_t device_id)
+{
+    struct Address_Cache_Entry *pMatch;
+
+    pMatch = address_entry_by_device(device_id);
+    if (pMatch && ((pMatch->Flags & BAC_ADDR_IN_USE) != 0)) {
+        address_entry_delete(device_id);
+    }
+
+    return;
+}
+
+/**
  * Clear down the cache and make sure the full complement of entries are
  * available. Assume no persistence of memory.
  */
 void address_init(void)
 {
-    struct Address_Cache_Entry *pMatch;
-    unsigned index;
-
     Top_Protected_Entry = 0;
-    for (index = 0; index < MAX_ADDRESS_CACHE; index++) {
-        pMatch = &Address_Cache[index];
-        pMatch->Flags = 0;
+    address_cache_ensure();
+    if (Address_Cache) {
+        Keylist_Data_Free(Address_Cache);
     }
 #ifdef BACNET_ADDRESS_CACHE_FILE
     address_file_init(Address_Cache_Filename);
@@ -284,19 +476,25 @@ void address_init_partial(void)
     struct Address_Cache_Entry *pMatch;
     unsigned index;
 
-    for (index = 0; index < MAX_ADDRESS_CACHE; index++) {
-        pMatch = &Address_Cache[index];
+    index = address_cache_size();
+    while (index > 0) {
+        index--;
+        pMatch = address_entry_by_index(index);
+        if (!pMatch) {
+            continue;
+        }
         if ((pMatch->Flags & BAC_ADDR_IN_USE) != 0) {
             /* It's in use so let's check further */
             if (((pMatch->Flags & BAC_ADDR_BIND_REQ) != 0) ||
                 (pMatch->TimeToLive == 0)) {
-                pMatch->Flags = 0;
+                address_entry_delete(pMatch->device_id);
+                continue;
             }
         }
 
         if ((pMatch->Flags & BAC_ADDR_RESERVED) != 0) {
             /* Reserved entries should be cleared */
-            pMatch->Flags = 0;
+            address_entry_delete(pMatch->device_id);
         }
     }
 #ifdef BACNET_ADDRESS_CACHE_FILE
@@ -320,26 +518,21 @@ void address_set_device_TTL(
     uint32_t device_id, uint32_t TimeOut, bool StaticFlag)
 {
     struct Address_Cache_Entry *pMatch;
-    unsigned index;
 
-    for (index = 0; index < MAX_ADDRESS_CACHE; index++) {
-        pMatch = &Address_Cache[index];
-        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) &&
-            (pMatch->device_id == device_id)) {
-            if ((pMatch->Flags & BAC_ADDR_BIND_REQ) == 0) {
-                /* If bound then we have either static or normaal */
-                if (StaticFlag) {
-                    pMatch->Flags |= BAC_ADDR_STATIC;
-                    pMatch->TimeToLive = BAC_ADDR_FOREVER;
-                } else {
-                    pMatch->Flags &= ~BAC_ADDR_STATIC;
-                    pMatch->TimeToLive = TimeOut;
-                }
+    pMatch = address_entry_by_device(device_id);
+    if (pMatch && ((pMatch->Flags & BAC_ADDR_IN_USE) != 0)) {
+        if ((pMatch->Flags & BAC_ADDR_BIND_REQ) == 0) {
+            /* If bound then we have either static or normaal */
+            if (StaticFlag) {
+                pMatch->Flags |= BAC_ADDR_STATIC;
+                pMatch->TimeToLive = BAC_ADDR_FOREVER;
             } else {
-                /* For unbound we can only set the time to live */
+                pMatch->Flags &= ~BAC_ADDR_STATIC;
                 pMatch->TimeToLive = TimeOut;
             }
-            break; /* Exit now if found at all - bound or unbound */
+        } else {
+            /* For unbound we can only set the time to live */
+            pMatch->TimeToLive = TimeOut;
         }
     }
 }
@@ -363,37 +556,31 @@ bool address_segment_get_by_device(
 {
     struct Address_Cache_Entry *pMatch;
     bool found = false; /* return value */
-    unsigned index;
 
-    for (index = 0; index < MAX_ADDRESS_CACHE; index++) {
-        pMatch = &Address_Cache[index];
-        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) &&
-            (pMatch->device_id == device_id)) {
-            if ((pMatch->Flags & BAC_ADDR_BIND_REQ) == 0) {
-                /* If bound then fetch data */
-                bacnet_address_copy(src, &pMatch->address);
-                if (max_apdu) {
-                    *max_apdu = pMatch->max_apdu;
-                }
-                if (segmentation) {
-#if BACNET_SEGMENTATION_ENABLED
-                    *segmentation = pMatch->segmentation;
-#else
-                    *segmentation = SEGMENTATION_NONE;
-#endif
-                }
-                if (maxsegments) {
-#if BACNET_SEGMENTATION_ENABLED
-                    *maxsegments = pMatch->maxsegments;
-#else
-                    *maxsegments = 1;
-#endif
-                }
-                /* Prove we found it */
-                found = true;
+    pMatch = address_entry_by_device(device_id);
+    if (pMatch && ((pMatch->Flags & BAC_ADDR_IN_USE) != 0)) {
+        if ((pMatch->Flags & BAC_ADDR_BIND_REQ) == 0) {
+            /* If bound then fetch data */
+            bacnet_address_copy(src, &pMatch->address);
+            if (max_apdu) {
+                *max_apdu = pMatch->max_apdu;
             }
-            /* Exit now if found at all - bound or unbound */
-            break;
+            if (segmentation) {
+#if BACNET_SEGMENTATION_ENABLED
+                *segmentation = pMatch->segmentation;
+#else
+                *segmentation = SEGMENTATION_NONE;
+#endif
+            }
+            if (maxsegments) {
+#if BACNET_SEGMENTATION_ENABLED
+                *maxsegments = pMatch->maxsegments;
+#else
+                *maxsegments = 1;
+#endif
+            }
+            /* Prove we found it */
+            found = true;
         }
     }
 
@@ -424,10 +611,14 @@ bool address_get_device_id(const BACNET_ADDRESS *src, uint32_t *device_id)
 {
     struct Address_Cache_Entry *pMatch;
     bool found = false; /* return value */
-    unsigned index;
+    unsigned index, count;
 
-    for (index = 0; index < MAX_ADDRESS_CACHE; index++) {
-        pMatch = &Address_Cache[index];
+    count = address_cache_size();
+    for (index = 0; index < count; index++) {
+        pMatch = address_entry_by_index(index);
+        if (!pMatch) {
+            continue;
+        }
         if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
             BAC_ADDR_IN_USE) {
             /* If bound */
@@ -454,9 +645,7 @@ bool address_get_device_id(const BACNET_ADDRESS *src, uint32_t *device_id)
 void address_add(
     uint32_t device_id, unsigned max_apdu, const BACNET_ADDRESS *src)
 {
-    bool found = false; /* return value */
     struct Address_Cache_Entry *pMatch;
-    unsigned index;
 
     if (Own_Device_ID == device_id) {
         return;
@@ -469,61 +658,37 @@ void address_add(
        bind request if it exists */
 
     /* existing device or bind request outstanding - update address */
-    for (index = 0; index < MAX_ADDRESS_CACHE; index++) {
-        pMatch = &Address_Cache[index];
-        /* Device already in the list, then update the values. */
-        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) &&
-            (pMatch->device_id == device_id)) {
-            bacnet_address_copy(&pMatch->address, src);
-            pMatch->max_apdu = max_apdu;
-            /* Pick the right time to live */
-            if ((pMatch->Flags & BAC_ADDR_BIND_REQ) != 0) {
-                /* Bind requested so long time */
-                pMatch->TimeToLive = BAC_ADDR_LONG_TIME;
-            } else if ((pMatch->Flags & BAC_ADDR_STATIC) != 0) {
-                /* Static already so make sure it never expires */
-                pMatch->TimeToLive = BAC_ADDR_FOREVER;
-            } else if ((pMatch->Flags & BAC_ADDR_SHORT_TTL) != 0) {
-                /* Opportunistic entry so leave on short fuse */
-                pMatch->TimeToLive = BAC_ADDR_SHORT_TIME;
-            } else {
-                /* Renewing existing entry */
-                pMatch->TimeToLive = BAC_ADDR_LONG_TIME;
-            }
-            /* Clear bind request flag just in case */
-            pMatch->Flags &= ~BAC_ADDR_BIND_REQ;
-            found = true;
-            break;
-        }
-    }
-    /* New device - add to cache if there is room. */
-    if (!found) {
-        for (index = 0; index < MAX_ADDRESS_CACHE; index++) {
-            pMatch = &Address_Cache[index];
-            if ((pMatch->Flags & BAC_ADDR_IN_USE) == 0) {
-                pMatch->Flags = BAC_ADDR_IN_USE;
-                pMatch->device_id = device_id;
-                pMatch->max_apdu = max_apdu;
-                bacnet_address_copy(&pMatch->address, src);
-                /* Opportunistic entry so leave on short fuse */
-                pMatch->TimeToLive = BAC_ADDR_SHORT_TIME;
-                found = true;
-                break;
-            }
-        }
-    }
-    /* If adding has failed, see if we can squeeze it in by removed the oldest
-     * entry. */
-    if (!found) {
-        pMatch = address_remove_oldest();
-        if (pMatch != NULL) {
-            pMatch->Flags = BAC_ADDR_IN_USE;
-            pMatch->device_id = device_id;
-            pMatch->max_apdu = max_apdu;
-            bacnet_address_copy(&pMatch->address, src);
+    pMatch = address_entry_by_device(device_id);
+    if (pMatch && ((pMatch->Flags & BAC_ADDR_IN_USE) != 0)) {
+        bacnet_address_copy(&pMatch->address, src);
+        pMatch->max_apdu = max_apdu;
+        /* Pick the right time to live */
+        if ((pMatch->Flags & BAC_ADDR_BIND_REQ) != 0) {
+            /* Bind requested so long time */
+            pMatch->TimeToLive = BAC_ADDR_LONG_TIME;
+        } else if ((pMatch->Flags & BAC_ADDR_STATIC) != 0) {
+            /* Static already so make sure it never expires */
+            pMatch->TimeToLive = BAC_ADDR_FOREVER;
+        } else if ((pMatch->Flags & BAC_ADDR_SHORT_TTL) != 0) {
             /* Opportunistic entry so leave on short fuse */
             pMatch->TimeToLive = BAC_ADDR_SHORT_TIME;
+        } else {
+            /* Renewing existing entry */
+            pMatch->TimeToLive = BAC_ADDR_LONG_TIME;
         }
+        /* Clear bind request flag just in case */
+        pMatch->Flags &= ~BAC_ADDR_BIND_REQ;
+        return;
+    }
+
+    /* New device - add to cache if there is room, or reuse oldest. */
+    pMatch = address_entry_create(device_id);
+    if (pMatch) {
+        pMatch->Flags = BAC_ADDR_IN_USE;
+        pMatch->max_apdu = max_apdu;
+        bacnet_address_copy(&pMatch->address, src);
+        /* Opportunistic entry so leave on short fuse */
+        pMatch->TimeToLive = BAC_ADDR_SHORT_TIME;
     }
     return;
 }
@@ -549,61 +714,42 @@ bool address_device_bind_request(
 {
     bool found = false; /* return value */
     struct Address_Cache_Entry *pMatch;
-    unsigned index;
 
     /* existing device - update address info if currently bound */
-    for (index = 0; index < MAX_ADDRESS_CACHE; index++) {
-        pMatch = &Address_Cache[index];
-        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) &&
-            (pMatch->device_id == device_id)) {
-            if ((pMatch->Flags & BAC_ADDR_BIND_REQ) == 0) {
-                /* Already bound */
-                found = true;
-                if (src) {
-                    bacnet_address_copy(src, &pMatch->address);
-                }
-                if (max_apdu) {
-                    *max_apdu = pMatch->max_apdu;
-                }
-                if (device_ttl) {
-                    *device_ttl = pMatch->TimeToLive;
-                }
-                if ((pMatch->Flags & BAC_ADDR_SHORT_TTL) != 0) {
-                    /* Was picked up opportunistacilly */
-                    /* Convert to normal entry  */
-                    pMatch->Flags &= ~BAC_ADDR_SHORT_TTL;
-                    /* And give it a decent time to live */
-                    pMatch->TimeToLive = BAC_ADDR_LONG_TIME;
-                }
+    pMatch = address_entry_by_device(device_id);
+    if (pMatch && ((pMatch->Flags & BAC_ADDR_IN_USE) != 0)) {
+        if ((pMatch->Flags & BAC_ADDR_BIND_REQ) == 0) {
+            /* Already bound */
+            found = true;
+            if (src) {
+                bacnet_address_copy(src, &pMatch->address);
             }
-            /* True if bound, false if bind request outstanding */
-            return (found);
+            if (max_apdu) {
+                *max_apdu = pMatch->max_apdu;
+            }
+            if (device_ttl) {
+                *device_ttl = pMatch->TimeToLive;
+            }
+            if ((pMatch->Flags & BAC_ADDR_SHORT_TTL) != 0) {
+                /* Was picked up opportunistacilly */
+                /* Convert to normal entry  */
+                pMatch->Flags &= ~BAC_ADDR_SHORT_TTL;
+                /* And give it a decent time to live */
+                pMatch->TimeToLive = BAC_ADDR_LONG_TIME;
+            }
         }
+        /* True if bound, false if bind request outstanding */
+        return (found);
     }
 
     /* Not there already so look for a free entry to put it in */
-    /* existing device - update address info if currently bound */
-    for (index = 0; index < MAX_ADDRESS_CACHE; index++) {
-        pMatch = &Address_Cache[index];
-        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_RESERVED)) == 0) {
-            /* In use and awaiting binding */
-            pMatch->Flags = (uint8_t)(BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ);
-            pMatch->device_id = device_id;
-            /* No point in leaving bind requests in for long haul */
-            pMatch->TimeToLive = BAC_ADDR_SHORT_TIME;
-            /* now would be a good time to do a Who-Is request */
-            return (false);
-        }
-    }
-
-    /* No free entries, See if we can squeeze it in by dropping an existing one
-     */
-    pMatch = address_remove_oldest();
-    if (pMatch != NULL) {
+    pMatch = address_entry_create(device_id);
+    if (pMatch) {
+        /* In use and awaiting binding */
         pMatch->Flags = (uint8_t)(BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ);
-        pMatch->device_id = device_id;
         /* No point in leaving bind requests in for long haul */
         pMatch->TimeToLive = BAC_ADDR_SHORT_TIME;
+        /* now would be a good time to do a Who-Is request */
     }
     return (false);
 }
@@ -637,23 +783,18 @@ void address_add_binding(
     uint32_t device_id, unsigned max_apdu, const BACNET_ADDRESS *src)
 {
     struct Address_Cache_Entry *pMatch;
-    unsigned index;
 
     /* existing device or bind request - update address */
-    for (index = 0; index < MAX_ADDRESS_CACHE; index++) {
-        pMatch = &Address_Cache[index];
-        if (((pMatch->Flags & BAC_ADDR_IN_USE) != 0) &&
-            (pMatch->device_id == device_id)) {
-            bacnet_address_copy(&pMatch->address, src);
-            pMatch->max_apdu = max_apdu;
-            /* Clear bind request flag in case it was set */
-            pMatch->Flags &= ~BAC_ADDR_BIND_REQ;
-            /* Only update TTL if not static */
-            if ((pMatch->Flags & BAC_ADDR_STATIC) == 0) {
-                /* and set it on a long fuse */
-                pMatch->TimeToLive = BAC_ADDR_LONG_TIME;
-            }
-            break;
+    pMatch = address_entry_by_device(device_id);
+    if (pMatch && ((pMatch->Flags & BAC_ADDR_IN_USE) != 0)) {
+        bacnet_address_copy(&pMatch->address, src);
+        pMatch->max_apdu = max_apdu;
+        /* Clear bind request flag in case it was set */
+        pMatch->Flags &= ~BAC_ADDR_BIND_REQ;
+        /* Only update TTL if not static */
+        if ((pMatch->Flags & BAC_ADDR_STATIC) == 0) {
+            /* and set it on a long fuse */
+            pMatch->TimeToLive = BAC_ADDR_LONG_TIME;
         }
     }
     return;
@@ -683,9 +824,8 @@ bool address_device_get_by_index(
     bool found = false; /* return value */
 
     if (index < MAX_ADDRESS_CACHE) {
-        pMatch = &Address_Cache[index];
-        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
-            BAC_ADDR_IN_USE) {
+        pMatch = address_entry_by_index(index);
+        if (address_entry_bound(pMatch)) {
             if (src) {
                 bacnet_address_copy(src, &pMatch->address);
             }
@@ -734,13 +874,13 @@ unsigned address_count(void)
 {
     struct Address_Cache_Entry *pMatch;
     unsigned count = 0; /* return value */
-    unsigned index;
+    unsigned index, size;
 
-    for (index = 0; index < MAX_ADDRESS_CACHE; index++) {
-        pMatch = &Address_Cache[index];
+    size = address_cache_size();
+    for (index = 0; index < size; index++) {
+        pMatch = address_entry_by_index(index);
         /* Only count bound entries */
-        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
-            BAC_ADDR_IN_USE) {
+        if (address_entry_bound(pMatch)) {
             count++;
         }
     }
@@ -761,13 +901,13 @@ int address_list_encode(uint8_t *apdu, unsigned apdu_size)
 {
     int len = 0, apdu_len = 0;
     struct Address_Cache_Entry *pMatch;
-    unsigned index;
+    unsigned index, size;
 
+    size = address_cache_size();
     /* determine the length of the encoded address list */
-    for (index = 0; index < MAX_ADDRESS_CACHE; index++) {
-        pMatch = &Address_Cache[index];
-        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
-            BAC_ADDR_IN_USE) {
+    for (index = 0; index < size; index++) {
+        pMatch = address_entry_by_index(index);
+        if (address_entry_bound(pMatch)) {
             /* encode matching addresses */
             len = bacnet_address_binding_entry_encode(
                 NULL, pMatch->device_id, &pMatch->address);
@@ -779,10 +919,9 @@ int address_list_encode(uint8_t *apdu, unsigned apdu_size)
         if (apdu_len > (int)apdu_size) {
             apdu_len = BACNET_STATUS_ABORT;
         } else {
-            for (index = 0; index < MAX_ADDRESS_CACHE; index++) {
-                pMatch = &Address_Cache[index];
-                if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
-                    BAC_ADDR_IN_USE) {
+            for (index = 0; index < size; index++) {
+                pMatch = address_entry_by_index(index);
+                if (address_entry_bound(pMatch)) {
                     /* encode matching addresses */
                     len = bacnet_address_binding_entry_encode(
                         apdu, pMatch->device_id, &pMatch->address);
@@ -800,10 +939,9 @@ int address_list_encode(uint8_t *apdu, unsigned apdu_size)
  * property as required for the ReadsRange functionality.
  * We assume we only get called for "Read All" or "By Position" requests.
  *
- * We need to treat the address cache as a contiguous array but in reality
- * it could be sparsely populated. We can get the count but we can only
- * extract entries by doing a linear scan starting from the first entry in
- * the cache and picking them off one by one.
+ * We need to treat the address cache as a contiguous array of bound
+ * entries. The Keylist can also hold bind-request and reserved entries,
+ * so we skip those and pick bound entries one by one.
  *
  * We do assume the list cannot change whilst we are accessing it so would
  * not be multithread safe if there are other tasks that change the cache.
@@ -835,6 +973,8 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
     uint32_t uiLast = 0; /* Entry number we finished encoding on */
     uint32_t uiTarget = 0; /* Last entry we are required to encode */
     uint32_t uiRemaining = 0; /* Amount of unused space in packet */
+    unsigned scan = 0;
+    unsigned size = 0;
 
     if ((!pRequest) || (!apdu)) {
         return 0;
@@ -904,33 +1044,22 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         uiTarget = uiTotal;
     }
 
-    pMatch = Address_Cache;
-    uiIndex = 1;
-    while ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) !=
-           BAC_ADDR_IN_USE) { /* Find first bound entry */
-        pMatch++;
-        /* Shall not happen as the count has been checked first. */
-        if (pMatch > &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-            /* Issue with the table. */
-            return (0);
-        }
-    }
-
-    /* Seek to start position */
-    while (uiIndex != pRequest->Range.RefIndex) {
-        if ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) ==
-            BAC_ADDR_IN_USE) {
-            /* Only count bound entries */
-            pMatch++;
+    size = address_cache_size();
+    uiIndex = 0;
+    pMatch = NULL;
+    for (scan = 0; scan < size; scan++) {
+        pMatch = address_entry_by_index(scan);
+        if (address_entry_bound(pMatch)) {
             uiIndex++;
-        } else {
-            pMatch++;
+            if (uiIndex == pRequest->Range.RefIndex) {
+                break;
+            }
         }
-        /* Shall not happen as the count has been checked first. */
-        if (pMatch > &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-            /* Issue with the table. */
-            return (0);
-        }
+        pMatch = NULL;
+    }
+    if (!pMatch) {
+        /* Issue with the table. */
+        return (0);
     }
 
     uiFirst = uiIndex; /* Record where we started from */
@@ -954,26 +1083,18 @@ int rr_address_list_encode(uint8_t *apdu, BACNET_READ_RANGE_DATA *pRequest)
         uiLast = uiIndex;
         /* and get ready for next one */
         uiIndex++;
-        pMatch++;
         /* Chalk up another one for the response count */
         pRequest->ItemCount++;
 
-        if (pMatch > &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-            /* valid entry at the end of the table */
-            uiLast = uiTotal;
-            break;
-        }
-        while ((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_BIND_REQ)) !=
-               BAC_ADDR_IN_USE) {
-            /* Find next bound entry */
-            pMatch++;
-            if (pMatch > &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
-                /* valid entry at the end of the table */
-                uiLast = uiTotal;
+        pMatch = NULL;
+        for (scan = scan + 1; scan < size; scan++) {
+            pMatch = address_entry_by_index(scan);
+            if (address_entry_bound(pMatch)) {
                 break;
             }
+            pMatch = NULL;
         }
-        if (pMatch > &Address_Cache[MAX_ADDRESS_CACHE - 1]) {
+        if (!pMatch) {
             /* valid entry at the end of the table */
             uiLast = uiTotal;
             break;
@@ -1005,8 +1126,13 @@ void address_cache_timer(uint16_t uSeconds)
     struct Address_Cache_Entry *pMatch;
     unsigned index;
 
-    for (index = 0; index < MAX_ADDRESS_CACHE; index++) {
-        pMatch = &Address_Cache[index];
+    index = address_cache_size();
+    while (index > 0) {
+        index--;
+        pMatch = address_entry_by_index(index);
+        if (!pMatch) {
+            continue;
+        }
         if (((pMatch->Flags & (BAC_ADDR_IN_USE | BAC_ADDR_RESERVED)) != 0) &&
             ((pMatch->Flags & BAC_ADDR_STATIC) ==
              0)) { /* Check all entries holding a slot except statics
@@ -1014,7 +1140,7 @@ void address_cache_timer(uint16_t uSeconds)
             if (pMatch->TimeToLive >= uSeconds) {
                 pMatch->TimeToLive -= uSeconds;
             } else {
-                pMatch->Flags = 0;
+                address_entry_delete(pMatch->device_id);
             }
         }
     }

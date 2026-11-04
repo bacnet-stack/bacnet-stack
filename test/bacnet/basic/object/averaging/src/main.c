@@ -40,6 +40,11 @@ static void testAveragingReadWrite(void)
         skip_fail_property_list);
     bacnet_object_name_ascii_test(
         object_instance, Averaging_Name_Set, Averaging_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Averaging_Name_Duplicate, Averaging_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Averaging_Description_Duplicate,
+        Averaging_Description);
     status = Averaging_Delete(object_instance);
     zassert_true(status, NULL);
 }

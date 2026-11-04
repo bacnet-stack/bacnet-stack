@@ -20,10 +20,11 @@
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 #include "bacnet/whois.h"
-/* some demo stuff needed */
+/* basic modules */
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/filename.h"
+#include "bacnet/version.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
@@ -125,6 +126,7 @@ static void print_usage(const char *filename)
 
 int main(int argc, char *argv[])
 {
+    const char *filename;
     char *value_string;
     bool status = false;
     BACNET_COV_DATA cov_data;
@@ -132,6 +134,17 @@ int main(int argc, char *argv[])
     long tag;
     unsigned object_type = 0;
     unsigned object_property = 0;
+
+    filename = filename_remove_path(argv[0]);
+    if ((argc > 1) && (strcmp(argv[1], "--version") == 0)) {
+        printf("%s %s\n", filename, BACNET_VERSION_TEXT);
+        printf("Copyright (C) 2006 by Steve Karg.\n"
+               "This is free software; see the source for copying "
+               "conditions.\n"
+               "There is NO warranty; not even for MERCHANTABILITY or\n"
+               "FITNESS FOR A PARTICULAR PURPOSE.\n");
+        return 0;
+    }
 
     if (argc < 7) {
         print_usage(filename_remove_path(argv[0]));

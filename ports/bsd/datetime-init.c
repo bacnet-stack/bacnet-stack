@@ -1,12 +1,10 @@
 /**
  * @file
+ * @brief System time library header file.
+ * @details This library provides functions for getting/setting the system time.
  * @author Steve Karg
  * @date 2009
- * @brief System time library header file.
- *
- * @section DESCRIPTION
- *
- * This library provides functions for getting and setting the system time.
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,9 +13,53 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
-#include "bacnet/basic/service/h_ts.h"
+#include "bacnet/basic/sys/debug.h"
 #include "bacport.h"
 #include "bacnet/datetime.h"
+
+/* Difference between the BACnet clock and the host clock. Kept so time
+ * can be set without changing the operating-system clock. */
+static struct timeval Time_Offset;
+
+/**
+ * @brief Calculate the difference between two times
+ * @param t0 minuend
+ * @param t1 subtrahend
+ * @return t0 - t1, with tv_usec normalized to [0..999999]
+ */
+static struct timeval timeval_diff(struct timeval t0, struct timeval t1)
+{
+    struct timeval diff;
+
+    diff.tv_sec = t0.tv_sec - t1.tv_sec;
+    diff.tv_usec = t0.tv_usec - t1.tv_usec;
+    if (diff.tv_usec < 0) {
+        diff.tv_usec += 1000000;
+        diff.tv_sec -= 1;
+    }
+
+    return diff;
+}
+
+/**
+ * @brief Calculate the sum of two times
+ * @param t0 first addend
+ * @param t1 second addend
+ * @return t0 + t1, with tv_usec normalized to [0..999999]
+ */
+static struct timeval timeval_sum(struct timeval t0, struct timeval t1)
+{
+    struct timeval sum;
+
+    sum.tv_sec = t0.tv_sec + t1.tv_sec;
+    sum.tv_usec = t0.tv_usec + t1.tv_usec;
+    if (sum.tv_usec >= 1000000) {
+        sum.tv_usec -= 1000000;
+        sum.tv_sec += 1;
+    }
+
+    return sum;
+}
 
 /**
  * @brief Set offset from the system clock.
@@ -28,9 +70,41 @@
  */
 void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
 {
-    (void)bdate;
-    (void)btime;
-    (void)utc;
+    struct timeval tv_inp, tv_sys;
+    struct tm *timeinfo;
+    time_t rawtime;
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+    /* fixme: only set the time if off by some amount */
+    if (bdate) {
+        timeinfo->tm_year = bdate->year - 1900;
+        timeinfo->tm_mon = bdate->month - 1;
+        timeinfo->tm_mday = bdate->day;
+    }
+    if (btime) {
+        timeinfo->tm_hour = btime->hour;
+        timeinfo->tm_min = btime->min;
+        timeinfo->tm_sec = btime->sec;
+    }
+    tv_inp.tv_sec = mktime(timeinfo);
+    if (btime) {
+        tv_inp.tv_usec = btime->hundredths * 10000;
+    } else {
+        tv_inp.tv_usec = 0;
+    }
+    if (gettimeofday(&tv_sys, NULL) == 0) {
+        if (utc) {
+            Time_Offset = timeval_diff(tv_inp, tv_sys);
+            Time_Offset.tv_sec -= (timezone - timeinfo->tm_isdst * 3600);
+        } else {
+            Time_Offset = timeval_diff(tv_inp, tv_sys);
+        }
+#if PRINT_ENABLED
+        debug_printf(
+            "Time offset = %ld seconds + %ld microseconds\n",
+            (long)Time_Offset.tv_sec, (long)Time_Offset.tv_usec);
+#endif
+    }
     return;
 }
 
@@ -38,8 +112,9 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc)
  * @brief Get the date, time, timezone, and UTC offset from system
  * @param utc_time - the BACnet Date and Time structure to hold UTC time
  * @param local_time - the BACnet Date and Time structure to hold local time
- * @param utc_offset_minutes - number of minutes offset from UTC
- * For example, -6*60 represents 6.00 hours behind UTC/GMT
+ * @param utc_offset_minutes - BACnet UTC_Offset in minutes: local standard
+ * time is UTC minus this value (135-2024 12.11.25). For example,
+ * +6*60 represents 6.00 hours behind UTC/GMT. Positive = WEST of UTC.
  * @param true if DST is enabled and active
  * @return true if local time was retrieved
  */
@@ -52,9 +127,12 @@ bool datetime_local(
     bool status = false;
     struct tm *tblock = NULL;
     struct timeval tv;
+    time_t seconds = 0;
 
     if (gettimeofday(&tv, NULL) == 0) {
-        tblock = (struct tm *)localtime((const time_t *)&tv.tv_sec);
+        tv = timeval_sum(tv, Time_Offset);
+        seconds = tv.tv_sec;
+        tblock = (struct tm *)localtime((const time_t *)&seconds);
     }
     if (tblock) {
         status = true;
@@ -91,12 +169,29 @@ bool datetime_local(
         if (utc_offset_minutes) {
             /* tm_gmtoff is set to the difference, in seconds,
                 between Coordinated Universal Time (UTC) and
-                local standard time */
-            *utc_offset_minutes = tblock->tm_gmtoff / 60;
+                local standard time. Positive = EAST of UTC.
+                tm_gmtoff includes the active daylight-saving adjustment */
+            *utc_offset_minutes =
+                -(tblock->tm_gmtoff - ((tblock->tm_isdst > 0) ? 3600 : 0)) / 60;
         }
     }
 
     return status;
+}
+
+/**
+ * @brief Set the UTC offset in minutes
+ * @param minutes [in] The UTC offset in minutes
+ * @return true if successful, false on error
+ * @note BACnet UTC Offset is inverse of common practice.
+ * If your UTC offset is -5hours of GMT,
+ * then BACnet UTC offset is +5hours.
+ * BACnet UTC offset is expressed in minutes.
+ */
+bool datetime_utc_offset_minutes_set(int16_t minutes)
+{
+    (void)minutes;
+    return false;
 }
 
 /**

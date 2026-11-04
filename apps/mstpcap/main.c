@@ -1,10 +1,10 @@
-/**************************************************************************
- *
- * Copyright (C) 2008 Steve Karg
- *
- * SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
- *
- *********************************************************************/
+/**
+ * @file
+ * @brief Capture BACnet MS/TP frames and save them in libpcap format.
+ * @author Steve Karg <skarg@users.sourceforge.net>
+ * @date 2008
+ * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -1012,7 +1012,7 @@ int main(int argc, char *argv[])
             return 0;
         }
         if (strcmp(argv[argi], "--version") == 0) {
-            printf("mstpcap %s\n", BACNET_VERSION_TEXT);
+            printf("%s %s\n", filename, BACNET_VERSION_TEXT);
             printf("Copyright (C) 2011-2016 by Steve Karg\n"
                    "This is free software; see the source for copying "
                    "conditions.\n"
@@ -1041,6 +1041,11 @@ int main(int argc, char *argv[])
                 fprintf(stderr, "File header does not match.\n");
                 return 1;
             }
+        }
+        if (strcmp(argv[argi], "--extcap-cleanup-postkill") == 0) {
+            /* Exit immediately. Wireshark waits for this process
+               after it stops a capture. */
+            return 0;
         }
         if (strcmp(argv[argi], "--extcap-interfaces") == 0) {
             RS485_Print_Ports();

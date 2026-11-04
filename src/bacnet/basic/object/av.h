@@ -61,6 +61,9 @@ bool Analog_Value_Object_Name(
 BACNET_STACK_EXPORT
 bool Analog_Value_Name_Set(uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
+bool Analog_Value_Name_Duplicate(
+    uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
 const char *Analog_Value_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
@@ -78,6 +81,27 @@ bool Analog_Value_Present_Value_Set(
     uint32_t object_instance, float value, uint8_t priority);
 BACNET_STACK_EXPORT
 float Analog_Value_Present_Value(uint32_t object_instance);
+
+#if defined(BACNET_OBJECT_ANALOG_VALUE_COMMANDABLE)
+BACNET_STACK_EXPORT
+bool Analog_Value_Present_Value_Priority_Set(
+    uint32_t object_instance, float value, unsigned priority);
+BACNET_STACK_EXPORT
+bool Analog_Value_Present_Value_Relinquish(
+    uint32_t object_instance, unsigned priority);
+BACNET_STACK_EXPORT
+unsigned Analog_Value_Present_Value_Priority(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Analog_Value_Priority_Array_Relinquished(
+    uint32_t object_instance, unsigned priority);
+BACNET_STACK_EXPORT
+float Analog_Value_Priority_Array_Value(
+    uint32_t object_instance, unsigned priority);
+BACNET_STACK_EXPORT
+float Analog_Value_Relinquish_Default(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Analog_Value_Relinquish_Default_Set(uint32_t object_instance, float value);
+#endif
 
 BACNET_STACK_EXPORT
 unsigned Analog_Value_Event_State(uint32_t object_instance);
@@ -100,6 +124,9 @@ BACNET_STACK_EXPORT
 const char *Analog_Value_Description(uint32_t instance);
 BACNET_STACK_EXPORT
 bool Analog_Value_Description_Set(uint32_t instance, const char *new_name);
+BACNET_STACK_EXPORT
+bool Analog_Value_Description_Duplicate(
+    uint32_t object_instance, const char *new_name);
 
 BACNET_STACK_EXPORT
 BACNET_RELIABILITY Analog_Value_Reliability(uint32_t object_instance);

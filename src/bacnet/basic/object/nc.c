@@ -10,6 +10,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -26,23 +27,31 @@
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
+#include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
 
-#ifndef MAX_NOTIFICATION_CLASSES
-#define MAX_NOTIFICATION_CLASSES 2
-#endif
-
 #if defined(INTRINSIC_REPORTING)
-static NOTIFICATION_CLASS_INFO NC_Infos[MAX_NUM_DEVICES]
-                                       [MAX_NOTIFICATION_CLASSES];
+/* Key List for storing the object data sorted by instance number */
+static OS_Keylist Object_Lists[MAX_NUM_DEVICES];
 #ifdef BAC_ROUTING
-#define NC_Info (NC_Infos[Routed_Device_Object_Index()])
+#define NC_Info (Object_Lists[Routed_Device_Object_Index()])
 #else
-#define NC_Info (NC_Infos[0])
+#define NC_Info (Object_Lists[0])
 #endif
 /* buffer for sending event messages */
 static uint8_t Event_Buffer[MAX_APDU];
+
+/**
+ * @brief Gets a Notification Class object from the list by instance number
+ * @param  object_instance - object-instance number of the object
+ * @return object found in the list, or NULL if not found
+ */
+static NOTIFICATION_CLASS_INFO *
+Notification_Class_Object(uint32_t object_instance)
+{
+    return Keylist_Data(NC_Info, object_instance);
+}
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int32_t Properties_Required[] = {
@@ -107,10 +116,15 @@ void Notification_Class_I_Am_Router_To_Network_Handler(
     NOTIFICATION_CLASS_INFO *notification;
     BACNET_DESTINATION *destination;
     BACNET_RECIPIENT *recipient;
-    unsigned i, j;
+    int count, i;
+    unsigned j;
 
-    for (i = 0; i < MAX_NOTIFICATION_CLASSES; i++) {
-        notification = &NC_Info[i];
+    count = Keylist_Count(NC_Info);
+    for (i = 0; i < count; i++) {
+        notification = Keylist_Data_Index(NC_Info, i);
+        if (!notification) {
+            continue;
+        }
         for (j = 0; j < NC_MAX_RECIPIENTS; j++) {
             destination = &notification->Recipient_List[j];
             recipient = &destination->Recipient;
@@ -123,11 +137,13 @@ void Notification_Class_I_Am_Router_To_Network_Handler(
     }
 }
 
+/**
+ * @brief Initializes empty per-device lists without resetting existing objects.
+ * Objects must be created explicitly with Notification_Class_Create().
+ */
 void Notification_Class_Init(void)
 {
     uint16_t dev_id;
-    uint8_t NotifyIdx = 0;
-    unsigned i;
 #ifdef BAC_ROUTING
     uint16_t current_dev_id = Routed_Device_Object_Index();
 #endif
@@ -136,21 +152,8 @@ void Notification_Class_Init(void)
 #ifdef BAC_ROUTING
         Set_Routed_Device_Object_Index(dev_id);
 #endif
-        for (NotifyIdx = 0; NotifyIdx < MAX_NOTIFICATION_CLASSES; NotifyIdx++) {
-            /* init with zeros */
-            memset(&NC_Info[NotifyIdx], 0x00, sizeof(NOTIFICATION_CLASS_INFO));
-            /* set the basic parameters */
-            NC_Info[NotifyIdx].Ack_Required = 0;
-            /* The lowest priority for Normal message = 255 */
-            NC_Info[NotifyIdx].Priority[TRANSITION_TO_OFFNORMAL] = 255;
-            NC_Info[NotifyIdx].Priority[TRANSITION_TO_FAULT] = 255;
-            NC_Info[NotifyIdx].Priority[TRANSITION_TO_NORMAL] = 255;
-            /* note: default uses wildcard device destination */
-            for (i = 0; i < NC_MAX_RECIPIENTS; i++) {
-                BACNET_DESTINATION *destination;
-                destination = &NC_Info[NotifyIdx].Recipient_List[i];
-                bacnet_destination_default_init(destination);
-            }
+        if (!NC_Info) {
+            NC_Info = Keylist_Create();
         }
     }
 
@@ -163,59 +166,157 @@ void Notification_Class_Init(void)
     return;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need validate that the */
-/* given instance exists */
+/**
+ * @brief Creates a Notification Class object
+ * @param object_instance - object-instance number of the object
+ * @return the object-instance that was created, or BACNET_MAX_INSTANCE
+ */
+uint32_t Notification_Class_Create(uint32_t object_instance)
+{
+    NOTIFICATION_CLASS_INFO *pObject = NULL;
+    int index = 0;
+    unsigned i = 0;
+
+    if (!NC_Info) {
+        NC_Info = Keylist_Create();
+    }
+    if (object_instance > BACNET_MAX_INSTANCE) {
+        return BACNET_MAX_INSTANCE;
+    } else if (object_instance == BACNET_MAX_INSTANCE) {
+        /* wildcard instance - generate a unique object-instance */
+        object_instance = Keylist_Next_Empty_Key(NC_Info, 1);
+    }
+    pObject = Keylist_Data(NC_Info, object_instance);
+    if (!pObject) {
+        pObject = calloc(1, sizeof(NOTIFICATION_CLASS_INFO));
+        if (pObject) {
+            /* set the basic parameters */
+            pObject->Ack_Required = 0;
+            /* The lowest priority for Normal message = 255 */
+            pObject->Priority[TRANSITION_TO_OFFNORMAL] = 255;
+            pObject->Priority[TRANSITION_TO_FAULT] = 255;
+            pObject->Priority[TRANSITION_TO_NORMAL] = 255;
+            /* note: default uses wildcard device destination */
+            for (i = 0; i < NC_MAX_RECIPIENTS; i++) {
+                bacnet_destination_default_init(&pObject->Recipient_List[i]);
+            }
+            /* add to list */
+            index = Keylist_Data_Add(NC_Info, object_instance, pObject);
+            if (index < 0) {
+                free(pObject);
+                return BACNET_MAX_INSTANCE;
+            }
+        } else {
+            return BACNET_MAX_INSTANCE;
+        }
+    }
+
+    return object_instance;
+}
+
+/**
+ * @brief Deletes a Notification Class object
+ * @param object_instance - object-instance number of the object
+ * @return true if the object-instance was deleted
+ */
+bool Notification_Class_Delete(uint32_t object_instance)
+{
+    bool status = false;
+    NOTIFICATION_CLASS_INFO *pObject = NULL;
+
+    pObject = Keylist_Data_Delete(NC_Info, object_instance);
+    if (pObject) {
+        free(pObject);
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief Deletes all the Notification Classes and their data
+ */
+void Notification_Class_Cleanup(void)
+{
+    NOTIFICATION_CLASS_INFO *pObject;
+    uint16_t dev_id;
+#ifdef BAC_ROUTING
+    uint16_t current_dev_id = Routed_Device_Object_Index();
+#endif
+
+    for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
+#ifdef BAC_ROUTING
+        Set_Routed_Device_Object_Index(dev_id);
+#endif
+        if (NC_Info) {
+            do {
+                pObject = Keylist_Data_Pop(NC_Info);
+                if (pObject) {
+                    free(pObject);
+                }
+            } while (pObject);
+            Keylist_Delete(NC_Info);
+            NC_Info = NULL;
+        }
+    }
+
+#ifdef BAC_ROUTING
+    Set_Routed_Device_Object_Index(current_dev_id);
+#endif
+}
+/**
+ * @brief Determines if a given Notification Class instance is valid
+ * @param  object_instance - object-instance number of the object
+ * @return true if the instance exists in the list, false otherwise
+ */
 bool Notification_Class_Valid_Instance(uint32_t object_instance)
 {
-    unsigned int index;
-
-    index = Notification_Class_Instance_To_Index(object_instance);
-    if (index < MAX_NOTIFICATION_CLASSES) {
-        return true;
-    }
-
-    return false;
+    return Notification_Class_Object(object_instance) != NULL;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then count how many you have */
+/**
+ * @brief Determines the number of Notification Class objects
+ * @return number of objects currently created
+ */
 unsigned Notification_Class_Count(void)
 {
-    return MAX_NOTIFICATION_CLASSES;
+    return Keylist_Count(NC_Info);
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need to return the instance */
-/* that correlates to the correct index */
+/**
+ * @brief Determines the object instance-number for a given 0..(N-1) index
+ * of objects where N is Notification_Class_Count().
+ * @param  index - 0..(N-1) where N is Notification_Class_Count()
+ * @return object instance-number for the given index, or UINT32_MAX if invalid
+ */
 uint32_t Notification_Class_Index_To_Instance(unsigned index)
 {
-    return index;
+    KEY key = UINT32_MAX;
+
+    Keylist_Index_Key(NC_Info, index, &key);
+
+    return key;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need to return the index */
-/* that correlates to the correct instance number */
+/**
+ * @brief For a given object instance-number, determines a 0..(N-1) index
+ * of objects where N is Notification_Class_Count().
+ * @param  object_instance - object-instance number of the object
+ * @return index for the given instance-number, or >= Notification_Class_Count()
+ * if not valid.
+ */
 unsigned Notification_Class_Instance_To_Index(uint32_t object_instance)
 {
-    unsigned index = MAX_NOTIFICATION_CLASSES;
-
-    if (object_instance < MAX_NOTIFICATION_CLASSES) {
-        index = object_instance;
-    }
-
-    return index;
+    return Keylist_Index(NC_Info, object_instance);
 }
 
 bool Notification_Class_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
     char text[32] = "";
-    unsigned int index;
     bool status = false;
 
-    index = Notification_Class_Instance_To_Index(object_instance);
-    if (index < MAX_NOTIFICATION_CLASSES) {
+    if (Notification_Class_Object(object_instance) != NULL) {
         snprintf(
             text, sizeof(text), "NOTIFICATION CLASS %lu",
             (unsigned long)object_instance);
@@ -243,8 +344,12 @@ int Notification_Class_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 
     apdu = rpdata->application_data;
     apdu_max = rpdata->application_data_len;
-    CurrentNotify =
-        &NC_Info[Notification_Class_Instance_To_Index(rpdata->object_instance)];
+    CurrentNotify = Notification_Class_Object(rpdata->object_instance);
+    if (!CurrentNotify) {
+        rpdata->error_class = ERROR_CLASS_OBJECT;
+        rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        return BACNET_STATUS_ERROR;
+    }
 
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
@@ -374,8 +479,12 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     if (wp_data == NULL) {
         return false;
     }
-    CurrentNotify = &NC_Info[Notification_Class_Instance_To_Index(
-        wp_data->object_instance)];
+    CurrentNotify = Notification_Class_Object(wp_data->object_instance);
+    if (!CurrentNotify) {
+        wp_data->error_class = ERROR_CLASS_OBJECT;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        return false;
+    }
 
     /* decode some of the request */
     len = bacapp_decode_application_data(
@@ -528,14 +637,10 @@ void Notification_Class_Get_Priorities(
     uint32_t Object_Instance, uint32_t *pPriorityArray)
 {
     NOTIFICATION_CLASS_INFO *CurrentNotify;
-    uint32_t object_index;
     int i;
 
-    object_index = Notification_Class_Instance_To_Index(Object_Instance);
-
-    if (object_index < MAX_NOTIFICATION_CLASSES) {
-        CurrentNotify = &NC_Info[object_index];
-    } else {
+    CurrentNotify = Notification_Class_Object(Object_Instance);
+    if (!CurrentNotify) {
         for (i = 0; i < 3; i++) {
             pPriorityArray[i] = 255;
         }
@@ -550,11 +655,10 @@ void Notification_Class_Get_Priorities(
 bool Notification_Class_Get_Recipient_List(
     uint32_t Object_Instance, BACNET_DESTINATION *pRecipientList)
 {
-    uint32_t object_index =
-        Notification_Class_Instance_To_Index(Object_Instance);
+    NOTIFICATION_CLASS_INFO *CurrentNotify =
+        Notification_Class_Object(Object_Instance);
 
-    if (object_index < MAX_NOTIFICATION_CLASSES) {
-        NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
+    if (CurrentNotify) {
         int i;
 
         for (i = 0; i < NC_MAX_RECIPIENTS; i++) {
@@ -570,11 +674,10 @@ bool Notification_Class_Get_Recipient_List(
 bool Notification_Class_Set_Recipient_List(
     uint32_t Object_Instance, BACNET_DESTINATION *pRecipientList)
 {
-    uint32_t object_index =
-        Notification_Class_Instance_To_Index(Object_Instance);
+    NOTIFICATION_CLASS_INFO *CurrentNotify =
+        Notification_Class_Object(Object_Instance);
 
-    if (object_index < MAX_NOTIFICATION_CLASSES) {
-        NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
+    if (CurrentNotify) {
         int i;
 
         for (i = 0; i < NC_MAX_RECIPIENTS; i++) {
@@ -590,11 +693,10 @@ bool Notification_Class_Set_Recipient_List(
 void Notification_Class_Set_Priorities(
     uint32_t Object_Instance, uint32_t *pPriorityArray)
 {
-    uint32_t object_index =
-        Notification_Class_Instance_To_Index(Object_Instance);
+    NOTIFICATION_CLASS_INFO *CurrentNotify =
+        Notification_Class_Object(Object_Instance);
 
-    if (object_index < MAX_NOTIFICATION_CLASSES) {
-        NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
+    if (CurrentNotify) {
         int i;
 
         for (i = 0; i < 3; i++) {
@@ -608,11 +710,10 @@ void Notification_Class_Set_Priorities(
 void Notification_Class_Get_Ack_Required(
     uint32_t Object_Instance, uint8_t *pAckRequired)
 {
-    uint32_t object_index =
-        Notification_Class_Instance_To_Index(Object_Instance);
+    NOTIFICATION_CLASS_INFO *CurrentNotify =
+        Notification_Class_Object(Object_Instance);
 
-    if (object_index < MAX_NOTIFICATION_CLASSES) {
-        NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
+    if (CurrentNotify) {
         *pAckRequired = CurrentNotify->Ack_Required;
     } else {
         *pAckRequired = 0;
@@ -623,11 +724,10 @@ void Notification_Class_Get_Ack_Required(
 void Notification_Class_Set_Ack_Required(
     uint32_t Object_Instance, uint8_t Ack_Required)
 {
-    uint32_t object_index =
-        Notification_Class_Instance_To_Index(Object_Instance);
+    NOTIFICATION_CLASS_INFO *CurrentNotify =
+        Notification_Class_Object(Object_Instance);
 
-    if (object_index < MAX_NOTIFICATION_CLASSES) {
-        NOTIFICATION_CLASS_INFO *CurrentNotify = &NC_Info[object_index];
+    if (CurrentNotify) {
         CurrentNotify->Ack_Required = Ack_Required;
     }
 }
@@ -691,15 +791,10 @@ void Notification_Class_common_reporting_function(
 
     NOTIFICATION_CLASS_INFO *CurrentNotify;
     BACNET_DESTINATION *pBacDest;
-    uint32_t notify_index;
     uint8_t index;
 
-    notify_index =
-        Notification_Class_Instance_To_Index(event_data->notificationClass);
-
-    if (notify_index < MAX_NOTIFICATION_CLASSES) {
-        CurrentNotify = &NC_Info[notify_index];
-    } else {
+    CurrentNotify = Notification_Class_Object(event_data->notificationClass);
+    if (!CurrentNotify) {
         return;
     }
 
@@ -803,10 +898,15 @@ void Notification_Class_find_recipient(void)
     BACNET_ADDRESS src = { 0 };
     unsigned max_apdu = 0;
     uint32_t device_id;
-    unsigned i, j;
+    int count, i;
+    unsigned j;
 
-    for (i = 0; i < MAX_NOTIFICATION_CLASSES; i++) {
-        notification = &NC_Info[i];
+    count = Keylist_Count(NC_Info);
+    for (i = 0; i < count; i++) {
+        notification = Keylist_Data_Index(NC_Info, i);
+        if (!notification) {
+            continue;
+        }
         for (j = 0; j < NC_MAX_RECIPIENTS; j++) {
             destination = &notification->Recipient_List[j];
             recipient = &destination->Recipient;
@@ -873,7 +973,6 @@ int Notification_Class_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
     BACNET_DESTINATION recipient_list[NC_MAX_RECIPIENTS] = { 0 };
     uint8_t *application_data = NULL;
     int application_data_len = 0, len = 0;
-    uint32_t notify_index = 0;
     unsigned index = 0;
     unsigned element_count = 0, new_element_count = 0;
     unsigned added_element_count = 0, same_element_count = 0;
@@ -897,11 +996,8 @@ int Notification_Class_Add_List_Element(BACNET_LIST_ELEMENT_DATA *list_element)
         list_element->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return BACNET_STATUS_ERROR;
     }
-    notify_index =
-        Notification_Class_Instance_To_Index(list_element->object_instance);
-    if (notify_index < MAX_NOTIFICATION_CLASSES) {
-        notification = &NC_Info[notify_index];
-    } else {
+    notification = Notification_Class_Object(list_element->object_instance);
+    if (!notification) {
         list_element->error_class = ERROR_CLASS_OBJECT;
         list_element->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return BACNET_STATUS_ERROR;
@@ -1042,7 +1138,6 @@ int Notification_Class_Remove_List_Element(
     BACNET_LIST_ELEMENT_DATA *list_element)
 {
     NOTIFICATION_CLASS_INFO *notification = NULL;
-    uint32_t notify_index = 0;
     unsigned index = 0;
     BACNET_DESTINATION recipient_list[NC_MAX_RECIPIENTS] = { 0 };
     uint8_t *application_data = NULL;
@@ -1069,11 +1164,8 @@ int Notification_Class_Remove_List_Element(
         list_element->error_code = ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY;
         return BACNET_STATUS_ERROR;
     }
-    notify_index =
-        Notification_Class_Instance_To_Index(list_element->object_instance);
-    if (notify_index < MAX_NOTIFICATION_CLASSES) {
-        notification = &NC_Info[notify_index];
-    } else {
+    notification = Notification_Class_Object(list_element->object_instance);
+    if (!notification) {
         list_element->error_class = ERROR_CLASS_OBJECT;
         list_element->error_code = ERROR_CODE_UNKNOWN_OBJECT;
         return BACNET_STATUS_ERROR;

@@ -44,6 +44,7 @@ SRC = main.c \
 	$(BACNET_OBJECT_DIR)/osv.c \
 	$(BACNET_OBJECT_DIR)/piv.c \
 	$(BACNET_OBJECT_DIR)/program.c  \
+	$(BACNET_OBJECT_DIR)/schedule.c \
 	$(BACNET_OBJECT_DIR)/structured_view.c \
 	$(BACNET_OBJECT_DIR)/timer.c  \
 	$(BACNET_OBJECT_DIR)/time_value.c
@@ -74,6 +75,11 @@ depend:
 .PHONY: clean
 clean:
 	rm -f core ${TARGET_BIN} ${OBJS} $(TARGET).map ${BACNET_LIB_TARGET}
+
+.PHONY: install
+install: ${TARGET_BIN}
+	install -d "$(DESTDIR)$(bindir)"
+	install -m 0755 ${TARGET_BIN} "$(DESTDIR)$(bindir)/${TARGET_BIN}"
 
 .PHONY: include
 include: .depend

@@ -31,7 +31,7 @@ include_directories(
     ${TST_DIR}/ztest/include
     )
 
-add_executable(${PROJECT_NAME}
+set(TEST_BACNET_DEVICE_SOURCES
     # File(s) under test
     ${SRC_DIR}/bacnet/basic/server/bacnet_device.c
     # Support files and stubs (pathname alphabetical)
@@ -134,3 +134,20 @@ add_executable(${PROJECT_NAME}
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )
+
+add_executable(${PROJECT_NAME} ${TEST_BACNET_DEVICE_SOURCES})
+
+# Backup/Restore test binary.
+add_executable(${PROJECT_NAME}_backup_restore ${TEST_BACNET_DEVICE_SOURCES})
+target_compile_definitions(${PROJECT_NAME}_backup_restore PRIVATE
+    BACNET_BACKUP_RESTORE
+    )
+add_test(NAME build_${basename}_backup_restore
+    COMMAND ${CMAKE_COMMAND} --build "${CMAKE_BINARY_DIR}" --config $<CONFIG>
+            --target ${PROJECT_NAME}_backup_restore)
+add_test(NAME test_${basename}_backup_restore
+    COMMAND $<TARGET_FILE:${PROJECT_NAME}_backup_restore>)
+set_tests_properties(test_${basename}_backup_restore PROPERTIES
+    FIXTURES_REQUIRED fixture_${basename}_backup_restore)
+set_tests_properties(build_${basename}_backup_restore PROPERTIES
+    FIXTURES_SETUP fixture_${basename}_backup_restore)

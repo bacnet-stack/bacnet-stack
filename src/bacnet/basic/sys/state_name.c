@@ -243,6 +243,27 @@ bool state_name_list_set(
 }
 
 /**
+ * @brief Append an empty state name to the end of a keylist
+ * @param list - keylist of state names
+ * @return true if the empty state name was appended
+ */
+static bool state_name_list_append_empty(OS_Keylist list)
+{
+    char *name;
+
+    name = bacnet_strdup("");
+    if (!name) {
+        return false;
+    }
+    if (Keylist_Data_Add(list, Keylist_Count(list) + 1, name) < 0) {
+        free(name);
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * @brief WriteProperty handler for a BACnetARRAY of state names in a keylist
  *  where the BACnetARRAY is resizable.
  * @param list - keylist to set the state text
@@ -250,6 +271,9 @@ bool state_name_list_set(
  * @param array_size - new size of the array if array_index is 0,
  *  otherwise it is the current size of the array
  * @return BACnet error code
+ * @note The array is limited to BACNET_STATE_NAME_LIST_MAX elements, and
+ *  can not be resized to zero. New elements are initialized to an empty
+ *  string so that they can always be read back.
  */
 BACNET_ERROR_CODE state_name_list_write_resizable(
     OS_Keylist list,
@@ -265,6 +289,11 @@ BACNET_ERROR_CODE state_name_list_write_resizable(
     int count = 0;
 
     if (array_index == 0) {
+        if ((array_size == 0) || (array_size > BACNET_STATE_NAME_LIST_MAX)) {
+            /* a multistate object has at least one state, and the
+               number of states is bounded to prevent resource exhaustion */
+            return ERROR_CODE_VALUE_OUT_OF_RANGE;
+        }
         /* For resizable arrays, resize to the requested length.
             If the new size is larger, new elements are created
             and their values are initialized as defaults.
@@ -281,7 +310,7 @@ BACNET_ERROR_CODE state_name_list_write_resizable(
         } else if (array_size > count) {
             /* expand the array */
             while (Keylist_Count(list) < array_size) {
-                if (Keylist_Data_Add(list, Keylist_Count(list) + 1, NULL) < 0) {
+                if (!state_name_list_append_empty(list)) {
                     error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
                     break;
                 }
@@ -291,15 +320,18 @@ BACNET_ERROR_CODE state_name_list_write_resizable(
         len = bacnet_character_string_buffer_application_decode(
             application_data, application_data_len, &value);
         if (len > 0) {
-            if (value.encoding == CHARACTER_UTF8) {
+            if (value.encoding != CHARACTER_UTF8) {
+                error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            } else if (array_index > BACNET_STATE_NAME_LIST_MAX) {
+                error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+            } else {
                 if (array_index > array_size) {
                     /* For resizable arrays, the array is expanded
                     automatically to accommodate the array_index.
-                    Intermediate elements (if any) are initialized as NULL.
+                    Intermediate elements (if any) are initialized empty.
                     The new value is set at the requested array_index. */
                     while (Keylist_Count(list) < array_index) {
-                        if (Keylist_Data_Add(
-                                list, Keylist_Count(list) + 1, NULL) < 0) {
+                        if (!state_name_list_append_empty(list)) {
                             error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
                             break;
                         }
@@ -312,8 +344,6 @@ BACNET_ERROR_CODE state_name_list_write_resizable(
                         error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
                     }
                 }
-            } else {
-                error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
         } else {
             error_code = ERROR_CODE_INVALID_DATA_TYPE;

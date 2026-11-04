@@ -10,6 +10,7 @@
 #include <zephyr/ztest.h>
 #include <bacnet/basic/object/calendar.h>
 #include <bacnet/bactext.h>
+#include <property_test.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -26,13 +27,9 @@ static void testCalendar(void)
 #endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
-    int len = 0, test_len = 0;
-    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
     BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
     const int32_t *pRequired = NULL;
-    const int32_t *pOptional = NULL;
-    const int32_t *pProprietary = NULL;
+    const int32_t skip_fail_property_list[] = { -1 };
     const uint32_t instance = 1;
     uint32_t test_instance = 0;
     bool status = false;
@@ -55,88 +52,10 @@ static void testCalendar(void)
     index = Calendar_Instance_To_Index(instance);
     zassert_equal(index, 0, NULL);
 
-    rpdata.application_data = &apdu[0];
-    rpdata.application_data_len = sizeof(apdu);
-    rpdata.object_type = OBJECT_CALENDAR;
-    rpdata.object_instance = instance;
-    rpdata.array_index = BACNET_ARRAY_ALL;
-
-    Calendar_Property_Lists(&pRequired, &pOptional, &pProprietary);
-    while ((*pRequired) >= 0) {
-        rpdata.object_property = *pRequired;
-        rpdata.array_index = BACNET_ARRAY_ALL;
-        len = Calendar_Read_Property(&rpdata);
-        zassert_not_equal(
-            len, BACNET_STATUS_ERROR,
-            "property '%s': failed to ReadProperty!\n",
-            bactext_property_name(rpdata.object_property));
-        if (len >= 0) {
-            test_len = bacapp_decode_known_property(
-                rpdata.application_data, len, &value, rpdata.object_type,
-                rpdata.object_property);
-            zassert_equal(
-                len, test_len, "property '%s': failed to decode!\n",
-                bactext_property_name(rpdata.object_property));
-            /* check WriteProperty properties */
-            wpdata.object_type = rpdata.object_type;
-            wpdata.object_instance = rpdata.object_instance;
-            wpdata.object_property = rpdata.object_property;
-            wpdata.array_index = rpdata.array_index;
-            memcpy(&wpdata.application_data, rpdata.application_data, MAX_APDU);
-            wpdata.application_data_len = len;
-            wpdata.error_code = ERROR_CODE_SUCCESS;
-            status = Calendar_Write_Property(&wpdata);
-            if (!status) {
-                /* verify WriteProperty property is known */
-                zassert_not_equal(
-                    wpdata.error_code, ERROR_CODE_UNKNOWN_PROPERTY,
-                    "property '%s': WriteProperty Unknown!\n",
-                    bactext_property_name(rpdata.object_property));
-            }
-        }
-        pRequired++;
-    }
-    while ((*pOptional) != -1) {
-        rpdata.object_property = *pOptional;
-        rpdata.array_index = BACNET_ARRAY_ALL;
-        len = Calendar_Read_Property(&rpdata);
-        zassert_not_equal(
-            len, BACNET_STATUS_ERROR,
-            "property '%s': failed to ReadProperty!\n",
-            bactext_property_name(rpdata.object_property));
-        if (len > 0) {
-            test_len = bacapp_decode_application_data(
-                rpdata.application_data, (uint8_t)rpdata.application_data_len,
-                &value);
-            zassert_equal(
-                len, test_len, "property '%s': failed to decode!\n",
-                bactext_property_name(rpdata.object_property));
-            /* check WriteProperty properties */
-            wpdata.object_type = rpdata.object_type;
-            wpdata.object_instance = rpdata.object_instance;
-            wpdata.object_property = rpdata.object_property;
-            wpdata.array_index = rpdata.array_index;
-            memcpy(&wpdata.application_data, rpdata.application_data, MAX_APDU);
-            wpdata.application_data_len = len;
-            wpdata.error_code = ERROR_CODE_SUCCESS;
-            status = Calendar_Write_Property(&wpdata);
-            if (!status) {
-                /* verify WriteProperty property is known */
-                zassert_not_equal(
-                    wpdata.error_code, ERROR_CODE_UNKNOWN_PROPERTY,
-                    "property '%s': WriteProperty Unknown!\n",
-                    bactext_property_name(rpdata.object_property));
-            }
-        }
-        pOptional++;
-    }
-    /* check for unsupported property - use ALL */
-    rpdata.object_property = PROP_ALL;
-    wpdata.object_property = PROP_ALL;
-    len = Calendar_Read_Property(&rpdata);
-    zassert_equal(len, BACNET_STATUS_ERROR, NULL);
-    status = Calendar_Write_Property(&wpdata);
-    zassert_false(status, NULL);
+    bacnet_object_properties_read_write_test(
+        OBJECT_CALENDAR, instance, Calendar_Property_Lists,
+        Calendar_Read_Property, Calendar_Write_Property,
+        skip_fail_property_list);
     /* test the writable property list */
     Calendar_Writable_Property_List(instance, &pRequired);
     zassert_not_null(pRequired, NULL);
@@ -188,6 +107,11 @@ static void testCalendar(void)
     zassert_true(
         strcmp(Calendar_Description(instance), updated_description) == 0,
         "description should match updated value");
+    /* test the duplicate (copy) name/description APIs */
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Calendar_Name_Duplicate, Calendar_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Calendar_Description_Duplicate, Calendar_Description);
     /* check the delete function */
     status = Calendar_Delete(instance);
     zassert_true(status, NULL);
@@ -277,12 +201,13 @@ static void testPresentValue(void)
     zassert_false(Calendar_Present_Value(instance), NULL);
     value->type.WeekNDay.month = 0xff;
 
-    value->type.WeekNDay.weekofmonth = (date.day - 1) % 7 + 1;
+    value->type.WeekNDay.weekofmonth = (date.day - 1) / 7 + 1;
     zassert_true(Calendar_Present_Value(instance), NULL);
-    value->type.WeekNDay.weekofmonth++;
-    if (value->type.WeekNDay.weekofmonth > 5) {
-        value->type.WeekNDay.weekofmonth = 1;
-    }
+    /* week 6 means "last 7 days of month", which can overlap with week
+       5, so pick a week bucket unrelated to the current date instead
+       of incrementing (which could wrap into a matching week 6) */
+    value->type.WeekNDay.weekofmonth =
+        (value->type.WeekNDay.weekofmonth == 1) ? 2 : 1;
     zassert_false(Calendar_Present_Value(instance), NULL);
     value->type.WeekNDay.weekofmonth = 0xff;
 
@@ -301,6 +226,148 @@ static void testPresentValue(void)
 }
 
 /**
+ * @brief Test that a malformed Date_List write is rejected and preserves the
+ * existing list
+ */
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_calendar, testDateListWriteMalformed)
+#else
+static void testDateListWriteMalformed(void)
+#endif
+{
+    const uint32_t instance = 1;
+    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
+    /* context tag 2 (Week-N-Day) octet string with 2 octets instead of 3 */
+    const uint8_t bad_week_n_day[] = { 0x2A, 0x01, 0x02 };
+    /* valid Week-N-Day entry followed by the malformed one */
+    const uint8_t good_only[] = { 0x2B, 0x01, 0x02, 0x03 };
+    const uint8_t new_then_bad[] = { 0x2B, 0x04, 0x05, 0x06, 0x2A, 0x01, 0x02 };
+    const uint8_t two_good[] = {
+        0x2B, 0x04, 0x05, 0x06, 0x2B, 0x07, 0x01, 0x02
+    };
+    BACNET_CALENDAR_ENTRY *entry;
+    bool status;
+
+    Calendar_Init();
+    zassert_equal(Calendar_Create(instance), instance, NULL);
+    Calendar_Write_Enable(instance);
+
+    wpdata.object_type = OBJECT_CALENDAR;
+    wpdata.object_instance = instance;
+    wpdata.object_property = PROP_DATE_LIST;
+    wpdata.array_index = BACNET_ARRAY_ALL;
+
+    /* a malformed write to an empty list leaves it empty */
+    memcpy(wpdata.application_data, bad_week_n_day, sizeof(bad_week_n_day));
+    wpdata.application_data_len = sizeof(bad_week_n_day);
+    status = Calendar_Write_Property(&wpdata);
+    zassert_false(status, NULL);
+    zassert_equal(wpdata.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    zassert_equal(0, Calendar_Date_List_Count(instance), NULL);
+
+    /* seed an existing list with a valid write */
+    memcpy(wpdata.application_data, good_only, sizeof(good_only));
+    wpdata.application_data_len = sizeof(good_only);
+    status = Calendar_Write_Property(&wpdata);
+    zassert_true(status, NULL);
+    zassert_equal(1, Calendar_Date_List_Count(instance), NULL);
+    entry = Calendar_Date_List_Get(instance, 0);
+    zassert_not_null(entry, NULL);
+    zassert_equal(entry->tag, BACNET_CALENDAR_WEEK_N_DAY, NULL);
+    zassert_equal(entry->type.WeekNDay.month, 1, NULL);
+    zassert_equal(entry->type.WeekNDay.weekofmonth, 2, NULL);
+    zassert_equal(entry->type.WeekNDay.dayofweek, 3, NULL);
+
+    /* a malformed write must preserve the existing list */
+    memcpy(wpdata.application_data, bad_week_n_day, sizeof(bad_week_n_day));
+    wpdata.application_data_len = sizeof(bad_week_n_day);
+    status = Calendar_Write_Property(&wpdata);
+    zassert_false(status, NULL);
+    zassert_equal(wpdata.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    zassert_equal(1, Calendar_Date_List_Count(instance), NULL);
+    entry = Calendar_Date_List_Get(instance, 0);
+    zassert_not_null(entry, NULL);
+    zassert_equal(entry->type.WeekNDay.month, 1, NULL);
+    zassert_equal(entry->type.WeekNDay.weekofmonth, 2, NULL);
+    zassert_equal(entry->type.WeekNDay.dayofweek, 3, NULL);
+
+    /* a valid prefix followed by a malformed entry must not replace it */
+    memcpy(wpdata.application_data, new_then_bad, sizeof(new_then_bad));
+    wpdata.application_data_len = sizeof(new_then_bad);
+    status = Calendar_Write_Property(&wpdata);
+    zassert_false(status, NULL);
+    zassert_equal(wpdata.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    zassert_equal(1, Calendar_Date_List_Count(instance), NULL);
+    entry = Calendar_Date_List_Get(instance, 0);
+    zassert_not_null(entry, NULL);
+    zassert_equal(entry->type.WeekNDay.month, 1, NULL);
+    zassert_equal(entry->type.WeekNDay.weekofmonth, 2, NULL);
+    zassert_equal(entry->type.WeekNDay.dayofweek, 3, NULL);
+
+    /* control: a valid write replaces the whole list */
+    memcpy(wpdata.application_data, two_good, sizeof(two_good));
+    wpdata.application_data_len = sizeof(two_good);
+    status = Calendar_Write_Property(&wpdata);
+    zassert_true(status, NULL);
+    zassert_equal(2, Calendar_Date_List_Count(instance), NULL);
+    entry = Calendar_Date_List_Get(instance, 0);
+    zassert_not_null(entry, NULL);
+    zassert_equal(entry->type.WeekNDay.month, 4, NULL);
+
+    zassert_true(Calendar_Delete(instance), NULL);
+}
+
+/**
+ * @brief Test that a Date_List write to a write-disabled object is denied
+ * and preserves the existing list
+ */
+#ifdef CONFIG_ZTEST_NEW_API
+ZTEST(bacnet_calendar, testDateListWriteDisabled)
+#else
+static void testDateListWriteDisabled(void)
+#endif
+{
+    const uint32_t instance = 1;
+    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
+    const uint8_t new_good[] = { 0x2B, 0x04, 0x05, 0x06 };
+    BACNET_CALENDAR_ENTRY seed = { 0 };
+    BACNET_CALENDAR_ENTRY *entry;
+    bool status;
+
+    Calendar_Init();
+    zassert_equal(Calendar_Create(instance), instance, NULL);
+    seed.tag = BACNET_CALENDAR_WEEK_N_DAY;
+    seed.type.WeekNDay.month = 1;
+    seed.type.WeekNDay.weekofmonth = 2;
+    seed.type.WeekNDay.dayofweek = 3;
+    zassert_true(Calendar_Date_List_Add(instance, &seed), NULL);
+    zassert_false(Calendar_Write_Enabled(instance), NULL);
+
+    wpdata.object_type = OBJECT_CALENDAR;
+    wpdata.object_instance = instance;
+    wpdata.object_property = PROP_DATE_LIST;
+    wpdata.array_index = BACNET_ARRAY_ALL;
+    memcpy(wpdata.application_data, new_good, sizeof(new_good));
+    wpdata.application_data_len = sizeof(new_good);
+    status = Calendar_Write_Property(&wpdata);
+    zassert_false(status, NULL);
+    zassert_equal(wpdata.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_WRITE_ACCESS_DENIED, NULL);
+    zassert_equal(1, Calendar_Date_List_Count(instance), NULL);
+    entry = Calendar_Date_List_Get(instance, 0);
+    zassert_not_null(entry, NULL);
+    zassert_equal(entry->tag, BACNET_CALENDAR_WEEK_N_DAY, NULL);
+    zassert_equal(entry->type.WeekNDay.month, 1, NULL);
+    zassert_equal(entry->type.WeekNDay.weekofmonth, 2, NULL);
+    zassert_equal(entry->type.WeekNDay.dayofweek, 3, NULL);
+
+    zassert_true(Calendar_Delete(instance), NULL);
+}
+
+/**
  * @}
  */
 
@@ -311,7 +378,9 @@ void test_main(void)
 {
     ztest_test_suite(
         calendar_tests, ztest_unit_test(testCalendar),
-        ztest_unit_test(testPresentValue));
+        ztest_unit_test(testPresentValue),
+        ztest_unit_test(testDateListWriteMalformed),
+        ztest_unit_test(testDateListWriteDisabled));
 
     ztest_run_test_suite(calendar_tests);
 }

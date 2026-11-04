@@ -227,6 +227,21 @@ bool datetime_wildcard_weekday(const BACNET_DATE *bdate);
 BACNET_STACK_EXPORT
 void datetime_wildcard_weekday_set(BACNET_DATE *bdate);
 BACNET_STACK_EXPORT
+bool datetime_year_match(const BACNET_DATE *date, uint16_t year);
+BACNET_STACK_EXPORT
+bool datetime_weeknday_month_match(const BACNET_DATE *date, uint8_t month);
+BACNET_STACK_EXPORT
+bool datetime_date_month_match(const BACNET_DATE *date, uint8_t month);
+BACNET_STACK_EXPORT
+bool datetime_day_match(const BACNET_DATE *date, uint8_t day);
+BACNET_STACK_EXPORT
+bool datetime_day_of_week_match(const BACNET_DATE *date, uint8_t dayofweek);
+BACNET_STACK_EXPORT
+bool datetime_week_of_month_match(const BACNET_DATE *date, uint8_t weekofmonth);
+BACNET_STACK_EXPORT
+bool datetime_date_pattern_match(
+    const BACNET_DATE *date, const BACNET_DATE *pattern);
+BACNET_STACK_EXPORT
 bool datetime_wildcard_hour(const BACNET_TIME *btime);
 BACNET_STACK_EXPORT
 void datetime_wildcard_hour_set(BACNET_TIME *btime);
@@ -330,6 +345,13 @@ bool datetime_local(
     BACNET_TIME *btime,
     int16_t *utc_offset_minutes,
     bool *dst_active);
+/* local standard time API (millisecond timer based clock) */
+BACNET_STACK_EXPORT
+bool datetime_standard(BACNET_DATE_TIME *standard_time);
+BACNET_STACK_EXPORT
+void datetime_standard_set(const BACNET_DATE_TIME *standard_time);
+BACNET_STACK_EXPORT
+bool datetime_standard_changed(void);
 /* UTC Offset API */
 BACNET_STACK_EXPORT
 int16_t datetime_utc_offset_minutes(void);
@@ -371,6 +393,9 @@ void datetime_timesync(BACNET_DATE *bdate, BACNET_TIME *btime, bool utc);
 /* Initialization for integration with a clock */
 BACNET_STACK_EXPORT
 void datetime_init(void);
+/* explicit return to defaults (unit tests) */
+BACNET_STACK_EXPORT
+void datetime_init_defaults(void);
 
 #ifdef __cplusplus
 }

@@ -20,6 +20,7 @@
 #include "bacnet/reject.h"
 #include "bacnet/arf.h"
 /* basic objects, services, TSM, and datalink */
+#include "bacnet/basic/object/device.h"
 #include "bacnet/basic/object/bacfile.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
@@ -108,6 +109,7 @@ int handler_atomic_read_file_encode(
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     uint8_t *apdu_start;
     BACNET_UNSIGNED_INTEGER file_size;
+    size_t record_count = 0;
 
     DEBUG_PRINTF("Received Atomic-Read-File Request!\n");
     /* encode the NPDU portion of the packet */
@@ -138,6 +140,11 @@ int handler_atomic_read_file_encode(
             error_code = ERROR_CODE_ABORT_OTHER;
             error = true;
         } else if (data.object_type == OBJECT_FILE) {
+#if defined BACNET_BACKUP_RESTORE
+            if (Device_Is_Configuration_File(data.object_instance)) {
+                Device_Backup_Failure_Timeout_Restart();
+            }
+#endif
             if (!bacfile_valid_instance(data.object_instance)) {
                 error_code = ERROR_CODE_UNKNOWN_OBJECT;
                 error = true;
@@ -181,24 +188,25 @@ int handler_atomic_read_file_encode(
                         (int)octetstring_capacity(&data.fileData[0]));
                 }
             } else if (data.access == FILE_RECORD_ACCESS) {
-                if (data.type.record.RecordCount > ARRAY_SIZE(data.fileData)) {
+                if (data.type.record.fileStartRecord < 0) {
+                    /* If the 'File Start Record' parameter is less
+                    than 0, then the appropriate error is returned
+                    in a 'Result(-)' response.*/
                     DEBUG_PRINTF(
-                        "ARF: RecordCount %u > %u. Sending Reject!\n",
-                        (unsigned)data.type.record.RecordCount,
-                        (unsigned)ARRAY_SIZE(data.fileData));
-                    error_code = ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE;
+                        "ARF: fileStartRecord %d < 0. Sending Error!\n",
+                        (int)data.type.record.fileStartRecord);
+                    error_code = ERROR_CODE_INVALID_FILE_START_POSITION;
                     error = true;
                 } else if (
-                    (data.type.record.fileStartRecord < 0) ||
-                    (data.type.record.fileStartRecord >=
-                     ARRAY_SIZE(data.fileData))) {
-                    /* If the 'File Start Record' parameter is either less
-                    than 0 or exceeds the actual file size, then the appropriate
-                    error is returned in a 'Result(-)' response.*/
+                    bacfile_record_count(data.object_instance, &record_count) &&
+                    ((size_t)data.type.record.fileStartRecord > record_count)) {
+                    /* If the 'File Start Record' parameter exceeds the
+                    actual file size, then the appropriate error is
+                    returned in a 'Result(-)' response.*/
                     DEBUG_PRINTF(
-                        "ARF: fileStartRecord %d >= %u. Sending Error!\n",
+                        "ARF: fileStartRecord %d > %u. Sending Error!\n",
                         (int)data.type.record.fileStartRecord,
-                        (unsigned)ARRAY_SIZE(data.fileData));
+                        (unsigned)record_count);
                     error_code = ERROR_CODE_INVALID_FILE_START_POSITION;
                     error = true;
                 } else if (bacfile_read_record_data(&data)) {

@@ -48,6 +48,11 @@ static void testAnalogInput(void)
         skip_fail_property_list);
     bacnet_object_name_ascii_test(
         object_instance, Analog_Input_Name_Set, Analog_Input_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Analog_Input_Name_Duplicate, Analog_Input_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Analog_Input_Description_Duplicate,
+        Analog_Input_Description);
     status = Analog_Input_Delete(object_instance);
     zassert_true(status, NULL);
 }
@@ -171,7 +176,6 @@ static void testAnalogInput_Writable_Properties(void)
     Analog_Input_Cleanup();
 }
 
-#if defined(INTRINSIC_REPORTING)
 /**
  * @brief ReadProperty a property of an Analog Input object and decode it
  * @param object_instance - object-instance number of the object
@@ -205,7 +209,93 @@ static void Analog_Input_Property_Decode(
         bactext_property_name(object_property));
 }
 
+/**
+ * @brief Test read-only Min_Pres_Value and Max_Pres_Value properties.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ai_tests, testAnalogInput_Min_Max_Pres_Value)
+#else
+static void testAnalogInput_Min_Max_Pres_Value(void)
 #endif
+{
+    const uint32_t instance = 123;
+    const uint32_t other_instance = 456;
+    const uint32_t invalid_instance = 789;
+    const BACNET_PROPERTY_ID properties[] = { PROP_MIN_PRES_VALUE,
+                                              PROP_MAX_PRES_VALUE };
+    const float defaults[] = { -FLT_MAX, FLT_MAX };
+    const float limits[] = { -12.5f, 90.0f };
+    const int32_t *optional = NULL, *writable = NULL;
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    unsigned i;
+
+    Analog_Input_Cleanup();
+    zassert_equal(Analog_Input_Create(instance), instance, NULL);
+    zassert_equal(Analog_Input_Create(other_instance), other_instance, NULL);
+    zassert_true(
+        fabsf(Analog_Input_Min_Pres_Value(instance) - defaults[0]) <
+            FLT_EPSILON,
+        NULL);
+    zassert_true(
+        fabsf(Analog_Input_Max_Pres_Value(instance) - defaults[1]) <
+            FLT_EPSILON,
+        NULL);
+    for (i = 0; i < ARRAY_SIZE(properties); i++) {
+        Analog_Input_Property_Decode(instance, properties[i], &value);
+        zassert_equal(value.tag, BACNET_APPLICATION_TAG_REAL, NULL);
+        zassert_true(fabsf(value.type.Real - defaults[i]) < FLT_EPSILON, NULL);
+    }
+
+    zassert_true(Analog_Input_Min_Pres_Value_Set(instance, limits[0]), NULL);
+    zassert_true(Analog_Input_Max_Pres_Value_Set(instance, limits[1]), NULL);
+    zassert_true(
+        fabsf(Analog_Input_Min_Pres_Value(instance) - limits[0]) < FLT_EPSILON,
+        NULL);
+    zassert_true(
+        fabsf(Analog_Input_Max_Pres_Value(instance) - limits[1]) < FLT_EPSILON,
+        NULL);
+    zassert_true(
+        fabsf(Analog_Input_Min_Pres_Value(other_instance) - defaults[0]) <
+            FLT_EPSILON,
+        NULL);
+    zassert_true(
+        fabsf(Analog_Input_Max_Pres_Value(other_instance) - defaults[1]) <
+            FLT_EPSILON,
+        NULL);
+    zassert_false(
+        Analog_Input_Min_Pres_Value_Set(invalid_instance, limits[0]), NULL);
+    zassert_false(
+        Analog_Input_Max_Pres_Value_Set(invalid_instance, limits[1]), NULL);
+    zassert_true(
+        fabsf(Analog_Input_Min_Pres_Value(invalid_instance)) < FLT_EPSILON,
+        NULL);
+    zassert_true(
+        fabsf(Analog_Input_Max_Pres_Value(invalid_instance)) < FLT_EPSILON,
+        NULL);
+
+    Analog_Input_Property_Lists(NULL, &optional, NULL);
+    Analog_Input_Writable_Property_List(instance, &writable);
+    wp_data.object_type = OBJECT_ANALOG_INPUT;
+    wp_data.object_instance = instance;
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    wp_data.priority = BACNET_NO_PRIORITY;
+    wp_data.application_data_len =
+        encode_application_real(wp_data.application_data, 42.0f);
+    for (i = 0; i < ARRAY_SIZE(properties); i++) {
+        zassert_true(property_list_member(optional, properties[i]), NULL);
+        zassert_false(property_list_member(writable, properties[i]), NULL);
+        wp_data.object_property = properties[i];
+        zassert_false(Analog_Input_Write_Property(&wp_data), NULL);
+        zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+        zassert_equal(wp_data.error_code, ERROR_CODE_WRITE_ACCESS_DENIED, NULL);
+        Analog_Input_Property_Decode(instance, properties[i], &value);
+        zassert_equal(value.tag, BACNET_APPLICATION_TAG_REAL, NULL);
+        zassert_true(fabsf(value.type.Real - limits[i]) < FLT_EPSILON, NULL);
+    }
+
+    Analog_Input_Cleanup();
+}
 
 /**
  * @brief Test Analog Input limit property get/set API
@@ -360,7 +450,11 @@ static void testAnalogInput_Time_Delay(void)
     zassert_true(Analog_Input_Event_Detection_Enable(instance), NULL);
     status = Analog_Input_Time_Delay_Set(instance, 2);
     zassert_true(status, NULL);
-    Analog_Input_Present_Value_Set(instance, 100.0f);
+    status = Analog_Input_Present_Value_Set(instance, 100.0f);
+    zassert_true(status, NULL);
+    /* unknown instance: present-value setter fails */
+    status = Analog_Input_Present_Value_Set(invalid_instance, 100.0f);
+    zassert_false(status, NULL);
     Analog_Input_Intrinsic_Reporting(instance);
     zassert_equal(Analog_Input_Event_State(instance), EVENT_STATE_NORMAL, NULL);
     Analog_Input_Intrinsic_Reporting(instance);
@@ -394,6 +488,7 @@ void test_main(void)
         ai_tests, ztest_unit_test(testAnalogInput),
         ztest_unit_test(testAnalogInput_name_description_write),
         ztest_unit_test(testAnalogInput_Writable_Properties),
+        ztest_unit_test(testAnalogInput_Min_Max_Pres_Value),
         ztest_unit_test(testAnalogInput_Limits),
         ztest_unit_test(testAnalogInput_Time_Delay));
 

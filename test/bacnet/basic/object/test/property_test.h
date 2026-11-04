@@ -23,6 +23,11 @@ void bacnet_object_name_ascii_test(
     object_name_ascii_set_function ascii_set,
     object_name_ascii_function ascii_get);
 
+void bacnet_object_name_ascii_duplicate_test(
+    uint32_t object_instance,
+    object_name_ascii_set_function ascii_duplicate,
+    object_name_ascii_function ascii_get);
+
 void bacnet_object_properties_read_write_test(
     BACNET_OBJECT_TYPE object_type,
     uint32_t object_instance,

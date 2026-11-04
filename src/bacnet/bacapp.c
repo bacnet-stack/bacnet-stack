@@ -3350,6 +3350,68 @@ static int bacapp_snprintf_log_record(
 }
 #endif
 
+#if defined(BACAPP_WEEKLY_SCHEDULE) || defined(BACAPP_SPECIAL_EVENT)
+/**
+ * @brief Print a BACnet primitive data value to a string for EPICS
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param value - value to print
+ * @return number of characters written
+ */
+static int bacapp_snprintf_primitive_data_value(
+    char *str, size_t str_len, const BACNET_PRIMITIVE_DATA_VALUE *value)
+{
+    int ret_val = 0;
+
+    switch (value->tag) {
+#if defined(BACAPP_NULL)
+        case BACNET_APPLICATION_TAG_NULL:
+            ret_val = bacapp_snprintf_null(str, str_len);
+            break;
+#endif
+#if defined(BACAPP_BOOLEAN)
+        case BACNET_APPLICATION_TAG_BOOLEAN:
+            ret_val =
+                bacapp_snprintf_boolean(str, str_len, value->type.Boolean);
+            break;
+#endif
+#if defined(BACAPP_UNSIGNED)
+        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
+            ret_val = bacapp_snprintf_unsigned_integer(
+                str, str_len, value->type.Unsigned_Int);
+            break;
+#endif
+#if defined(BACAPP_SIGNED) && BACNET_USE_SIGNED
+        case BACNET_APPLICATION_TAG_SIGNED_INT:
+            ret_val = bacapp_snprintf_signed_integer(
+                str, str_len, value->type.Signed_Int);
+            break;
+#endif
+#if defined(BACAPP_REAL)
+        case BACNET_APPLICATION_TAG_REAL:
+            ret_val = bacapp_snprintf_real(str, str_len, value->type.Real);
+            break;
+#endif
+#if defined(BACAPP_DOUBLE) && BACNET_USE_DOUBLE
+        case BACNET_APPLICATION_TAG_DOUBLE:
+            ret_val = bacapp_snprintf_double(str, str_len, value->type.Double);
+            break;
+#endif
+#if defined(BACAPP_ENUMERATED)
+        case BACNET_APPLICATION_TAG_ENUMERATED:
+            ret_val = bacapp_snprintf(
+                str, str_len, "%lu", (unsigned long)value->type.Enumerated);
+            break;
+#endif
+        case BACNET_APPLICATION_TAG_EMPTYLIST:
+            break;
+        default:
+            break;
+    }
+    return ret_val;
+}
+#endif
+
 #if defined(BACAPP_WEEKLY_SCHEDULE)
 /**
  * @brief Print a weekly schedule value to a string for EPICS
@@ -3368,8 +3430,6 @@ static int bacapp_snprintf_weeklyschedule(
     int slen;
     int ret_val = 0;
     int wi, ti;
-    BACNET_OBJECT_PROPERTY_VALUE dummyPropValue;
-    BACNET_APPLICATION_DATA_VALUE dummyDataValue = { 0 };
 
     const char *weekdaynames[7] = { "Mon", "Tue", "Wed", "Thu",
                                     "Fri", "Sat", "Sun" };
@@ -3416,13 +3476,8 @@ static int bacapp_snprintf_weeklyschedule(
             ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
             slen = bacapp_snprintf(str, str_len, " ");
             ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
-            bacnet_primitive_to_application_data_value(
-                &dummyDataValue, &ds->Time_Values[ti].Value);
-            dummyPropValue.value = &dummyDataValue;
-            dummyPropValue.object_property = PROP_PRESENT_VALUE;
-            dummyPropValue.object_type = OBJECT_SCHEDULE;
-            dummyPropValue.array_index = 0;
-            slen = bacapp_snprintf_value(str, str_len, &dummyPropValue);
+            slen = bacapp_snprintf_primitive_data_value(
+                str, str_len, &ds->Time_Values[ti].Value);
             ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
             if (ti < ds->TV_Count - 1) {
                 slen = bacapp_snprintf(str, str_len, ", ");
@@ -3529,68 +3584,6 @@ static int bacapp_snprintf_calendar_entry(
     slen = bacapp_snprintf(str, str_len, "}");
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
 
-    return ret_val;
-}
-#endif
-
-#if defined(BACAPP_SPECIAL_EVENT)
-/**
- * @brief Print a value to a string for EPICS
- * @param str - destination string, or NULL for length only
- * @param str_len - length of the destination string, or 0 for length only
- * @param value - value to print
- * @return number of characters written
- */
-static int bacapp_snprintf_primitive_data_value(
-    char *str, size_t str_len, const BACNET_PRIMITIVE_DATA_VALUE *value)
-{
-    int ret_val = 0;
-
-    switch (value->tag) {
-#if defined(BACAPP_NULL)
-        case BACNET_APPLICATION_TAG_NULL:
-            ret_val = bacapp_snprintf_null(str, str_len);
-            break;
-#endif
-#if defined(BACAPP_BOOLEAN)
-        case BACNET_APPLICATION_TAG_BOOLEAN:
-            ret_val =
-                bacapp_snprintf_boolean(str, str_len, value->type.Boolean);
-            break;
-#endif
-#if defined(BACAPP_UNSIGNED)
-        case BACNET_APPLICATION_TAG_UNSIGNED_INT:
-            ret_val = bacapp_snprintf_unsigned_integer(
-                str, str_len, value->type.Unsigned_Int);
-            break;
-#endif
-#if defined(BACAPP_SIGNED)
-        case BACNET_APPLICATION_TAG_SIGNED_INT:
-            ret_val = bacapp_snprintf_signed_integer(
-                str, str_len, value->type.Signed_Int);
-            break;
-#endif
-#if defined(BACAPP_REAL)
-        case BACNET_APPLICATION_TAG_REAL:
-            ret_val = bacapp_snprintf_real(str, str_len, value->type.Real);
-            break;
-#endif
-#if defined(BACAPP_DOUBLE)
-        case BACNET_APPLICATION_TAG_DOUBLE:
-            ret_val = bacapp_snprintf_double(str, str_len, value->type.Double);
-            break;
-#endif
-#if defined(BACAPP_ENUMERATED)
-        case BACNET_APPLICATION_TAG_ENUMERATED:
-            ret_val = bacapp_snprintf(
-                str, str_len, "%lu", (unsigned long)value->type.Enumerated);
-            break;
-#endif
-        case BACNET_APPLICATION_TAG_EMPTYLIST:
-            break;
-        default:
-            break;
-    }
     return ret_val;
 }
 #endif
@@ -4825,30 +4818,56 @@ bool bacapp_parse_primitive_value(
  * The value tag is auto-inferred from the token content.
  *
  * @param sched - output BACnetDailySchedule value
- * @param str - input string
+ * @param str - start of the schedule text
+ * @param end - one past the last character of the schedule text
  * @return true on parse success
  */
-static bool
-daily_schedule_from_ascii(BACNET_DAILY_SCHEDULE *sched, const char *str)
+static bool daily_schedule_from_ascii(
+    BACNET_DAILY_SCHEDULE *sched, const char *str, const char *end)
 {
     char tok[32] = "";
-    const char *next;
+    const char *p = str;
+    const char *tok_end;
+    const char *tok_start;
+    size_t len;
     int tvnum = 0;
     bool is_time = true;
 
     sched->TV_Count = 0;
     /* skip optional leading brace/spaces */
-    next = bacnet_ltrim(str, "{ ");
-    if (!next || next[0] == '\0' || next[0] == '}') {
+    while ((p < end) && ((*p == '{') || (*p == ' '))) {
+        p++;
+    }
+    /* trim trailing brace and spaces */
+    while ((end > p) && ((end[-1] == '}') || (end[-1] == ' '))) {
+        end--;
+    }
+    if (p >= end) {
         return true; /* empty schedule is valid */
     }
-    do {
-        next = bacnet_stptok(next, tok, sizeof(tok), ",");
-        /* trim trailing brace and spaces from the last token */
-        bacnet_rtrim(tok, "} ");
-        if (tok[0] == '\0') {
+    while (p < end) {
+        tok_end = memchr(p, ',', (size_t)(end - p));
+        if (!tok_end) {
+            tok_end = end;
+        }
+        tok_start = p;
+        len = (size_t)(tok_end - tok_start);
+        while ((len > 0) && (*tok_start == ' ')) {
+            tok_start++;
+            len--;
+        }
+        while ((len > 0) && (tok_start[len - 1] == ' ')) {
+            len--;
+        }
+        if (len == 0) {
             break;
         }
+        if (len >= sizeof(tok)) {
+            return false;
+        }
+        memcpy(tok, tok_start, len);
+        tok[len] = '\0';
+        p = (tok_end < end) ? (tok_end + 1) : end;
         if (is_time) {
             if (tvnum >= BACNET_DAILY_SCHEDULE_TIME_VALUES_SIZE) {
                 return false;
@@ -4865,7 +4884,7 @@ daily_schedule_from_ascii(BACNET_DAILY_SCHEDULE *sched, const char *str)
             tvnum++;
         }
         is_time = !is_time;
-    } while (next && *next);
+    }
     if (!is_time) {
         /* dangling time token with no corresponding value */
         return false;
@@ -4905,13 +4924,12 @@ static bool
 special_event_from_ascii(BACNET_APPLICATION_DATA_VALUE *value, const char *str)
 {
     const char *sep1, *sep2;
-    const char *period_str, *sched_str, *prio_str;
+    const char *period_str, *prio_str;
     BACNET_SPECIAL_EVENT *ev = &value->type.Special_Event;
     BACNET_UNSIGNED_INTEGER prio = 0;
     long unsigned int unsigned_value = 0;
     uint32_t found_index = 0;
     char period_buf[64];
-    char schedule_buf[64];
     char priority_buf[32];
     char type_buf[64];
     const char *colon;
@@ -4926,15 +4944,22 @@ special_event_from_ascii(BACNET_APPLICATION_DATA_VALUE *value, const char *str)
     if (*sep1 == '\0') {
         return false;
     }
-    bacnet_strncpy(period_buf, str, sep1 - str + 1);
+    tlen = (size_t)(sep1 - str);
+    if (tlen >= sizeof(period_buf)) {
+        return false;
+    }
+    memcpy(period_buf, str, tlen);
+    period_buf[tlen] = '\0';
     period_str = bacnet_trim(period_buf, " ");
     sep2 = bacapp_find_depth0(sep1 + 1, ',');
     if (*sep2 == '\0') {
         return false;
     }
-    bacnet_strncpy(schedule_buf, sep1 + 1, sep2 - (sep1 + 1) + 1);
-    sched_str = bacnet_trim(schedule_buf, " ");
-    bacnet_strncpy(priority_buf, sep2 + 1, sizeof(priority_buf) - 1);
+    tlen = strlen(sep2 + 1);
+    if (tlen >= sizeof(priority_buf)) {
+        return false;
+    }
+    memcpy(priority_buf, sep2 + 1, tlen + 1);
     prio_str = bacnet_trim(priority_buf, " ");
     /* priority - no range check, allows out-of-range testing */
     if (!bacnet_string_to_unsigned(prio_str, &prio)) {
@@ -4942,7 +4967,7 @@ special_event_from_ascii(BACNET_APPLICATION_DATA_VALUE *value, const char *str)
     }
     ev->priority = (uint8_t)prio;
     /* schedule */
-    if (!daily_schedule_from_ascii(&ev->timeValues, sched_str)) {
+    if (!daily_schedule_from_ascii(&ev->timeValues, sep1 + 1, sep2)) {
         return false;
     }
     /* period: pattern-based detection */

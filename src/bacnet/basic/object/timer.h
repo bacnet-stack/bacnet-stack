@@ -61,6 +61,8 @@ bool Timer_Object_Name(
 BACNET_STACK_EXPORT
 bool Timer_Name_Set(uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
+bool Timer_Name_Duplicate(uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
 const char *Timer_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
@@ -74,6 +76,9 @@ bool Timer_Description(
     uint32_t object_instance, BACNET_CHARACTER_STRING *description);
 BACNET_STACK_EXPORT
 bool Timer_Description_Set(uint32_t instance, const char *new_name);
+BACNET_STACK_EXPORT
+bool Timer_Description_Duplicate(
+    uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
 const char *Timer_Description_ANSI(uint32_t object_instance);
 

@@ -5,6 +5,7 @@
  * @copyright SPDX-License-Identifier: MIT
  */
 #include <limits.h>
+#include <string.h>
 #include <zephyr/ztest.h>
 #include <bacnet/bacstr.h>
 #include <bacnet/basic/sys/bsramfs.h>
@@ -23,23 +24,27 @@ ZTEST(bramfs_tests, test_BSRAMFS_stream)
 static void test_BSRAMFS_stream(void)
 #endif
 {
-    struct bacnet_file_sramfs_data file_data[3] = {
+    /* static storage: bacfile_sramfs_add() stores the pointer for the
+       lifetime of the program, so this cannot be a stack variable */
+    static struct bacnet_file_sramfs_data file_data[3] = {
         { 0, NULL, "testfile1.txt", NULL },
         { 0, NULL, "testfile2.txt", NULL },
         { 0, NULL, "testfile3.txt", NULL }
     };
     size_t file_size = 0, i = 0;
     uint8_t test_file_data[256] = { 0 };
+    /* static storage: referenced via file_data[].data after this function
+       returns, so these cannot be stack variables */
     /* data less than 256 bytes */
-    uint8_t file_data_1[] = {
+    static uint8_t file_data_1[] = {
         "This is a first test file for the BACnet RAM File System (BSRAMFS). "
         "It contains some sample data to be read and written."
     };
-    uint8_t file_data_2[] = {
+    static uint8_t file_data_2[] = {
         "This is a second test file for the BACnet RAM File System (BSRAMFS). "
         "It contains some additional sample data to be read and written."
     };
-    uint8_t file_data_3[] = { "Small file data" };
+    static uint8_t file_data_3[] = { "Small file data" };
 
     /* Initialize the BSRAMFS */
     bacfile_sramfs_init();
@@ -79,12 +84,14 @@ ZTEST(bramfs_tests, test_BSRAMFS_records)
 static void test_BSRAMFS_records(void)
 #endif
 {
-    struct bacnet_file_sramfs_data file_data[1] = {
-        { 0,
-          "This is the first record in the file.\0"
-          "This is the second record in the file.\0"
-          "This is the third record in the file.",
-          "testfile.txt", NULL }
+    /* static storage: bacfile_sramfs_add() stores the pointer for the
+       lifetime of the program, so this cannot be a stack variable */
+    static char records[] = "This is the first record in the file.\0"
+                            "This is the second record in the file.\0"
+                            "\0"
+                            "This is the fourth record in the file.";
+    static struct bacnet_file_sramfs_data file_data[1] = {
+        { sizeof(records), records, "testfile.txt", NULL }
     };
     bool status = false;
     const char *pathname = file_data[0].pathname;
@@ -123,6 +130,21 @@ static void test_BSRAMFS_records(void)
     status = bacfile_sramfs_read_record_data(
         pathname, 0, 2, (uint8_t *)record_3, sizeof(record_3));
     zassert_true(status, "Read record 3 should succeed");
+    zassert_equal(record_3[0], 0, "Record 3 is empty");
+    zassert_equal(bacfile_sramfs_record_count(pathname), 4U, NULL);
+    /* the empty record is a record, and the records after it are readable */
+    status = bacfile_sramfs_read_record_data(
+        pathname, 0, 3, (uint8_t *)record_3, sizeof(record_3));
+    zassert_true(status, "Read record 4 should succeed");
+    zassert_equal(
+        strcmp(record_3, "This is the fourth record in the file."), 0, NULL);
+    /* past the last record is the end of the file */
+    status = bacfile_sramfs_read_record_data(
+        pathname, 0, 4, (uint8_t *)record_3, sizeof(record_3));
+    zassert_false(status, "Read record 5 should fail");
+    status = bacfile_sramfs_read_record_data(
+        pathname, 3, 1, (uint8_t *)record_3, sizeof(record_3));
+    zassert_false(status, "Read record 3+1 should fail");
 }
 
 /**
@@ -134,14 +156,19 @@ ZTEST(bramfs_tests, test_BSRAMFS_invalid_positions)
 static void test_BSRAMFS_invalid_positions(void)
 #endif
 {
-    uint8_t raw_data[] = { "HELLO" };
+    /* static storage: referenced via stream_file/record_file .data after
+       this function returns, so these cannot be stack variables */
+    static uint8_t raw_data[] = { "HELLO" };
     /* records: two null-terminated strings */
-    char rec_data[] = "First record.\0Second record.";
-    struct bacnet_file_sramfs_data stream_file = { sizeof(raw_data),
-                                                   (char *)raw_data,
-                                                   "invalid_stream.txt", NULL };
-    struct bacnet_file_sramfs_data record_file = { sizeof(rec_data), rec_data,
-                                                   "invalid_record.txt", NULL };
+    static char rec_data[] = "First record.\0Second record.";
+    /* static storage: bacfile_sramfs_add() stores the pointer for the
+       lifetime of the program, so this cannot be a stack variable */
+    static struct bacnet_file_sramfs_data stream_file = {
+        sizeof(raw_data), (char *)raw_data, "invalid_stream.txt", NULL
+    };
+    static struct bacnet_file_sramfs_data record_file = {
+        sizeof(rec_data), rec_data, "invalid_record.txt", NULL
+    };
     uint8_t read_buf[64] = { 0 };
     size_t len = 0;
     bool status = false;

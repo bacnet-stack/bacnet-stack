@@ -54,6 +54,8 @@ bool Time_Value_Object_Name(
 BACNET_STACK_EXPORT
 bool Time_Value_Name_Set(uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
+bool Time_Value_Name_Duplicate(uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
 const char *Time_Value_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
@@ -83,6 +85,9 @@ BACNET_STACK_EXPORT
 const char *Time_Value_Description(uint32_t object_instance);
 BACNET_STACK_EXPORT
 bool Time_Value_Description_Set(uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
+bool Time_Value_Description_Duplicate(
+    uint32_t object_instance, const char *new_name);
 
 BACNET_STACK_EXPORT
 bool Time_Value_Write_Enabled(uint32_t instance);

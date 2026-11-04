@@ -51,6 +51,8 @@ static const int32_t Properties_Optional[] = {
     PROP_DESCRIPTION,
     PROP_RELIABILITY,
     PROP_COV_INCREMENT,
+    PROP_MIN_PRES_VALUE,
+    PROP_MAX_PRES_VALUE,
 #if defined(INTRINSIC_REPORTING)
     PROP_TIME_DELAY,
     PROP_NOTIFICATION_CLASS,
@@ -269,15 +271,19 @@ Analog_Input_COV_Detect(struct analog_input_descr *pObject, float value)
  * @param  value - floating point analog value
  * @return  true if values are within range and present-value is set.
  */
-void Analog_Input_Present_Value_Set(uint32_t object_instance, float value)
+bool Analog_Input_Present_Value_Set(uint32_t object_instance, float value)
 {
+    bool status = false;
     struct analog_input_descr *pObject;
 
     pObject = Analog_Input_Object(object_instance);
     if (pObject) {
         Analog_Input_COV_Detect(pObject, value);
         pObject->Present_Value = value;
+        status = true;
     }
+
+    return status;
 }
 
 /**
@@ -330,6 +336,29 @@ bool Analog_Input_Name_Set(uint32_t object_instance, const char *new_name)
     pObject = Analog_Input_Object(object_instance);
     if (pObject) {
         status = bacnet_character_cstring_set(&pObject->Object_Name, new_name);
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the object-name
+ *  by duplicating (copying) an ANSI C string.
+ * @note The object name must be unique within this device.
+ * @param object_instance object-instance number of the object
+ * @param new_name ANSI C string to copy, or NULL to clear it.
+ * @return true if object-name was set. The object-name is unchanged on
+ *  failure (object not found, string too long, or out of memory).
+ */
+bool Analog_Input_Name_Duplicate(uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    struct analog_input_descr *pObject;
+
+    pObject = Analog_Input_Object(object_instance);
+    if (pObject) {
+        status = bacnet_character_cstring_strndup(
+            &pObject->Object_Name, new_name, SIZE_MAX);
     }
 
     return status;
@@ -815,6 +844,29 @@ bool Analog_Input_Description_Set(
 }
 
 /**
+ * @brief For a given object instance-number, sets the description
+ *  by duplicating (copying) an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name ANSI C string to copy, or NULL to clear it.
+ * @return true if description was set. The description is unchanged on
+ *  failure (object not found, string too long, or out of memory).
+ */
+bool Analog_Input_Description_Duplicate(
+    uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    struct analog_input_descr *pObject;
+
+    pObject = Analog_Input_Object(object_instance);
+    if (pObject) {
+        status = bacnet_character_cstring_strndup(
+            &pObject->Description, new_name, SIZE_MAX);
+    }
+
+    return status;
+}
+
+/**
  * @brief Set the object-name property value using write-property context.
  * @param wp_data [in,out] Write property request/response context.
  * @param cstring [in] New object-name value.
@@ -1057,6 +1109,82 @@ void Analog_Input_COV_Increment_Set(uint32_t object_instance, float value)
         pObject->COV_Increment = value;
         Analog_Input_COV_Detect(pObject, pObject->Present_Value);
     }
+}
+
+/**
+ * @brief For a given object instance-number, returns the min-pres-value
+ * @param  object_instance - object-instance number of the object
+ * @return value or 0.0 if not found
+ */
+float Analog_Input_Min_Pres_Value(uint32_t object_instance)
+{
+    float value = 0.0f;
+    struct analog_input_descr *pObject;
+
+    pObject = Analog_Input_Object(object_instance);
+    if (pObject) {
+        value = pObject->Min_Pres_Value;
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets the min-pres-value
+ * @param  object_instance - object-instance number of the object
+ * @param  value - value to be set
+ * @return true if the object-instance exists and the value was set
+ */
+bool Analog_Input_Min_Pres_Value_Set(uint32_t object_instance, float value)
+{
+    bool status = false;
+    struct analog_input_descr *pObject;
+
+    pObject = Analog_Input_Object(object_instance);
+    if (pObject) {
+        pObject->Min_Pres_Value = value;
+        status = true;
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, returns the max-pres-value
+ * @param  object_instance - object-instance number of the object
+ * @return value or 0.0 if not found
+ */
+float Analog_Input_Max_Pres_Value(uint32_t object_instance)
+{
+    float value = 0.0f;
+    struct analog_input_descr *pObject;
+
+    pObject = Analog_Input_Object(object_instance);
+    if (pObject) {
+        value = pObject->Max_Pres_Value;
+    }
+
+    return value;
+}
+
+/**
+ * @brief For a given object instance-number, sets the max-pres-value
+ * @param  object_instance - object-instance number of the object
+ * @param  value - value to be set
+ * @return true if the object-instance exists and the value was set
+ */
+bool Analog_Input_Max_Pres_Value_Set(uint32_t object_instance, float value)
+{
+    bool status = false;
+    struct analog_input_descr *pObject;
+
+    pObject = Analog_Input_Object(object_instance);
+    if (pObject) {
+        pObject->Max_Pres_Value = value;
+        status = true;
+    }
+
+    return status;
 }
 
 /**
@@ -1354,6 +1482,14 @@ int Analog_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_COV_INCREMENT:
             apdu_len =
                 encode_application_real(&apdu[0], pObject->COV_Increment);
+            break;
+        case PROP_MIN_PRES_VALUE:
+            apdu_len =
+                encode_application_real(&apdu[0], pObject->Min_Pres_Value);
+            break;
+        case PROP_MAX_PRES_VALUE:
+            apdu_len =
+                encode_application_real(&apdu[0], pObject->Max_Pres_Value);
             break;
 #if defined(INTRINSIC_REPORTING)
         case PROP_TIME_DELAY:
@@ -2390,6 +2526,8 @@ uint32_t Analog_Input_Create(uint32_t object_instance)
         if (pObject) {
             pObject->Reliability = RELIABILITY_NO_FAULT_DETECTED;
             pObject->COV_Increment = 1.0f;
+            pObject->Min_Pres_Value = -FLT_MAX;
+            pObject->Max_Pres_Value = FLT_MAX;
             pObject->Present_Value = 0.0f;
             pObject->Prior_Value = 0.0f;
             pObject->Units = UNITS_PERCENT;

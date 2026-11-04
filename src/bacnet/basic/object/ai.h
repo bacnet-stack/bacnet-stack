@@ -31,6 +31,8 @@ typedef struct analog_input_descr {
     uint16_t Units;
     float Prior_Value;
     float COV_Increment;
+    float Min_Pres_Value;
+    float Max_Pres_Value;
     bool Changed;
     BACNET_CHARACTER_CSTRING Object_Name;
     BACNET_CHARACTER_CSTRING Description;
@@ -87,12 +89,18 @@ bool Analog_Input_Object_Name(
 BACNET_STACK_EXPORT
 bool Analog_Input_Name_Set(uint32_t object_instance, const char *new_name);
 BACNET_STACK_EXPORT
+bool Analog_Input_Name_Duplicate(
+    uint32_t object_instance, const char *new_name);
+BACNET_STACK_EXPORT
 const char *Analog_Input_Name_ASCII(uint32_t object_instance);
 
 BACNET_STACK_EXPORT
 const char *Analog_Input_Description(uint32_t instance);
 BACNET_STACK_EXPORT
 bool Analog_Input_Description_Set(uint32_t instance, const char *new_name);
+BACNET_STACK_EXPORT
+bool Analog_Input_Description_Duplicate(
+    uint32_t object_instance, const char *new_name);
 
 BACNET_STACK_EXPORT
 BACNET_RELIABILITY Analog_Input_Reliability(uint32_t object_instance);
@@ -116,7 +124,7 @@ bool Analog_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data);
 BACNET_STACK_EXPORT
 float Analog_Input_Present_Value(uint32_t object_instance);
 BACNET_STACK_EXPORT
-void Analog_Input_Present_Value_Set(uint32_t object_instance, float value);
+bool Analog_Input_Present_Value_Set(uint32_t object_instance, float value);
 
 BACNET_STACK_EXPORT
 bool Analog_Input_Out_Of_Service(uint32_t object_instance);
@@ -142,6 +150,15 @@ bool Analog_Input_Encode_Value_List(
 float Analog_Input_COV_Increment(uint32_t instance);
 BACNET_STACK_EXPORT
 void Analog_Input_COV_Increment_Set(uint32_t instance, float value);
+
+BACNET_STACK_EXPORT
+float Analog_Input_Min_Pres_Value(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Analog_Input_Min_Pres_Value_Set(uint32_t object_instance, float value);
+BACNET_STACK_EXPORT
+float Analog_Input_Max_Pres_Value(uint32_t object_instance);
+BACNET_STACK_EXPORT
+bool Analog_Input_Max_Pres_Value_Set(uint32_t object_instance, float value);
 
 /* note: header of Intrinsic_Reporting function is required
    even when INTRINSIC_REPORTING is not defined */

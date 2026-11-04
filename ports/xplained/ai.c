@@ -112,14 +112,18 @@ float Analog_Input_Present_Value(uint32_t object_instance)
     return value;
 }
 
-void Analog_Input_Present_Value_Set(uint32_t object_instance, float value)
+bool Analog_Input_Present_Value_Set(uint32_t object_instance, float value)
 {
     unsigned index = 0;
+    bool status = false;
 
     index = Analog_Input_Instance_To_Index(object_instance);
     if (index < MAX_ANALOG_INPUTS) {
         Present_Value[index] = value;
+        status = true;
     }
+
+    return status;
 }
 
 bool Analog_Input_Out_Of_Service(uint32_t object_instance)

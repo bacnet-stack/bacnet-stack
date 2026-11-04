@@ -137,8 +137,10 @@ static void test_header_modifications(
             dest_options_absent, data_options_absent, payload_len);
         zassert_equal(ret, true, NULL);
         zassert_equal(message.hdr.payload_len, payload_len, NULL);
-        res = memcmp(message.hdr.payload, payload, payload_len);
-        zassert_equal(res, 0, NULL);
+        if (payload_len > 0) {
+            res = memcmp(message.hdr.payload, payload, payload_len);
+            zassert_equal(res, 0, NULL);
+        }
         zassert_equal(
             memcmp(&test.address, message.hdr.origin, sizeof(test.address)), 0,
             NULL);
@@ -153,8 +155,10 @@ static void test_header_modifications(
             dest_options_absent, data_options_absent, payload_len);
         zassert_equal(ret, true, NULL);
         zassert_equal(message.hdr.payload_len, payload_len, NULL);
-        res = memcmp(message.hdr.payload, payload, payload_len);
-        zassert_equal(res, 0, NULL);
+        if (payload_len > 0) {
+            res = memcmp(message.hdr.payload, payload, payload_len);
+            zassert_equal(res, 0, NULL);
+        }
 
         if (origin) {
             zassert_equal(
@@ -205,8 +209,10 @@ static void test_header_modifications(
             dest_options_absent, data_options_absent, payload_len);
         zassert_equal(ret, true, NULL);
         zassert_equal(message.hdr.payload_len, payload_len, NULL);
-        res = memcmp(message.hdr.payload, payload, payload_len);
-        zassert_equal(res, 0, NULL);
+        if (payload_len > 0) {
+            res = memcmp(message.hdr.payload, payload, payload_len);
+            zassert_equal(res, 0, NULL);
+        }
         zassert_equal(
             memcmp(&test.address, message.hdr.origin, sizeof(test.address)), 0,
             NULL);
@@ -227,8 +233,10 @@ static void test_header_modifications(
         dest_options_absent, data_options_absent, payload_len);
     zassert_equal(ret, true, NULL);
     zassert_equal(message.hdr.payload_len, payload_len, NULL);
-    res = memcmp(message.hdr.payload, payload, payload_len);
-    zassert_equal(res, 0, NULL);
+    if (payload_len > 0) {
+        res = memcmp(message.hdr.payload, payload, payload_len);
+        zassert_equal(res, 0, NULL);
+    }
 }
 
 static void test_1_option_data(
@@ -272,8 +280,10 @@ static void test_1_option_data(
         message.data_options[0].type, BVLC_SC_OPTION_TYPE_SECURE_PATH, NULL);
     zassert_equal(message.data_options[0].must_understand, true, NULL);
     zassert_equal(message.hdr.payload_len, payload_len, NULL);
-    res = memcmp(message.hdr.payload, payload, payload_len);
-    zassert_equal(res, 0, NULL);
+    if (payload_len > 0) {
+        res = memcmp(message.hdr.payload, payload, payload_len);
+        zassert_equal(res, 0, NULL);
+    }
     test_header_modifications(
         buf, len, bvlc_function, message_id, origin, dest, payload, payload_len,
         true, false);
@@ -389,8 +399,10 @@ static void test_3_options_different_buffer_data(
         message.data_options[2].packed_header_marker & BVLC_SC_HEADER_DATA, 0,
         NULL);
     zassert_equal(message.hdr.payload_len, payload_len, NULL);
-    res = memcmp(message.hdr.payload, payload, payload_len);
-    zassert_equal(res, 0, NULL);
+    if (payload_len > 0) {
+        res = memcmp(message.hdr.payload, payload, payload_len);
+        zassert_equal(res, 0, NULL);
+    }
 }
 
 /* 3 options are added to pdu in total: 1 sc, 2 proprietary */
@@ -502,8 +514,10 @@ static void test_3_options_data(
         message.data_options[0].packed_header_marker & BVLC_SC_HEADER_DATA, 0,
         NULL);
     zassert_equal(message.hdr.payload_len, payload_len, NULL);
-    res = memcmp(message.hdr.payload, payload, payload_len);
-    zassert_equal(res, 0, NULL);
+    if (payload_len > 0) {
+        res = memcmp(message.hdr.payload, payload, payload_len);
+        zassert_equal(res, 0, NULL);
+    }
     test_header_modifications(
         buf, len, bvlc_function, message_id, origin, dest, payload, payload_len,
         true, false);
@@ -810,8 +824,10 @@ static void test_1_option_dest(
         sizeof(proprietary_data1));
     zassert_equal(res, 0, NULL);
     zassert_equal(message.hdr.payload_len, payload_len, NULL);
-    res = memcmp(message.hdr.payload, payload, payload_len);
-    zassert_equal(res, 0, NULL);
+    if (payload_len > 0) {
+        res = memcmp(message.hdr.payload, payload, payload_len);
+        zassert_equal(res, 0, NULL);
+    }
     test_header_modifications(
         buf, len, bvlc_function, message_id, origin, dest, payload, payload_len,
         false, true);
@@ -961,8 +977,10 @@ static void test_3_options_dest(
         sizeof(proprietary_data1));
     zassert_equal(res, 0, NULL);
     zassert_equal(message.hdr.payload_len, payload_len, NULL);
-    res = memcmp(message.hdr.payload, payload, payload_len);
-    zassert_equal(res, 0, NULL);
+    if (payload_len > 0) {
+        res = memcmp(message.hdr.payload, payload, payload_len);
+        zassert_equal(res, 0, NULL);
+    }
     test_header_modifications(
         buf, len, bvlc_function, message_id, origin, dest, payload, payload_len,
         false, true);
@@ -1111,8 +1129,10 @@ static void test_3_options_dest_different_buffer(
         sizeof(proprietary_data1));
     zassert_equal(res, 0, NULL);
     zassert_equal(message.hdr.payload_len, payload_len, NULL);
-    res = memcmp(message.hdr.payload, payload, payload_len);
-    zassert_equal(res, 0, NULL);
+    if (payload_len > 0) {
+        res = memcmp(message.hdr.payload, payload, payload_len);
+        zassert_equal(res, 0, NULL);
+    }
     test_header_modifications(
         buf1, len, bvlc_function, message_id, origin, dest, payload,
         payload_len, false, true);
@@ -1490,8 +1510,10 @@ static void test_options_mixed_case1(
         sizeof(proprietary_data2));
     zassert_equal(res, 0, NULL);
     zassert_equal(message.hdr.payload_len, payload_len, NULL);
-    res = memcmp(message.hdr.payload, payload, payload_len);
-    zassert_equal(res, 0, NULL);
+    if (payload_len > 0) {
+        res = memcmp(message.hdr.payload, payload, payload_len);
+        zassert_equal(res, 0, NULL);
+    }
     test_header_modifications(
         buf, len, bvlc_function, message_id, origin, dest, payload, payload_len,
         false, false);
@@ -1678,8 +1700,10 @@ static void test_options_mixed_case2(
         sizeof(proprietary_data1));
     zassert_equal(res, 0, NULL);
     zassert_equal(message.hdr.payload_len, payload_len, NULL);
-    res = memcmp(message.hdr.payload, payload, payload_len);
-    zassert_equal(res, 0, NULL);
+    if (payload_len > 0) {
+        res = memcmp(message.hdr.payload, payload, payload_len);
+        zassert_equal(res, 0, NULL);
+    }
     test_header_modifications(
         buf, len, bvlc_function, message_id, origin, dest, payload, payload_len,
         false, false);
@@ -1866,8 +1890,10 @@ static void test_options_mixed_case3(
         sizeof(proprietary_data3));
     zassert_equal(res, 0, NULL);
     zassert_equal(message.hdr.payload_len, payload_len, NULL);
-    res = memcmp(message.hdr.payload, payload, payload_len);
-    zassert_equal(res, 0, NULL);
+    if (payload_len > 0) {
+        res = memcmp(message.hdr.payload, payload, payload_len);
+        zassert_equal(res, 0, NULL);
+    }
     test_header_modifications(
         buf, len, bvlc_function, message_id, origin, dest, payload, payload_len,
         false, false);

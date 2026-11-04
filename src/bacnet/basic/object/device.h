@@ -269,7 +269,7 @@ void Device_getCurrentDateTime(BACNET_DATE_TIME *DateTime);
 BACNET_STACK_EXPORT
 int32_t Device_UTC_Offset(void);
 BACNET_STACK_EXPORT
-void Device_UTC_Offset_Set(int16_t offset);
+bool Device_UTC_Offset_Set(int16_t offset);
 
 BACNET_STACK_EXPORT
 bool Device_Daylight_Savings_Status(void);

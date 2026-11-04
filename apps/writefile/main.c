@@ -21,10 +21,11 @@
 #include "bacnet/npdu.h"
 #include "bacnet/apdu.h"
 #include "bacnet/whois.h"
-/* some demo stuff needed */
+/* basic modules */
 #include "bacnet/basic/binding/address.h"
 #include "bacnet/basic/object/device.h"
 #include "bacnet/basic/sys/filename.h"
+#include "bacnet/version.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/datalink/datalink.h"
@@ -130,6 +131,7 @@ static void Init_Service_Handlers(void)
 
 int main(int argc, char *argv[])
 {
+    const char *filename;
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 100; /* milliseconds */
@@ -147,6 +149,17 @@ int main(int argc, char *argv[])
     static BACNET_OCTET_STRING fileData;
     size_t len = 0;
     bool pad_byte = false;
+
+    filename = filename_remove_path(argv[0]);
+    if ((argc > 1) && (strcmp(argv[1], "--version") == 0)) {
+        printf("%s %s\n", filename, BACNET_VERSION_TEXT);
+        printf("Copyright (C) 2008 by Steve Karg.\n"
+               "This is free software; see the source for copying "
+               "conditions.\n"
+               "There is NO warranty; not even for MERCHANTABILITY or\n"
+               "FITNESS FOR A PARTICULAR PURPOSE.\n");
+        return 0;
+    }
 
     if (argc < 4) {
         /* FIXME: what about access method - record or stream? */

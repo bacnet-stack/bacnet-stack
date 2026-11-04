@@ -9,6 +9,7 @@
 #include <zephyr/ztest.h>
 #include <bacnet/bactext.h>
 #include <bacnet/basic/object/color_temperature.h>
+#include <property_test.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -24,14 +25,7 @@ ZTEST(color_temperature_tests, testColorTemperature)
 static void testColorTemperature(void)
 #endif
 {
-    uint8_t apdu[MAX_APDU] = { 0 };
-    int len = 0;
-    int test_len = 0;
-    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
-    const int32_t *pRequired = NULL;
-    const int32_t *pOptional = NULL;
-    const int32_t *pProprietary = NULL;
+    const int32_t skip_fail_property_list[] = { -1 };
     const uint32_t instance = 123;
     BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
     bool status = false;
@@ -43,88 +37,10 @@ static void testColorTemperature(void)
     Color_Temperature_Init();
     Color_Temperature_Create(instance);
 
-    rpdata.application_data = &apdu[0];
-    rpdata.application_data_len = sizeof(apdu);
-    rpdata.object_type = OBJECT_COLOR_TEMPERATURE;
-    rpdata.object_instance = instance;
-    rpdata.object_property = PROP_OBJECT_IDENTIFIER;
-
-    Color_Temperature_Property_Lists(&pRequired, &pOptional, &pProprietary);
-    while ((*pRequired) >= 0) {
-        rpdata.object_property = *pRequired;
-        rpdata.array_index = BACNET_ARRAY_ALL;
-        len = Color_Temperature_Read_Property(&rpdata);
-        zassert_not_equal(
-            len, BACNET_STATUS_ERROR,
-            "property '%s': failed to ReadProperty!\n",
-            bactext_property_name(rpdata.object_property));
-        if (len >= 0) {
-            test_len = bacapp_decode_known_property(
-                rpdata.application_data, len, &value, rpdata.object_type,
-                rpdata.object_property);
-            zassert_equal(
-                len, test_len, "property '%s': failed to decode!\n",
-                bactext_property_name(rpdata.object_property));
-            /* check WriteProperty properties */
-            wpdata.object_type = rpdata.object_type;
-            wpdata.object_instance = rpdata.object_instance;
-            wpdata.object_property = rpdata.object_property;
-            wpdata.array_index = rpdata.array_index;
-            memcpy(&wpdata.application_data, rpdata.application_data, MAX_APDU);
-            wpdata.application_data_len = len;
-            wpdata.error_code = ERROR_CODE_SUCCESS;
-            status = Color_Temperature_Write_Property(&wpdata);
-            if (!status) {
-                /* verify WriteProperty property is known */
-                zassert_not_equal(
-                    wpdata.error_code, ERROR_CODE_UNKNOWN_PROPERTY,
-                    "property '%s': WriteProperty Unknown!\n",
-                    bactext_property_name(rpdata.object_property));
-            }
-        }
-        pRequired++;
-    }
-    while ((*pOptional) != -1) {
-        rpdata.object_property = *pOptional;
-        rpdata.array_index = BACNET_ARRAY_ALL;
-        len = Color_Temperature_Read_Property(&rpdata);
-        zassert_not_equal(
-            len, BACNET_STATUS_ERROR,
-            "property '%s': failed to ReadProperty!\n",
-            bactext_property_name(rpdata.object_property));
-        if (len > 0) {
-            test_len = bacapp_decode_application_data(
-                rpdata.application_data, (uint8_t)rpdata.application_data_len,
-                &value);
-            zassert_equal(
-                len, test_len, "property '%s': failed to decode!\n",
-                bactext_property_name(rpdata.object_property));
-            /* check WriteProperty properties */
-            wpdata.object_type = rpdata.object_type;
-            wpdata.object_instance = rpdata.object_instance;
-            wpdata.object_property = rpdata.object_property;
-            wpdata.array_index = rpdata.array_index;
-            memcpy(&wpdata.application_data, rpdata.application_data, MAX_APDU);
-            wpdata.application_data_len = len;
-            wpdata.error_code = ERROR_CODE_SUCCESS;
-            status = Color_Temperature_Write_Property(&wpdata);
-            if (!status) {
-                /* verify WriteProperty property is known */
-                zassert_not_equal(
-                    wpdata.error_code, ERROR_CODE_UNKNOWN_PROPERTY,
-                    "property '%s': WriteProperty Unknown!\n",
-                    bactext_property_name(rpdata.object_property));
-            }
-        }
-        pOptional++;
-    }
-    /* check for unsupported property - use ALL */
-    rpdata.object_property = PROP_ALL;
-    len = Color_Temperature_Read_Property(&rpdata);
-    zassert_equal(len, BACNET_STATUS_ERROR, NULL);
-    wpdata.object_property = PROP_ALL;
-    status = Color_Temperature_Write_Property(&wpdata);
-    zassert_false(status, NULL);
+    bacnet_object_properties_read_write_test(
+        OBJECT_COLOR_TEMPERATURE, instance, Color_Temperature_Property_Lists,
+        Color_Temperature_Read_Property, Color_Temperature_Write_Property,
+        skip_fail_property_list);
     /* test the ANSI name/description get/set */
     status = Color_Temperature_Name_Set(instance, sample_name);
     zassert_true(status, NULL);
@@ -152,6 +68,12 @@ static void testColorTemperature(void)
     status = Color_Temperature_Description_Set(instance, NULL);
     zassert_true(status, NULL);
     zassert_equal(strcmp(Color_Temperature_Description(instance), ""), 0, NULL);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Color_Temperature_Name_Duplicate,
+        Color_Temperature_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Color_Temperature_Description_Duplicate,
+        Color_Temperature_Description);
     char_string.length = 0;
     characterstring_init_ansi(&char_string, "written name");
     wpdata.object_type = OBJECT_COLOR_TEMPERATURE;

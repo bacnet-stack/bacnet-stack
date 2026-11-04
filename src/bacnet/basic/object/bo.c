@@ -370,7 +370,7 @@ bool Binary_Output_Priority_Array_Relinquished(
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+    if (pObject && (priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
         if (!BIT_CHECK(pObject->Priority_Active_Bits, priority - 1)) {
             status = true;
         }
@@ -392,7 +392,7 @@ Binary_Output_Priority_Array_Value(uint32_t object_instance, unsigned priority)
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+    if (pObject && (priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
         if (BIT_CHECK(pObject->Priority_Array, priority - 1)) {
             value = BINARY_ACTIVE;
         }
@@ -648,6 +648,30 @@ bool Binary_Output_Name_Set(uint32_t object_instance, const char *new_name)
 }
 
 /**
+ * @brief For a given object instance-number, sets the object-name
+ *  by duplicating (copying) an ANSI C string.
+ * @note The object name must be unique within this device.
+ * @param object_instance object-instance number of the object
+ * @param new_name ANSI C string to copy, or NULL to clear it.
+ * @return true if object-name was set. The object-name is unchanged on
+ *  failure (object not found, string too long, or out of memory).
+ */
+bool Binary_Output_Name_Duplicate(
+    uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        status = bacnet_character_cstring_strndup(
+            &pObject->Object_Name, new_name, SIZE_MAX);
+    }
+
+    return status;
+}
+
+/**
  * @brief Return the object name C string
  * @param object_instance [in] BACnet object instance number
  * @return object name or NULL if not found
@@ -746,7 +770,7 @@ BACNET_BINARY_PV Binary_Output_Relinquish_Default(uint32_t object_instance)
  * property value
  *
  * @param object_instance - object-instance number of the object
- * @param value - floating point relinquish-default value
+ * @param value - BACNET_BINARY_PV relinquish-default value
  *
  * @return true if the relinquish-default property value was set
  */
@@ -755,15 +779,23 @@ bool Binary_Output_Relinquish_Default_Set(
 {
     bool status = false;
     struct object_data *pObject;
+    BACNET_BINARY_PV old_value, new_value;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
+        old_value = Object_Present_Value(pObject);
         if (value == BINARY_ACTIVE) {
             pObject->Relinquish_Default = true;
             status = true;
         } else if (value == BINARY_INACTIVE) {
             pObject->Relinquish_Default = false;
             status = true;
+        }
+        if (status) {
+            new_value = Object_Present_Value(pObject);
+            if (old_value != new_value) {
+                pObject->Changed = true;
+            }
         }
     }
 
@@ -894,6 +926,29 @@ bool Binary_Output_Description_Set(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = bacnet_character_cstring_set(&pObject->Description, new_name);
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the description
+ *  by duplicating (copying) an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name ANSI C string to copy, or NULL to clear it.
+ * @return true if description was set. The description is unchanged on
+ *  failure (object not found, string too long, or out of memory).
+ */
+bool Binary_Output_Description_Duplicate(
+    uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        status = bacnet_character_cstring_strndup(
+            &pObject->Description, new_name, SIZE_MAX);
     }
 
     return status;

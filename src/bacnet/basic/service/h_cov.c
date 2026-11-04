@@ -46,10 +46,14 @@ typedef struct BACnet_COV_Handler_Address {
 typedef struct BACnet_COV_Handler_Subscription_Flags {
     bool issueConfirmedNotifications : 1; /* optional */
     bool send_requested : 1;
+    bool reference_valid : 1;
+    bool increment_evaluated : 1;
 } BACNET_COV_HANDLER_SUBSCRIPTION_FLAGS;
 
 typedef struct BACnet_COV_Handler_Subscription {
     BACNET_COV_HANDLER_SUBSCRIPTION_FLAGS flag;
+    float last_present_value;
+    BACNET_BIT_STRING last_status_flags;
     unsigned dest_index;
     uint8_t invokeID; /* for confirmed COV */
     uint32_t subscriberProcessIdentifier;
@@ -301,6 +305,44 @@ int handler_cov_encode_subscriptions(uint8_t *apdu, int apdu_size)
     return apdu_len;
 }
 
+/** Clear any subscription invoke ID that the TSM has released.
+ *  Called by the TSM each time an invoke ID is freed, so that a
+ *  subscription never holds an invoke ID that the TSM may reuse
+ *  for another transaction.
+ * @param invoke_id - the invoke ID released by the TSM
+ */
+static void cov_tsm_free_invoke_id_handler(uint8_t invoke_id)
+{
+    int index = 0;
+    BACNET_COV_HANDLER_SUBSCRIPTION *subscription = NULL;
+#ifdef BAC_ROUTING
+    uint16_t current_dev_id = Routed_Device_Object_Index();
+    uint16_t dev_id = 0;
+#endif
+
+    if (invoke_id == 0) {
+        return;
+    }
+#ifdef BAC_ROUTING
+    for (dev_id = 0; dev_id < Get_Num_Managed_Devices(); dev_id++) {
+        Set_Routed_Device_Object_Index(dev_id);
+#endif
+        for (index = 0; index < Keylist_Count(COV_Subscriptions); index++) {
+            subscription = Keylist_Data_Index(COV_Subscriptions, index);
+            if (subscription && (subscription->invokeID == invoke_id)) {
+                subscription->invokeID = 0;
+            }
+        }
+#ifdef BAC_ROUTING
+    }
+    Set_Routed_Device_Object_Index(current_dev_id);
+#endif
+}
+
+static struct tsm_free_invoke_id_notification COV_TSM_Free_Notification = {
+    NULL, cov_tsm_free_invoke_id_handler
+};
+
 /** Handler to initialize the COV list, clearing and disabling each entry.
  * @ingroup DSCOV
  */
@@ -310,6 +352,8 @@ void handler_cov_init(void)
 #ifdef BAC_ROUTING
     uint16_t current_dev_id = Routed_Device_Object_Index();
     uint16_t dev_id = 0;
+
+    tsm_free_invoke_id_notification_add(&COV_TSM_Free_Notification);
     for (dev_id = 0; dev_id < MAX_NUM_DEVICES; dev_id++) {
         Set_Routed_Device_Object_Index(dev_id);
         if (!COV_Subscriptions) {
@@ -320,6 +364,7 @@ void handler_cov_init(void)
     }
     Set_Routed_Device_Object_Index(current_dev_id);
 #else
+    tsm_free_invoke_id_notification_add(&COV_TSM_Free_Notification);
     if (!COV_Subscriptions) {
         COV_Subscriptions = Keylist_Create();
     } else {
@@ -629,6 +674,69 @@ void handler_cov_timer_seconds(uint32_t elapsed_seconds)
 #endif
 }
 
+/**
+ * @brief Get the REAL Present_Value and the Status_Flags from a COV
+ *  value list
+ * @param value_list - list of COV data
+ * @param present_value - [out] the REAL Present_Value
+ * @param status_flags - [out] the Status_Flags
+ * @return true if both values are in the list
+ */
+static bool cov_value_list_real(
+    const BACNET_PROPERTY_VALUE *value_list,
+    float *present_value,
+    BACNET_BIT_STRING *status_flags)
+{
+    bool value_found = false;
+    bool flags_found = false;
+
+    while (value_list) {
+        if ((value_list->propertyIdentifier == PROP_PRESENT_VALUE) &&
+            (value_list->value.tag == BACNET_APPLICATION_TAG_REAL)) {
+            *present_value = value_list->value.type.Real;
+            value_found = true;
+        } else if (
+            (value_list->propertyIdentifier == PROP_STATUS_FLAGS) &&
+            (value_list->value.tag == BACNET_APPLICATION_TAG_BIT_STRING)) {
+            *status_flags = value_list->value.type.Bit_String;
+            flags_found = true;
+        }
+        value_list = value_list->next;
+    }
+
+    return value_found && flags_found;
+}
+
+/**
+ * @brief Read the COV_Increment property of an object
+ * @param object_type - object type of the object
+ * @param object_instance - object-instance number of the object
+ * @param cov_increment - [out] the COV_Increment value
+ * @return true if the COV_Increment value was read
+ */
+static bool cov_increment_read(
+    BACNET_OBJECT_TYPE object_type,
+    uint32_t object_instance,
+    float *cov_increment)
+{
+    uint8_t apdu[5] = { 0 };
+    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+    int len = 0;
+
+    rpdata.object_type = object_type;
+    rpdata.object_instance = object_instance;
+    rpdata.object_property = PROP_COV_INCREMENT;
+    rpdata.array_index = BACNET_ARRAY_ALL;
+    rpdata.application_data = apdu;
+    rpdata.application_data_len = sizeof(apdu);
+    len = Device_Read_Property(&rpdata);
+    if (len > 0) {
+        return bacnet_real_application_decode(apdu, len, cov_increment) > 0;
+    }
+
+    return false;
+}
+
 bool handler_cov_fsm(void)
 {
     static int indices[MAX_NUM_DEVICES] = { 0 };
@@ -642,6 +750,10 @@ bool handler_cov_fsm(void)
     uint32_t object_instance = 0;
     bool status = false;
     bool send = false;
+    float present_value = 0.0f;
+    float cov_increment = 0.0f;
+    float cov_delta = 0.0f;
+    BACNET_BIT_STRING status_flags = { 0 };
     BACNET_PROPERTY_VALUE value_list[MAX_COV_PROPERTIES] = { 0 };
 
     /* states for transmitting */
@@ -680,7 +792,32 @@ bool handler_cov_fsm(void)
                                   subscription->monitoredObjectIdentifier.type;
                 object_instance =
                     subscription->monitoredObjectIdentifier.instance;
-                status = Device_COV(object_type, object_instance);
+                bacapp_property_value_list_init(
+                    &value_list[0], MAX_COV_PROPERTIES);
+                subscription->flag.increment_evaluated =
+                    Device_Encode_Value_List(
+                        object_type, object_instance, &value_list[0]) &&
+                    cov_value_list_real(
+                        &value_list[0], &present_value, &status_flags) &&
+                    cov_increment_read(
+                        object_type, object_instance, &cov_increment);
+                if (subscription->flag.increment_evaluated) {
+                    if (isgreater(
+                            subscription->last_present_value, present_value)) {
+                        cov_delta =
+                            subscription->last_present_value - present_value;
+                    } else {
+                        cov_delta =
+                            present_value - subscription->last_present_value;
+                    }
+                    status = subscription->flag.reference_valid &&
+                        (!bitstring_same(
+                             &status_flags, &subscription->last_status_flags) ||
+                         (isgreater(cov_delta, 0.0f) &&
+                          isgreaterequal(cov_delta, cov_increment)));
+                } else {
+                    status = Device_COV(object_type, object_instance);
+                }
                 if (status) {
                     subscription->flag.send_requested = true;
 #if PRINT_ENABLED
@@ -696,7 +833,9 @@ bool handler_cov_fsm(void)
             break;
         case COV_STATE_CLEAR:
             /* clear the COV flag after checking all subscriptions */
-            if (subscription && (subscription->flag.send_requested)) {
+            if (subscription &&
+                (subscription->flag.increment_evaluated ||
+                 subscription->flag.send_requested)) {
                 object_type = (BACNET_OBJECT_TYPE)
                                   subscription->monitoredObjectIdentifier.type;
                 object_instance =
@@ -759,6 +898,11 @@ bool handler_cov_fsm(void)
                         status = cov_send_request(subscription, &value_list[0]);
                     }
                     if (status) {
+                        subscription->flag.reference_valid =
+                            cov_value_list_real(
+                                &value_list[0],
+                                &subscription->last_present_value,
+                                &subscription->last_status_flags);
                         subscription->flag.send_requested = false;
                     }
                 }

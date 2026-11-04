@@ -770,10 +770,10 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
     BACNET_BIT_STRING bit_string = { 0 };
     BACNET_CHARACTER_STRING char_string = { 0 };
     BACNET_OCTET_STRING octet_string = { 0 };
-    BACNET_DATE bdate;
-    BACNET_TIME btime;
-    int16_t utc_offset_minutes;
-    bool dst_active;
+    BACNET_DATE bdate = { 0 };
+    BACNET_TIME btime = { 0 };
+    int16_t utc_offset_minutes = 0;
+    bool dst_active = false;
     uint32_t i = 0;
     uint32_t count = 0;
     uint8_t *apdu = NULL;
@@ -1038,6 +1038,10 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int len = 0;
     uint8_t encoding = 0;
     size_t length = 0;
+    BACNET_DATE bdate = { 0 };
+    BACNET_TIME btime = { 0 };
+    int16_t utc_offset_minutes = 0;
+    bool dst_active = false;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
 
     /* decode the some of the request */
@@ -1136,7 +1140,9 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (status) {
                 status = datetime_time_is_valid(&value.type.Time);
                 if (status) {
-                    datetime_timesync(NULL, &value.type.Time, false);
+                    datetime_local(
+                        &bdate, &btime, &utc_offset_minutes, &dst_active);
+                    datetime_timesync(&bdate, &value.type.Time, false);
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1149,7 +1155,9 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (status) {
                 status = datetime_date_is_valid(&value.type.Date);
                 if (status) {
-                    datetime_timesync(&value.type.Date, NULL, false);
+                    datetime_local(
+                        &bdate, &btime, &utc_offset_minutes, &dst_active);
+                    datetime_timesync(&value.type.Date, &btime, false);
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1160,7 +1168,19 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_SIGNED_INT);
             if (status) {
-                datetime_utc_offset_minutes_set(value.type.Signed_Int);
+                if ((value.type.Signed_Int < (12 * 60)) &&
+                    (value.type.Signed_Int > (-12 * 60))) {
+                    status =
+                        datetime_utc_offset_minutes_set(value.type.Signed_Int);
+                    if (!status) {
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+                    }
+                } else {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    status = false;
+                }
             }
             break;
         case PROP_OBJECT_TYPE:

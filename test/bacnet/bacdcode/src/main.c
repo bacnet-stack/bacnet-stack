@@ -285,7 +285,7 @@ static void testBACDCodeTags(void)
             value = BIT(i);
         }
         /* next tag number */
-        tag_number = BIT(i);
+        tag_number = BIT(j);
     }
 
     return;
@@ -363,7 +363,7 @@ static void testBACnetTagEncoder(void)
             zassert_equal(tag.context, test_tag.context, NULL);
             zassert_equal(tag.closing, test_tag.closing, NULL);
             zassert_equal(tag.opening, test_tag.opening, NULL);
-            tag.number = BIT(i);
+            tag.number = BIT(j);
         }
         tag.number = 0;
         tag.opening = false;
@@ -795,6 +795,8 @@ static void testBACnetDateRangeDecodes(void)
     null_len = bacnet_daterange_encode(NULL, &data);
     zassert_equal(len, null_len, NULL);
 
+    null_len = bacnet_daterange_decode(apdu, len, NULL);
+    zassert_equal(len, null_len, NULL);
     test_len = bacnet_daterange_decode(apdu, len, &test_data);
     zassert_equal(len, test_len, NULL);
     zassert_equal(data.startdate.day, test_data.startdate.day, NULL);
@@ -825,8 +827,9 @@ static void testBACnetDateRangeDecodes(void)
 
 static void verifyBACDCodeUnsignedValue(BACNET_UNSIGNED_INTEGER value)
 {
-    uint8_t array[5] = { 0 };
-    uint8_t encoded_array[5] = { 0 };
+    /* tag (up to 2 octets) + up to 8 octets of unsigned value data */
+    uint8_t array[16] = { 0 };
+    uint8_t encoded_array[16] = { 0 };
     BACNET_UNSIGNED_INTEGER decoded_value = 0;
     int len = 0, null_len = 0;
     uint8_t apdu[MAX_APDU] = { 0 };
@@ -848,7 +851,10 @@ static void verifyBACDCodeUnsignedValue(BACNET_UNSIGNED_INTEGER value)
     zassert_equal(len, null_len, NULL);
     /* apdu_len varies... */
     len = decode_tag_number_and_value(&apdu[0], &tag_number, NULL);
-    zassert_equal(len, 1, NULL);
+    /* tag+length header is 1 octet when the value fits in 4 octets or
+       less, and 2 octets (extended length) when the value needs 5-8
+       octets to encode */
+    zassert_equal(len, (bacnet_unsigned_length(value) <= 4) ? 1 : 2, NULL);
     zassert_equal(tag_number, BACNET_APPLICATION_TAG_UNSIGNED_INT, NULL);
     zassert_false(IS_CONTEXT_SPECIFIC(apdu[0]), NULL);
 }
@@ -903,16 +909,12 @@ ZTEST(bacdcode_tests, testBACDCodeUnsigned)
 static void testBACDCodeUnsigned(void)
 #endif
 {
-#ifdef UINT64_MAX
-    const unsigned max_bits = 64;
-#else
-    const unsigned max_bits = 32;
-#endif
-    uint32_t value;
+    BACNET_UNSIGNED_INTEGER value;
+    const unsigned max_bits = sizeof(value) * 8;
     int i;
 
     for (i = 0; i < max_bits; i++) {
-        value = BIT(i);
+        value = ((BACNET_UNSIGNED_INTEGER)1 << i);
         verifyBACDCodeUnsignedValue(value - 1);
         verifyBACDCodeUnsignedValue(value);
         verifyBACDCodeUnsignedValue(value + 1);
@@ -935,14 +937,10 @@ static void testBACnetUnsigned(void)
     BACNET_UNSIGNED_INTEGER value = 0, test_value = 0;
     int len_value = 0, apdu_len = 0, test_len = 0, null_len = 0;
     unsigned i;
-#ifdef UINT64_MAX
-    const unsigned max_bits = 64;
-#else
-    const unsigned max_bits = 32;
-#endif
+    const unsigned max_bits = sizeof(value) * 8;
 
     for (i = 0; i < max_bits; i++) {
-        value = BIT(i);
+        value = ((BACNET_UNSIGNED_INTEGER)1 << i);
         apdu_len = encode_bacnet_unsigned(&apdu[0], value);
         null_len = encode_bacnet_unsigned(NULL, value);
         zassert_equal(apdu_len, null_len, NULL);
@@ -1042,19 +1040,19 @@ static void testBACDCodeSigned(void)
     int i = 0;
 
     for (i = 0; i < 32; i++) {
-        testBACDCodeSignedValue(value - 1);
+        testBACDCodeSignedValue((int)((unsigned int)value - 1));
         testBACDCodeSignedValue(value);
-        testBACDCodeSignedValue(value + 1);
-        value = value << 1;
+        testBACDCodeSignedValue((int)((unsigned int)value + 1));
+        value = (int)((unsigned int)value << 1);
     }
 
     testBACDCodeSignedValue(-1);
     value = -2;
     for (i = 0; i < 32; i++) {
-        testBACDCodeSignedValue(value - 1);
+        testBACDCodeSignedValue((int)((unsigned int)value - 1));
         testBACDCodeSignedValue(value);
-        testBACDCodeSignedValue(value + 1);
-        value = value << 1;
+        testBACDCodeSignedValue((int)((unsigned int)value + 1));
+        value = (int)((unsigned int)value << 1);
     }
 
     return;
@@ -1596,10 +1594,11 @@ static void testUnsignedContextDecodes(void)
 {
     uint8_t context_tag = 0;
     BACNET_UNSIGNED_INTEGER value = 0;
+    const unsigned max_bits = sizeof(value) * 8;
     unsigned i, j;
 
-    for (i = 0; i < 64; i++) {
-        value = BIT(i);
+    for (i = 0; i < max_bits; i++) {
+        value = ((BACNET_UNSIGNED_INTEGER)1 << i);
         for (j = 0; j < 8; j++) {
             context_tag = BIT(j);
             test_unsigned_context_codec(value, context_tag);
@@ -2222,6 +2221,8 @@ static void testDateRangeContextDecodes(void)
     len = bacnet_daterange_context_encode(apdu, 10, &data);
     null_len = bacnet_daterange_context_encode(NULL, 10, &data);
     zassert_equal(len, null_len, NULL);
+    null_len = bacnet_daterange_context_decode(apdu, len, 10, NULL);
+    zassert_equal(len, null_len, NULL);
     test_len = bacnet_daterange_context_decode(apdu, len, 10, &test_data);
     zassert_equal(len, test_len, NULL);
     zassert_equal(data.startdate.day, test_data.startdate.day, NULL);
@@ -2676,13 +2677,13 @@ ZTEST(bacdcode_tests, test_bacnet_constructed_value)
 static void test_bacnet_constructed_value(void)
 #endif
 {
-    uint8_t apdu[50] = { 0 };
+    uint8_t apdu[MAX_APDU + 2] = { 0 };
     BACNET_CONSTRUCTED_VALUE_TYPE value = { 0 }, test_value = { 0 };
     int apdu_len = 0, null_len = 0, test_len = 0;
     uint8_t tag_number = 0;
     bool status = false;
 
-    value.data_len = BACNET_CONSTRUCTED_VALUE_SIZE;
+    value.data_len = MAX_APDU;
     null_len =
         bacnet_constructed_value_context_encode(NULL, tag_number, &value);
     apdu_len =
@@ -2696,6 +2697,23 @@ static void test_bacnet_constructed_value(void)
     zassert_true(status, NULL);
     status = bacnet_constructed_value_copy(&value, &test_value);
     zassert_true(status, NULL);
+    /* negative test for decoding an oversized constructed value */
+    test_len = bacnet_constructed_value_decode(
+        apdu, sizeof(apdu), sizeof(apdu), &test_value);
+    zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+    /* negative testing for decoding an oversized constructed value */
+    while (--apdu_len) {
+        test_len = bacnet_constructed_value_context_decode(
+            apdu, apdu_len, tag_number, &test_value);
+        zassert_equal(
+            test_len, BACNET_STATUS_ERROR, "apdu_len=%d test_len=%d", apdu_len,
+            test_len);
+    }
+    /* negative test for encoding a chunk too big */
+    value.data_len = MAX_APDU + 1;
+    apdu_len =
+        bacnet_constructed_value_context_encode(apdu, tag_number, &value);
+    zassert_equal(apdu_len, 0, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)

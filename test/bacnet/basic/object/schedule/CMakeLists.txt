@@ -54,6 +54,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/datetime.c
     ${SRC_DIR}/bacnet/basic/sys/days.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
+    ${SRC_DIR}/bacnet/basic/sys/keylist.c
     ${SRC_DIR}/bacnet/indtext.c
     ${SRC_DIR}/bacnet/hostnport.c
     ${SRC_DIR}/bacnet/lighting.c
@@ -72,6 +73,7 @@ add_executable(${PROJECT_NAME}
     ./src/main.c
     ${TST_DIR}/bacnet/basic/object/test/property_test.c
     ${TST_DIR}/bacnet/basic/object/test/device_mock.c
+    ${TST_DIR}/bacnet/basic/object/test/datetime_local.c
     ${ZTST_DIR}/ztest_mock.c
     ${ZTST_DIR}/ztest.c
     )

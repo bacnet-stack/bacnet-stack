@@ -43,6 +43,12 @@ static void testMultistateOutput(void)
     bacnet_object_name_ascii_test(
         object_instance, Multistate_Output_Name_Set,
         Multistate_Output_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Multistate_Output_Name_Duplicate,
+        Multistate_Output_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        object_instance, Multistate_Output_Description_Duplicate,
+        Multistate_Output_Description);
     status = Multistate_Output_Delete(object_instance);
     zassert_true(status, NULL);
 }
@@ -85,6 +91,130 @@ static void testMultistateOutputByName(void)
     status = Multistate_Output_Delete(object_instance);
     zassert_true(status, NULL);
 }
+
+/**
+ * @brief Test that priority 6 (reserved for the Minimum On/Off algorithm
+ *  per the BACnet standard's recommended priority assignments) is rejected
+ *  by the present-value priority-array primitives, and that other priority
+ *  levels are unaffected
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(mso_tests, testMultistateOutput_Priority_6_Reserved)
+#else
+static void testMultistateOutput_Priority_6_Reserved(void)
+#endif
+{
+    const uint32_t instance = 789;
+    bool status = false;
+
+    Multistate_Output_Init();
+    zassert_not_equal(
+        Multistate_Output_Create(instance), BACNET_MAX_INSTANCE, NULL);
+
+    /* priority 6 is reserved: Set must be rejected and the slot must stay
+       relinquished */
+    status = Multistate_Output_Present_Value_Set(instance, 2, 6);
+    zassert_false(status, NULL);
+    zassert_true(
+        Multistate_Output_Priority_Array_Relinquished(instance, 6), NULL);
+
+    /* priority 6 is reserved: Relinquish must be rejected too (nothing to
+       relinquish, no false report of a state change) */
+    status = Multistate_Output_Present_Value_Relinquish(instance, 6);
+    zassert_false(status, NULL);
+
+    /* a non-reserved priority is unaffected by the above */
+    status = Multistate_Output_Present_Value_Set(instance, 2, 5);
+    zassert_true(status, NULL);
+    zassert_false(
+        Multistate_Output_Priority_Array_Relinquished(instance, 5), NULL);
+    status = Multistate_Output_Present_Value_Relinquish(instance, 5);
+    zassert_true(status, NULL);
+    zassert_true(
+        Multistate_Output_Priority_Array_Relinquished(instance, 5), NULL);
+
+    Multistate_Output_Delete(instance);
+    Multistate_Output_Cleanup();
+}
+/**
+ * @brief Test that changes to Present_Value (priority-array),
+ *  Relinquish_Default, and Status_Flags (Out_Of_Service, Reliability/Fault)
+ *  set the Change_Of_Value flag when the observable value actually changes,
+ *  and that redundant writes do not
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(mso_tests, testMultistateOutput_COV)
+#else
+static void testMultistateOutput_COV(void)
+#endif
+{
+    const uint32_t instance = 654;
+    bool status = false;
+
+    Multistate_Output_Init();
+    zassert_not_equal(
+        Multistate_Output_Create(instance), BACNET_MAX_INSTANCE, NULL);
+
+    /* all priorities relinquished: Present_Value tracks Relinquish_Default,
+       which defaults to state 1 */
+    Multistate_Output_Change_Of_Value_Clear(instance);
+    zassert_false(Multistate_Output_Change_Of_Value(instance), NULL);
+    zassert_equal(Multistate_Output_Present_Value(instance), 1, NULL);
+
+    /* Present_Value via the priority array must set Changed */
+    Multistate_Output_Change_Of_Value_Clear(instance);
+    status = Multistate_Output_Present_Value_Set(instance, 3, 8);
+    zassert_true(status, NULL);
+    zassert_equal(Multistate_Output_Present_Value(instance), 3, NULL);
+    zassert_true(Multistate_Output_Change_Of_Value(instance), NULL);
+
+    /* relinquishing that priority reverts to Relinquish_Default and must
+       set Changed again */
+    Multistate_Output_Change_Of_Value_Clear(instance);
+    status = Multistate_Output_Present_Value_Relinquish(instance, 8);
+    zassert_true(status, NULL);
+    zassert_equal(Multistate_Output_Present_Value(instance), 1, NULL);
+    zassert_true(Multistate_Output_Change_Of_Value(instance), NULL);
+
+    /* a Relinquish_Default change must set Changed */
+    Multistate_Output_Change_Of_Value_Clear(instance);
+    status = Multistate_Output_Relinquish_Default_Set(instance, 2);
+    zassert_true(status, NULL);
+    zassert_equal(Multistate_Output_Present_Value(instance), 2, NULL);
+    zassert_true(Multistate_Output_Change_Of_Value(instance), NULL);
+
+    /* setting the same effective value again must not set Changed */
+    Multistate_Output_Change_Of_Value_Clear(instance);
+    status = Multistate_Output_Relinquish_Default_Set(instance, 2);
+    zassert_true(status, NULL);
+    zassert_false(Multistate_Output_Change_Of_Value(instance), NULL);
+
+    /* Status_Flags: an Out_Of_Service change must set Changed */
+    Multistate_Output_Change_Of_Value_Clear(instance);
+    Multistate_Output_Out_Of_Service_Set(instance, true);
+    zassert_true(Multistate_Output_Change_Of_Value(instance), NULL);
+
+    /* setting the same Out_Of_Service value again must not set Changed */
+    Multistate_Output_Change_Of_Value_Clear(instance);
+    Multistate_Output_Out_Of_Service_Set(instance, true);
+    zassert_false(Multistate_Output_Change_Of_Value(instance), NULL);
+    Multistate_Output_Out_Of_Service_Set(instance, false);
+
+    /* Status_Flags: a Fault change via Reliability must set Changed */
+    Multistate_Output_Change_Of_Value_Clear(instance);
+    status = Multistate_Output_Reliability_Set(instance, RELIABILITY_NO_SENSOR);
+    zassert_true(status, NULL);
+    zassert_true(Multistate_Output_Change_Of_Value(instance), NULL);
+
+    /* setting the same reliability again must not set Changed */
+    Multistate_Output_Change_Of_Value_Clear(instance);
+    status = Multistate_Output_Reliability_Set(instance, RELIABILITY_NO_SENSOR);
+    zassert_true(status, NULL);
+    zassert_false(Multistate_Output_Change_Of_Value(instance), NULL);
+
+    Multistate_Output_Delete(instance);
+    Multistate_Output_Cleanup();
+}
 /**
  * @}
  */
@@ -96,7 +226,9 @@ void test_main(void)
 {
     ztest_test_suite(
         mso_tests, ztest_unit_test(testMultistateOutput),
-        ztest_unit_test(testMultistateOutputByName));
+        ztest_unit_test(testMultistateOutputByName),
+        ztest_unit_test(testMultistateOutput_Priority_6_Reserved),
+        ztest_unit_test(testMultistateOutput_COV));
 
     ztest_run_test_suite(mso_tests);
 }

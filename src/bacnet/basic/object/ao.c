@@ -298,28 +298,6 @@ float Analog_Output_Relinquish_Default(uint32_t object_instance)
 }
 
 /**
- * For a given object instance-number, sets the relinquish-default value
- *
- * @param  object_instance - object-instance number of the object
- * @param  value - floating point analog output relinquish-default value
- *
- * @return  true if values are within range and relinquish-default value is set.
- */
-bool Analog_Output_Relinquish_Default_Set(uint32_t object_instance, float value)
-{
-    bool status = false;
-    struct object_data *pObject;
-
-    pObject = Keylist_Data(Object_List, object_instance);
-    if (pObject) {
-        pObject->Relinquish_Default = value;
-        status = true;
-    }
-
-    return status;
-}
-
-/**
  * For a given object instance-number, checks the present-value for COV
  *
  * @param  pObject - specific object with valid data
@@ -348,6 +326,49 @@ Analog_Output_Present_Value_COV_Detect(struct object_data *pObject, float value)
 }
 
 /**
+ * @brief Flag a Status_Flags change of value, and save the Present_Value
+ *  at the time of the change for the COV notification. The saved value
+ *  is also the new COV_Increment baseline, because all COV subscribers
+ *  receive it.
+ * @param  object_instance - object-instance number of the object
+ * @param  pObject - specific object with valid data
+ */
+static void Analog_Output_Status_Flags_COV_Set(
+    uint32_t object_instance, struct object_data *pObject)
+{
+    if (pObject) {
+        pObject->Changed = true;
+        pObject->Prior_Value = Analog_Output_Present_Value(object_instance);
+    }
+}
+
+/**
+ * For a given object instance-number, sets the relinquish-default value
+ *
+ * @param  object_instance - object-instance number of the object
+ * @param  value - floating point analog output relinquish-default value
+ *
+ * @return  true if the relinquish-default value was set.
+ */
+bool Analog_Output_Relinquish_Default_Set(uint32_t object_instance, float value)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Relinquish_Default = value;
+        /* a Relinquish_Default change can alter Present_Value when all
+           priorities are relinquished, so check for COV here too */
+        Analog_Output_Present_Value_COV_Detect(
+            pObject, Analog_Output_Present_Value(object_instance));
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * For a given object instance-number, sets the present-value
  *
  * @param  object_instance - object-instance number of the object
@@ -364,6 +385,7 @@ bool Analog_Output_Present_Value_Set(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY) &&
+            (priority != 6 /* reserved */) &&
             isgreaterequal(value, pObject->Min_Pres_Value) &&
             islessequal(value, pObject->Max_Pres_Value)) {
             pObject->Relinquished[priority - 1] = false;
@@ -391,7 +413,8 @@ bool Analog_Output_Present_Value_Relinquish(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+        if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY) &&
+            (priority != 6 /* reserved */)) {
             pObject->Relinquished[priority - 1] = true;
             pObject->Priority_Array[priority - 1] = 0.0f;
             Analog_Output_Present_Value_COV_Detect(
@@ -416,7 +439,7 @@ bool Analog_Output_Priority_Array_Relinquished(
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+    if (pObject && (priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
         if (pObject->Relinquished[priority - 1]) {
             status = true;
         }
@@ -438,7 +461,7 @@ float Analog_Output_Priority_Array_Value(
     struct object_data *pObject;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if ((priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
+    if (pObject && (priority >= 1) && (priority <= BACNET_MAX_PRIORITY)) {
         real_value = pObject->Priority_Array[priority - 1];
     }
 
@@ -615,6 +638,30 @@ bool Analog_Output_Name_Set(uint32_t object_instance, const char *new_name)
 }
 
 /**
+ * @brief For a given object instance-number, sets the object-name
+ *  by duplicating (copying) an ANSI C string.
+ * @note The object name must be unique within this device.
+ * @param object_instance object-instance number of the object
+ * @param new_name ANSI C string to copy, or NULL to clear it.
+ * @return true if object-name was set. The object-name is unchanged on
+ *  failure (object not found, string too long, or out of memory).
+ */
+bool Analog_Output_Name_Duplicate(
+    uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        status = bacnet_character_cstring_strndup(
+            &pObject->Object_Name, new_name, SIZE_MAX);
+    }
+
+    return status;
+}
+
+/**
  * @brief Return the object name C string
  * @param object_instance [in] BACnet object instance number
  * @return object name or NULL if not found
@@ -711,7 +758,7 @@ void Analog_Output_Out_Of_Service_Set(uint32_t object_instance, bool value)
     if (pObject) {
         if (pObject->Out_Of_Service != value) {
             pObject->Out_Of_Service = value;
-            pObject->Changed = true;
+            Analog_Output_Status_Flags_COV_Set(object_instance, pObject);
         }
     }
 }
@@ -749,7 +796,7 @@ void Analog_Output_Overridden_Set(uint32_t object_instance, bool value)
     if (pObject) {
         if (pObject->Overridden != value) {
             pObject->Overridden = value;
-            pObject->Changed = true;
+            Analog_Output_Status_Flags_COV_Set(object_instance, pObject);
         }
     }
 }
@@ -809,7 +856,7 @@ bool Analog_Output_Reliability_Set(
             fault = Analog_Output_Object_Fault(pObject);
             pObject->Reliability = value;
             if (fault != Analog_Output_Object_Fault(pObject)) {
-                pObject->Changed = true;
+                Analog_Output_Status_Flags_COV_Set(object_instance, pObject);
             }
             status = true;
         }
@@ -868,6 +915,29 @@ bool Analog_Output_Description_Set(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         status = bacnet_character_cstring_set(&pObject->Description, new_name);
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the description
+ *  by duplicating (copying) an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name ANSI C string to copy, or NULL to clear it.
+ * @return true if description was set. The description is unchanged on
+ *  failure (object not found, string too long, or out of memory).
+ */
+bool Analog_Output_Description_Duplicate(
+    uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        status = bacnet_character_cstring_strndup(
+            &pObject->Description, new_name, SIZE_MAX);
     }
 
     return status;
@@ -1054,6 +1124,11 @@ void Analog_Output_Change_Of_Value_Clear(uint32_t object_instance)
 
 /**
  * @brief Encode the Value List for Present-Value and Status-Flags
+ * @note The encoded Present_Value is the value at the time of the last
+ *  change of value (Prior_Value), so that all COV subscribers receive the
+ *  same value. The initial notification after a SubscribeCOV can report a
+ *  Present_Value that differs from the current Present_Value by less than
+ *  the COV_Increment.
  * @param object_instance - object-instance number of the object
  * @param  value_list - #BACNET_PROPERTY_VALUE with at least 2 entries
  * @return true if values were encoded
@@ -1065,7 +1140,6 @@ bool Analog_Output_Encode_Value_List(
     struct object_data *pObject;
     const bool in_alarm = false;
     bool fault = false;
-    const bool overridden = false;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
@@ -1073,8 +1147,8 @@ bool Analog_Output_Encode_Value_List(
             fault = true;
         }
         status = cov_value_list_encode_real(
-            value_list, pObject->Prior_Value, in_alarm, fault, overridden,
-            pObject->Out_Of_Service);
+            value_list, Analog_Output_Present_Value(object_instance), in_alarm,
+            fault, pObject->Overridden, pObject->Out_Of_Service);
     }
 
     return status;

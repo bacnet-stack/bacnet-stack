@@ -324,8 +324,7 @@ int wp_decode_service_request(
             }
         } else {
             if (wpdata) {
-                wpdata->error_code =
-                    ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+                wpdata->error_code = ERROR_CODE_REJECT_INVALID_TAG;
             }
             return BACNET_STATUS_ERROR;
         }

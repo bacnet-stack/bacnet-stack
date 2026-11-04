@@ -16,6 +16,7 @@
 /* BACnet Stack API */
 #include "bacnet/bacapp.h"
 #include "bacnet/bacdcode.h"
+#include "bacnet/bacerror.h"
 #include "bacnet/bacstr.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
@@ -31,7 +32,7 @@ struct object_data {
     bool Out_Of_Service : 1;
     bool Change_Of_Value : 1;
     bool Write_Enabled : 1;
-    uint8_t Present_Value;
+    uint32_t Present_Value;
     uint8_t Reliability;
     BACNET_CHARACTER_CSTRING Object_Name;
     OS_Keylist State_List;
@@ -556,6 +557,30 @@ bool Multistate_Input_Name_Set(uint32_t object_instance, const char *new_name)
 }
 
 /**
+ * @brief For a given object instance-number, sets the object-name
+ *  by duplicating (copying) an ANSI C string.
+ * @note The object name must be unique within this device.
+ * @param object_instance object-instance number of the object
+ * @param new_name ANSI C string to copy, or NULL to clear it.
+ * @return true if object-name was set. The object-name is unchanged on
+ *  failure (object not found, string too long, or out of memory).
+ */
+bool Multistate_Input_Name_Duplicate(
+    uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Multistate_Input_Object(object_instance);
+    if (pObject) {
+        status = bacnet_character_cstring_strndup(
+            &pObject->Object_Name, new_name, SIZE_MAX);
+    }
+
+    return status;
+}
+
+/**
  * @brief Return the object name C string
  * @param object_instance [in] BACnet object instance number
  * @return object name or NULL if not found
@@ -685,6 +710,29 @@ bool Multistate_Input_Description_Set(
     pObject = Multistate_Input_Object(object_instance);
     if (pObject) {
         status = bacnet_character_cstring_set(&pObject->Description, new_name);
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the description
+ *  by duplicating (copying) an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name ANSI C string to copy, or NULL to clear it.
+ * @return true if description was set. The description is unchanged on
+ *  failure (object not found, string too long, or out of memory).
+ */
+bool Multistate_Input_Description_Duplicate(
+    uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    struct object_data *pObject;
+
+    pObject = Multistate_Input_Object(object_instance);
+    if (pObject) {
+        status = bacnet_character_cstring_strndup(
+            &pObject->Description, new_name, SIZE_MAX);
     }
 
     return status;
@@ -1007,9 +1055,15 @@ bool Multistate_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
-                status = Multistate_Input_Present_Value_Write(
-                    wp_data->object_instance, value.type.Enumerated,
-                    &wp_data->error_class, &wp_data->error_code);
+                status = false;
+                if (value.type.Unsigned_Int <= UINT32_MAX) {
+                    status = Multistate_Input_Present_Value_Write(
+                        wp_data->object_instance, value.type.Unsigned_Int,
+                        &wp_data->error_class, &wp_data->error_code);
+                } else {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_OBJECT_NAME:
@@ -1045,6 +1099,8 @@ bool Multistate_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->application_data_len);
             if (wp_data->error_code == ERROR_CODE_SUCCESS) {
                 status = true;
+            } else {
+                wp_data->error_class = bacerror_code_class(wp_data->error_code);
             }
             break;
         default:

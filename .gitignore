@@ -65,11 +65,17 @@ settings/
 Backup*
 BACnet_BDT_table
 address_cache
+
+# workspace / patch dumps / builds / artifacts
+vendor/
+scratch/
+workspace/
 **/build/*
 **/_build/*
 **/out/*
 **/external/*
 Obj/
+
 Release/
 libwebsockets/
 

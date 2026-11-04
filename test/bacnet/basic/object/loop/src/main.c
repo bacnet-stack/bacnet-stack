@@ -285,6 +285,10 @@ static void test_Loop_Read_Write(void)
     status =
         characterstring_ansi_same(&cstring, Loop_Description_ANSI(instance));
     zassert_true(status, NULL);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Loop_Name_Duplicate, Loop_Name_ASCII);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Loop_Description_Duplicate, Loop_Description_ANSI);
     /* cleanup */
     status = Loop_Delete(instance);
     zassert_true(status, NULL);
