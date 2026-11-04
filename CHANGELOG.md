@@ -67,6 +67,12 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed ReadProperty of a routed Device object. The Object_Identifier
+  property now returns the instance of the addressed routed Device, not the
+  instance of the gateway Device. A request for the instance of a different
+  Device in the routing table now returns UNKNOWN_OBJECT. The Device object
+  now rejects an Object_Name write that is too long for the name buffer.
+  Added unit tests for gw_device.c. (#1583)
 * Fixed the Device_UTC_Offset_Set() function. It now returns bool and passes
   the value to datetime_utc_offset_minutes_set(). The UTC_Offset
   WriteProperty in the Device object and in apps/piface accepts -1440 to

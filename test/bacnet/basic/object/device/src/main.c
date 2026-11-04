@@ -621,6 +621,80 @@ static void test_Routed_Device_Reinitialize(void)
     test_Routed_Device_Reinitialize_Unsupported_State(
         BACNET_REINIT_ACTIVATE_CHANGES);
 }
+
+/**
+ * @brief Verify ReadProperty of a routed Device answers as that Device
+ *  and rejects the instance of any other Device in the routing table
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Routed_Device_Read_Property_Instance)
+#else
+static void test_Routed_Device_Read_Property_Instance(void)
+#endif
+{
+    BACNET_CHARACTER_STRING object_name = { 0 };
+    BACNET_OBJECT_ID object_id = { 0 };
+    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    uint16_t routed_index = 0;
+    uint32_t gateway_instance = 260001;
+    uint32_t routed_instance = 260002;
+    uint32_t other_instance = 260003;
+    int len = 0;
+    bool status = false;
+
+    Device_Init(NULL);
+    Routing_Device_Init(gateway_instance);
+    characterstring_init_ansi(&object_name, "Routed Device 2");
+    routed_index = Add_Routed_Device(routed_instance, &object_name, "2");
+    zassert_equal(routed_index, 1, NULL);
+    characterstring_init_ansi(&object_name, "Routed Device 3");
+    zassert_equal(
+        Add_Routed_Device(other_instance, &object_name, "3"), 2, NULL);
+    status = Set_Routed_Device_Object_Index(routed_index);
+    zassert_true(status, NULL);
+
+    rpdata.application_data = apdu;
+    rpdata.application_data_len = sizeof(apdu);
+    rpdata.array_index = BACNET_ARRAY_ALL;
+    rpdata.object_type = OBJECT_DEVICE;
+    rpdata.object_property = PROP_OBJECT_IDENTIFIER;
+
+    /* Object_Identifier is the routed instance, not the gateway instance */
+    rpdata.object_instance = routed_instance;
+    len = Device_Read_Property(&rpdata);
+    zassert_true(len > 0, NULL);
+    len = bacnet_object_id_application_decode(
+        apdu, len, &object_id.type, &object_id.instance);
+    zassert_true(len > 0, NULL);
+    zassert_equal(object_id.type, OBJECT_DEVICE, NULL);
+    zassert_equal(object_id.instance, routed_instance, NULL);
+    zassert_equal(Routed_Device_Object_Index(), routed_index, NULL);
+
+    /* the instance of another Device in the table is an unknown object */
+    rpdata.object_property = PROP_OBJECT_NAME;
+    rpdata.object_instance = other_instance;
+    len = Device_Read_Property(&rpdata);
+    zassert_equal(len, BACNET_STATUS_ERROR, NULL);
+    zassert_equal(rpdata.error_class, ERROR_CLASS_OBJECT, NULL);
+    zassert_equal(rpdata.error_code, ERROR_CODE_UNKNOWN_OBJECT, NULL);
+    zassert_equal(Routed_Device_Object_Index(), routed_index, NULL);
+
+    /* the gateway instance is an unknown object for the routed Device */
+    rpdata.object_instance = gateway_instance;
+    len = Device_Read_Property(&rpdata);
+    zassert_equal(len, BACNET_STATUS_ERROR, NULL);
+    zassert_equal(rpdata.error_class, ERROR_CLASS_OBJECT, NULL);
+    zassert_equal(rpdata.error_code, ERROR_CODE_UNKNOWN_OBJECT, NULL);
+    zassert_equal(Routed_Device_Object_Index(), routed_index, NULL);
+
+    /* the addressed Device is still served */
+    rpdata.object_instance = routed_instance;
+    len = Device_Read_Property(&rpdata);
+    zassert_true(len > 0, NULL);
+    status = Set_Routed_Device_Object_Index(0);
+    zassert_true(status, NULL);
+}
 #endif
 
 #if defined(BACNET_BACKUP_RESTORE)
@@ -849,6 +923,7 @@ void test_main(void)
         ztest_unit_test(test_Device_Backup_Failure_Timeout_Configuration_File),
         ztest_unit_test(test_Routed_Device_DCC_Remains_Blocked),
         ztest_unit_test(test_Routed_Device_Reinitialize),
+        ztest_unit_test(test_Routed_Device_Read_Property_Instance),
         ztest_unit_test(test_Routed_Device_Backup_Restore_Independence),
         ztest_unit_test(test_Routed_Device_Backup_Countdown_Per_Device));
 #elif defined(BAC_ROUTING)
@@ -857,7 +932,8 @@ void test_main(void)
         ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Write_Property_Range),
         ztest_unit_test(test_Routed_Device_DCC_Remains_Blocked),
-        ztest_unit_test(test_Routed_Device_Reinitialize));
+        ztest_unit_test(test_Routed_Device_Reinitialize),
+        ztest_unit_test(test_Routed_Device_Read_Property_Instance));
 #elif defined(BACNET_BACKUP_RESTORE)
     ztest_test_suite(
         device_tests, ztest_unit_test(testDevice),
