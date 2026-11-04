@@ -67,6 +67,12 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the COV handler to clear the invoke ID of a confirmed COV
+  subscription when the TSM frees the invoke ID. Added the
+  tsm_free_invoke_id_notification_add() function. The tsm_free_invoke_id()
+  function calls each registered callback when it frees a valid invoke ID.
+  Before, a renew, cancel, or expiry of an old subscription could free a new
+  transaction with the same invoke ID. Added a unit test. (#1592)
 * Fixed the Analog Output COV value list to encode the Overridden flag of
   the object. Before, the flag was always false. The object now saves the
   Present_Value in Prior_Value when Out_Of_Service, Overridden, or the fault
