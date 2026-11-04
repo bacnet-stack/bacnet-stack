@@ -62,6 +62,11 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the mstimer based date and time clock to keep the sub-second
+  remainder. Added the mstimer_restart_unit() function. The function moves
+  the timer start forward by whole units of elapsed time and returns the
+  number of whole units. The clock now starts at 1900-01-01 (Monday)
+  00:00:00.00. Added unit tests. (#1585)
 * Fixed the mstimer based date and time clock. It now stores the local
   standard time. The datetime_local() function adds 60 minutes when DST is
   active, so a DST changeover takes effect on the next read. Added the
