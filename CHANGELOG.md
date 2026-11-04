@@ -62,6 +62,8 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed the GitHub workflows to run on ubuntu-24.04 instead of
+  ubuntu-latest to fix the broken CI pipeline.
 * Changed the github/codeql-action workflow steps from 4.38.3 to 4.39.0.
   (#1576)
 
