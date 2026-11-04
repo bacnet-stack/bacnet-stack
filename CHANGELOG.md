@@ -63,6 +63,15 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added an install target to the Makefile build and install rules to the
+  CMake build for the example applications. The Makefile target copies each
+  application to $(DESTDIR)$(bindir). The default bindir is /usr/local/bin.
+  A plain "make install" uses the datalink options of the last full build
+  from apps/build.config. The CMake build sets the output names of the
+  applications to the Makefile names, for example bacrp. With
+  BUILD_SHARED_LIBS, the CMake build sets an INSTALL_RPATH to the library
+  directory. Documented the install commands in README.md and
+  bin/readme.txt. (#1598)
 * Added the bacfile_record_count_callback_set() and bacfile_record_count()
   functions to the File object. Added record count support to the POSIX,
   RAM, and static RAM file backends. (#1566)

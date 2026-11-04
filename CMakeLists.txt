@@ -1318,6 +1318,35 @@ if(BACDL_BSC)
   add_executable(sc-hub apps/sc-hub/main.c)
   target_link_libraries(sc-hub PRIVATE ${PROJECT_NAME})
 endif()
+
+  # target:output-name pairs, matching the executable names of the Makefile build
+  set(BACNET_STACK_APPS
+    abort:bacabort ack-alarm:bacackalarm add-list-element:bacale
+    apdu:bacapdu create-object:bacco dcc:bacdcc delete-object:bacdo
+    dmbrcap:dmbrcap epics:bacepics error:bacerror event:bacevent
+    gateway:bacgateway gateway2:bacgateway2 getevent:bacge iam:baciam
+    iamrouter:baciamr initrouter:bacinitr modbusgw:modbusgw
+    mstpcap:mstpcap mstpcrc:mstpcrc netnumis:bacnni piface:bacpiface
+    bacbasic:bacbasic bacdiscover:bacdiscover bacmini:bacmini
+    bacpoll:bacpoll ptransfer:bacpt readbdt:bacrbdt readfdt:bacrfdt
+    readfile:bacarf readprop:bacrp readpropm:bacrpm readrange:bacrr
+    reinit:bacrd remove-list-element:bacrle router:router
+    router-ipv6:router-ipv6 router-mstp:router-mstp sc-hub:bacschub
+    scov:bacscov server:bacserv timesync:bacts ucov:bacucov
+    uevent:bacuevent uptransfer:bacupt whatisnetnum:bacwinn
+    whoami:bacwhoami whohas:bacwh whois:bacwi whoisrouter:bacwir
+    writefile:bacawf writegroup:bacwg writeprop:bacwp writepropm:bacwpm
+    youare:bacyouare)
+  set(BACNET_STACK_APP_TARGETS)
+  foreach(app ${BACNET_STACK_APPS})
+    string(REPLACE ":" ";" app_pair ${app})
+    list(GET app_pair 0 app_target)
+    list(GET app_pair 1 app_output)
+    if(TARGET ${app_target})
+      set_target_properties(${app_target} PROPERTIES OUTPUT_NAME ${app_output})
+      list(APPEND BACNET_STACK_APP_TARGETS ${app_target})
+    endif()
+  endforeach()
 endif()
 
 #
@@ -1328,12 +1357,83 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 set(BACNET_STACK_CONFIG_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
+
+if(BACNET_STACK_BUILD_APPS)
+  # Installed apps need an RPATH to locate the installed shared library.
+  # Windows needs no RPATH: DLLs install to BINDIR.
+  if(BUILD_SHARED_LIBS AND NOT WIN32 AND BACNET_STACK_APP_TARGETS)
+    if(APPLE)
+      set(BACNET_STACK_RPATH_ORIGIN "@loader_path")
+    else()
+      set(BACNET_STACK_RPATH_ORIGIN "$ORIGIN")
+    endif()
+    # A relative install dir moves with "cmake --install --prefix" and an
+    # absolute one does not, so an origin-relative RPATH is only valid when
+    # both dirs are relative or both are absolute. Otherwise, use the
+    # absolute library dir.
+    set(BACNET_STACK_APP_RPATH_CHECK OFF)
+    if(IS_ABSOLUTE "${CMAKE_INSTALL_BINDIR}")
+      set(BACNET_STACK_BINDIR_IS_ABSOLUTE ON)
+    else()
+      set(BACNET_STACK_BINDIR_IS_ABSOLUTE OFF)
+    endif()
+    if(IS_ABSOLUTE "${CMAKE_INSTALL_LIBDIR}")
+      set(BACNET_STACK_LIBDIR_IS_ABSOLUTE ON)
+    else()
+      set(BACNET_STACK_LIBDIR_IS_ABSOLUTE OFF)
+    endif()
+    if(BACNET_STACK_BINDIR_IS_ABSOLUTE STREQUAL BACNET_STACK_LIBDIR_IS_ABSOLUTE)
+      file(RELATIVE_PATH BACNET_STACK_BIN_TO_LIB_DIR
+        ${CMAKE_INSTALL_FULL_BINDIR} ${CMAKE_INSTALL_FULL_LIBDIR})
+      if(BACNET_STACK_BIN_TO_LIB_DIR)
+        set(BACNET_STACK_APP_INSTALL_RPATH
+          "${BACNET_STACK_RPATH_ORIGIN}/${BACNET_STACK_BIN_TO_LIB_DIR}")
+      else()
+        set(BACNET_STACK_APP_INSTALL_RPATH "${BACNET_STACK_RPATH_ORIGIN}")
+      endif()
+    else()
+      set(BACNET_STACK_APP_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
+      # With only BINDIR absolute, the library moves with the install-time
+      # prefix but the RPATH does not.
+      set(BACNET_STACK_APP_RPATH_CHECK ${BACNET_STACK_BINDIR_IS_ABSOLUTE})
+    endif()
+    foreach(app_target ${BACNET_STACK_APP_TARGETS})
+      set_property(TARGET ${app_target} APPEND PROPERTY
+        INSTALL_RPATH "${BACNET_STACK_APP_INSTALL_RPATH}")
+    endforeach()
+  endif()
+  if(BACNET_STACK_APP_RPATH_CHECK)
+    # Declared before any target install rule so a mismatch installs nothing.
+    get_filename_component(BACNET_STACK_CONFIGURED_LIB_DIR
+      "${CMAKE_INSTALL_FULL_LIBDIR}" ABSOLUTE)
+    install(CODE "
+      get_filename_component(bacnet_lib_dir
+        \"\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}\" ABSOLUTE)
+      if(NOT bacnet_lib_dir STREQUAL \"${BACNET_STACK_CONFIGURED_LIB_DIR}\")
+        message(FATAL_ERROR \"BACnet apps install to absolute BINDIR \"
+          \"${CMAKE_INSTALL_FULL_BINDIR} with RPATH \"
+          \"${BACNET_STACK_CONFIGURED_LIB_DIR}, but the shared library \"
+          \"would install to \${bacnet_lib_dir}. Reconfigure with \"
+          \"CMAKE_INSTALL_PREFIX=\${CMAKE_INSTALL_PREFIX} instead of \"
+          \"overriding the prefix at install time.\")
+      endif()
+      " COMPONENT apps)
+  endif()
+endif()
+
 install(
   TARGETS ${PROJECT_NAME}
   EXPORT ${PROJECT_NAME}Targets
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
+
+if(BACNET_STACK_BUILD_APPS)
+  install(
+    TARGETS ${BACNET_STACK_APP_TARGETS}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    COMPONENT apps)
+endif()
 
 install(
   EXPORT ${PROJECT_NAME}Targets

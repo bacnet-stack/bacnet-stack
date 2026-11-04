@@ -61,6 +61,10 @@ SRC = main.c \
 # TARGET_EXT is defined by the parent apps/Makefile (.exe or empty)
 TARGET_BIN = ${TARGET}$(TARGET_EXT)
 
+# Install locations (defaults match apps/Makefile for standalone use)
+prefix ?= /usr/local
+bindir ?= $(prefix)/bin
+
 OBJS += ${SRC:.c=.o}
 
 # Add sys directory so cJSON.h can be found
@@ -91,7 +95,8 @@ clean:
 
 .PHONY: install
 install: ${TARGET_BIN}
-	install -m 755 ${TARGET_BIN} /usr/local/bin/
+	install -d "$(DESTDIR)$(bindir)"
+	install -m 0755 ${TARGET_BIN} "$(DESTDIR)$(bindir)/${TARGET_BIN}"
 
 .PHONY: include
 include: .depend

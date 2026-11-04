@@ -280,6 +280,9 @@ $ ./bin/bacwp 1234 1 1 85 16 -1 4 100.0
 Each tool has help:
 $ ./bin/bacrp --help
 
+To install the tools into /usr/local/bin after they are built:
+$ sudo make install
+
 Source Code
 -----------
 The source code and makefiles for the bacnet-tools is included in the
