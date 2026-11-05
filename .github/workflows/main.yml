@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-24.04, macOS-latest]
+        os: [windows-latest, ubuntu-24.04, macos-15]
         project: [root, test]
         exclude:
           # Currently does not build. Need to be fixed at some point.
@@ -37,7 +37,7 @@ jobs:
         sudo apt-get install -y libconfig-dev
 
     - name: Install Dependencies (macOS)
-      if: matrix.os == 'macOS-latest' && matrix.project == 'root'
+      if: matrix.os == 'macos-15' && matrix.project == 'root'
       run: |
         brew install libconfig
 
