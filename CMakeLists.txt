@@ -1071,6 +1071,9 @@ if(BACNET_STACK_BUILD_APPS)
   add_executable(getevent apps/getevent/main.c)
   target_link_libraries(getevent PRIVATE ${PROJECT_NAME})
 
+  add_executable(getalarmsummary apps/getalarmsummary/main.c)
+  target_link_libraries(getalarmsummary PRIVATE ${PROJECT_NAME})
+
   add_executable(iam apps/iam/main.c)
   target_link_libraries(iam PRIVATE ${PROJECT_NAME})
 
@@ -1335,7 +1338,8 @@ endif()
     abort:bacabort ack-alarm:bacackalarm add-list-element:bacale
     apdu:bacapdu create-object:bacco dcc:bacdcc delete-object:bacdo
     dmbrcap:dmbrcap epics:bacepics error:bacerror event:bacevent
-    gateway:bacgateway gateway2:bacgateway2 getevent:bacge iam:baciam
+    gateway:bacgateway gateway2:bacgateway2 getevent:bacge
+    getalarmsummary:bacgas iam:baciam
     iamrouter:baciamr initrouter:bacinitr modbusgw:modbusgw
     mstpcap:mstpcap mstpcrc:mstpcrc netnumis:bacnni piface:bacpiface
     bacbasic:bacbasic bacdiscover:bacdiscover bacmini:bacmini
