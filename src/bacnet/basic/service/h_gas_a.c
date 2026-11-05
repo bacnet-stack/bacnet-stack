@@ -65,7 +65,31 @@ void get_alarm_summary_ack_print_data(const BACNET_GET_ALARM_SUMMARY_DATA *data)
     printf("}\n");
 }
 
+struct get_alarm_summary_ack_context {
+    BACNET_ADDRESS *src;
+    uint8_t invoke_id;
+};
+
+/**
+ * @brief Iterator callback to report one entry to the registered callback
+ * @param context [in] the struct get_alarm_summary_ack_context
+ * @param data [in] the decoded entry
+ */
+static void get_alarm_summary_ack_entry(
+    void *context, const BACNET_GET_ALARM_SUMMARY_DATA *data)
+{
+    struct get_alarm_summary_ack_context *ctx = context;
+
+    Get_Alarm_Summary_Ack_Callback(
+        ctx->src, ctx->invoke_id, data, ERROR_CODE_SUCCESS);
+}
+
 /** Handle a GetAlarmSummary ACK and call the callback for each entry.
+ *
+ * The whole ACK is validated first. A malformed or truncated ACK
+ * results in one callback with NULL data and an error code,
+ * and no entries are reported. An empty ACK results in one callback
+ * with NULL data and ERROR_CODE_SUCCESS.
  *
  * @param service_request [in] The contents of the service request.
  * @param service_len [in] The length of the service_request.
@@ -79,22 +103,23 @@ void get_alarm_summary_ack_handler(
     BACNET_ADDRESS *src,
     BACNET_CONFIRMED_SERVICE_ACK_DATA *service_data)
 {
-    uint16_t len = 0;
-    uint8_t invoke_id = 0;
-    BACNET_GET_ALARM_SUMMARY_DATA data = { 0 };
+    int len = 0;
+    struct get_alarm_summary_ack_context context = { 0 };
 
+    context.src = src;
     if (service_data) {
-        invoke_id = service_data->invoke_id;
+        context.invoke_id = service_data->invoke_id;
     }
-    while (len < service_len) {
-        int apdu_len = get_alarm_summary_ack_decode_apdu_data(
-            &service_request[len], service_len - len, &data);
-        if ((apdu_len <= 0) || (apdu_len > (service_len - len))) {
-            break;
-        }
-        len += (uint16_t)apdu_len;
-        if (Get_Alarm_Summary_Ack_Callback) {
-            Get_Alarm_Summary_Ack_Callback(src, invoke_id, &data);
-        }
+    if (!Get_Alarm_Summary_Ack_Callback) {
+        return;
+    }
+    len = get_alarm_summary_ack_decode_apdu_iterate(
+        service_request, service_len, get_alarm_summary_ack_entry, &context);
+    if (len < 0) {
+        Get_Alarm_Summary_Ack_Callback(
+            src, context.invoke_id, NULL, ERROR_CODE_INVALID_TAG);
+    } else if (len == 0) {
+        Get_Alarm_Summary_Ack_Callback(
+            src, context.invoke_id, NULL, ERROR_CODE_SUCCESS);
     }
 }

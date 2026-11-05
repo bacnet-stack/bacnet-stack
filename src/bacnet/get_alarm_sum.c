@@ -189,3 +189,59 @@ int get_alarm_summary_ack_decode_apdu_data(
 
     return apdu_len;
 }
+
+/**
+ * @brief Decode a complete GetAlarmSummary-ACK, and call the callback
+ *  for each entry. The whole ACK is validated before the first callback,
+ *  so a malformed or truncated ACK results in no callbacks.
+ *
+ *  GetAlarmSummary-ACK ::= SEQUENCE OF SEQUENCE {
+ *    object-identifier         BACnetObjectIdentifier,
+ *    alarm-state               BACnetEventState,
+ *    acknowledged-transitions  BACnetEventTransitionBits
+ *    }
+ *
+ * @param apdu [in] buffer of data to be decoded
+ * @param apdu_size [in] number of bytes in the buffer to decode
+ * @param callback [in] function to call for each entry, or NULL to only
+ *  validate the ACK
+ * @param context [in] pointer passed to the callback, or NULL
+ * @return number of bytes decoded, which is 0 for an empty ACK,
+ *  or BACNET_STATUS_ERROR if the ACK is malformed or truncated
+ */
+int get_alarm_summary_ack_decode_apdu_iterate(
+    const uint8_t *apdu,
+    size_t apdu_size,
+    get_alarm_summary_ack_iterate_t callback,
+    void *context)
+{
+    int len = 0;
+    int apdu_len = 0;
+    BACNET_GET_ALARM_SUMMARY_DATA data = { 0 };
+
+    if (!apdu && (apdu_size > 0)) {
+        return BACNET_STATUS_ERROR;
+    }
+    while ((size_t)apdu_len < apdu_size) {
+        len = get_alarm_summary_ack_decode_apdu_data(
+            &apdu[apdu_len], apdu_size - (size_t)apdu_len, NULL);
+        if (len <= 0) {
+            return BACNET_STATUS_ERROR;
+        }
+        apdu_len += len;
+    }
+    if (callback) {
+        apdu_len = 0;
+        while ((size_t)apdu_len < apdu_size) {
+            len = get_alarm_summary_ack_decode_apdu_data(
+                &apdu[apdu_len], apdu_size - (size_t)apdu_len, &data);
+            if (len <= 0) {
+                return BACNET_STATUS_ERROR;
+            }
+            apdu_len += len;
+            callback(context, &data);
+        }
+    }
+
+    return apdu_len;
+}

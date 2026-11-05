@@ -18,15 +18,24 @@
 #include "bacnet/get_alarm_sum.h"
 
 /**
- * @brief Callback for each decoded GetAlarmSummary ACK entry
+ * @brief Callback for a GetAlarmSummary ACK
+ * @details The handler validates the whole ACK before it calls the callback.
+ *  - error_code is ERROR_CODE_SUCCESS and data is not NULL:
+ *    one decoded entry. The callback is called once for each entry.
+ *  - error_code is ERROR_CODE_SUCCESS and data is NULL:
+ *    the ACK is valid and has no entries.
+ *  - error_code is not ERROR_CODE_SUCCESS and data is NULL:
+ *    the ACK is malformed or truncated. No entries are reported.
  * @param src [in] BACNET_ADDRESS of the source of the ACK
  * @param invoke_id [in] invoke ID of the ACK
- * @param data [in] the decoded entry
+ * @param data [in] the decoded entry, or NULL if there is no entry
+ * @param error_code [in] ERROR_CODE_SUCCESS, or the reason for the failure
  */
 typedef void (*get_alarm_summary_ack_callback_t)(
     BACNET_ADDRESS *src,
     uint8_t invoke_id,
-    const BACNET_GET_ALARM_SUMMARY_DATA *data);
+    const BACNET_GET_ALARM_SUMMARY_DATA *data,
+    BACNET_ERROR_CODE error_code);
 
 #ifdef __cplusplus
 extern "C" {

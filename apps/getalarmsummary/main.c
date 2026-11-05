@@ -104,18 +104,28 @@ MyRejectHandler(BACNET_ADDRESS *src, uint8_t invoke_id, uint8_t reject_reason)
 }
 
 /**
- * @brief Callback for each decoded GetAlarmSummary ACK entry
+ * @brief Callback for a GetAlarmSummary ACK
  * @param src [in] BACNET_ADDRESS of the source of the ACK
  * @param invoke_id [in] invoke ID of the ACK
- * @param data [in] the decoded entry
+ * @param data [in] the decoded entry, or NULL if there is no entry
+ * @param error_code [in] ERROR_CODE_SUCCESS, or the reason for the failure
  */
 static void My_Get_Alarm_Summary_Ack_Callback(
     BACNET_ADDRESS *src,
     uint8_t invoke_id,
-    const BACNET_GET_ALARM_SUMMARY_DATA *data)
+    const BACNET_GET_ALARM_SUMMARY_DATA *data,
+    BACNET_ERROR_CODE error_code)
 {
-    if (address_match(&Target_Address, src) &&
-        (invoke_id == Request_Invoke_ID)) {
+    if (!address_match(&Target_Address, src) ||
+        (invoke_id != Request_Invoke_ID)) {
+        return;
+    }
+    if (error_code != ERROR_CODE_SUCCESS) {
+        fprintf(
+            stderr, "Error: malformed GetAlarmSummary-ACK: %s\n",
+            bactext_error_code_name((int)error_code));
+        Error_Detected = true;
+    } else if (data) {
         get_alarm_summary_ack_print_data(data);
         Alarm_Count++;
     }
@@ -237,27 +247,41 @@ int main(int argc, char *argv[])
             return 0;
         }
         if (strcmp(argv[argi], "--mac") == 0) {
-            if (++argi < argc) {
-                if (bacnet_address_mac_from_ascii(&mac, argv[argi])) {
-                    specific_address = true;
-                }
+            if (++argi >= argc) {
+                fprintf(stderr, "mac: missing value\n");
+                return 1;
             }
+            if (!bacnet_address_mac_from_ascii(&mac, argv[argi])) {
+                fprintf(stderr, "mac=%s invalid\n", argv[argi]);
+                return 1;
+            }
+            specific_address = true;
         } else if (strcmp(argv[argi], "--dnet") == 0) {
-            if (++argi < argc) {
-                if (!bacnet_strtol(argv[argi], &dnet)) {
-                    fprintf(stderr, "dnet=%s invalid\n", argv[argi]);
-                    return 1;
-                }
-                if ((dnet >= 0) && (dnet <= BACNET_BROADCAST_NETWORK)) {
-                    specific_address = true;
-                }
+            if (++argi >= argc) {
+                fprintf(stderr, "dnet: missing value\n");
+                return 1;
             }
+            if (!bacnet_strtol(argv[argi], &dnet)) {
+                fprintf(stderr, "dnet=%s invalid\n", argv[argi]);
+                return 1;
+            }
+            if ((dnet < 0) || (dnet > BACNET_BROADCAST_NETWORK)) {
+                fprintf(
+                    stderr, "dnet=%ld - not within 0-%d\n", dnet,
+                    BACNET_BROADCAST_NETWORK);
+                return 1;
+            }
+            specific_address = true;
         } else if (strcmp(argv[argi], "--dadr") == 0) {
-            if (++argi < argc) {
-                if (bacnet_address_mac_from_ascii(&adr, argv[argi])) {
-                    specific_address = true;
-                }
+            if (++argi >= argc) {
+                fprintf(stderr, "dadr: missing value\n");
+                return 1;
             }
+            if (!bacnet_address_mac_from_ascii(&adr, argv[argi])) {
+                fprintf(stderr, "dadr=%s invalid\n", argv[argi]);
+                return 1;
+            }
+            specific_address = true;
         } else if (strcmp(argv[argi], "--debug") == 0) {
             if (++argi < argc) {
                 if (bactext_debug_severity_strtol(argv[argi], &severity)) {
@@ -338,6 +362,11 @@ int main(int argc, char *argv[])
             if (Request_Invoke_ID == 0) {
                 Request_Invoke_ID = Send_Get_Alarm_Summary_Address(
                     &Target_Address, (uint16_t)max_apdu);
+                if (Request_Invoke_ID == 0) {
+                    fprintf(stderr, "\rError: Failed to send the request!\n");
+                    Error_Detected = true;
+                    break;
+                }
             } else if (tsm_invoke_id_free(Request_Invoke_ID)) {
                 printf("%u active alarm(s)\n", Alarm_Count);
                 break;

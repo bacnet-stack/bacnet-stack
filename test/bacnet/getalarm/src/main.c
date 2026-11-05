@@ -227,6 +227,90 @@ static void testGetAlarmSummaryAckData(void)
     zassert_equal(len, BACNET_STATUS_ERROR, NULL);
 }
 
+static unsigned Iterate_Count;
+static BACNET_GET_ALARM_SUMMARY_DATA Iterate_Data[3];
+
+static void
+test_iterate_callback(void *context, const BACNET_GET_ALARM_SUMMARY_DATA *data)
+{
+    zassert_equal(context, &Iterate_Count, NULL);
+    if (Iterate_Count < 3) {
+        Iterate_Data[Iterate_Count] = *data;
+    }
+    Iterate_Count++;
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(getalarm_tests, testGetAlarmSummaryAckIterate)
+#else
+static void testGetAlarmSummaryAckIterate(void)
+#endif
+{
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int len = 0, apdu_len = 0, entry_len = 0;
+    unsigned i = 0;
+    BACNET_GET_ALARM_SUMMARY_DATA alarm_data = { 0 };
+
+    alarm_data.objectIdentifier.type = OBJECT_ANALOG_INPUT;
+    alarm_data.alarmState = EVENT_STATE_OFFNORMAL;
+    bitstring_init(&alarm_data.acknowledgedTransitions);
+    for (i = 0; i < MAX_BACNET_EVENT_TRANSITION; i++) {
+        bitstring_set_bit(&alarm_data.acknowledgedTransitions, i, true);
+    }
+    for (i = 0; i < 3; i++) {
+        alarm_data.objectIdentifier.instance = i + 1;
+        entry_len = get_alarm_summary_ack_encode_apdu_data(
+            &apdu[apdu_len], sizeof(apdu) - apdu_len, &alarm_data);
+        zassert_true(entry_len > 0, NULL);
+        apdu_len += entry_len;
+    }
+    /* all entries are reported in order */
+    Iterate_Count = 0;
+    len = get_alarm_summary_ack_decode_apdu_iterate(
+        apdu, apdu_len, test_iterate_callback, &Iterate_Count);
+    zassert_equal(len, apdu_len, NULL);
+    zassert_equal(Iterate_Count, 3, NULL);
+    for (i = 0; i < 3; i++) {
+        zassert_equal(Iterate_Data[i].objectIdentifier.instance, i + 1, NULL);
+    }
+    /* validate only */
+    len = get_alarm_summary_ack_decode_apdu_iterate(apdu, apdu_len, NULL, NULL);
+    zassert_equal(len, apdu_len, NULL);
+    /* empty ACK is valid and reports nothing */
+    Iterate_Count = 0;
+    len = get_alarm_summary_ack_decode_apdu_iterate(
+        apdu, 0, test_iterate_callback, &Iterate_Count);
+    zassert_equal(len, 0, NULL);
+    len = get_alarm_summary_ack_decode_apdu_iterate(
+        NULL, 0, test_iterate_callback, &Iterate_Count);
+    zassert_equal(len, 0, NULL);
+    zassert_equal(Iterate_Count, 0, NULL);
+    /* NULL apdu with data */
+    len = get_alarm_summary_ack_decode_apdu_iterate(
+        NULL, apdu_len, test_iterate_callback, &Iterate_Count);
+    zassert_equal(len, BACNET_STATUS_ERROR, NULL);
+    /* truncation anywhere but an entry boundary is an error with no callback */
+    for (i = 1; i < (unsigned)apdu_len; i++) {
+        Iterate_Count = 0;
+        len = get_alarm_summary_ack_decode_apdu_iterate(
+            apdu, i, test_iterate_callback, &Iterate_Count);
+        if ((i % entry_len) == 0) {
+            zassert_equal(len, (int)i, "size=%u", i);
+            zassert_equal(Iterate_Count, i / entry_len, "size=%u", i);
+        } else {
+            zassert_equal(len, BACNET_STATUS_ERROR, "size=%u", i);
+            zassert_equal(Iterate_Count, 0, "size=%u", i);
+        }
+    }
+    /* malformed second entry: no entries are reported */
+    apdu[entry_len] = 0xFF;
+    Iterate_Count = 0;
+    len = get_alarm_summary_ack_decode_apdu_iterate(
+        apdu, apdu_len, test_iterate_callback, &Iterate_Count);
+    zassert_equal(len, BACNET_STATUS_ERROR, NULL);
+    zassert_equal(Iterate_Count, 0, NULL);
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(getalarm_tests, testGetAlarmSummary)
 #else
@@ -262,7 +346,8 @@ void test_main(void)
     ztest_test_suite(
         getalarm_tests, ztest_unit_test(testGetAlarmSummary),
         ztest_unit_test(testGetAlarmSummaryAck),
-        ztest_unit_test(testGetAlarmSummaryAckData));
+        ztest_unit_test(testGetAlarmSummaryAckData),
+        ztest_unit_test(testGetAlarmSummaryAckIterate));
 
     ztest_run_test_suite(getalarm_tests);
 }

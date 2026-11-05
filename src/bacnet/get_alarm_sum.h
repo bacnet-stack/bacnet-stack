@@ -31,6 +31,14 @@ typedef struct BACnet_Get_Alarm_Summary_Data {
 typedef int (*get_alarm_summary_function)(
     unsigned index, BACNET_GET_ALARM_SUMMARY_DATA *getalarm_data);
 
+/**
+ * @brief Callback for each entry of a GetAlarmSummary-ACK iterator
+ * @param context [in] the pointer given to the iterator
+ * @param data [in] the decoded entry
+ */
+typedef void (*get_alarm_summary_ack_iterate_t)(
+    void *context, const BACNET_GET_ALARM_SUMMARY_DATA *data);
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -57,6 +65,13 @@ int get_alarm_summary_ack_decode_apdu_data(
     const uint8_t *apdu,
     size_t apdu_size,
     BACNET_GET_ALARM_SUMMARY_DATA *get_alarm_data);
+
+BACNET_STACK_EXPORT
+int get_alarm_summary_ack_decode_apdu_iterate(
+    const uint8_t *apdu,
+    size_t apdu_size,
+    get_alarm_summary_ack_iterate_t callback,
+    void *context);
 
 #ifdef __cplusplus
 }
