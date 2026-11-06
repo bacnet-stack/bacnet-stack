@@ -515,6 +515,47 @@ bool Routed_Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     characterstring_length(&value.type.Character_String));
             }
             break;
+        case PROP_DESCRIPTION:
+            status = write_property_empty_string_valid(
+                wp_data, &value, MAX_DEV_DESC_LEN);
+            if (status) {
+                Routed_Device_Set_Description(
+                    characterstring_value(&value.type.Character_String),
+                    characterstring_length(&value.type.Character_String));
+            }
+            break;
+        case PROP_MODEL_NAME:
+            status = write_property_empty_string_valid(
+                wp_data, &value, MAX_DEV_MOD_LEN);
+            if (status) {
+                Routed_Device_Set_Model_Name(
+                    characterstring_value(&value.type.Character_String),
+                    characterstring_length(&value.type.Character_String));
+            }
+            break;
+        case PROP_LOCATION:
+            status = write_property_empty_string_valid(
+                wp_data, &value, MAX_DEV_LOC_LEN);
+            if (status) {
+                Routed_Device_Set_Location(
+                    characterstring_value(&value.type.Character_String),
+                    characterstring_length(&value.type.Character_String));
+            }
+            break;
+        case PROP_VENDOR_IDENTIFIER:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            if (status) {
+                if (value.type.Unsigned_Int <= UINT16_MAX) {
+                    Routed_Device_Set_Vendor_Identifier(
+                        (uint16_t)value.type.Unsigned_Int);
+                } else {
+                    status = false;
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            }
+            break;
         default:
             status = Device_Write_Property_Local(wp_data);
             break;
@@ -578,13 +619,152 @@ bool Routed_Device_Set_Description(const char *name, size_t length)
     bool status = false; /*return value */
     DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
 
-    if (length < MAX_DEV_DESC_LEN) {
+    if (length < sizeof(pDev->Description)) {
         memmove(pDev->Description, name, length);
         pDev->Description[length] = 0;
         status = true;
     }
 
     return status;
+}
+
+/** Copy a string into a routed Device property buffer.
+ * @param dest [out] The property buffer.
+ * @param size [in] The size of the property buffer, including the nul.
+ * @param value [in] The string to copy.
+ * @param length [in] The number of characters in the string.
+ * @return True if the string fits and was copied, else False.
+ */
+static bool Routed_Device_String_Copy(
+    char *dest, size_t size, const char *value, size_t length)
+{
+    if (length >= size) {
+        return false;
+    }
+    memmove(dest, value, length);
+    dest[length] = 0;
+
+    return true;
+}
+
+/** Sets the Vendor_Name of the current routed Device (or the gateway).
+ * The string is not copied, so it must stay valid while it is used.
+ * @param name [in] The Vendor_Name, or NULL to use the global Vendor_Name.
+ * @param length [in] Unused, as for Device_Set_Vendor_Name().
+ * @return True.
+ */
+bool Routed_Device_Set_Vendor_Name(const char *name, size_t length)
+{
+    (void)length;
+    Devices[iCurrent_Device_Idx].Vendor_Name = name;
+
+    return true;
+}
+
+/** Sets the Vendor_Identifier of the current routed Device (or the gateway).
+ * @param vendor_id [in] The Vendor_Identifier.
+ */
+void Routed_Device_Set_Vendor_Identifier(uint16_t vendor_id)
+{
+    DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
+
+    pDev->Vendor_Identifier = vendor_id;
+    pDev->Vendor_Identifier_Set = true;
+}
+
+/** Sets the Model_Name of the current routed Device (or the gateway).
+ * @param name [in] The Model_Name.
+ * @param length [in] The number of characters, at most MAX_DEV_MOD_LEN.
+ * @return True if the Model_Name was set, False if it is too long.
+ */
+bool Routed_Device_Set_Model_Name(const char *name, size_t length)
+{
+    DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
+
+    if (!Routed_Device_String_Copy(
+            pDev->Model_Name, sizeof(pDev->Model_Name), name, length)) {
+        return false;
+    }
+    pDev->Model_Name_Set = true;
+
+    return true;
+}
+
+/** Sets the Firmware_Revision of the current routed Device (or the gateway).
+ * @param name [in] The Firmware_Revision.
+ * @param length [in] The number of characters, at most MAX_DEV_VER_LEN.
+ * @return True if the Firmware_Revision was set, False if it is too long.
+ */
+bool Routed_Device_Set_Firmware_Revision(const char *name, size_t length)
+{
+    DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
+
+    if (!Routed_Device_String_Copy(
+            pDev->Firmware_Revision, sizeof(pDev->Firmware_Revision), name,
+            length)) {
+        return false;
+    }
+    pDev->Firmware_Revision_Set = true;
+
+    return true;
+}
+
+/** Sets the Application_Software_Version of the current routed Device
+ * (or the gateway).
+ * @param name [in] The Application_Software_Version.
+ * @param length [in] The number of characters, at most MAX_DEV_VER_LEN.
+ * @return True if the Application_Software_Version was set, False if it is
+ *  too long.
+ */
+bool Routed_Device_Set_Application_Software_Version(
+    const char *name, size_t length)
+{
+    DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
+
+    if (!Routed_Device_String_Copy(
+            pDev->Application_Software_Version,
+            sizeof(pDev->Application_Software_Version), name, length)) {
+        return false;
+    }
+    pDev->Application_Software_Version_Set = true;
+
+    return true;
+}
+
+/** Sets the Location of the current routed Device (or the gateway).
+ * @param name [in] The Location.
+ * @param length [in] The number of characters, at most MAX_DEV_LOC_LEN.
+ * @return True if the Location was set, False if it is too long.
+ */
+bool Routed_Device_Set_Location(const char *name, size_t length)
+{
+    DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
+
+    if (!Routed_Device_String_Copy(
+            pDev->Location, sizeof(pDev->Location), name, length)) {
+        return false;
+    }
+    pDev->Location_Set = true;
+
+    return true;
+}
+
+/** Sets the Serial_Number of the current routed Device (or the gateway).
+ * @param name [in] The Serial_Number.
+ * @param length [in] The number of characters, at most MAX_DEV_DESC_LEN.
+ * @return True if the Serial_Number was set, False if it is too long.
+ */
+bool Routed_Device_Set_Serial_Number(const char *name, size_t length)
+{
+    DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
+
+    if (!Routed_Device_String_Copy(
+            pDev->Serial_Number, sizeof(pDev->Serial_Number), name, length)) {
+        return false;
+    }
+    pDev->Serial_Number_Set = true;
+
+    return true;
 }
 
 /*
