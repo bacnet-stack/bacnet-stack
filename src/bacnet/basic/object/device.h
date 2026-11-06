@@ -214,7 +214,7 @@ typedef struct devObj_s {
     COMMON_BAC_OBJECT bacObj;
 
     /** Device Description. */
-    char Description[MAX_DEV_DESC_LEN];
+    char Description[MAX_DEV_DESC_LEN + 1];
 
     /** The upcounter that shows if the Device ID or object structure has
      * changed. */

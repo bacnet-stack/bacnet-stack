@@ -516,9 +516,8 @@ bool Routed_Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_DESCRIPTION:
-            /* the stored description needs room for the nul terminator */
             status = write_property_empty_string_valid(
-                wp_data, &value, MAX_DEV_DESC_LEN - 1);
+                wp_data, &value, MAX_DEV_DESC_LEN);
             if (status) {
                 Routed_Device_Set_Description(
                     characterstring_value(&value.type.Character_String),
@@ -620,7 +619,7 @@ bool Routed_Device_Set_Description(const char *name, size_t length)
     bool status = false; /*return value */
     DEVICE_OBJECT_DATA *pDev = &Devices[iCurrent_Device_Idx];
 
-    if (length < MAX_DEV_DESC_LEN) {
+    if (length < sizeof(pDev->Description)) {
         memmove(pDev->Description, name, length);
         pDev->Description[length] = 0;
         status = true;

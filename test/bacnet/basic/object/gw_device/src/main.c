@@ -361,7 +361,8 @@ static void test_Routed_Device_Object_Functions(void)
     zassert_equal(strcmp(device->bacObj.Object_Name, "Renamed"), 0, NULL);
     zassert_true(Routed_Device_Set_Description("New", 3), NULL);
     zassert_equal(strcmp(device->Description, "New"), 0, NULL);
-    zassert_false(Routed_Device_Set_Description("x", MAX_DEV_DESC_LEN), NULL);
+    zassert_false(
+        Routed_Device_Set_Description("x", MAX_DEV_DESC_LEN + 1), NULL);
     zassert_equal(strcmp(device->Description, "New"), 0, NULL);
     Routed_Device_Inc_Database_Revision();
     zassert_equal(device->Database_Revision, 3, NULL);
@@ -707,14 +708,13 @@ static void test_Routed_Device_Write_Property_Per_Device(void)
     zassert_false(other->Location_Set, NULL);
     zassert_false(other->Vendor_Identifier_Set, NULL);
 
-    /* the stored Description holds at most MAX_DEV_DESC_LEN - 1 bytes */
     zassert_not_null(Get_Routed_Device_Object(1), NULL);
-    memset(text, 'd', MAX_DEV_DESC_LEN - 1);
-    text[MAX_DEV_DESC_LEN - 1] = 0;
+    memset(text, 'd', MAX_DEV_DESC_LEN);
+    text[MAX_DEV_DESC_LEN] = 0;
     zassert_true(write_string(&wpdata, PROP_DESCRIPTION, text), NULL);
     zassert_equal(strcmp(device->Description, text), 0, NULL);
-    text[MAX_DEV_DESC_LEN - 1] = 'e';
-    text[MAX_DEV_DESC_LEN] = 0;
+    text[MAX_DEV_DESC_LEN] = 'e';
+    text[MAX_DEV_DESC_LEN + 1] = 0;
     zassert_false(write_string(&wpdata, PROP_DESCRIPTION, text), NULL);
     zassert_equal(wpdata.error_class, ERROR_CLASS_RESOURCES, NULL);
     zassert_equal(
