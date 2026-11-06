@@ -17,9 +17,26 @@ The git repositories are hosted at the following sites:
 
 ### Security
 
+* Secured the GetAlarmSummary-ACK handler to prevent an out-of-bounds read.
+  The handler stored the int result of the decoder in a uint16_t. A
+  malformed tag gave 65535, and the loop moved far past the end of the APDU.
+  The handler now keeps the int result and stops on a zero, negative, or
+  too-long result. Secured get_alarm_summary_ack_encode_apdu_data() to
+  measure the length before it writes. An entry longer than 10 bytes could
+  write past max_apdu. Added get_alarm_summary_ack_decode_apdu_iterate() to
+  validate the full ACK before it calls the callback for each entry. The
+  ACK handler callback now receives an error code. Added the getalarmsummary
+  example application (bacgas), and added unit tests. (#1599)
+
 ### Added
 
 ### Changed
+
+* Changed the configure script to detect the package manager. The script
+  supports apt-get, dnf, yum, zypper, pacman, and apk. It maps the Debian
+  package names to the Fedora and Arch names. It skips the packages that
+  the distribution does not provide. Added -Wno-error=discarded-qualifiers
+  to the libwebsockets v4.3 build to prevent a build error with glibc 2.43.
 
 ### Fixed
 
