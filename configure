@@ -1,56 +1,134 @@
 #!/bin/sh
-# Nothing to do
-sudo apt-get update -qq
+# Detect the system package manager and define pkg_update/pkg_install.
+# Package names in this script are Debian/Ubuntu names; pkg_name maps them
+# for Fedora and Arch. Other distros use the names unchanged.
+PKG_FAMILY=debian
+if command -v apt-get >/dev/null 2>&1; then
+    pkg_update() { sudo apt-get update -qq; }
+    pkg_install_raw() { sudo apt-get install -qq "$@"; }
+elif command -v dnf >/dev/null 2>&1; then
+    PKG_FAMILY=fedora
+    pkg_update() { sudo dnf makecache -q; }
+    pkg_install_raw() { sudo dnf install -y -q "$@"; }
+elif command -v yum >/dev/null 2>&1; then
+    PKG_FAMILY=fedora
+    pkg_update() { sudo yum makecache -q; }
+    pkg_install_raw() { sudo yum install -y -q "$@"; }
+elif command -v zypper >/dev/null 2>&1; then
+    pkg_update() { sudo zypper --quiet refresh; }
+    pkg_install_raw() { sudo zypper --quiet install -y "$@"; }
+elif command -v pacman >/dev/null 2>&1; then
+    PKG_FAMILY=arch
+    pkg_update() { sudo pacman -Sy --noconfirm; }
+    pkg_install_raw() { sudo pacman -S --noconfirm --needed "$@"; }
+elif command -v apk >/dev/null 2>&1; then
+    pkg_update() { sudo apk update -q; }
+    pkg_install_raw() { sudo apk add -q "$@"; }
+else
+    echo "No supported package manager found" >&2
+    exit 1
+fi
+
+# Print the distro package name(s) for a Debian name; "-" means unavailable.
+pkg_name() {
+    case "$PKG_FAMILY:$1" in
+    fedora:build-essential) echo "gcc gcc-c++ make" ;;
+    arch:build-essential) echo "base-devel" ;;
+    fedora:liblwip-dev | arch:liblwip-dev) echo "-" ;;
+    fedora:libconfig-dev) echo "libconfig-devel" ;;
+    arch:libconfig-dev) echo "libconfig" ;;
+    fedora:mingw-w64) echo "mingw64-gcc mingw32-gcc" ;;
+    arch:mingw-w64) echo "mingw-w64-gcc" ;;
+    fedora:tofrodos | arch:tofrodos) echo "dos2unix" ;;
+    fedora:clang-format | fedora:clang-tidy) echo "clang-tools-extra" ;;
+    arch:clang-format | arch:clang-tools | arch:clang-tidy) echo "clang" ;;
+    fedora:clang-tools) echo "clang-analyzer" ;;
+    fedora:picolibc-arm-none-eabi | arch:picolibc-arm-none-eabi)
+        echo "arm-none-eabi-newlib" ;;
+    fedora:binutils-arm-none-eabi | arch:binutils-arm-none-eabi)
+        echo "arm-none-eabi-binutils" ;;
+    fedora:gcc-arm-none-eabi | arch:gcc-arm-none-eabi)
+        echo "arm-none-eabi-gcc" ;;
+    fedora:gdb-multiarch) echo "gdb" ;;
+    arch:gdb-multiarch) echo "arm-none-eabi-gdb" ;;
+    fedora:gcc-avr | arch:gcc-avr) echo "avr-gcc" ;;
+    fedora:gdb-avr | arch:gdb-avr) echo "avr-gdb" ;;
+    fedora:avrdude-doc | arch:avrdude-doc) echo "-" ;;
+    arch:avarice | arch:splint | arch:sloccount | arch:pmccabe) echo "-" ;;
+    fedora:complexity | arch:complexity) echo "-" ;;
+    fedora:libcap-dev) echo "libcap-devel" ;;
+    arch:libcap-dev) echo "libcap" ;;
+    fedora:libssl-dev) echo "openssl-devel" ;;
+    arch:libssl-dev) echo "openssl" ;;
+    fedora:libuv1-dev) echo "libuv-devel" ;;
+    arch:libuv1-dev) echo "libuv" ;;
+    *) echo "$1" ;;
+    esac
+}
+
+pkg_install() {
+    for pkg in "$@"; do
+        names=$(pkg_name "$pkg")
+        if [ "$names" = "-" ]; then
+            echo "Skipping $pkg: not packaged for $PKG_FAMILY"
+            continue
+        fi
+        # shellcheck disable=SC2086
+        pkg_install_raw $names
+    done
+}
+
+pkg_update
 # install core development packages
-sudo apt-get install -qq build-essential
-sudo apt-get install -qq cmake
-sudo apt-get install -qq lcov
-sudo apt-get install -qq clang
-sudo apt-get install -qq gcc
-sudo apt-get install -qq libconfig-dev
-sudo apt-get install -qq liblwip-dev
-sudo apt-get install -qq mingw-w64
+pkg_install build-essential
+pkg_install cmake
+pkg_install lcov
+pkg_install clang
+pkg_install gcc
+pkg_install libconfig-dev
+pkg_install liblwip-dev
+pkg_install mingw-w64
 
 # install git
-sudo apt-get install -qq git
+pkg_install git
 
 # install source code format packages
-sudo apt-get install -qq tofrodos
-sudo apt-get install -qq clang-format
-sudo apt-get install -qq clang-tools
-sudo apt-get install -qq clang-tidy
-sudo apt-get install -qq pre-commit
+pkg_install tofrodos
+pkg_install clang-format
+pkg_install clang-tools
+pkg_install clang-tidy
+pkg_install pre-commit
 
 # install ARM compiler and debugging tools
-sudo apt-get install -qq gcc-arm-none-eabi
-sudo apt-get install -qq binutils-arm-none-eabi
-sudo apt-get install -qq picolibc-arm-none-eabi
-sudo apt-get install -qq gdb-multiarch
+pkg_install gcc-arm-none-eabi
+pkg_install binutils-arm-none-eabi
+pkg_install picolibc-arm-none-eabi
+pkg_install gdb-multiarch
 
 # install AVR compiler and debugging tools
-sudo apt-get install -qq gcc-avr
-sudo apt-get install -qq avarice
-sudo apt-get install -qq avr-libc
-sudo apt-get install -qq avrdude
-sudo apt-get install -qq gdb-avr
-sudo apt-get install -qq avrdude-doc
+pkg_install gcc-avr
+pkg_install avarice
+pkg_install avr-libc
+pkg_install avrdude
+pkg_install gdb-avr
+pkg_install avrdude-doc
 
 # install static analysis tools
-sudo apt-get install -qq flawfinder
-sudo apt-get install -qq cppcheck
-sudo apt-get install -qq splint
-sudo apt-get install -qq codespell
-sudo apt-get install -qq sloccount
-sudo apt-get install -qq complexity
-sudo apt-get install -qq pmccabe
+pkg_install flawfinder
+pkg_install cppcheck
+pkg_install splint
+pkg_install codespell
+pkg_install sloccount
+pkg_install complexity
+pkg_install pmccabe
 
 # install BACnet Secure Connect (BACnet/SC) dependencies
-sudo apt-get install -qq libconfig-dev
-sudo apt-get install -qq libcap-dev
-sudo apt-get install -qq libssl-dev
-sudo apt-get install -qq libuv1-dev
+pkg_install libconfig-dev
+pkg_install libcap-dev
+pkg_install libssl-dev
+pkg_install libuv1-dev
 git clone  --branch v4.3-stable https://github.com/warmcat/libwebsockets.git
-bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32 -DCMAKE_POLICY_VERSION_MINIMUM=3.5;make'
+bash -c 'cd libwebsockets;mkdir build;cd build;cmake .. -DLWS_WITH_LIBUV=ON -DLWS_WITH_MINIMAL_EXAMPLES=0 -DLWS_MAX_SMP=32 -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_C_FLAGS=-Wno-error=discarded-qualifiers;make'
 sudo bash -c 'cd libwebsockets;cd build;make install'
 
 # all complete!
