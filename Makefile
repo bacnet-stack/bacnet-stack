@@ -156,6 +156,10 @@ iam:
 getevent:
 	$(MAKE) -s -C apps $@
 
+.PHONY: getalarmsummary
+getalarmsummary:
+	$(MAKE) -s -C apps $@
+
 .PHONY: gateway
 gateway:
 	$(MAKE) -s -B -C apps $@
