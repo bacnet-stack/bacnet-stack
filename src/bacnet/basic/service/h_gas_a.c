@@ -80,8 +80,10 @@ static void get_alarm_summary_ack_entry(
 {
     struct get_alarm_summary_ack_context *ctx = context;
 
-    Get_Alarm_Summary_Ack_Callback(
-        ctx->src, ctx->invoke_id, data, ERROR_CODE_SUCCESS);
+    if (Get_Alarm_Summary_Ack_Callback) {
+        Get_Alarm_Summary_Ack_Callback(
+            ctx->src, ctx->invoke_id, data, ERROR_CODE_SUCCESS);
+    }
 }
 
 /** Handle a GetAlarmSummary ACK and call the callback for each entry.
