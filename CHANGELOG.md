@@ -30,6 +30,18 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added per-Device storage of the Vendor_Name, Vendor_Identifier,
+  Model_Name, Firmware_Revision, Application_Software_Version, Location,
+  and Serial_Number properties for each routed Device in DEVICE_OBJECT_DATA.
+  Added the Routed_Device_Set_<Property>() functions. A value that is not
+  set uses the global value. The Device_*() getters return the value of
+  the current routed Device, so ReadProperty, I-Am, and You-Are agree.
+  WriteProperty of Description, Model_Name, Location, and Vendor_Identifier
+  now changes only the addressed routed Device. The Database_Revision is
+  now stored for each routed Device. The routed Device Description buffer
+  is now MAX_DEV_DESC_LEN + 1 bytes. Builds without BAC_ROUTING do not
+  change. Added unit tests. (#1602)
+
 ### Changed
 
 * Changed the configure script to detect the package manager. The script
