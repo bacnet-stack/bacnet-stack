@@ -6,6 +6,8 @@
  * @copyright SPDX-License-Identifier: MIT
  */
 #include <zephyr/ztest.h>
+#include <string.h>
+#include <bacnet/bacapp.h>
 #include <bacnet/bacdcode.h>
 #include <bacnet/basic/object/device.h>
 #include <bacnet/basic/service/h_apdu.h>
@@ -697,6 +699,157 @@ static void test_Routed_Device_Read_Property_Instance(void)
 }
 #endif
 
+#if defined(BAC_ROUTING)
+/**
+ * @brief Read a character string property of the current routed Device
+ */
+static void
+routed_read_string(BACNET_PROPERTY_ID property, const char *expected)
+{
+    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+    BACNET_CHARACTER_STRING value = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int len;
+
+    rpdata.application_data = apdu;
+    rpdata.application_data_len = sizeof(apdu);
+    rpdata.array_index = BACNET_ARRAY_ALL;
+    rpdata.object_type = OBJECT_DEVICE;
+    rpdata.object_instance = Device_Object_Instance_Number();
+    rpdata.object_property = property;
+    len = Device_Read_Property(&rpdata);
+    zassert_true(len > 0, NULL);
+    len = bacnet_character_string_application_decode(apdu, len, &value);
+    zassert_true(len > 0, NULL);
+    zassert_equal(strcmp(characterstring_value(&value), expected), 0, NULL);
+}
+
+/**
+ * @brief Read an unsigned property of the current routed Device
+ */
+static BACNET_UNSIGNED_INTEGER routed_read_unsigned(BACNET_PROPERTY_ID property)
+{
+    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+    BACNET_UNSIGNED_INTEGER value = 0;
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int len;
+
+    rpdata.application_data = apdu;
+    rpdata.application_data_len = sizeof(apdu);
+    rpdata.array_index = BACNET_ARRAY_ALL;
+    rpdata.object_type = OBJECT_DEVICE;
+    rpdata.object_instance = Device_Object_Instance_Number();
+    rpdata.object_property = property;
+    len = Device_Read_Property(&rpdata);
+    zassert_true(len > 0, NULL);
+    len = bacnet_unsigned_application_decode(apdu, len, &value);
+    zassert_true(len > 0, NULL);
+
+    return value;
+}
+
+/**
+ * @brief Write a character string property of the current routed Device
+ */
+static bool routed_write_string(BACNET_PROPERTY_ID property, const char *text)
+{
+    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+
+    value.tag = BACNET_APPLICATION_TAG_CHARACTER_STRING;
+    characterstring_init_ansi(&value.type.Character_String, text);
+    wpdata.object_type = OBJECT_DEVICE;
+    wpdata.object_instance = Device_Object_Instance_Number();
+    wpdata.object_property = property;
+    wpdata.array_index = BACNET_ARRAY_ALL;
+    wpdata.application_data_len =
+        bacapp_encode_application_data(wpdata.application_data, &value);
+    return Device_Write_Property(&wpdata);
+}
+
+/**
+ * @brief Verify the per-Device properties of routed Devices: a set value is
+ *  read from that Device only, an unset value reads the global value, and a
+ *  written value reads back from the written Device
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Routed_Device_Properties)
+#else
+static void test_Routed_Device_Properties(void)
+#endif
+{
+    BACNET_CHARACTER_STRING object_name = { 0 };
+    uint32_t revision;
+
+    Device_Init(NULL);
+    zassert_true(Device_Set_Model_Name("Global", 6), NULL);
+    zassert_true(Device_Set_Location("Global Location", 15), NULL);
+    zassert_true(Device_Set_Description("server", 6), NULL);
+    Device_Set_Vendor_Identifier(260);
+    Routing_Device_Init(400);
+    characterstring_init_ansi(&object_name, "Routed Device 401");
+    zassert_equal(Add_Routed_Device(401, &object_name, "401"), 1, NULL);
+    characterstring_init_ansi(&object_name, "Routed Device 402");
+    zassert_equal(Add_Routed_Device(402, &object_name, "402"), 2, NULL);
+
+    zassert_true(Set_Routed_Device_Object_Index(1), NULL);
+    zassert_true(Routed_Device_Set_Vendor_Name("Routed Vendor", 13), NULL);
+    Routed_Device_Set_Vendor_Identifier(236);
+    zassert_true(Routed_Device_Set_Model_Name("Model 401", 9), NULL);
+    zassert_true(Routed_Device_Set_Firmware_Revision("FW 401", 6), NULL);
+    zassert_true(
+        Routed_Device_Set_Application_Software_Version("SW 401", 6), NULL);
+    zassert_true(Routed_Device_Set_Location("Room 401", 8), NULL);
+    zassert_true(Routed_Device_Set_Serial_Number("SN 401", 6), NULL);
+    routed_read_string(PROP_VENDOR_NAME, "Routed Vendor");
+    zassert_equal(routed_read_unsigned(PROP_VENDOR_IDENTIFIER), 236, NULL);
+    zassert_equal(Device_Vendor_Identifier(), 236, NULL);
+    routed_read_string(PROP_MODEL_NAME, "Model 401");
+    routed_read_string(PROP_FIRMWARE_REVISION, "FW 401");
+    routed_read_string(PROP_APPLICATION_SOFTWARE_VERSION, "SW 401");
+    routed_read_string(PROP_LOCATION, "Room 401");
+    routed_read_string(PROP_SERIAL_NUMBER, "SN 401");
+
+    /* a Device without set values reads the global values */
+    zassert_true(Set_Routed_Device_Object_Index(2), NULL);
+    routed_read_string(PROP_VENDOR_NAME, BACNET_VENDOR_NAME);
+    zassert_equal(routed_read_unsigned(PROP_VENDOR_IDENTIFIER), 260, NULL);
+    zassert_equal(Device_Vendor_Identifier(), 260, NULL);
+    routed_read_string(PROP_MODEL_NAME, "Global");
+    routed_read_string(PROP_LOCATION, "Global Location");
+    routed_read_string(PROP_FIRMWARE_REVISION, Device_Firmware_Revision());
+
+    /* a written value reads back from the written Device only */
+    zassert_true(routed_write_string(PROP_DESCRIPTION, "Written 402"), NULL);
+    routed_read_string(PROP_DESCRIPTION, "Written 402");
+    zassert_true(routed_write_string(PROP_MODEL_NAME, "Written 402"), NULL);
+    routed_read_string(PROP_MODEL_NAME, "Written 402");
+    zassert_equal(strcmp(Device_Description(), "server"), 0, NULL);
+    zassert_true(Set_Routed_Device_Object_Index(0), NULL);
+    routed_read_string(PROP_MODEL_NAME, "Global");
+    routed_read_string(PROP_DESCRIPTION, "server");
+    zassert_true(routed_write_string(PROP_DESCRIPTION, "Gateway"), NULL);
+    routed_read_string(PROP_DESCRIPTION, "Gateway");
+    zassert_true(Set_Routed_Device_Object_Index(1), NULL);
+    routed_read_string(PROP_DESCRIPTION, "401");
+    routed_read_string(PROP_MODEL_NAME, "Model 401");
+
+    /* the database revision of the current Device is incremented */
+    revision = routed_read_unsigned(PROP_DATABASE_REVISION);
+    Device_Inc_Database_Revision();
+    zassert_equal(
+        routed_read_unsigned(PROP_DATABASE_REVISION), revision + 1, NULL);
+    zassert_equal(Device_Database_Revision(), revision + 1, NULL);
+    Device_Set_Database_Revision(77);
+    zassert_equal(routed_read_unsigned(PROP_DATABASE_REVISION), 77, NULL);
+    zassert_true(Set_Routed_Device_Object_Index(2), NULL);
+    zassert_equal(
+        routed_read_unsigned(PROP_DATABASE_REVISION),
+        Get_Routed_Device_Object(2)->Database_Revision, NULL);
+    zassert_true(Set_Routed_Device_Object_Index(0), NULL);
+}
+#endif
+
 #if defined(BACNET_BACKUP_RESTORE)
 /**
  * @brief Test that internal reads and writes of other objects, such as
@@ -924,6 +1077,7 @@ void test_main(void)
         ztest_unit_test(test_Routed_Device_DCC_Remains_Blocked),
         ztest_unit_test(test_Routed_Device_Reinitialize),
         ztest_unit_test(test_Routed_Device_Read_Property_Instance),
+        ztest_unit_test(test_Routed_Device_Properties),
         ztest_unit_test(test_Routed_Device_Backup_Restore_Independence),
         ztest_unit_test(test_Routed_Device_Backup_Countdown_Per_Device));
 #elif defined(BAC_ROUTING)
@@ -933,7 +1087,8 @@ void test_main(void)
         ztest_unit_test(test_Device_Write_Property_Range),
         ztest_unit_test(test_Routed_Device_DCC_Remains_Blocked),
         ztest_unit_test(test_Routed_Device_Reinitialize),
-        ztest_unit_test(test_Routed_Device_Read_Property_Instance));
+        ztest_unit_test(test_Routed_Device_Read_Property_Instance),
+        ztest_unit_test(test_Routed_Device_Properties));
 #elif defined(BACNET_BACKUP_RESTORE)
     ztest_test_suite(
         device_tests, ztest_unit_test(testDevice),

@@ -2204,6 +2204,13 @@ int Device_Set_System_Status(BACNET_DEVICE_STATUS status, bool local)
 
 const char *Device_Vendor_Name(void)
 {
+#if defined(BAC_ROUTING)
+    const DEVICE_OBJECT_DATA *pDev = Device_Routed_Data();
+
+    if (pDev && pDev->Vendor_Name) {
+        return pDev->Vendor_Name;
+    }
+#endif
     return Vendor_Name;
 }
 
@@ -2222,6 +2229,13 @@ bool Device_Set_Vendor_Name(const char *name, size_t length)
  */
 uint16_t Device_Vendor_Identifier(void)
 {
+#if defined(BAC_ROUTING)
+    const DEVICE_OBJECT_DATA *pDev = Device_Routed_Data();
+
+    if (pDev && pDev->Vendor_Identifier_Set) {
+        return pDev->Vendor_Identifier;
+    }
+#endif
     return Vendor_Identifier;
 }
 
@@ -2232,6 +2246,13 @@ void Device_Set_Vendor_Identifier(uint16_t vendor_id)
 
 const char *Device_Model_Name(void)
 {
+#if defined(BAC_ROUTING)
+    const DEVICE_OBJECT_DATA *pDev = Device_Routed_Data();
+
+    if (pDev && pDev->Model_Name_Set) {
+        return pDev->Model_Name;
+    }
+#endif
     return Model_Name;
 }
 
@@ -2250,6 +2271,13 @@ bool Device_Set_Model_Name(const char *name, size_t length)
 
 const char *Device_Firmware_Revision(void)
 {
+#if defined(BAC_ROUTING)
+    const DEVICE_OBJECT_DATA *pDev = Device_Routed_Data();
+
+    if (pDev && pDev->Firmware_Revision_Set) {
+        return pDev->Firmware_Revision;
+    }
+#endif
     return Firmware_Revision;
 }
 
@@ -2268,6 +2296,13 @@ bool Device_Set_Firmware_Revision(const char *name, size_t length)
 
 const char *Device_Application_Software_Version(void)
 {
+#if defined(BAC_ROUTING)
+    const DEVICE_OBJECT_DATA *pDev = Device_Routed_Data();
+
+    if (pDev && pDev->Application_Software_Version_Set) {
+        return pDev->Application_Software_Version;
+    }
+#endif
     return Application_Software_Version;
 }
 
@@ -2304,6 +2339,13 @@ bool Device_Set_Description(const char *name, size_t length)
 
 const char *Device_Location(void)
 {
+#if defined(BAC_ROUTING)
+    const DEVICE_OBJECT_DATA *pDev = Device_Routed_Data();
+
+    if (pDev && pDev->Location_Set) {
+        return pDev->Location;
+    }
+#endif
     return Location;
 }
 
@@ -2326,6 +2368,13 @@ bool Device_Set_Location(const char *name, size_t length)
  */
 const char *Device_Serial_Number(void)
 {
+#if defined(BAC_ROUTING)
+    const DEVICE_OBJECT_DATA *pDev = Device_Routed_Data();
+
+    if (pDev && pDev->Serial_Number_Set) {
+        return pDev->Serial_Number;
+    }
+#endif
     return Serial_Number;
 }
 
@@ -2418,6 +2467,13 @@ BACNET_SEGMENTATION Device_Segmentation_Supported(void)
  */
 uint32_t Device_Database_Revision(void)
 {
+#if defined(BAC_ROUTING)
+    const DEVICE_OBJECT_DATA *pDev = Device_Routed_Data();
+
+    if (pDev) {
+        return pDev->Database_Revision;
+    }
+#endif
     return Database_Revision;
 }
 
@@ -2427,6 +2483,14 @@ uint32_t Device_Database_Revision(void)
  */
 void Device_Set_Database_Revision(uint32_t revision)
 {
+#if defined(BAC_ROUTING)
+    DEVICE_OBJECT_DATA *pDev = Device_Routed_Data();
+
+    if (pDev) {
+        pDev->Database_Revision = revision;
+        return;
+    }
+#endif
     Database_Revision = revision;
 }
 
@@ -2437,6 +2501,12 @@ void Device_Set_Database_Revision(uint32_t revision)
  */
 void Device_Inc_Database_Revision(void)
 {
+#if defined(BAC_ROUTING)
+    if (Device_Router_Mode) {
+        Routed_Device_Inc_Database_Revision();
+        return;
+    }
+#endif
     Database_Revision++;
 }
 
@@ -3120,31 +3190,32 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_enumerated(&apdu[0], System_Status);
             break;
         case PROP_VENDOR_NAME:
-            characterstring_init_ansi(&char_string, Vendor_Name);
+            characterstring_init_ansi(&char_string, Device_Vendor_Name());
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_VENDOR_IDENTIFIER:
-            apdu_len = encode_application_unsigned(&apdu[0], Vendor_Identifier);
+            apdu_len = encode_application_unsigned(
+                &apdu[0], Device_Vendor_Identifier());
             break;
         case PROP_MODEL_NAME:
-            characterstring_init_ansi(&char_string, Model_Name);
+            characterstring_init_ansi(&char_string, Device_Model_Name());
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_FIRMWARE_REVISION:
-            characterstring_init_ansi(&char_string, Firmware_Revision);
+            characterstring_init_ansi(&char_string, Device_Firmware_Revision());
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_APPLICATION_SOFTWARE_VERSION:
             characterstring_init_ansi(
-                &char_string, Application_Software_Version);
+                &char_string, Device_Application_Software_Version());
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_LOCATION:
-            characterstring_init_ansi(&char_string, Location);
+            characterstring_init_ansi(&char_string, Device_Location());
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;
@@ -3325,7 +3396,7 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             }
             break;
         case PROP_SERIAL_NUMBER:
-            characterstring_init_ansi(&char_string, Serial_Number);
+            characterstring_init_ansi(&char_string, Device_Serial_Number());
             apdu_len =
                 encode_application_character_string(&apdu[0], &char_string);
             break;

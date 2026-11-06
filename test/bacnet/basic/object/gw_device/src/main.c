@@ -549,7 +549,7 @@ static void test_Routed_Device_Write_Property_Local(void)
 
     /* other properties are handed to the base Device handler */
     zassert_false(Write_Local_Called, NULL);
-    status = write_value(&wpdata, PROP_DESCRIPTION, &value);
+    status = write_value(&wpdata, PROP_UTC_OFFSET, &value);
     zassert_true(status, NULL);
     zassert_true(Write_Local_Called, NULL);
 
@@ -561,6 +561,196 @@ static void test_Routed_Device_Write_Property_Local(void)
     status = Routed_Device_Write_Property_Local(&wpdata);
     zassert_false(status, NULL);
     zassert_equal(wpdata.error_class, ERROR_CLASS_PROPERTY, NULL);
+}
+
+/**
+ * @brief Write a character string property of the current Device
+ */
+static bool write_string(
+    BACNET_WRITE_PROPERTY_DATA *wpdata,
+    BACNET_PROPERTY_ID property,
+    const char *text)
+{
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+
+    value.tag = BACNET_APPLICATION_TAG_CHARACTER_STRING;
+    characterstring_init_ansi(&value.type.Character_String, text);
+    return write_value(wpdata, property, &value);
+}
+
+/**
+ * @brief Verify the Routed_Device_Set_<Property> setters store the value
+ *  only in the current Device and reject values that do not fit
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(gw_device_tests, test_Routed_Device_Property_Set)
+#else
+static void test_Routed_Device_Property_Set(void)
+#endif
+{
+    DEVICE_OBJECT_DATA *device;
+    DEVICE_OBJECT_DATA *other;
+    char text[MAX_DEV_LOC_LEN + MAX_DEV_DESC_LEN + 2] = { 0 };
+
+    test_setup();
+    device = Get_Routed_Device_Object(1);
+    other = Get_Routed_Device_Object(2);
+    zassert_true(Set_Routed_Device_Object_Index(1), NULL);
+    zassert_is_null(device->Vendor_Name, NULL);
+    zassert_false(device->Vendor_Identifier_Set, NULL);
+    zassert_false(device->Model_Name_Set, NULL);
+    zassert_false(device->Firmware_Revision_Set, NULL);
+    zassert_false(device->Application_Software_Version_Set, NULL);
+    zassert_false(device->Location_Set, NULL);
+    zassert_false(device->Serial_Number_Set, NULL);
+
+    zassert_true(Routed_Device_Set_Vendor_Name("Vendor", 6), NULL);
+    Routed_Device_Set_Vendor_Identifier(236);
+    zassert_true(Routed_Device_Set_Model_Name("Model", 5), NULL);
+    zassert_true(Routed_Device_Set_Firmware_Revision("FW", 2), NULL);
+    zassert_true(Routed_Device_Set_Application_Software_Version("SW", 2), NULL);
+    zassert_true(Routed_Device_Set_Location("Room", 4), NULL);
+    zassert_true(Routed_Device_Set_Serial_Number("SN", 2), NULL);
+    zassert_equal(strcmp(device->Vendor_Name, "Vendor"), 0, NULL);
+    zassert_true(device->Vendor_Identifier_Set, NULL);
+    zassert_equal(device->Vendor_Identifier, 236, NULL);
+    zassert_true(device->Model_Name_Set, NULL);
+    zassert_equal(strcmp(device->Model_Name, "Model"), 0, NULL);
+    zassert_true(device->Firmware_Revision_Set, NULL);
+    zassert_equal(strcmp(device->Firmware_Revision, "FW"), 0, NULL);
+    zassert_true(device->Application_Software_Version_Set, NULL);
+    zassert_equal(strcmp(device->Application_Software_Version, "SW"), 0, NULL);
+    zassert_true(device->Location_Set, NULL);
+    zassert_equal(strcmp(device->Location, "Room"), 0, NULL);
+    zassert_true(device->Serial_Number_Set, NULL);
+    zassert_equal(strcmp(device->Serial_Number, "SN"), 0, NULL);
+    /* the other Device keeps using the global values */
+    zassert_is_null(other->Vendor_Name, NULL);
+    zassert_false(other->Vendor_Identifier_Set, NULL);
+    zassert_false(other->Model_Name_Set, NULL);
+    zassert_false(other->Location_Set, NULL);
+
+    /* the longest value fits, a longer one is rejected and the old one kept */
+    memset(text, 'm', sizeof(text) - 1);
+    zassert_true(Routed_Device_Set_Model_Name(text, MAX_DEV_MOD_LEN), NULL);
+    zassert_equal(strlen(device->Model_Name), MAX_DEV_MOD_LEN, NULL);
+    zassert_false(Routed_Device_Set_Model_Name("x", MAX_DEV_MOD_LEN + 1), NULL);
+    zassert_equal(device->Model_Name[0], 'm', NULL);
+    zassert_true(
+        Routed_Device_Set_Firmware_Revision(text, MAX_DEV_VER_LEN), NULL);
+    zassert_false(
+        Routed_Device_Set_Firmware_Revision(text, MAX_DEV_VER_LEN + 1), NULL);
+    zassert_true(
+        Routed_Device_Set_Application_Software_Version(text, MAX_DEV_VER_LEN),
+        NULL);
+    zassert_false(
+        Routed_Device_Set_Application_Software_Version(
+            text, MAX_DEV_VER_LEN + 1),
+        NULL);
+    zassert_true(Routed_Device_Set_Location(text, MAX_DEV_LOC_LEN), NULL);
+    zassert_false(Routed_Device_Set_Location(text, MAX_DEV_LOC_LEN + 1), NULL);
+    zassert_true(Routed_Device_Set_Serial_Number(text, MAX_DEV_DESC_LEN), NULL);
+    zassert_false(
+        Routed_Device_Set_Serial_Number(text, MAX_DEV_DESC_LEN + 1), NULL);
+
+    zassert_true(Routed_Device_Set_Vendor_Name(NULL, 0), NULL);
+    zassert_is_null(device->Vendor_Name, NULL);
+
+    /* a table reset clears the per-Device values */
+    test_setup();
+    device = Get_Routed_Device_Object(1);
+    zassert_false(device->Model_Name_Set, NULL);
+    zassert_equal(device->Model_Name[0], 0, NULL);
+}
+
+/**
+ * @brief Verify WriteProperty of the per-Device properties is stored in the
+ *  addressed Device only, so a ReadProperty returns the written value
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(gw_device_tests, test_Routed_Device_Write_Property_Per_Device)
+#else
+static void test_Routed_Device_Write_Property_Per_Device(void)
+#endif
+{
+    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    DEVICE_OBJECT_DATA *device;
+    DEVICE_OBJECT_DATA *other;
+    char text[MAX_DEV_LOC_LEN + MAX_DEV_DESC_LEN + 2] = { 0 };
+    unsigned i;
+
+    test_setup();
+    device = Get_Routed_Device_Object(1);
+    other = Get_Routed_Device_Object(2);
+    for (i = 0; i < 2; i++) {
+        /* the gateway and a routed Device */
+        device = Get_Routed_Device_Object(i);
+        zassert_true(write_string(&wpdata, PROP_DESCRIPTION, "Desc"), NULL);
+        zassert_equal(strcmp(device->Description, "Desc"), 0, NULL);
+        zassert_true(write_string(&wpdata, PROP_MODEL_NAME, "Model"), NULL);
+        zassert_true(device->Model_Name_Set, NULL);
+        zassert_equal(strcmp(device->Model_Name, "Model"), 0, NULL);
+        zassert_true(write_string(&wpdata, PROP_LOCATION, ""), NULL);
+        zassert_true(device->Location_Set, NULL);
+        zassert_equal(device->Location[0], 0, NULL);
+        value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+        value.type.Unsigned_Int = 100 + i;
+        zassert_true(
+            write_value(&wpdata, PROP_VENDOR_IDENTIFIER, &value), NULL);
+        zassert_true(device->Vendor_Identifier_Set, NULL);
+        zassert_equal(device->Vendor_Identifier, 100 + i, NULL);
+    }
+    zassert_false(Write_Local_Called, NULL);
+    zassert_equal(strcmp(other->Description, "Description"), 0, NULL);
+    zassert_false(other->Model_Name_Set, NULL);
+    zassert_false(other->Location_Set, NULL);
+    zassert_false(other->Vendor_Identifier_Set, NULL);
+
+    /* the stored Description holds at most MAX_DEV_DESC_LEN - 1 bytes */
+    zassert_not_null(Get_Routed_Device_Object(1), NULL);
+    memset(text, 'd', MAX_DEV_DESC_LEN - 1);
+    text[MAX_DEV_DESC_LEN - 1] = 0;
+    zassert_true(write_string(&wpdata, PROP_DESCRIPTION, text), NULL);
+    zassert_equal(strcmp(device->Description, text), 0, NULL);
+    text[MAX_DEV_DESC_LEN - 1] = 'e';
+    text[MAX_DEV_DESC_LEN] = 0;
+    zassert_false(write_string(&wpdata, PROP_DESCRIPTION, text), NULL);
+    zassert_equal(wpdata.error_class, ERROR_CLASS_RESOURCES, NULL);
+    zassert_equal(
+        wpdata.error_code, ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY, NULL);
+    zassert_equal(device->Description[0], 'd', NULL);
+
+    memset(text, 'm', sizeof(text) - 1);
+    text[MAX_DEV_MOD_LEN] = 0;
+    zassert_true(write_string(&wpdata, PROP_MODEL_NAME, text), NULL);
+    text[MAX_DEV_MOD_LEN] = 'm';
+    text[MAX_DEV_MOD_LEN + 1] = 0;
+    zassert_false(write_string(&wpdata, PROP_MODEL_NAME, text), NULL);
+    zassert_equal(
+        wpdata.error_code, ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY, NULL);
+    zassert_equal(strlen(device->Model_Name), MAX_DEV_MOD_LEN, NULL);
+
+    memset(text, 'l', sizeof(text) - 1);
+    text[MAX_DEV_LOC_LEN] = 0;
+    zassert_true(write_string(&wpdata, PROP_LOCATION, text), NULL);
+    text[MAX_DEV_LOC_LEN] = 'l';
+    text[MAX_DEV_LOC_LEN + 1] = 0;
+    zassert_false(write_string(&wpdata, PROP_LOCATION, text), NULL);
+    zassert_equal(
+        wpdata.error_code, ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY, NULL);
+    zassert_equal(strlen(device->Location), MAX_DEV_LOC_LEN, NULL);
+
+    value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    value.type.Unsigned_Int = UINT16_MAX + 1UL;
+    zassert_false(write_value(&wpdata, PROP_VENDOR_IDENTIFIER, &value), NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+    zassert_equal(device->Vendor_Identifier, 101, NULL);
+    value.tag = BACNET_APPLICATION_TAG_CHARACTER_STRING;
+    characterstring_init_ansi(&value.type.Character_String, "1");
+    zassert_false(write_value(&wpdata, PROP_VENDOR_IDENTIFIER, &value), NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    zassert_false(Write_Local_Called, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -618,6 +808,8 @@ void test_main(void)
         ztest_unit_test(test_Routed_Device_Object_Functions),
         ztest_unit_test(test_Routed_Device_Read_Property_Local),
         ztest_unit_test(test_Routed_Device_Write_Property_Local),
+        ztest_unit_test(test_Routed_Device_Property_Set),
+        ztest_unit_test(test_Routed_Device_Write_Property_Per_Device),
         ztest_unit_test(test_Routed_Device_Service_Approval));
 
     ztest_run_test_suite(gw_device_tests);
