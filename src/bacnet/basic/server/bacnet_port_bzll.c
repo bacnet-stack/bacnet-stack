@@ -21,13 +21,36 @@
 
 #if defined(BACDL_ZIGBEE)
 
+static bzll_task_callback Task_Callback;
+static bzll_init_callback Init_Callback;
+
+/**
+ * @brief Set the callback invoked by bacnet_port_bzll_task()
+ * @param cb - callback, or NULL to remove
+ */
+void bzll_task_callback_set(bzll_task_callback cb)
+{
+    Task_Callback = cb;
+}
+
+/**
+ * @brief Set the callback invoked by bacnet_port_bzll_init()
+ * @param cb - callback, or NULL to remove
+ */
+void bzll_init_callback_set(bzll_init_callback cb)
+{
+    Init_Callback = cb;
+}
+
 /**
  * @brief Periodic tasks for the BACnet datalink layer
+ * @param elapsed_seconds - number of seconds elapsed since the last call
  */
 void bacnet_port_bzll_task(uint16_t elapsed_seconds)
 {
-    (void)elapsed_seconds;
-    /* nothing to do */
+    if (Task_Callback) {
+        Task_Callback(elapsed_seconds);
+    }
 }
 
 /**
@@ -61,6 +84,9 @@ bool bacnet_port_bzll_init(void)
 
     if (!bzll_init(NULL)) {
         return false;
+    }
+    if (Init_Callback) {
+        Init_Callback();
     }
     Network_Port_Object_Instance_Number_Set(0, instance);
     Network_Port_Name_Set(instance, "BACnet/Zigbee Port");

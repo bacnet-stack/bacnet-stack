@@ -31,6 +31,7 @@ add_executable(${PROJECT_NAME}
     # File(s) under test
     ${SRC_DIR}/bacnet/basic/bzll/bzllvmac.c
     ${SRC_DIR}/bacnet/basic/bzll/h_bzll.c
+    ${SRC_DIR}/bacnet/basic/server/bacnet_port_bzll.c
     # Support files and stubs (pathname alphabetical)
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacdcode.c
@@ -51,4 +52,9 @@ add_executable(${PROJECT_NAME}
     ./src/main.c
     ./src/test_bzllvmac.c
     ./src/test_h_bzll.c
+    ./src/test_bacnet_port_bzll.c
     )
+
+set_source_files_properties(
+    ${SRC_DIR}/bacnet/basic/server/bacnet_port_bzll.c
+    PROPERTIES COMPILE_DEFINITIONS BACDL_ZIGBEE=1)
