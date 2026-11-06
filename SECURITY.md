@@ -7,6 +7,7 @@ currently being supported with security updates.
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 1.8.x   | :white_check_mark: |
 | 1.7.x   | :white_check_mark: |
 | 1.6.x   | :white_check_mark: |
 | 1.5.x   | :x:                | |
@@ -20,13 +21,17 @@ currently being supported with security updates.
 | 0.7.x   | :x:                |
 | < 0.6.x | :x:                |
 
-
 ## Coordinated Vulnerability Disclosure
 
 Vulnerabilites are disclosed to [CVE](https://www.cve.org/)
 or [GHSA](https://github.com/bacnet-stack/bacnet-stack/security/advisories)
 and a record is created to identify, define, and catalog publicly disclosed
 cybersecurity vulnerabilities.
+
+Out-of-bounds Read and Numeric Truncation Error and Incorrect Comparison in bacnet-stack
+[GHSA-2gf2-xmf5-63w5](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-2gf2-xmf5-63w5)
+Patched versions: 1.4.8, 1.6.3, 1.7.1, 1.8.0
+Pull Request: [#1599](https://github.com/bacnet-stack/bacnet-stack/pull/1599).
 
 Pre-Auth Infinite Loop and OOB Read/Write via Negative Decode Length in Calendar_Write_Property()
 [GHSA-cr23-59mg-h2rc](https://github.com/bacnet-stack/bacnet-stack/security/advisories/GHSA-cr23-59mg-h2rc)
