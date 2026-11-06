@@ -16,6 +16,7 @@
 /* Test files */
 #include "test_bzllvmac.h"
 #include "test_h_bzll.h"
+#include "test_bacnet_port_bzll.h"
 
 /**
  * Main function to execute the test
@@ -26,6 +27,7 @@ int main(void)
 {
     test_bzllvmac();
     test_h_bzll();
+    test_bacnet_port_bzll();
 
     SUPPORT_PRINT("Success\n");
     return 0;
