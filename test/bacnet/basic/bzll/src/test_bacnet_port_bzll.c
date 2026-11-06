@@ -122,6 +122,7 @@ void test_bacnet_port_bzll(void)
     /* callbacks are invoked */
     bzll_init_callback_set(test_init_callback);
     bzll_task_callback_set(test_task_callback);
+    bzll_cleanup();
     assert(bacnet_port_bzll_init());
     assert(Init_Count == 1);
     assert(Port_Type_Set_Count == 2);
@@ -135,6 +136,7 @@ void test_bacnet_port_bzll(void)
     /* callbacks can be removed */
     bzll_init_callback_set(NULL);
     bzll_task_callback_set(NULL);
+    bzll_cleanup();
     assert(bacnet_port_bzll_init());
     bacnet_port_bzll_task(9);
     assert(Init_Count == 1);
