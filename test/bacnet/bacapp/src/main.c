@@ -40,6 +40,8 @@ static const BACNET_APPLICATION_TAG tag_list[] = {
     BACNET_APPLICATION_TAG_DEVICE_OBJECT_REFERENCE,
     /* BACnetObjectPropertyReference */
     BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE,
+    /* BACnetSetpointReference */
+    BACNET_APPLICATION_TAG_SETPOINT_REFERENCE,
     /* BACnetDestination (Recipient_List) */
     BACNET_APPLICATION_TAG_DESTINATION,
     /* BACnetRecipient */

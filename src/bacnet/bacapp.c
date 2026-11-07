@@ -328,6 +328,11 @@ int bacapp_encode_application_data(
                 apdu_len = bacapp_encode_obj_property_ref(
                     apdu, &value->type.Object_Property_Reference);
                 break;
+            case BACNET_APPLICATION_TAG_SETPOINT_REFERENCE:
+                /* BACnetSetpointReference - [0] wrapped, empty if not set */
+                apdu_len = bacapp_encode_context_obj_property_ref(
+                    apdu, 0, &value->type.Object_Property_Reference);
+                break;
 #endif
 #if defined(BACAPP_DESTINATION)
             case BACNET_APPLICATION_TAG_DESTINATION:
@@ -1119,11 +1124,14 @@ int bacapp_known_property_tag(
 
         case PROP_MANIPULATED_VARIABLE_REFERENCE:
         case PROP_CONTROLLED_VARIABLE_REFERENCE:
-        case PROP_SETPOINT_REFERENCE:
         case PROP_INPUT_REFERENCE:
         case PROP_EVENT_ALGORITHM_INHIBIT_REF:
             /* Properties using BACnetObjectPropertyReference */
             return BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE;
+
+        case PROP_SETPOINT_REFERENCE:
+            /* Property using BACnetSetpointReference */
+            return BACNET_APPLICATION_TAG_SETPOINT_REFERENCE;
 
         case PROP_EVENT_TIME_STAMPS:
         case PROP_LAST_RESTORE_TIME:
@@ -1517,6 +1525,14 @@ int bacapp_decode_application_tag_value(
             apdu_len = bacapp_decode_obj_property_ref(
                 apdu, apdu_size, &value->type.Object_Property_Reference);
             break;
+        case BACNET_APPLICATION_TAG_SETPOINT_REFERENCE:
+            /* BACnetSetpointReference - [0] wrapped reference */
+            apdu_len = bacapp_decode_context_obj_property_ref(
+                apdu, apdu_size, 0, &value->type.Object_Property_Reference);
+            if (apdu_len == 0) {
+                apdu_len = BACNET_STATUS_ERROR;
+            }
+            break;
 #endif
 #if defined(BACAPP_DESTINATION)
         case BACNET_APPLICATION_TAG_DESTINATION:
@@ -1682,20 +1698,6 @@ int bacapp_decode_known_array_property(
            data values */
         apdu_len =
             decode_priority_array_value(apdu, apdu_size, value, object_type);
-#if defined(BACAPP_OBJECT_PROPERTY_REFERENCE)
-    } else if (property == PROP_SETPOINT_REFERENCE) {
-        /* BACnetSetpointReference is a [0] wrapped
-           BACnetObjectPropertyReference */
-        apdu_len = bacapp_decode_context_obj_property_ref(
-            apdu, apdu_size, 0, &value->type.Object_Property_Reference);
-        if (apdu_len > 0) {
-            value->tag = BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE;
-            value->context_specific = true;
-            value->context_tag = 0;
-        } else if (apdu_len == 0) {
-            apdu_len = BACNET_STATUS_ERROR;
-        }
-#endif
     } else {
         /* Complex or primitive value?
         Lookup the complex values using their object type and property */
@@ -4058,6 +4060,7 @@ int bacapp_snprintf_value(
 #endif
 #if defined(BACAPP_OBJECT_PROPERTY_REFERENCE)
             case BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE:
+            case BACNET_APPLICATION_TAG_SETPOINT_REFERENCE:
                 ret_val = bacapp_snprintf_object_property_reference(
                     str, str_len, &value->type.Object_Property_Reference);
                 break;
@@ -5328,6 +5331,7 @@ bool bacapp_parse_application_data(
 #endif
 #if defined(BACAPP_OBJECT_PROPERTY_REFERENCE)
             case BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE:
+            case BACNET_APPLICATION_TAG_SETPOINT_REFERENCE:
                 status = object_property_reference_from_ascii(
                     &value->type.Object_Property_Reference, argv);
                 break;
@@ -6101,6 +6105,7 @@ bool bacapp_same_value(
 #endif
 #if defined(BACAPP_OBJECT_PROPERTY_REFERENCE)
             case BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE:
+            case BACNET_APPLICATION_TAG_SETPOINT_REFERENCE:
                 status = bacnet_object_property_reference_same(
                     &value->type.Object_Property_Reference,
                     &test_value->type.Object_Property_Reference);

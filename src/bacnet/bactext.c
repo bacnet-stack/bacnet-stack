@@ -186,6 +186,7 @@ INDTEXT_DATA bacnet_application_tag_names[] = {
       "BACnetDeviceObjectReference" },
     { BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE,
       "BACnetObjectPropertyReference" },
+    { BACNET_APPLICATION_TAG_SETPOINT_REFERENCE, "BACnetSetpointReference" },
     { BACNET_APPLICATION_TAG_DESTINATION, "BACnetDestination" },
     { BACNET_APPLICATION_TAG_RECIPIENT, "BACnetRecipient" },
     { BACNET_APPLICATION_TAG_COV_SUBSCRIPTION, "BACnetCOVSubscription" },
