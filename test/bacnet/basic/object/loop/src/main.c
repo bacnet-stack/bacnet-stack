@@ -294,6 +294,28 @@ static void test_Loop_Read_Write(void)
     zassert_true(
         bacnet_object_property_reference_same(&reference, &test_reference),
         NULL);
+    /* decoded value keeps the context tag, and re-encodes as wrapped */
+    value.context_specific = false;
+    len = bacapp_decode_known_property(
+        apdu, wp_data.application_data_len, &value, OBJECT_LOOP,
+        PROP_SETPOINT_REFERENCE);
+    zassert_equal(len, wp_data.application_data_len, NULL);
+    zassert_true(value.context_specific, NULL);
+    zassert_equal(value.context_tag, 0, NULL);
+    wp_data.application_data_len =
+        bacapp_encode_data(wp_data.application_data, &value);
+    zassert_equal(wp_data.application_data_len, len, NULL);
+    status = Loop_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    /* empty value resets the context metadata and re-encodes as empty */
+    value.context_specific = true;
+    value.context_tag = 0;
+    len = bacapp_decode_known_property(
+        apdu, 0, &value, OBJECT_LOOP, PROP_SETPOINT_REFERENCE);
+    zassert_equal(len, 0, NULL);
+    zassert_false(value.context_specific, NULL);
+    zassert_equal(
+        bacapp_encode_data(wp_data.application_data, &value), 0, NULL);
     /* the unwrapped form is not valid */
     len = bacapp_encode_obj_property_ref(wp_data.application_data, &reference);
     wp_data.application_data_len = len;

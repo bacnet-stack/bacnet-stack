@@ -1661,6 +1661,10 @@ int bacapp_decode_known_array_property(
     int apdu_len = 0;
     int tag;
 
+    if (value) {
+        value->context_specific = false;
+        value->context_tag = 0;
+    }
     if ((apdu_size == 0) || bacnet_is_closing_tag(apdu, apdu_size)) {
         if (value) {
             value->tag = BACNET_APPLICATION_TAG_EMPTYLIST;
@@ -1686,6 +1690,8 @@ int bacapp_decode_known_array_property(
             apdu, apdu_size, 0, &value->type.Object_Property_Reference);
         if (apdu_len > 0) {
             value->tag = BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE;
+            value->context_specific = true;
+            value->context_tag = 0;
         } else if (apdu_len == 0) {
             apdu_len = BACNET_STATUS_ERROR;
         }
