@@ -30,7 +30,7 @@ static ACCESS_DOOR_DESCR ad_descrs[MAX_NUM_DEVICES][MAX_ACCESS_DOORS];
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int32_t Properties_Required[] = {
-    /* unordered list of required properties */
+    /* unordered list of properties */
     PROP_OBJECT_IDENTIFIER,
     PROP_OBJECT_NAME,
     PROP_OBJECT_TYPE,
@@ -44,6 +44,7 @@ static const int32_t Properties_Required[] = {
     PROP_DOOR_PULSE_TIME,
     PROP_DOOR_EXTENDED_PULSE_TIME,
     PROP_DOOR_OPEN_TOO_LONG_TIME,
+    PROP_CURRENT_COMMAND_PRIORITY,
     -1
 };
 
@@ -66,6 +67,13 @@ static const int32_t Writable_Properties[] = {
     PROP_LOCK_STATUS,   PROP_DOOR_ALARM_STATE, -1
 };
 
+/**
+ * @brief Get the required, optional, and proprietary property lists
+ * @param pRequired - pointer to the list of required properties, or NULL
+ * @param pOptional - pointer to the list of optional properties, or NULL
+ * @param pProprietary - pointer to the list of proprietary properties,
+ *  or NULL
+ */
 void Access_Door_Property_Lists(
     const int32_t **pRequired,
     const int32_t **pOptional,
@@ -98,6 +106,9 @@ void Access_Door_Writable_Property_List(
     }
 }
 
+/**
+ * @brief Initialize the Access Door objects of all Devices
+ */
 void Access_Door_Init(void)
 {
     unsigned i, j;
@@ -143,9 +154,11 @@ void Access_Door_Init(void)
     return;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need validate that the */
-/* given instance exists */
+/**
+ * @brief Determines if a given Access Door instance is valid
+ * @param object_instance - object-instance number of the object
+ * @return true if the instance is valid, and false if not
+ */
 bool Access_Door_Valid_Instance(uint32_t object_instance)
 {
     if (object_instance < MAX_ACCESS_DOORS) {
@@ -155,24 +168,30 @@ bool Access_Door_Valid_Instance(uint32_t object_instance)
     return false;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then count how many you have */
+/**
+ * @brief Determines the number of Access Door objects
+ * @return number of Access Door objects
+ */
 unsigned Access_Door_Count(void)
 {
     return MAX_ACCESS_DOORS;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need to return the instance */
-/* that correlates to the correct index */
+/**
+ * @brief Determines the object instance number for an index
+ * @param index - 0..(MAX_ACCESS_DOORS-1) object index
+ * @return object-instance number of the index
+ */
 uint32_t Access_Door_Index_To_Instance(unsigned index)
 {
     return index;
 }
 
-/* we simply have 0-n object instances.  Yours might be */
-/* more complex, and then you need to return the index */
-/* that correlates to the correct instance number */
+/**
+ * @brief Determines the object index for an object instance number
+ * @param object_instance - object-instance number of the object
+ * @return object index of the instance, or MAX_ACCESS_DOORS if invalid
+ */
 unsigned Access_Door_Instance_To_Index(uint32_t object_instance)
 {
     unsigned index = MAX_ACCESS_DOORS;
@@ -184,6 +203,12 @@ unsigned Access_Door_Instance_To_Index(uint32_t object_instance)
     return index;
 }
 
+/**
+ * @brief Get the Present_Value of an Access Door object
+ * @param object_instance - object-instance number of the object
+ * @return the highest-priority commanded value, or the Relinquish_Default
+ *  if no priority-array slot is active
+ */
 BACNET_DOOR_VALUE Access_Door_Present_Value(uint32_t object_instance)
 {
     unsigned index = 0;
@@ -192,7 +217,7 @@ BACNET_DOOR_VALUE Access_Door_Present_Value(uint32_t object_instance)
 
     index = Access_Door_Instance_To_Index(object_instance);
     if (index < MAX_ACCESS_DOORS) {
-        value = ad_descr[i].relinquish_default;
+        value = ad_descr[index].relinquish_default;
         for (i = 0; i < BACNET_MAX_PRIORITY; i++) {
             if (ad_descr[index].value_active[i]) {
                 value = ad_descr[index].priority_array[i];
@@ -203,6 +228,12 @@ BACNET_DOOR_VALUE Access_Door_Present_Value(uint32_t object_instance)
     return value;
 }
 
+/**
+ * @brief Get the priority of the active Present_Value command
+ * @param object_instance - object-instance number of the object
+ * @return the highest active priority 1..16, or 0 if no priority-array
+ *  slot is active or the instance is invalid
+ */
 unsigned Access_Door_Present_Value_Priority(uint32_t object_instance)
 {
     unsigned index = 0; /* instance to index conversion */
@@ -222,6 +253,13 @@ unsigned Access_Door_Present_Value_Priority(uint32_t object_instance)
     return priority;
 }
 
+/**
+ * @brief Set a Present_Value command in a priority-array slot
+ * @param object_instance - object-instance number of the object
+ * @param value - door value to command
+ * @param priority - priority-array index value 1..16, except 6 (reserved)
+ * @return true if the value was set in the priority-array slot
+ */
 bool Access_Door_Present_Value_Set(
     uint32_t object_instance, BACNET_DOOR_VALUE value, unsigned priority)
 {
@@ -294,6 +332,12 @@ Access_Door_Priority_Array_Value(uint32_t object_instance, unsigned priority)
     return value;
 }
 
+/**
+ * @brief Relinquish a Present_Value command in a priority-array slot
+ * @param object_instance - object-instance number of the object
+ * @param priority - priority-array index value 1..16, except 6 (reserved)
+ * @return true if the priority-array slot was relinquished
+ */
 bool Access_Door_Present_Value_Relinquish(
     uint32_t object_instance, unsigned priority)
 {
@@ -318,6 +362,11 @@ bool Access_Door_Present_Value_Relinquish(
     return status;
 }
 
+/**
+ * @brief Get the Relinquish_Default of an Access Door object
+ * @param object_instance - object-instance number of the object
+ * @return the Relinquish_Default value, or DOOR_VALUE_LOCK if invalid
+ */
 BACNET_DOOR_VALUE Access_Door_Relinquish_Default(uint32_t object_instance)
 {
     BACNET_DOOR_VALUE status = DOOR_VALUE_LOCK;
@@ -347,8 +396,9 @@ static int Access_Door_Priority_Array_Encode(
     unsigned object_index = 0;
 
     object_index = Access_Door_Instance_To_Index(object_instance);
-    if (object_index < MAX_ACCESS_DOORS) {
-        if (ad_descr[object_index].value_active[array_index]) {
+    if ((object_index < MAX_ACCESS_DOORS) &&
+        (array_index < BACNET_MAX_PRIORITY)) {
+        if (!ad_descr[object_index].value_active[array_index]) {
             apdu_len = encode_application_null(apdu);
         } else {
             apdu_len = encode_application_enumerated(
@@ -359,7 +409,13 @@ static int Access_Door_Priority_Array_Encode(
     return apdu_len;
 }
 
-/* note: the object name must be unique within this device */
+/**
+ * @brief Get the Object_Name of an Access Door object
+ * @note the object name must be unique within this device
+ * @param object_instance - object-instance number of the object
+ * @param object_name - holds the object name retrieved
+ * @return true if the object instance is valid and the name was set
+ */
 bool Access_Door_Object_Name(
     uint32_t object_instance, BACNET_CHARACTER_STRING *object_name)
 {
@@ -376,6 +432,11 @@ bool Access_Door_Object_Name(
     return status;
 }
 
+/**
+ * @brief Get the Out_Of_Service property value
+ * @param instance - object-instance number of the object
+ * @return true if the object is out of service
+ */
 bool Access_Door_Out_Of_Service(uint32_t instance)
 {
     unsigned index = 0;
@@ -389,6 +450,11 @@ bool Access_Door_Out_Of_Service(uint32_t instance)
     return oos_flag;
 }
 
+/**
+ * @brief Set the Out_Of_Service property value
+ * @param instance - object-instance number of the object
+ * @param oos_flag - the new Out_Of_Service value
+ */
 void Access_Door_Out_Of_Service_Set(uint32_t instance, bool oos_flag)
 {
     unsigned index = 0;
@@ -399,13 +465,20 @@ void Access_Door_Out_Of_Service_Set(uint32_t instance, bool oos_flag)
     }
 }
 
-/* return apdu len, or BACNET_STATUS_ERROR on error */
+/**
+ * @brief ReadProperty handler for the Access Door object
+ * @param rpdata - ReadProperty data, including requested data and
+ *  data for the reply or error response
+ * @return number of APDU bytes in the response, or
+ *  BACNET_STATUS_ERROR on error
+ */
 int Access_Door_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     int apdu_len = 0; /* return value */
     BACNET_BIT_STRING bit_string;
     BACNET_CHARACTER_STRING char_string;
     unsigned object_index = 0;
+    unsigned priority = 0;
     bool state = false;
     uint8_t *apdu = NULL;
     int apdu_size = 0;
@@ -417,6 +490,11 @@ int Access_Door_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     apdu = rpdata->application_data;
     apdu_size = rpdata->application_data_len;
     object_index = Access_Door_Instance_To_Index(rpdata->object_instance);
+    if (object_index >= MAX_ACCESS_DOORS) {
+        rpdata->error_class = ERROR_CLASS_OBJECT;
+        rpdata->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        return BACNET_STATUS_ERROR;
+    }
     switch (rpdata->object_property) {
         case PROP_OBJECT_IDENTIFIER:
             apdu_len = encode_application_object_id(
@@ -434,6 +512,16 @@ int Access_Door_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_PRESENT_VALUE:
             apdu_len = encode_application_enumerated(
                 &apdu[0], Access_Door_Present_Value(rpdata->object_instance));
+            break;
+        case PROP_CURRENT_COMMAND_PRIORITY:
+            priority =
+                Access_Door_Present_Value_Priority(rpdata->object_instance);
+            if ((priority >= BACNET_MIN_PRIORITY) &&
+                (priority <= BACNET_MAX_PRIORITY)) {
+                apdu_len = encode_application_unsigned(&apdu[0], priority);
+            } else {
+                apdu_len = encode_application_null(&apdu[0]);
+            }
             break;
         case PROP_STATUS_FLAGS:
             bitstring_init(&bit_string);
@@ -516,7 +604,13 @@ int Access_Door_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     return apdu_len;
 }
 
-/* returns true if successful */
+/**
+ * @brief WriteProperty handler for the Access Door object
+ * @param wp_data - WriteProperty data, including requested data and
+ *  data for the error response
+ * @return true if the write was successful, false on error with
+ *  the error class and code set in wp_data
+ */
 bool Access_Door_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
@@ -539,6 +633,11 @@ bool Access_Door_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     object_index = Access_Door_Instance_To_Index(wp_data->object_instance);
+    if (object_index >= MAX_ACCESS_DOORS) {
+        wp_data->error_class = ERROR_CLASS_OBJECT;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+        return false;
+    }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             status = write_property_type_valid(
@@ -629,6 +728,7 @@ bool Access_Door_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_RELIABILITY:
         case PROP_PRIORITY_ARRAY:
         case PROP_RELINQUISH_DEFAULT:
+        case PROP_CURRENT_COMMAND_PRIORITY:
         case PROP_SECURED_STATUS:
         case PROP_DOOR_PULSE_TIME:
         case PROP_DOOR_EXTENDED_PULSE_TIME:
