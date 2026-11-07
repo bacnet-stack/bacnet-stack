@@ -1791,46 +1791,21 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_OBJECT_NAME:
-            len = bacnet_character_string_application_decode(
-                wp_data->application_data, wp_data->application_data_len,
-                &char_string);
-            if (len <= 0) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                } else {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                }
+            if (!write_property_character_string_decode(
+                    wp_data, &char_string)) {
                 return false;
             }
             status = Loop_Object_Name_Write(wp_data, &char_string);
             break;
         case PROP_DESCRIPTION:
-            len = bacnet_character_string_application_decode(
-                wp_data->application_data, wp_data->application_data_len,
-                &char_string);
-            if (len <= 0) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                } else {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                }
+            if (!write_property_character_string_decode(
+                    wp_data, &char_string)) {
                 return false;
             }
             status = Loop_Description_Write(wp_data, &char_string);
             break;
         case PROP_PRESENT_VALUE:
-            len = bacnet_real_application_decode(
-                wp_data->application_data, wp_data->application_data_len,
-                &real_value);
-            if (len <= 0) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                } else {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                }
+            if (!write_property_real_decode(wp_data, &real_value)) {
                 return false;
             }
             status =
@@ -1841,32 +1816,15 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            len = bacnet_boolean_application_decode(
-                wp_data->application_data, wp_data->application_data_len,
-                &boolean_value);
-            if (len <= 0) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                } else {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                }
+            if (!write_property_boolean_decode(wp_data, &boolean_value)) {
                 return false;
             }
             Loop_Out_Of_Service_Set(wp_data->object_instance, boolean_value);
             status = true;
             break;
         case PROP_ACTION:
-            len = bacnet_enumerated_application_decode(
-                wp_data->application_data, wp_data->application_data_len,
-                &enum_value);
-            if (len <= 0) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                } else {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                }
+            if (!write_property_enumerated_decode(
+                    wp_data, &enum_value, UINT32_MAX)) {
                 return false;
             }
             status = Loop_Action_Set(wp_data->object_instance, enum_value);
@@ -1876,60 +1834,31 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_UPDATE_INTERVAL:
-            len = bacnet_unsigned_application_decode(
-                wp_data->application_data, wp_data->application_data_len,
-                &unsigned_value);
-            if (len <= 0) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                } else {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                }
+            if (!write_property_unsigned_decode(
+                    wp_data, &unsigned_value, UINT32_MAX)) {
                 return false;
             }
-            if (unsigned_value <= UINT32_MAX) {
-                status = Loop_Update_Interval_Set(
-                    wp_data->object_instance, (uint32_t)unsigned_value);
-            }
+            status = Loop_Update_Interval_Set(
+                wp_data->object_instance, (uint32_t)unsigned_value);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
             break;
         case PROP_OUTPUT_UNITS:
-            len = bacnet_enumerated_application_decode(
-                wp_data->application_data, wp_data->application_data_len,
-                &enum_value);
-            if (len <= 0) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                } else {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                }
+            if (!write_property_enumerated_decode(
+                    wp_data, &enum_value, UINT16_MAX)) {
                 return false;
             }
-            if (enum_value <= UINT16_MAX) {
-                status =
-                    Loop_Output_Units_Set(wp_data->object_instance, enum_value);
-            }
+            status =
+                Loop_Output_Units_Set(wp_data->object_instance, enum_value);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
             break;
         case PROP_CONTROLLED_VARIABLE_VALUE:
-            len = bacnet_real_application_decode(
-                wp_data->application_data, wp_data->application_data_len,
-                &real_value);
-            if (len <= 0) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                } else {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                }
+            if (!write_property_real_decode(wp_data, &real_value)) {
                 return false;
             }
             status = Loop_Controlled_Variable_Value_Set(
@@ -1940,38 +1869,19 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_CONTROLLED_VARIABLE_UNITS:
-            len = bacnet_enumerated_application_decode(
-                wp_data->application_data, wp_data->application_data_len,
-                &enum_value);
-            if (len <= 0) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                } else {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                }
+            if (!write_property_enumerated_decode(
+                    wp_data, &enum_value, UINT16_MAX)) {
                 return false;
             }
-            if (enum_value <= UINT16_MAX) {
-                status = Loop_Controlled_Variable_Units_Set(
-                    wp_data->object_instance, enum_value);
-            }
+            status = Loop_Controlled_Variable_Units_Set(
+                wp_data->object_instance, enum_value);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
             break;
         case PROP_PROPORTIONAL_CONSTANT:
-            len = bacnet_real_application_decode(
-                wp_data->application_data, wp_data->application_data_len,
-                &real_value);
-            if (len <= 0) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                } else {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                }
+            if (!write_property_real_decode(wp_data, &real_value)) {
                 return false;
             }
             status = Loop_Proportional_Constant_Set(
@@ -1982,38 +1892,19 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_PROPORTIONAL_CONSTANT_UNITS:
-            len = bacnet_enumerated_application_decode(
-                wp_data->application_data, wp_data->application_data_len,
-                &enum_value);
-            if (len <= 0) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                } else {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                }
+            if (!write_property_enumerated_decode(
+                    wp_data, &enum_value, UINT16_MAX)) {
                 return false;
             }
-            if (enum_value <= UINT16_MAX) {
-                status = Loop_Proportional_Constant_Units_Set(
-                    wp_data->object_instance, enum_value);
-            }
+            status = Loop_Proportional_Constant_Units_Set(
+                wp_data->object_instance, enum_value);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
             break;
         case PROP_INTEGRAL_CONSTANT:
-            len = bacnet_real_application_decode(
-                wp_data->application_data, wp_data->application_data_len,
-                &real_value);
-            if (len <= 0) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                } else {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                }
+            if (!write_property_real_decode(wp_data, &real_value)) {
                 return false;
             }
             status = Loop_Integral_Constant_Set(
@@ -2024,38 +1915,19 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_INTEGRAL_CONSTANT_UNITS:
-            len = bacnet_enumerated_application_decode(
-                wp_data->application_data, wp_data->application_data_len,
-                &enum_value);
-            if (len <= 0) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                } else {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                }
+            if (!write_property_enumerated_decode(
+                    wp_data, &enum_value, UINT16_MAX)) {
                 return false;
             }
-            if (enum_value <= UINT16_MAX) {
-                status = Loop_Integral_Constant_Units_Set(
-                    wp_data->object_instance, enum_value);
-            }
+            status = Loop_Integral_Constant_Units_Set(
+                wp_data->object_instance, enum_value);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
             break;
         case PROP_DERIVATIVE_CONSTANT:
-            len = bacnet_real_application_decode(
-                wp_data->application_data, wp_data->application_data_len,
-                &real_value);
-            if (len <= 0) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                } else {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                }
+            if (!write_property_real_decode(wp_data, &real_value)) {
                 return false;
             }
             status = Loop_Derivative_Constant_Set(
@@ -2066,38 +1938,19 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_DERIVATIVE_CONSTANT_UNITS:
-            len = bacnet_enumerated_application_decode(
-                wp_data->application_data, wp_data->application_data_len,
-                &enum_value);
-            if (len <= 0) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                } else {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                }
+            if (!write_property_enumerated_decode(
+                    wp_data, &enum_value, UINT16_MAX)) {
                 return false;
             }
-            if (enum_value <= UINT16_MAX) {
-                status = Loop_Derivative_Constant_Units_Set(
-                    wp_data->object_instance, enum_value);
-            }
+            status = Loop_Derivative_Constant_Units_Set(
+                wp_data->object_instance, enum_value);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
             break;
         case PROP_BIAS:
-            len = bacnet_real_application_decode(
-                wp_data->application_data, wp_data->application_data_len,
-                &real_value);
-            if (len <= 0) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                } else {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                }
+            if (!write_property_real_decode(wp_data, &real_value)) {
                 return false;
             }
             status = Loop_Bias_Set(wp_data->object_instance, real_value);
@@ -2107,16 +1960,7 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_SETPOINT:
-            len = bacnet_real_application_decode(
-                wp_data->application_data, wp_data->application_data_len,
-                &real_value);
-            if (len <= 0) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                } else {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                }
+            if (!write_property_real_decode(wp_data, &real_value)) {
                 return false;
             }
             status = Loop_Setpoint_Set(wp_data->object_instance, real_value);
@@ -2126,16 +1970,7 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_MINIMUM_OUTPUT:
-            len = bacnet_real_application_decode(
-                wp_data->application_data, wp_data->application_data_len,
-                &real_value);
-            if (len <= 0) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                } else {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                }
+            if (!write_property_real_decode(wp_data, &real_value)) {
                 return false;
             }
             status =
@@ -2146,16 +1981,7 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_MAXIMUM_OUTPUT:
-            len = bacnet_real_application_decode(
-                wp_data->application_data, wp_data->application_data_len,
-                &real_value);
-            if (len <= 0) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                } else {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                }
+            if (!write_property_real_decode(wp_data, &real_value)) {
                 return false;
             }
             status =
@@ -2166,22 +1992,12 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_PRIORITY_FOR_WRITING:
-            len = bacnet_unsigned_application_decode(
-                wp_data->application_data, wp_data->application_data_len,
-                &unsigned_value);
-            if (len <= 0) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                } else {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                }
+            if (!write_property_unsigned_decode(
+                    wp_data, &unsigned_value, UINT8_MAX)) {
                 return false;
             }
-            if (unsigned_value <= UINT8_MAX) {
-                status = Loop_Priority_For_Writing_Set(
-                    wp_data->object_instance, (uint8_t)unsigned_value);
-            }
+            status = Loop_Priority_For_Writing_Set(
+                wp_data->object_instance, (uint8_t)unsigned_value);
             if (!status) {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -2228,16 +2044,7 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_COV_INCREMENT:
-            len = bacnet_real_application_decode(
-                wp_data->application_data, wp_data->application_data_len,
-                &real_value);
-            if (len <= 0) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                if (len < 0) {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                } else {
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                }
+            if (!write_property_real_decode(wp_data, &real_value)) {
                 return false;
             }
             status =
