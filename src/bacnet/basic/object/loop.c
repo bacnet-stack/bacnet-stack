@@ -1786,9 +1786,6 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     if (wp_data == NULL) {
         return false;
     }
-    if (wp_data->object_property == PROP_SETPOINT_REFERENCE) {
-        return Loop_Setpoint_Reference_Write(wp_data);
-    }
     switch (wp_data->object_property) {
         case PROP_OBJECT_NAME:
             if (!write_property_character_string_decode(
@@ -2042,6 +2039,9 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
+            break;
+        case PROP_SETPOINT_REFERENCE:
+            status = Loop_Setpoint_Reference_Write(wp_data);
             break;
         case PROP_COV_INCREMENT:
             if (!write_property_real_decode(wp_data, &real_value)) {
