@@ -1788,270 +1788,271 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     }
     switch (wp_data->object_property) {
         case PROP_OBJECT_NAME:
-            if (!write_property_character_string_decode(
-                    wp_data, &char_string)) {
-                return false;
+            status =
+                write_property_character_string_decode(wp_data, &char_string);
+            if (status) {
+                status = Loop_Object_Name_Write(wp_data, &char_string);
             }
-            status = Loop_Object_Name_Write(wp_data, &char_string);
             break;
         case PROP_DESCRIPTION:
-            if (!write_property_character_string_decode(
-                    wp_data, &char_string)) {
-                return false;
+            status =
+                write_property_character_string_decode(wp_data, &char_string);
+            if (status) {
+                status = Loop_Description_Write(wp_data, &char_string);
             }
-            status = Loop_Description_Write(wp_data, &char_string);
             break;
         case PROP_PRESENT_VALUE:
-            if (!write_property_real_decode(wp_data, &real_value)) {
-                return false;
-            }
-            status =
-                Loop_Present_Value_Set(wp_data->object_instance, real_value);
-            if (!status) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            status = write_property_real_decode(wp_data, &real_value);
+            if (status) {
+                status = Loop_Present_Value_Set(
+                    wp_data->object_instance, real_value);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            if (!write_property_boolean_decode(wp_data, &boolean_value)) {
-                return false;
+            status = write_property_boolean_decode(wp_data, &boolean_value);
+            if (status) {
+                Loop_Out_Of_Service_Set(
+                    wp_data->object_instance, boolean_value);
             }
-            Loop_Out_Of_Service_Set(wp_data->object_instance, boolean_value);
-            status = true;
             break;
         case PROP_ACTION:
-            if (!write_property_enumerated_decode(
-                    wp_data, &enum_value, UINT32_MAX)) {
-                return false;
-            }
-            status = Loop_Action_Set(wp_data->object_instance, enum_value);
-            if (!status) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            status = write_property_enumerated_decode(
+                wp_data, &enum_value, UINT32_MAX);
+            if (status) {
+                status = Loop_Action_Set(wp_data->object_instance, enum_value);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_UPDATE_INTERVAL:
-            if (!write_property_unsigned_decode(
-                    wp_data, &unsigned_value, UINT32_MAX)) {
-                return false;
-            }
-            status = Loop_Update_Interval_Set(
-                wp_data->object_instance, (uint32_t)unsigned_value);
-            if (!status) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            status = write_property_unsigned_decode(
+                wp_data, &unsigned_value, UINT32_MAX);
+            if (status) {
+                status = Loop_Update_Interval_Set(
+                    wp_data->object_instance, (uint32_t)unsigned_value);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_OUTPUT_UNITS:
-            if (!write_property_enumerated_decode(
-                    wp_data, &enum_value, UINT16_MAX)) {
-                return false;
-            }
-            status =
-                Loop_Output_Units_Set(wp_data->object_instance, enum_value);
-            if (!status) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            status = write_property_enumerated_decode(
+                wp_data, &enum_value, UINT16_MAX);
+            if (status) {
+                status =
+                    Loop_Output_Units_Set(wp_data->object_instance, enum_value);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_CONTROLLED_VARIABLE_VALUE:
-            if (!write_property_real_decode(wp_data, &real_value)) {
-                return false;
-            }
-            status = Loop_Controlled_Variable_Value_Set(
-                wp_data->object_instance, real_value);
-            if (!status) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            status = write_property_real_decode(wp_data, &real_value);
+            if (status) {
+                status = Loop_Controlled_Variable_Value_Set(
+                    wp_data->object_instance, real_value);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_CONTROLLED_VARIABLE_UNITS:
-            if (!write_property_enumerated_decode(
-                    wp_data, &enum_value, UINT16_MAX)) {
-                return false;
-            }
-            status = Loop_Controlled_Variable_Units_Set(
-                wp_data->object_instance, enum_value);
-            if (!status) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            status = write_property_enumerated_decode(
+                wp_data, &enum_value, UINT16_MAX);
+            if (status) {
+                status = Loop_Controlled_Variable_Units_Set(
+                    wp_data->object_instance, enum_value);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_PROPORTIONAL_CONSTANT:
-            if (!write_property_real_decode(wp_data, &real_value)) {
-                return false;
-            }
-            status = Loop_Proportional_Constant_Set(
-                wp_data->object_instance, real_value);
-            if (!status) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            status = write_property_real_decode(wp_data, &real_value);
+            if (status) {
+                status = Loop_Proportional_Constant_Set(
+                    wp_data->object_instance, real_value);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_PROPORTIONAL_CONSTANT_UNITS:
-            if (!write_property_enumerated_decode(
-                    wp_data, &enum_value, UINT16_MAX)) {
-                return false;
-            }
-            status = Loop_Proportional_Constant_Units_Set(
-                wp_data->object_instance, enum_value);
-            if (!status) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            status = write_property_enumerated_decode(
+                wp_data, &enum_value, UINT16_MAX);
+            if (status) {
+                status = Loop_Proportional_Constant_Units_Set(
+                    wp_data->object_instance, enum_value);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_INTEGRAL_CONSTANT:
-            if (!write_property_real_decode(wp_data, &real_value)) {
-                return false;
-            }
-            status = Loop_Integral_Constant_Set(
-                wp_data->object_instance, real_value);
-            if (!status) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            status = write_property_real_decode(wp_data, &real_value);
+            if (status) {
+                status = Loop_Integral_Constant_Set(
+                    wp_data->object_instance, real_value);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_INTEGRAL_CONSTANT_UNITS:
-            if (!write_property_enumerated_decode(
-                    wp_data, &enum_value, UINT16_MAX)) {
-                return false;
-            }
-            status = Loop_Integral_Constant_Units_Set(
-                wp_data->object_instance, enum_value);
-            if (!status) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            status = write_property_enumerated_decode(
+                wp_data, &enum_value, UINT16_MAX);
+            if (status) {
+                status = Loop_Integral_Constant_Units_Set(
+                    wp_data->object_instance, enum_value);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_DERIVATIVE_CONSTANT:
-            if (!write_property_real_decode(wp_data, &real_value)) {
-                return false;
-            }
-            status = Loop_Derivative_Constant_Set(
-                wp_data->object_instance, real_value);
-            if (!status) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            status = write_property_real_decode(wp_data, &real_value);
+            if (status) {
+                status = Loop_Derivative_Constant_Set(
+                    wp_data->object_instance, real_value);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_DERIVATIVE_CONSTANT_UNITS:
-            if (!write_property_enumerated_decode(
-                    wp_data, &enum_value, UINT16_MAX)) {
-                return false;
-            }
-            status = Loop_Derivative_Constant_Units_Set(
-                wp_data->object_instance, enum_value);
-            if (!status) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            status = write_property_enumerated_decode(
+                wp_data, &enum_value, UINT16_MAX);
+            if (status) {
+                status = Loop_Derivative_Constant_Units_Set(
+                    wp_data->object_instance, enum_value);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_BIAS:
-            if (!write_property_real_decode(wp_data, &real_value)) {
-                return false;
-            }
-            status = Loop_Bias_Set(wp_data->object_instance, real_value);
-            if (!status) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            status = write_property_real_decode(wp_data, &real_value);
+            if (status) {
+                status = Loop_Bias_Set(wp_data->object_instance, real_value);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_SETPOINT:
-            if (!write_property_real_decode(wp_data, &real_value)) {
-                return false;
-            }
-            status = Loop_Setpoint_Set(wp_data->object_instance, real_value);
-            if (!status) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            status = write_property_real_decode(wp_data, &real_value);
+            if (status) {
+                status =
+                    Loop_Setpoint_Set(wp_data->object_instance, real_value);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_MINIMUM_OUTPUT:
-            if (!write_property_real_decode(wp_data, &real_value)) {
-                return false;
-            }
-            status =
-                Loop_Minimum_Output_Set(wp_data->object_instance, real_value);
-            if (!status) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            status = write_property_real_decode(wp_data, &real_value);
+            if (status) {
+                status = Loop_Minimum_Output_Set(
+                    wp_data->object_instance, real_value);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_MAXIMUM_OUTPUT:
-            if (!write_property_real_decode(wp_data, &real_value)) {
-                return false;
-            }
-            status =
-                Loop_Maximum_Output_Set(wp_data->object_instance, real_value);
-            if (!status) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            status = write_property_real_decode(wp_data, &real_value);
+            if (status) {
+                status = Loop_Maximum_Output_Set(
+                    wp_data->object_instance, real_value);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_PRIORITY_FOR_WRITING:
-            if (!write_property_unsigned_decode(
-                    wp_data, &unsigned_value, UINT8_MAX)) {
-                return false;
-            }
-            status = Loop_Priority_For_Writing_Set(
-                wp_data->object_instance, (uint8_t)unsigned_value);
-            if (!status) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            status = write_property_unsigned_decode(
+                wp_data, &unsigned_value, UINT8_MAX);
+            if (status) {
+                status = Loop_Priority_For_Writing_Set(
+                    wp_data->object_instance, (uint8_t)unsigned_value);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         case PROP_MANIPULATED_VARIABLE_REFERENCE:
             len = bacapp_decode_obj_property_ref(
                 wp_data->application_data, wp_data->application_data_len,
                 &reference);
-            if (len <= 0) {
+            if (len > 0) {
+                status = Loop_Manipulated_Variable_Reference_Set(
+                    wp_data->object_instance, &reference);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 if (len < 0) {
                     wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
                 } else {
                     wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
                 }
-                return false;
-            }
-            status = Loop_Manipulated_Variable_Reference_Set(
-                wp_data->object_instance, &reference);
-            if (!status) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
             break;
         case PROP_CONTROLLED_VARIABLE_REFERENCE:
             len = bacapp_decode_obj_property_ref(
                 wp_data->application_data, wp_data->application_data_len,
                 &reference);
-            if (len <= 0) {
+            if (len > 0) {
+                status = Loop_Controlled_Variable_Reference_Set(
+                    wp_data->object_instance, &reference);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
                 if (len < 0) {
                     wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
                 } else {
                     wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
                 }
-                return false;
-            }
-            status = Loop_Controlled_Variable_Reference_Set(
-                wp_data->object_instance, &reference);
-            if (!status) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
             break;
         case PROP_SETPOINT_REFERENCE:
             status = Loop_Setpoint_Reference_Write(wp_data);
             break;
         case PROP_COV_INCREMENT:
-            if (!write_property_real_decode(wp_data, &real_value)) {
-                return false;
-            }
-            status =
-                Loop_COV_Increment_Set(wp_data->object_instance, real_value);
-            if (!status) {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+            status = write_property_real_decode(wp_data, &real_value);
+            if (status) {
+                status = Loop_COV_Increment_Set(
+                    wp_data->object_instance, real_value);
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
             }
             break;
         default:
