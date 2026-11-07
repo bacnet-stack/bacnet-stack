@@ -142,18 +142,29 @@ static void testWritePropertyTag(const BACNET_APPLICATION_DATA_VALUE *value)
                 test_value.type.Unsigned_Int, value->type.Unsigned_Int, NULL);
             test_unsigned_value_max = test_value.type.Unsigned_Int;
             status = write_property_unsigned_decode(
-                &test_data, &test_value, test_bacnet_property_unsigned_set,
+                &test_data, &test_value.type.Unsigned_Int,
                 test_unsigned_value_max);
             zassert_equal(status, true, NULL);
+            if (status) {
+                status = test_bacnet_property_unsigned_set(
+                    test_data.object_instance, test_value.type.Unsigned_Int);
+                zassert_equal(status, true, NULL);
+            }
             zassert_equal(
                 Test_Object_Instance, test_data.object_instance, NULL);
             zassert_equal(Test_Unsigned_Value, value->type.Unsigned_Int, NULL);
             if (test_value.type.Unsigned_Int != 0) {
                 test_unsigned_value_max = 0;
                 status = write_property_unsigned_decode(
-                    &test_data, &test_value, test_bacnet_property_unsigned_set,
+                    &test_data, &test_value.type.Unsigned_Int,
                     test_unsigned_value_max);
                 zassert_equal(status, false, NULL);
+                if (status) {
+                    status = test_bacnet_property_unsigned_set(
+                        test_data.object_instance,
+                        test_value.type.Unsigned_Int);
+                    zassert_equal(status, false, NULL);
+                }
             }
             break;
         case BACNET_APPLICATION_TAG_SIGNED_INT:
@@ -331,6 +342,220 @@ static void testWritePropertyNull(void)
     zassert_equal(bypass, false, NULL);
 }
 
+/**
+ * @brief Load the request of a WriteProperty with the encoded value, and
+ *  clear any error response
+ */
+static void test_write_property_data_load(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, const uint8_t *apdu, int apdu_len)
+{
+    memset(wp_data, 0, sizeof(BACNET_WRITE_PROPERTY_DATA));
+    wp_data->object_type = OBJECT_LOOP;
+    wp_data->object_instance = 1;
+    wp_data->array_index = BACNET_ARRAY_ALL;
+    memcpy(wp_data->application_data, apdu, apdu_len);
+    wp_data->application_data_len = apdu_len;
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(wp_tests, testWritePropertyUnsignedDecode)
+#else
+static void testWritePropertyUnsignedDecode(void)
+#endif
+{
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    BACNET_UNSIGNED_INTEGER value = 0;
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int len;
+    bool status;
+
+    len = encode_application_unsigned(apdu, 1234);
+    test_write_property_data_load(&wp_data, apdu, len);
+    status = write_property_unsigned_decode(&wp_data, &value, 1234);
+    zassert_true(status, NULL);
+    zassert_equal(value, 1234, NULL);
+    /* NULL value pointer only validates */
+    status = write_property_unsigned_decode(&wp_data, NULL, 1234);
+    zassert_true(status, NULL);
+    /* above the maximum */
+    status = write_property_unsigned_decode(&wp_data, &value, 1233);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+    /* wrong datatype */
+    len = encode_application_real(apdu, 1.0f);
+    test_write_property_data_load(&wp_data, apdu, len);
+    status = write_property_unsigned_decode(&wp_data, &value, UINT32_MAX);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    /* truncated */
+    len = encode_application_unsigned(apdu, 1234);
+    test_write_property_data_load(&wp_data, apdu, len - 1);
+    status = write_property_unsigned_decode(&wp_data, &value, UINT32_MAX);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_DATA_ENCODING, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(wp_tests, testWritePropertyEnumeratedDecode)
+#else
+static void testWritePropertyEnumeratedDecode(void)
+#endif
+{
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    uint32_t value = 0;
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int len;
+    bool status;
+
+    len = encode_application_enumerated(apdu, 95);
+    test_write_property_data_load(&wp_data, apdu, len);
+    status = write_property_enumerated_decode(&wp_data, &value, UINT16_MAX);
+    zassert_true(status, NULL);
+    zassert_equal(value, 95, NULL);
+    /* NULL value pointer only validates */
+    status = write_property_enumerated_decode(&wp_data, NULL, UINT16_MAX);
+    zassert_true(status, NULL);
+    /* above the maximum */
+    value = 0;
+    status = write_property_enumerated_decode(&wp_data, &value, 94);
+    zassert_false(status, NULL);
+    zassert_equal(value, 0, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+    /* wrong datatype */
+    len = encode_application_unsigned(apdu, 95);
+    test_write_property_data_load(&wp_data, apdu, len);
+    status = write_property_enumerated_decode(&wp_data, &value, UINT16_MAX);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    /* truncated */
+    len = encode_application_enumerated(apdu, 95);
+    test_write_property_data_load(&wp_data, apdu, len - 1);
+    status = write_property_enumerated_decode(&wp_data, &value, UINT16_MAX);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_DATA_ENCODING, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(wp_tests, testWritePropertyBooleanDecode)
+#else
+static void testWritePropertyBooleanDecode(void)
+#endif
+{
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    bool value = false;
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int len;
+    bool status;
+
+    len = encode_application_boolean(apdu, true);
+    test_write_property_data_load(&wp_data, apdu, len);
+    status = write_property_boolean_decode(&wp_data, &value);
+    zassert_true(status, NULL);
+    zassert_true(value, NULL);
+    len = encode_application_boolean(apdu, false);
+    test_write_property_data_load(&wp_data, apdu, len);
+    value = true;
+    status = write_property_boolean_decode(&wp_data, &value);
+    zassert_true(status, NULL);
+    zassert_false(value, NULL);
+    /* NULL value pointer only validates */
+    status = write_property_boolean_decode(&wp_data, NULL);
+    zassert_true(status, NULL);
+    /* wrong datatype */
+    len = encode_application_unsigned(apdu, 1);
+    test_write_property_data_load(&wp_data, apdu, len);
+    status = write_property_boolean_decode(&wp_data, &value);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    /* empty: no tag to decode */
+    test_write_property_data_load(&wp_data, apdu, 0);
+    status = write_property_boolean_decode(&wp_data, &value);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(wp_tests, testWritePropertyRealDecode)
+#else
+static void testWritePropertyRealDecode(void)
+#endif
+{
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    float value = 0.0f;
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int len;
+    bool status;
+
+    len = encode_application_real(apdu, 3.25f);
+    test_write_property_data_load(&wp_data, apdu, len);
+    status = write_property_real_decode(&wp_data, &value);
+    zassert_true(status, NULL);
+    zassert_false(islessgreater(value, 3.25f), NULL);
+    /* NULL value pointer only validates */
+    status = write_property_real_decode(&wp_data, NULL);
+    zassert_true(status, NULL);
+    /* wrong datatype */
+    len = encode_application_unsigned(apdu, 3);
+    test_write_property_data_load(&wp_data, apdu, len);
+    status = write_property_real_decode(&wp_data, &value);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    /* truncated */
+    len = encode_application_real(apdu, 3.25f);
+    test_write_property_data_load(&wp_data, apdu, len - 1);
+    status = write_property_real_decode(&wp_data, &value);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_DATA_ENCODING, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(wp_tests, testWritePropertyCharacterStringDecode)
+#else
+static void testWritePropertyCharacterStringDecode(void)
+#endif
+{
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    BACNET_CHARACTER_STRING expected = { 0 };
+    BACNET_CHARACTER_STRING value = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int len;
+    bool status;
+
+    characterstring_init_ansi(&expected, "loop-1");
+    len = encode_application_character_string(apdu, &expected);
+    test_write_property_data_load(&wp_data, apdu, len);
+    status = write_property_character_string_decode(&wp_data, &value);
+    zassert_true(status, NULL);
+    zassert_true(characterstring_same(&expected, &value), NULL);
+    /* NULL value pointer only validates */
+    status = write_property_character_string_decode(&wp_data, NULL);
+    zassert_true(status, NULL);
+    /* wrong datatype */
+    len = encode_application_unsigned(apdu, 3);
+    test_write_property_data_load(&wp_data, apdu, len);
+    status = write_property_character_string_decode(&wp_data, &value);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    /* truncated */
+    len = encode_application_character_string(apdu, &expected);
+    test_write_property_data_load(&wp_data, apdu, len - 1);
+    status = write_property_character_string_decode(&wp_data, &value);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_DATA_ENCODING, NULL);
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(wp_tests, NULL, NULL, NULL, NULL, NULL);
 #else
@@ -338,7 +563,12 @@ void test_main(void)
 {
     ztest_test_suite(
         wp_tests, ztest_unit_test(testWriteProperty),
-        ztest_unit_test(testWritePropertyNull));
+        ztest_unit_test(testWritePropertyNull),
+        ztest_unit_test(testWritePropertyUnsignedDecode),
+        ztest_unit_test(testWritePropertyEnumeratedDecode),
+        ztest_unit_test(testWritePropertyBooleanDecode),
+        ztest_unit_test(testWritePropertyRealDecode),
+        ztest_unit_test(testWritePropertyCharacterStringDecode));
     ztest_run_test_suite(wp_tests);
 }
 #endif

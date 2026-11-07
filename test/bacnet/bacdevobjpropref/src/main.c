@@ -251,6 +251,37 @@ static void testObjPropRef(void)
     zassert_true(test_len <= 0, "test_len=%d len=%d", test_len, len);
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdevobjpropref_tests, testObjPropRefEmpty)
+#else
+static void testObjPropRefEmpty(void)
+#endif
+{
+    BACNET_OBJECT_PROPERTY_REFERENCE data = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+
+    zassert_false(bacnet_object_property_reference_empty(NULL), NULL);
+    bacnet_object_property_reference_init(NULL);
+    data.object_identifier.type = OBJECT_ANALOG_VALUE;
+    data.object_identifier.instance = 1;
+    data.property_identifier = PROP_PRESENT_VALUE;
+    data.property_array_index = 3;
+    zassert_false(bacnet_object_property_reference_empty(&data), NULL);
+    bacnet_object_property_reference_init(&data);
+    zassert_true(bacnet_object_property_reference_empty(&data), NULL);
+    zassert_equal(data.object_identifier.type, OBJECT_NONE, NULL);
+    zassert_equal(data.object_identifier.instance, BACNET_MAX_INSTANCE, NULL);
+    zassert_equal(data.property_identifier, PROP_ALL, NULL);
+    zassert_equal(data.property_array_index, BACNET_ARRAY_ALL, NULL);
+    /* empty encodes as zero bytes */
+    zassert_equal(bacapp_encode_obj_property_ref(apdu, &data), 0, NULL);
+    zassert_equal(bacapp_encode_obj_property_ref(NULL, &data), 0, NULL);
+    zassert_equal(
+        bacapp_encode_context_obj_property_ref(apdu, 0, &data), 0, NULL);
+    zassert_equal(
+        bacapp_encode_context_obj_property_ref(NULL, 0, &data), 0, NULL);
+}
+
 /**
  * @}
  */
@@ -262,7 +293,8 @@ void test_main(void)
 {
     ztest_test_suite(
         bacdevobjpropref_tests, ztest_unit_test(testDevIdPropRef),
-        ztest_unit_test(testDevIdRef), ztest_unit_test(testObjPropRef));
+        ztest_unit_test(testDevIdRef), ztest_unit_test(testObjPropRef),
+        ztest_unit_test(testObjPropRefEmpty));
 
     ztest_run_test_suite(bacdevobjpropref_tests);
 }

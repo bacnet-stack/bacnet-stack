@@ -1641,8 +1641,10 @@ int Loop_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_enumerated(&apdu[0], enum_value);
             break;
         case PROP_SETPOINT_REFERENCE:
+            /* BACnetSetpointReference is [0] wrapped, and empty if not set */
             Loop_Setpoint_Reference(rpdata->object_instance, &reference_value);
-            apdu_len = bacapp_encode_obj_property_ref(apdu, &reference_value);
+            apdu_len = bacapp_encode_context_obj_property_ref(
+                apdu, 0, &reference_value);
             break;
         case PROP_SETPOINT:
             real_value = Loop_Setpoint(rpdata->object_instance);
@@ -1724,6 +1726,40 @@ int Loop_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 }
 
 /**
+ * @brief Write the Setpoint_Reference property, which is of type
+ *  BACnetSetpointReference ::= SEQUENCE {
+ *      setpoint-reference [0] BACnetObjectPropertyReference OPTIONAL
+ *  }
+ * @param wp_data [in] write property data
+ * @return true if the property value was written
+ */
+static bool Loop_Setpoint_Reference_Write(BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    BACNET_OBJECT_PROPERTY_REFERENCE reference = { 0 };
+    int len = 0;
+    bool status = false;
+
+    bacnet_object_property_reference_init(&reference);
+    if (wp_data->application_data_len > 0) {
+        len = bacapp_decode_context_obj_property_ref(
+            wp_data->application_data, wp_data->application_data_len, 0,
+            &reference);
+        if (len != wp_data->application_data_len) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            return false;
+        }
+    }
+    status = Loop_Setpoint_Reference_Set(wp_data->object_instance, &reference);
+    if (!status) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+    }
+
+    return status;
+}
+
+/**
  * WriteProperty handler for this object.  For the given WriteProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -1736,45 +1772,37 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    bool boolean_value = false;
+    float real_value = 0.0f;
+    uint32_t enum_value = 0;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    BACNET_CHARACTER_STRING char_string = { 0 };
+    BACNET_OBJECT_PROPERTY_REFERENCE reference = { 0 };
 
     /* Valid data? */
     if (wp_data == NULL) {
         return false;
     }
-    /* decode the some of the request */
-    len = bacapp_decode_known_array_property(
-        wp_data->application_data, wp_data->application_data_len, &value,
-        wp_data->object_type, wp_data->object_property, wp_data->array_index);
-    if (len < 0) {
-        /* error while decoding - a value larger than we can handle */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
     switch (wp_data->object_property) {
         case PROP_OBJECT_NAME:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            status =
+                write_property_character_string_decode(wp_data, &char_string);
             if (status) {
-                status = Loop_Object_Name_Write(
-                    wp_data, &value.type.Character_String);
+                status = Loop_Object_Name_Write(wp_data, &char_string);
             }
             break;
         case PROP_DESCRIPTION:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            status =
+                write_property_character_string_decode(wp_data, &char_string);
             if (status) {
-                status = Loop_Description_Write(
-                    wp_data, &value.type.Character_String);
+                status = Loop_Description_Write(wp_data, &char_string);
             }
             break;
         case PROP_PRESENT_VALUE:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            status = write_property_real_decode(wp_data, &real_value);
             if (status) {
                 status = Loop_Present_Value_Set(
-                    wp_data->object_instance, value.type.Real);
+                    wp_data->object_instance, real_value);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1782,19 +1810,17 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OUT_OF_SERVICE:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
+            status = write_property_boolean_decode(wp_data, &boolean_value);
             if (status) {
                 Loop_Out_Of_Service_Set(
-                    wp_data->object_instance, value.type.Boolean);
+                    wp_data->object_instance, boolean_value);
             }
             break;
         case PROP_ACTION:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            status = write_property_enumerated_decode(
+                wp_data, &enum_value, UINT32_MAX);
             if (status) {
-                status = Loop_Action_Set(
-                    wp_data->object_instance, value.type.Enumerated);
+                status = Loop_Action_Set(wp_data->object_instance, enum_value);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1802,11 +1828,11 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_UPDATE_INTERVAL:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_unsigned_decode(
+                wp_data, &unsigned_value, UINT32_MAX);
             if (status) {
                 status = Loop_Update_Interval_Set(
-                    wp_data->object_instance, value.type.Unsigned_Int);
+                    wp_data->object_instance, (uint32_t)unsigned_value);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1814,15 +1840,11 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_OUTPUT_UNITS:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            status = write_property_enumerated_decode(
+                wp_data, &enum_value, UINT16_MAX);
             if (status) {
-                if (value.type.Unsigned_Int <= UINT16_MAX) {
-                    status = Loop_Output_Units_Set(
-                        wp_data->object_instance, value.type.Enumerated);
-                } else {
-                    status = false;
-                }
+                status =
+                    Loop_Output_Units_Set(wp_data->object_instance, enum_value);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1830,11 +1852,10 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_CONTROLLED_VARIABLE_VALUE:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            status = write_property_real_decode(wp_data, &real_value);
             if (status) {
                 status = Loop_Controlled_Variable_Value_Set(
-                    wp_data->object_instance, value.type.Real);
+                    wp_data->object_instance, real_value);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1842,15 +1863,11 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_CONTROLLED_VARIABLE_UNITS:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            status = write_property_enumerated_decode(
+                wp_data, &enum_value, UINT16_MAX);
             if (status) {
-                if (value.type.Unsigned_Int <= UINT16_MAX) {
-                    status = Loop_Controlled_Variable_Units_Set(
-                        wp_data->object_instance, value.type.Enumerated);
-                } else {
-                    status = false;
-                }
+                status = Loop_Controlled_Variable_Units_Set(
+                    wp_data->object_instance, enum_value);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1858,11 +1875,10 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_PROPORTIONAL_CONSTANT:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            status = write_property_real_decode(wp_data, &real_value);
             if (status) {
                 status = Loop_Proportional_Constant_Set(
-                    wp_data->object_instance, value.type.Real);
+                    wp_data->object_instance, real_value);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1870,15 +1886,11 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_PROPORTIONAL_CONSTANT_UNITS:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            status = write_property_enumerated_decode(
+                wp_data, &enum_value, UINT16_MAX);
             if (status) {
-                if (value.type.Unsigned_Int <= UINT16_MAX) {
-                    status = Loop_Proportional_Constant_Units_Set(
-                        wp_data->object_instance, value.type.Enumerated);
-                } else {
-                    status = false;
-                }
+                status = Loop_Proportional_Constant_Units_Set(
+                    wp_data->object_instance, enum_value);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1886,11 +1898,10 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_INTEGRAL_CONSTANT:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            status = write_property_real_decode(wp_data, &real_value);
             if (status) {
                 status = Loop_Integral_Constant_Set(
-                    wp_data->object_instance, value.type.Real);
+                    wp_data->object_instance, real_value);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1898,15 +1909,11 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_INTEGRAL_CONSTANT_UNITS:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            status = write_property_enumerated_decode(
+                wp_data, &enum_value, UINT16_MAX);
             if (status) {
-                if (value.type.Unsigned_Int <= UINT16_MAX) {
-                    status = Loop_Integral_Constant_Units_Set(
-                        wp_data->object_instance, value.type.Enumerated);
-                } else {
-                    status = false;
-                }
+                status = Loop_Integral_Constant_Units_Set(
+                    wp_data->object_instance, enum_value);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1914,11 +1921,10 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_DERIVATIVE_CONSTANT:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            status = write_property_real_decode(wp_data, &real_value);
             if (status) {
                 status = Loop_Derivative_Constant_Set(
-                    wp_data->object_instance, value.type.Real);
+                    wp_data->object_instance, real_value);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1926,15 +1932,11 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_DERIVATIVE_CONSTANT_UNITS:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
+            status = write_property_enumerated_decode(
+                wp_data, &enum_value, UINT16_MAX);
             if (status) {
-                if (value.type.Unsigned_Int <= UINT16_MAX) {
-                    status = Loop_Derivative_Constant_Units_Set(
-                        wp_data->object_instance, value.type.Enumerated);
-                } else {
-                    status = false;
-                }
+                status = Loop_Derivative_Constant_Units_Set(
+                    wp_data->object_instance, enum_value);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1942,11 +1944,9 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_BIAS:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            status = write_property_real_decode(wp_data, &real_value);
             if (status) {
-                status =
-                    Loop_Bias_Set(wp_data->object_instance, value.type.Real);
+                status = Loop_Bias_Set(wp_data->object_instance, real_value);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1954,11 +1954,10 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_SETPOINT:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            status = write_property_real_decode(wp_data, &real_value);
             if (status) {
-                status = Loop_Setpoint_Set(
-                    wp_data->object_instance, value.type.Real);
+                status =
+                    Loop_Setpoint_Set(wp_data->object_instance, real_value);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1966,11 +1965,10 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_MINIMUM_OUTPUT:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            status = write_property_real_decode(wp_data, &real_value);
             if (status) {
                 status = Loop_Minimum_Output_Set(
-                    wp_data->object_instance, value.type.Real);
+                    wp_data->object_instance, real_value);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1978,11 +1976,10 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_MAXIMUM_OUTPUT:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            status = write_property_real_decode(wp_data, &real_value);
             if (status) {
                 status = Loop_Maximum_Output_Set(
-                    wp_data->object_instance, value.type.Real);
+                    wp_data->object_instance, real_value);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -1990,15 +1987,11 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_PRIORITY_FOR_WRITING:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
+            status = write_property_unsigned_decode(
+                wp_data, &unsigned_value, UINT8_MAX);
             if (status) {
-                if (value.type.Unsigned_Int <= UINT8_MAX) {
-                    status = Loop_Priority_For_Writing_Set(
-                        wp_data->object_instance, value.type.Unsigned_Int);
-                } else {
-                    status = false;
-                }
+                status = Loop_Priority_For_Writing_Set(
+                    wp_data->object_instance, (uint8_t)unsigned_value);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
@@ -2006,53 +1999,53 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_MANIPULATED_VARIABLE_REFERENCE:
-            status = write_property_type_valid(
-                wp_data, &value,
-                BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE);
-            if (status) {
+            len = bacapp_decode_obj_property_ref(
+                wp_data->application_data, wp_data->application_data_len,
+                &reference);
+            if (len > 0) {
                 status = Loop_Manipulated_Variable_Reference_Set(
-                    wp_data->object_instance,
-                    &value.type.Object_Property_Reference);
+                    wp_data->object_instance, &reference);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                if (len < 0) {
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
+                } else {
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
                 }
             }
             break;
         case PROP_CONTROLLED_VARIABLE_REFERENCE:
-            status = write_property_type_valid(
-                wp_data, &value,
-                BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE);
-            if (status) {
+            len = bacapp_decode_obj_property_ref(
+                wp_data->application_data, wp_data->application_data_len,
+                &reference);
+            if (len > 0) {
                 status = Loop_Controlled_Variable_Reference_Set(
-                    wp_data->object_instance,
-                    &value.type.Object_Property_Reference);
+                    wp_data->object_instance, &reference);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                }
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                if (len < 0) {
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
+                } else {
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
                 }
             }
             break;
         case PROP_SETPOINT_REFERENCE:
-            status = write_property_type_valid(
-                wp_data, &value,
-                BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE);
-            if (status) {
-                status = Loop_Setpoint_Reference_Set(
-                    wp_data->object_instance,
-                    &value.type.Object_Property_Reference);
-                if (!status) {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                }
-            }
+            status = Loop_Setpoint_Reference_Write(wp_data);
             break;
         case PROP_COV_INCREMENT:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+            status = write_property_real_decode(wp_data, &real_value);
             if (status) {
                 status = Loop_COV_Increment_Set(
-                    wp_data->object_instance, value.type.Real);
+                    wp_data->object_instance, real_value);
                 if (!status) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;

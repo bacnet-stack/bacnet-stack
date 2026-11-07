@@ -10,6 +10,7 @@
 #include <bacnet/bacapp.h>
 #include <bacnet/bacdcode.h>
 #include <bacnet/basic/object/device.h>
+#include <bacnet/basic/object/loop.h>
 #include <bacnet/basic/service/h_apdu.h>
 #include <bacnet/bactext.h>
 #include <datetime_local.h>
@@ -123,6 +124,75 @@ static void test_Device_Write_Property_Range(void)
     zassert_equal(Device_UTC_Offset(), 1440, NULL);
     zassert_false(Device_UTC_Offset_Set(-120), NULL);
     datetime_local_utc_offset_accept_set(true);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Device_Write_Property_Empty_Payload)
+#else
+static void test_Device_Write_Property_Empty_Payload(void)
+#endif
+{
+    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
+    BACNET_OBJECT_PROPERTY_REFERENCE reference = { 0 };
+    const uint32_t instance = 1234;
+    bool status = false;
+
+    Device_Init(NULL);
+    zassert_equal(Loop_Create(instance), instance, NULL);
+    wpdata.object_type = OBJECT_LOOP;
+    wpdata.object_instance = instance;
+    wpdata.array_index = BACNET_ARRAY_ALL;
+    wpdata.application_data_len = 0;
+
+    /* BACnetSetpointReference is a SEQUENCE with only an OPTIONAL member */
+    reference.object_identifier.type = OBJECT_ANALOG_VALUE;
+    reference.object_identifier.instance = 5;
+    reference.property_identifier = PROP_PRESENT_VALUE;
+    reference.property_array_index = BACNET_ARRAY_ALL;
+    zassert_true(Loop_Setpoint_Reference_Set(instance, &reference), NULL);
+    wpdata.object_property = PROP_SETPOINT_REFERENCE;
+    status = Device_Write_Property(&wpdata);
+    zassert_true(status, NULL);
+    zassert_true(Loop_Setpoint_Reference(instance, &reference), NULL);
+    zassert_equal(reference.object_identifier.type, OBJECT_NONE, NULL);
+    zassert_equal(
+        reference.object_identifier.instance, BACNET_MAX_INSTANCE, NULL);
+
+    /* a primitive value requires a tag */
+    wpdata.object_property = PROP_SETPOINT;
+    status = Device_Write_Property(&wpdata);
+    zassert_false(status, NULL);
+    zassert_equal(wpdata.error_class, ERROR_CLASS_SERVICES, NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_INVALID_TAG, NULL);
+
+    /* the classification used by the Device_Write_Property dispatchers */
+    zassert_true(
+        property_list_empty_write_member(
+            OBJECT_LOOP, PROP_SETPOINT_REFERENCE, BACNET_ARRAY_ALL),
+        NULL);
+    zassert_false(
+        property_list_empty_write_member(
+            OBJECT_LOOP, PROP_SETPOINT, BACNET_ARRAY_ALL),
+        NULL);
+    /* a BACnetLIST can be empty */
+    zassert_true(
+        property_list_empty_write_member(
+            OBJECT_DEVICE, PROP_DEVICE_ADDRESS_BINDING, BACNET_ARRAY_ALL),
+        NULL);
+    /* a whole BACnetARRAY can be empty, but not one array element */
+    zassert_true(
+        property_list_empty_write_member(
+            OBJECT_MULTI_STATE_VALUE, PROP_STATE_TEXT, BACNET_ARRAY_ALL),
+        NULL);
+    zassert_false(
+        property_list_empty_write_member(
+            OBJECT_MULTI_STATE_VALUE, PROP_STATE_TEXT, 1),
+        NULL);
+    zassert_false(
+        property_list_empty_write_member(
+            OBJECT_MULTI_STATE_VALUE, PROP_PRESENT_VALUE, BACNET_ARRAY_ALL),
+        NULL);
+    zassert_true(Loop_Delete(instance), NULL);
 }
 
 /**
@@ -1072,6 +1142,7 @@ void test_main(void)
         device_tests, ztest_unit_test(testDevice),
         ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Write_Property_Range),
+        ztest_unit_test(test_Device_Write_Property_Empty_Payload),
         ztest_unit_test(test_Device_Backup_Failure_Timeout_Internal_Access),
         ztest_unit_test(test_Device_Backup_Failure_Timeout_Configuration_File),
         ztest_unit_test(test_Routed_Device_DCC_Remains_Blocked),
@@ -1085,6 +1156,7 @@ void test_main(void)
         device_tests, ztest_unit_test(testDevice),
         ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Write_Property_Range),
+        ztest_unit_test(test_Device_Write_Property_Empty_Payload),
         ztest_unit_test(test_Routed_Device_DCC_Remains_Blocked),
         ztest_unit_test(test_Routed_Device_Reinitialize),
         ztest_unit_test(test_Routed_Device_Read_Property_Instance),
@@ -1094,13 +1166,15 @@ void test_main(void)
         device_tests, ztest_unit_test(testDevice),
         ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Write_Property_Range),
+        ztest_unit_test(test_Device_Write_Property_Empty_Payload),
         ztest_unit_test(test_Device_Backup_Failure_Timeout_Internal_Access),
         ztest_unit_test(test_Device_Backup_Failure_Timeout_Configuration_File));
 #else
     ztest_test_suite(
         device_tests, ztest_unit_test(testDevice),
         ztest_unit_test(test_Device_Data_Sharing),
-        ztest_unit_test(test_Device_Write_Property_Range));
+        ztest_unit_test(test_Device_Write_Property_Range),
+        ztest_unit_test(test_Device_Write_Property_Empty_Payload));
 #endif
 
     ztest_run_test_suite(device_tests);

@@ -1502,9 +1502,6 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     if (wp_data == NULL) {
         return false;
     }
-    if (wp_data->application_data_len == 0) {
-        return false;
-    }
     /* Decode the some of the request. */
     len = bacapp_decode_application_data(
         wp_data->application_data, wp_data->application_data_len, &value);
@@ -1514,6 +1511,17 @@ bool Binary_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
+    }
+    if (wp_data->application_data_len == 0) {
+        /* an empty payload is not a Null value */
+        if (!property_list_empty_write_member(
+                wp_data->object_type, wp_data->object_property,
+                wp_data->array_index)) {
+            wp_data->error_class = ERROR_CLASS_SERVICES;
+            wp_data->error_code = ERROR_CODE_INVALID_TAG;
+            return false;
+        }
+        value.tag = BACNET_APPLICATION_TAG_EMPTYLIST;
     }
     if (!(pObject = Binary_Value_Object(wp_data->object_instance))) {
 #if (!BINARY_VALUE_INTRINSIC_REPORTING)

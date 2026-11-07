@@ -220,6 +220,56 @@ static void testMultistateOutput_COV(void)
  */
 
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(mso_tests, testMultistateOutput_Empty_Payload)
+#else
+static void testMultistateOutput_Empty_Payload(void)
+#endif
+{
+    const uint32_t instance = 123;
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    unsigned count;
+    uint32_t value;
+    bool status;
+
+    zassert_not_equal(
+        Multistate_Output_Create(instance), BACNET_MAX_INSTANCE, NULL);
+    value = (uint32_t)Multistate_Output_Present_Value(instance);
+    wp_data.object_type = OBJECT_MULTI_STATE_OUTPUT;
+    wp_data.object_instance = instance;
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    wp_data.priority = BACNET_NO_PRIORITY;
+    wp_data.application_data_len = 0;
+
+    /* an empty payload is not a Null value that relinquishes, and
+       it is not a value of the property type */
+    wp_data.object_property = PROP_PRESENT_VALUE;
+    status = Multistate_Output_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_SERVICES, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_TAG, NULL);
+    zassert_equal(
+        (uint32_t)Multistate_Output_Present_Value(instance), value, NULL);
+
+    /* a multistate object has at least one state: an empty State_Text
+       array is an invalid array size, and the states are unchanged */
+    count = Multistate_Output_Max_States(instance);
+    wp_data.object_property = PROP_STATE_TEXT;
+    status = Multistate_Output_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_ARRAY_SIZE, NULL);
+    zassert_equal(Multistate_Output_Max_States(instance), count, NULL);
+    /* an empty payload for one array element is not valid either */
+    wp_data.array_index = 1;
+    status = Multistate_Output_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_SERVICES, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_TAG, NULL);
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    Multistate_Output_Delete(instance);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(mso_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
@@ -228,7 +278,8 @@ void test_main(void)
         mso_tests, ztest_unit_test(testMultistateOutput),
         ztest_unit_test(testMultistateOutputByName),
         ztest_unit_test(testMultistateOutput_Priority_6_Reserved),
-        ztest_unit_test(testMultistateOutput_COV));
+        ztest_unit_test(testMultistateOutput_COV),
+        ztest_unit_test(testMultistateOutput_Empty_Payload));
 
     ztest_run_test_suite(mso_tests);
 }

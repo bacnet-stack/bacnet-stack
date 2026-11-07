@@ -81,6 +81,11 @@ BACNET_STACK_EXPORT
 bool property_list_bacnet_list_member(
     BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID object_property);
 BACNET_STACK_EXPORT
+bool property_list_empty_write_member(
+    BACNET_OBJECT_TYPE object_type,
+    BACNET_PROPERTY_ID object_property,
+    BACNET_ARRAY_INDEX array_index);
+BACNET_STACK_EXPORT
 bool property_list_commandable_member(
     BACNET_OBJECT_TYPE object_type, BACNET_PROPERTY_ID object_property);
 BACNET_STACK_EXPORT

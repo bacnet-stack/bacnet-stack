@@ -47,15 +47,6 @@ typedef struct BACnet_Write_Property_Data {
 typedef bool (*write_property_function)(BACNET_WRITE_PROPERTY_DATA *wp_data);
 
 /**
- * @brief API for setting a BACnet Unsigned Integer property value
- * @param object_instance [in] Object instance number
- * @param value [in] New value to set
- * @return true if successful, else false
- */
-typedef bool (*bacnet_property_unsigned_setter)(
-    uint32_t object_instance, BACNET_UNSIGNED_INTEGER value);
-
-/**
  * @brief API to see if an object property is a member of this object instance
  * @param object_type - object type of the object
  * @param object_instance - object-instance number of the object
@@ -125,9 +116,24 @@ bool write_property_bacnet_array_valid(BACNET_WRITE_PROPERTY_DATA *wp_data);
 BACNET_STACK_EXPORT
 bool write_property_unsigned_decode(
     BACNET_WRITE_PROPERTY_DATA *wp_data,
-    BACNET_APPLICATION_DATA_VALUE *value,
-    bacnet_property_unsigned_setter setter,
+    BACNET_UNSIGNED_INTEGER *value,
     BACNET_UNSIGNED_INTEGER maximum);
+
+BACNET_STACK_EXPORT
+bool write_property_enumerated_decode(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, uint32_t *value, uint32_t maximum);
+
+BACNET_STACK_EXPORT
+bool write_property_boolean_decode(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, bool *value);
+
+BACNET_STACK_EXPORT
+bool write_property_real_decode(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, float *value);
+
+BACNET_STACK_EXPORT
+bool write_property_character_string_decode(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *value);
 
 BACNET_STACK_EXPORT
 bool write_property_relinquish_bypass(
