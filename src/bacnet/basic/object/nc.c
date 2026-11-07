@@ -54,16 +54,21 @@ Notification_Class_Object(uint32_t object_instance)
 }
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int32_t Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
-                                               PROP_OBJECT_NAME,
-                                               PROP_OBJECT_TYPE,
-                                               PROP_PRIORITY,
-                                               PROP_ACK_REQUIRED,
-                                               PROP_RECIPIENT_LIST,
-                                               -1 };
+static const int32_t Properties_Required[] = {
+    /* unordered list of required properties */
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRIORITY,
+    PROP_ACK_REQUIRED,
+    PROP_RECIPIENT_LIST,
+    -1
+};
 
-static const int32_t Properties_Optional[] = { PROP_DESCRIPTION,
-                                               PROP_NOTIFICATION_CLASS, -1 };
+static const int32_t Properties_Optional[] = {
+    /* unordered list of optional properties */
+    -1
+};
 
 static const int32_t Properties_Proprietary[] = { -1 };
 
@@ -360,7 +365,6 @@ int Notification_Class_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             break;
 
         case PROP_OBJECT_NAME:
-        case PROP_DESCRIPTION:
             Notification_Class_Object_Name(
                 rpdata->object_instance, &char_string);
             apdu_len =
@@ -370,11 +374,6 @@ int Notification_Class_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_OBJECT_TYPE:
             apdu_len = encode_application_enumerated(
                 &apdu[0], OBJECT_NOTIFICATION_CLASS);
-            break;
-
-        case PROP_NOTIFICATION_CLASS:
-            apdu_len +=
-                encode_application_unsigned(&apdu[0], rpdata->object_instance);
             break;
 
         case PROP_PRIORITY:
