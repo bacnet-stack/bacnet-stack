@@ -183,6 +183,12 @@ bool bacnet_device_object_reference_copy(
     const BACNET_DEVICE_OBJECT_REFERENCE *src);
 
 BACNET_STACK_EXPORT
+void bacnet_object_property_reference_init(
+    BACNET_OBJECT_PROPERTY_REFERENCE *reference);
+BACNET_STACK_EXPORT
+bool bacnet_object_property_reference_empty(
+    const BACNET_OBJECT_PROPERTY_REFERENCE *reference);
+BACNET_STACK_EXPORT
 bool bacnet_object_property_reference_same(
     const BACNET_OBJECT_PROPERTY_REFERENCE *value1,
     const BACNET_OBJECT_PROPERTY_REFERENCE *value2);

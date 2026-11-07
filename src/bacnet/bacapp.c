@@ -1684,6 +1684,15 @@ int bacapp_decode_known_array_property(
     if ((apdu_size == 0) || bacnet_is_closing_tag(apdu, apdu_size)) {
         if (value) {
             value->tag = BACNET_APPLICATION_TAG_EMPTYLIST;
+#if defined(BACAPP_OBJECT_PROPERTY_REFERENCE)
+            if (bacapp_known_property_tag(object_type, property) ==
+                BACNET_APPLICATION_TAG_SETPOINT_REFERENCE) {
+                /* no-reference sentinel, so that a later encode of the
+                   known property does not emit a stale reference */
+                bacnet_object_property_reference_init(
+                    &value->type.Object_Property_Reference);
+            }
+#endif
         }
         apdu_len = 0;
     } else if (array_index == 0) {

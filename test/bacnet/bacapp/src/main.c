@@ -1906,6 +1906,75 @@ static void test_bacapp_encode_data_list(void)
 }
 
 /**
+ * @brief Test that decoding an empty Setpoint_Reference does not leave a
+ *  stale reference that is later encoded by bacapp_encode_known_property()
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacapp_tests, test_bacapp_setpoint_reference_empty)
+#else
+static void test_bacapp_setpoint_reference_empty(void)
+#endif
+{
+    uint8_t apdu[MAX_APDU] = { 0 };
+    uint8_t empty[1] = { 0 };
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_APPLICATION_DATA_VALUE decoded = { 0 };
+    int len = 0, test_len = 0;
+
+    /* start with a populated reference, as in a reused value structure */
+    value.tag = BACNET_APPLICATION_TAG_SETPOINT_REFERENCE;
+    value.type.Object_Property_Reference.object_identifier.type =
+        OBJECT_ANALOG_VALUE;
+    value.type.Object_Property_Reference.object_identifier.instance = 42;
+    value.type.Object_Property_Reference.property_identifier =
+        PROP_PRESENT_VALUE;
+    value.type.Object_Property_Reference.property_array_index =
+        BACNET_ARRAY_ALL;
+    len = bacapp_encode_known_property(
+        apdu, &value, OBJECT_LOOP, PROP_SETPOINT_REFERENCE);
+    zassert_true(len > 0, NULL);
+    test_len = bacapp_decode_known_property(
+        apdu, len, &decoded, OBJECT_LOOP, PROP_SETPOINT_REFERENCE);
+    zassert_equal(test_len, len, NULL);
+    zassert_equal(decoded.tag, BACNET_APPLICATION_TAG_SETPOINT_REFERENCE, NULL);
+    zassert_true(
+        bacnet_object_property_reference_same(
+            &decoded.type.Object_Property_Reference,
+            &value.type.Object_Property_Reference),
+        NULL);
+
+    /* decode empty over the populated value, with and without data */
+    test_len = bacapp_decode_known_property(
+        empty, 0, &decoded, OBJECT_LOOP, PROP_SETPOINT_REFERENCE);
+    zassert_equal(test_len, 0, NULL);
+    zassert_equal(decoded.tag, BACNET_APPLICATION_TAG_EMPTYLIST, NULL);
+    zassert_equal(
+        decoded.type.Object_Property_Reference.object_identifier.type,
+        OBJECT_NONE, NULL);
+    /* the value is empty, so the encoders shall emit nothing */
+    zassert_equal(bacapp_encode_data(apdu, &decoded), 0, NULL);
+    zassert_equal(bacapp_encode_data(NULL, &decoded), 0, NULL);
+    len = bacapp_encode_known_property(
+        apdu, &decoded, OBJECT_LOOP, PROP_SETPOINT_REFERENCE);
+    zassert_equal(len, 0, NULL);
+    len = bacapp_encode_known_property(
+        NULL, &decoded, OBJECT_LOOP, PROP_SETPOINT_REFERENCE);
+    zassert_equal(len, 0, NULL);
+
+    /* closing tag also means empty */
+    decoded.tag = BACNET_APPLICATION_TAG_SETPOINT_REFERENCE;
+    decoded.type.Object_Property_Reference =
+        value.type.Object_Property_Reference;
+    empty[0] = 0x0F; /* closing tag 0 */
+    test_len = bacapp_decode_known_property(
+        empty, 1, &decoded, OBJECT_LOOP, PROP_SETPOINT_REFERENCE);
+    zassert_equal(test_len, 0, NULL);
+    len = bacapp_encode_known_property(
+        apdu, &decoded, OBJECT_LOOP, PROP_SETPOINT_REFERENCE);
+    zassert_equal(len, 0, NULL);
+}
+
+/**
  * @}
  */
 
@@ -1923,6 +1992,7 @@ void test_main(void)
         ztest_unit_test(test_bacapp_same_value),
         ztest_unit_test(test_bacapp_data),
         ztest_unit_test(test_bacapp_encode_data_list),
+        ztest_unit_test(test_bacapp_setpoint_reference_empty),
         ztest_unit_test(test_bacapp_sprintf_epics),
         ztest_unit_test(test_parse_weeklyschedule),
         ztest_unit_test(testBACnetApplicationData),

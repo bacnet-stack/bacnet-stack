@@ -1739,10 +1739,7 @@ static bool Loop_Setpoint_Reference_Write(BACNET_WRITE_PROPERTY_DATA *wp_data)
     int len = 0;
     bool status = false;
 
-    reference.object_identifier.type = OBJECT_NONE;
-    reference.object_identifier.instance = BACNET_MAX_INSTANCE;
-    reference.property_identifier = PROP_ALL;
-    reference.property_array_index = BACNET_ARRAY_ALL;
+    bacnet_object_property_reference_init(&reference);
     if (wp_data->application_data_len > 0) {
         len = bacapp_decode_context_obj_property_ref(
             wp_data->application_data, wp_data->application_data_len, 0,

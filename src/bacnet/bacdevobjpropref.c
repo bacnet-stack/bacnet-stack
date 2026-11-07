@@ -700,7 +700,7 @@ int bacapp_encode_obj_property_ref(
     if (!reference) {
         return 0;
     }
-    if (reference->object_identifier.type == OBJECT_NONE) {
+    if (bacnet_object_property_reference_empty(reference)) {
         return 0;
     }
     len = encode_context_object_id(
@@ -738,7 +738,7 @@ int bacapp_encode_context_obj_property_ref(
     int len = 0;
     int apdu_len = 0;
 
-    if (reference && (reference->object_identifier.type == OBJECT_NONE)) {
+    if (bacnet_object_property_reference_empty(reference)) {
         return 0;
     }
     len = encode_opening_tag(apdu, tag_number);
@@ -878,6 +878,34 @@ int bacapp_decode_context_obj_property_ref(
     }
 
     return apdu_len;
+}
+
+/**
+ * @brief Initialize the BACnetObjectPropertyReference to the
+ *  no-reference (empty) sentinel values.
+ * @param reference - BACnetObjectPropertyReference to initialize
+ */
+void bacnet_object_property_reference_init(
+    BACNET_OBJECT_PROPERTY_REFERENCE *reference)
+{
+    if (reference) {
+        reference->object_identifier.type = OBJECT_NONE;
+        reference->object_identifier.instance = BACNET_MAX_INSTANCE;
+        reference->property_identifier = PROP_ALL;
+        reference->property_array_index = BACNET_ARRAY_ALL;
+    }
+}
+
+/**
+ * @brief Determine if the BACnetObjectPropertyReference is empty,
+ *  meaning that it has no reference, which encodes as zero bytes.
+ * @param reference - BACnetObjectPropertyReference to check
+ * @return true if the reference is not NULL and is empty
+ */
+bool bacnet_object_property_reference_empty(
+    const BACNET_OBJECT_PROPERTY_REFERENCE *reference)
+{
+    return reference && (reference->object_identifier.type == OBJECT_NONE);
 }
 
 /**
