@@ -511,6 +511,37 @@ static void testBinary_Value_Present_Value_Set(void)
  */
 
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bv_tests, testBinary_Value_Empty_Payload)
+#else
+static void testBinary_Value_Empty_Payload(void)
+#endif
+{
+    const uint32_t instance = 123;
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    uint32_t value;
+    bool status;
+
+    Binary_Value_Init();
+    zassert_not_equal(Binary_Value_Create(instance), BACNET_MAX_INSTANCE, NULL);
+    value = (uint32_t)Binary_Value_Present_Value(instance);
+    wp_data.object_type = OBJECT_BINARY_VALUE;
+    wp_data.object_instance = instance;
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    wp_data.priority = BACNET_NO_PRIORITY;
+    wp_data.application_data_len = 0;
+
+    /* an empty payload is not a Null value that relinquishes, and
+       it is not a value of the property type */
+    wp_data.object_property = PROP_PRESENT_VALUE;
+    status = Binary_Value_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_SERVICES, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_TAG, NULL);
+    zassert_equal((uint32_t)Binary_Value_Present_Value(instance), value, NULL);
+    Binary_Value_Delete(instance);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(bv_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
@@ -521,7 +552,8 @@ void test_main(void)
         ztest_unit_test(testBinary_Value_COV),
         ztest_unit_test(testBinary_Value_Priority_Array),
         ztest_unit_test(testBinary_Value_Relinquish_Default_Write),
-        ztest_unit_test(testBinary_Value_Present_Value_Set));
+        ztest_unit_test(testBinary_Value_Present_Value_Set),
+        ztest_unit_test(testBinary_Value_Empty_Payload));
 
     ztest_run_test_suite(bv_tests);
 }

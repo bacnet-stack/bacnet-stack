@@ -19,6 +19,7 @@
 #include "bacnet/bacstr.h"
 #include "bacnet/rp.h"
 #include "bacnet/wp.h"
+#include "bacnet/proplist.h"
 #include "bacnet/basic/sys/keylist.h"
 #include "bacnet/basic/sys/state_name.h"
 #include "bacnet/basic/services.h"
@@ -1400,6 +1401,17 @@ bool Multistate_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
         return false;
     }
+    if (wp_data->application_data_len == 0) {
+        /* an empty payload is not a Null value */
+        if (!property_list_empty_write_member(
+                wp_data->object_type, wp_data->object_property,
+                wp_data->array_index)) {
+            wp_data->error_class = ERROR_CLASS_SERVICES;
+            wp_data->error_code = ERROR_CODE_INVALID_TAG;
+            return false;
+        }
+        value.tag = BACNET_APPLICATION_TAG_EMPTYLIST;
+    }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
             status = write_property_type_valid(
@@ -1469,6 +1481,13 @@ bool Multistate_Value_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_STATE_TEXT:
+            if ((wp_data->array_index == BACNET_ARRAY_ALL) &&
+                (wp_data->application_data_len == 0)) {
+                /* a multistate object has at least one state */
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_INVALID_ARRAY_SIZE;
+                break;
+            }
             count = Multistate_Value_Max_States(wp_data->object_instance);
             wp_data->error_code = bacnet_array_write_resizable(
                 wp_data->object_instance, wp_data->array_index,
