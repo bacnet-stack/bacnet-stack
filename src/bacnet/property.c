@@ -2141,15 +2141,19 @@ static const int32_t Network_Security_Properties_Optional[] = {
 
 static const int32_t Notification_Class_Properties_Required[] = {
     /* unordered list of properties */
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,       PROP_NOTIFICATION_CLASS,
-    PROP_PRIORITY,          PROP_ACK_REQUIRED,
-    PROP_RECIPIENT_LIST,    -1
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRIORITY,
+    PROP_ACK_REQUIRED,
+    PROP_RECIPIENT_LIST,
+    -1
 };
 
 static const int32_t Notification_Class_Properties_Optional[] = {
     /* unordered list of properties */
     PROP_DESCRIPTION,
+    PROP_NOTIFICATION_CLASS,
     PROP_STATUS_FLAGS,
     PROP_EVENT_STATE,
     PROP_RELIABILITY,

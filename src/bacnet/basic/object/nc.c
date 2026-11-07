@@ -54,14 +54,16 @@ Notification_Class_Object(uint32_t object_instance)
 }
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
-static const int32_t Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER, PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,       PROP_NOTIFICATION_CLASS,
-    PROP_PRIORITY,          PROP_ACK_REQUIRED,
-    PROP_RECIPIENT_LIST,    -1
-};
+static const int32_t Properties_Required[] = { PROP_OBJECT_IDENTIFIER,
+                                               PROP_OBJECT_NAME,
+                                               PROP_OBJECT_TYPE,
+                                               PROP_PRIORITY,
+                                               PROP_ACK_REQUIRED,
+                                               PROP_RECIPIENT_LIST,
+                                               -1 };
 
-static const int32_t Properties_Optional[] = { PROP_DESCRIPTION, -1 };
+static const int32_t Properties_Optional[] = { PROP_DESCRIPTION,
+                                               PROP_NOTIFICATION_CLASS, -1 };
 
 static const int32_t Properties_Proprietary[] = { -1 };
 

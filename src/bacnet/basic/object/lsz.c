@@ -58,18 +58,25 @@ static const BACNET_OBJECT_TYPE Object_Type = OBJECT_LIFE_SAFETY_ZONE;
 
 /* These three arrays are used by the ReadPropertyMultiple handler */
 static const int32_t Life_Safety_Zone_Properties_Required[] = {
-    PROP_OBJECT_IDENTIFIER,    PROP_OBJECT_NAME,
-    PROP_OBJECT_TYPE,          PROP_PRESENT_VALUE,
-    PROP_TRACKING_VALUE,       PROP_STATUS_FLAGS,
-    PROP_EVENT_STATE,          PROP_RELIABILITY,
-    PROP_OUT_OF_SERVICE,       PROP_MODE,
-    PROP_ACCEPTED_MODES,       PROP_SILENCED,
-    PROP_OPERATION_EXPECTED,   PROP_ZONE_MEMBERS,
-    PROP_MAINTENANCE_REQUIRED, -1
+    PROP_OBJECT_IDENTIFIER,
+    PROP_OBJECT_NAME,
+    PROP_OBJECT_TYPE,
+    PROP_PRESENT_VALUE,
+    PROP_TRACKING_VALUE,
+    PROP_STATUS_FLAGS,
+    PROP_EVENT_STATE,
+    PROP_RELIABILITY,
+    PROP_OUT_OF_SERVICE,
+    PROP_MODE,
+    PROP_ACCEPTED_MODES,
+    PROP_SILENCED,
+    PROP_OPERATION_EXPECTED,
+    PROP_ZONE_MEMBERS,
+    -1
 };
 
 static const int32_t Life_Safety_Zone_Properties_Optional[] = {
-    PROP_DESCRIPTION, -1
+    PROP_DESCRIPTION, PROP_MAINTENANCE_REQUIRED, -1
 };
 
 static const int32_t Life_Safety_Zone_Properties_Proprietary[] = { -1 };
