@@ -67,6 +67,11 @@ static void test_Loop_Read_Write(void)
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     BACNET_CHARACTER_STRING cstring = { 0 };
+    BACNET_READ_PROPERTY_DATA rp_data = { 0 };
+    BACNET_OBJECT_PROPERTY_REFERENCE reference = { 0 };
+    BACNET_OBJECT_PROPERTY_REFERENCE test_reference = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int len = 0;
     int32_t i = 0,
             units_properties[] = { PROP_OUTPUT_UNITS,
                                    PROP_CONTROLLED_VARIABLE_UNITS,
@@ -262,6 +267,46 @@ static void test_Loop_Read_Write(void)
     zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
     zassert_equal(wp_data.error_code, ERROR_CODE_WRITE_ACCESS_DENIED, NULL);
     zassert_false(status, NULL);
+    /* Setpoint_Reference is BACnetSetpointReference: [0] wrapped, optional */
+    rp_data.object_type = OBJECT_LOOP;
+    rp_data.object_instance = instance;
+    rp_data.object_property = PROP_SETPOINT_REFERENCE;
+    rp_data.array_index = BACNET_ARRAY_ALL;
+    rp_data.application_data = apdu;
+    rp_data.application_data_len = sizeof(apdu);
+    reference.object_identifier.type = OBJECT_ANALOG_VALUE;
+    reference.object_identifier.instance = 5;
+    reference.property_identifier = PROP_PRESENT_VALUE;
+    reference.property_array_index = BACNET_ARRAY_ALL;
+    len = bacapp_encode_context_obj_property_ref(
+        wp_data.application_data, 0, &reference);
+    zassert_true(len > 0, NULL);
+    wp_data.object_property = PROP_SETPOINT_REFERENCE;
+    wp_data.application_data_len = len;
+    status = Loop_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    len = Loop_Read_Property(&rp_data);
+    zassert_equal(len, wp_data.application_data_len, NULL);
+    zassert_equal(apdu[0], 0x0E, "opening tag 0");
+    zassert_equal(apdu[len - 1], 0x0F, "closing tag 0");
+    len = bacapp_decode_context_obj_property_ref(apdu, len, 0, &test_reference);
+    zassert_equal(len, wp_data.application_data_len, NULL);
+    zassert_true(
+        bacnet_object_property_reference_same(&reference, &test_reference),
+        NULL);
+    /* the unwrapped form is not valid */
+    len = bacapp_encode_obj_property_ref(wp_data.application_data, &reference);
+    wp_data.application_data_len = len;
+    status = Loop_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    /* empty value clears the reference */
+    wp_data.application_data_len = 0;
+    status = Loop_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    rp_data.application_data_len = sizeof(apdu);
+    len = Loop_Read_Property(&rp_data);
+    zassert_equal(len, 0, NULL);
     /* == API testing where not already tested by read or write property == */
     /* reliability and status flags API */
     status = Loop_Reliability_Set(instance, RELIABILITY_PROCESS_ERROR);

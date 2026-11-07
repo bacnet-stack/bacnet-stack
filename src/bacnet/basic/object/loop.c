@@ -1641,8 +1641,10 @@ int Loop_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
             apdu_len = encode_application_enumerated(&apdu[0], enum_value);
             break;
         case PROP_SETPOINT_REFERENCE:
+            /* BACnetSetpointReference is [0] wrapped, and empty if not set */
             Loop_Setpoint_Reference(rpdata->object_instance, &reference_value);
-            apdu_len = bacapp_encode_obj_property_ref(apdu, &reference_value);
+            apdu_len = bacapp_encode_context_obj_property_ref(
+                apdu, 0, &reference_value);
             break;
         case PROP_SETPOINT:
             real_value = Loop_Setpoint(rpdata->object_instance);
@@ -1724,6 +1726,43 @@ int Loop_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 }
 
 /**
+ * @brief Write the Setpoint_Reference property, which is of type
+ *  BACnetSetpointReference ::= SEQUENCE {
+ *      setpoint-reference [0] BACnetObjectPropertyReference OPTIONAL
+ *  }
+ * @param wp_data [in] write property data
+ * @return true if the property value was written
+ */
+static bool Loop_Setpoint_Reference_Write(BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    BACNET_OBJECT_PROPERTY_REFERENCE reference = { 0 };
+    int len = 0;
+    bool status = false;
+
+    reference.object_identifier.type = OBJECT_NONE;
+    reference.object_identifier.instance = BACNET_MAX_INSTANCE;
+    reference.property_identifier = PROP_ALL;
+    reference.property_array_index = BACNET_ARRAY_ALL;
+    if (wp_data->application_data_len > 0) {
+        len = bacapp_decode_context_obj_property_ref(
+            wp_data->application_data, wp_data->application_data_len, 0,
+            &reference);
+        if (len != wp_data->application_data_len) {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            return false;
+        }
+    }
+    status = Loop_Setpoint_Reference_Set(wp_data->object_instance, &reference);
+    if (!status) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+    }
+
+    return status;
+}
+
+/**
  * WriteProperty handler for this object.  For the given WriteProperty
  * data, the application_data is loaded or the error flags are set.
  *
@@ -1741,6 +1780,9 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     /* Valid data? */
     if (wp_data == NULL) {
         return false;
+    }
+    if (wp_data->object_property == PROP_SETPOINT_REFERENCE) {
+        return Loop_Setpoint_Reference_Write(wp_data);
     }
     /* decode the some of the request */
     len = bacapp_decode_known_array_property(
@@ -2025,20 +2067,6 @@ bool Loop_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE);
             if (status) {
                 status = Loop_Controlled_Variable_Reference_Set(
-                    wp_data->object_instance,
-                    &value.type.Object_Property_Reference);
-                if (!status) {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                }
-            }
-            break;
-        case PROP_SETPOINT_REFERENCE:
-            status = write_property_type_valid(
-                wp_data, &value,
-                BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE);
-            if (status) {
-                status = Loop_Setpoint_Reference_Set(
                     wp_data->object_instance,
                     &value.type.Object_Property_Reference);
                 if (!status) {

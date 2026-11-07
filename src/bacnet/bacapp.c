@@ -1678,6 +1678,18 @@ int bacapp_decode_known_array_property(
            data values */
         apdu_len =
             decode_priority_array_value(apdu, apdu_size, value, object_type);
+#if defined(BACAPP_OBJECT_PROPERTY_REFERENCE)
+    } else if (property == PROP_SETPOINT_REFERENCE) {
+        /* BACnetSetpointReference is a [0] wrapped
+           BACnetObjectPropertyReference */
+        apdu_len = bacapp_decode_context_obj_property_ref(
+            apdu, apdu_size, 0, &value->type.Object_Property_Reference);
+        if (apdu_len > 0) {
+            value->tag = BACNET_APPLICATION_TAG_OBJECT_PROPERTY_REFERENCE;
+        } else if (apdu_len == 0) {
+            apdu_len = BACNET_STATUS_ERROR;
+        }
+#endif
     } else {
         /* Complex or primitive value?
         Lookup the complex values using their object type and property */
