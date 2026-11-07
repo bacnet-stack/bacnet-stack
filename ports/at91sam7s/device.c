@@ -281,10 +281,12 @@ bool Device_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                         wp_data, pObject->Object_Write_Property);
                 } else {
                     if ((wp_data->application_data_len == 0) &&
-                        !property_list_bacnet_list_member(
-                        wp_data->object_type, wp_data->object_property)) {
-                        /* only list properties can be written with
-                            an empty application payload */
+                        !property_list_empty_write_member(
+                            wp_data->object_type, wp_data->object_property,
+                            wp_data->array_index)) {
+                        /* only lists, whole arrays, and sequences with only
+                           optional members can be written with
+                           an empty application payload */
                         wp_data->error_class = ERROR_CLASS_SERVICES;
                         wp_data->error_code = ERROR_CODE_INVALID_TAG;
                         status = false;
