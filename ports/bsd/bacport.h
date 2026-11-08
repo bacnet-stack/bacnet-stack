@@ -50,13 +50,19 @@
 #endif
 
 #include <pthread.h>
+#ifndef __QNX__
+/* QNX has no libdispatch; only the BSD MS/TP driver uses it */
 #include <dispatch/dispatch.h>
+#endif
 
 #define ENUMS
 #include <sys/socket.h>
 #include <net/route.h>
 #include <net/if.h>
+#ifndef __QNX__
+/* net/if_var.h is a kernel-only header on QNX */
 #include <net/if_var.h>
+#endif
 #include <net/if_arp.h>
 #include <net/if_dl.h>
 #include <ifaddrs.h>

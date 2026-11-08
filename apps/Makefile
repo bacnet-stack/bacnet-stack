@@ -138,10 +138,13 @@ ifeq (${BACNET_PORT},)
 		ifeq ($(UNAME_S),OpenBSD)
 			BACNET_PORT = bsd
 		endif
+		ifeq ($(UNAME_S),QNX)
+			BACNET_PORT = qnx
+		endif
 	endif
 endif
 
-# linux, win32, bsd
+# linux, win32, bsd, qnx
 BACNET_PORT ?= linux
 
 # build in uci integration - use UCI=1 when invoking make
@@ -170,6 +173,15 @@ SYSTEM_LIB += -lwebsockets -lssl -lcrypto
 endif
 CSTANDARD = -std=c99
 endif
+ifeq (${BACNET_PORT},qnx)
+# QNX 8.0: io-sock networking is derived from FreeBSD, so QNX uses ports/bsd.
+# Sockets, getifaddrs and sysctl are in libsocket.
+BACNET_PORT_DIRNAME = bsd
+PFLAGS =
+TARGET_EXT =
+SYSTEM_LIB=-lc,-lsocket,-lm
+BACNET_DEFINES += -D_QNX_SOURCE
+endif
 ifeq (${BACNET_PORT},win32)
 # winget install --id=MSYS2.MSYS2  -e
 # pacman -Syu mingw-w64-i686-toolchain
@@ -180,7 +192,7 @@ BACNET_DEFINES += -D_NO_OLDNAMES
 endif
 
 # source file locations
-BACNET_PORT_DIR =  $(realpath ../ports/$(BACNET_PORT))
+BACNET_PORT_DIR =  $(realpath ../ports/$(or $(BACNET_PORT_DIRNAME),$(BACNET_PORT)))
 BACNET_POSIX_DIR = $(realpath ../ports/posix)
 BACNET_SRC_DIR =  $(realpath ../src)
 
