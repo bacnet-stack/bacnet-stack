@@ -9,6 +9,8 @@
 #include <stdbool.h> /* for the standard bool type. */
 #include <ifaddrs.h>
 #include <sys/sysctl.h>
+#include <sys/types.h>
+#include <sys/socket.h> /* QNX: must come before net/route.h */
 #include <net/route.h>
 #include <net/if_dl.h>
 #include <net/if.h>
