@@ -107,9 +107,9 @@ struct dlmstp_user_data_t {
     dlmstp_hook_frame_rx_complete_cb Valid_Frame_Not_For_Us_Rx_Callback;
     dlmstp_hook_frame_rx_complete_cb Invalid_Frame_Rx_Callback;
     uint32_t Valid_Frame_Milliseconds;
-    /* the PDU Queue is made of Nmax_info_frames x dlmstp_packet's */
+    /* Queue capacity is Nmax_info_frames rounded up to a power of 2. */
     RING_BUFFER PDU_Queue;
-    struct dlmstp_packet PDU_Buffer[DLMSTP_MAX_INFO_FRAMES];
+    struct dlmstp_packet PDU_Buffer[NEXT_POWER_OF_2(DLMSTP_MAX_INFO_FRAMES)];
     bool Initialized;
     bool ReceivePacketPending;
     void *Context;

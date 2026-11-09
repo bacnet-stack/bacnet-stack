@@ -716,7 +716,8 @@ bool dlmstp_init(void *poPort, const char *ifname)
     /* initialize PDU queue */
     Ringbuf_Init(
         &poSharedData->PDU_Queue, poSharedData->PDU_Buffer,
-        sizeof(struct mstp_pdu_packet), MSTP_PDU_PACKET_COUNT);
+        sizeof(struct mstp_pdu_packet),
+        sizeof(poSharedData->PDU_Buffer) / sizeof(poSharedData->PDU_Buffer[0]));
     /* initialize packet queue */
     poSharedData->Receive_Packet.ready = false;
     poSharedData->Receive_Packet.pdu_len = 0;

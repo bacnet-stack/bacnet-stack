@@ -40,11 +40,11 @@
 
 /* buffer for storing received bytes - size must be power of two */
 /* BACnet MAX_APDU for MS/TP is 480 bytes */
-static uint8_t Receive_Queue_Data[512];
+static uint8_t Receive_Queue_Data[NEXT_POWER_OF_2(512)];
 static FIFO_BUFFER Receive_Queue;
 /* buffer for storing bytes to transmit - size must be power of two */
 /* BACnet MAX_APDU for MS/TP is 480 bytes */
-static uint8_t Transmit_Queue_Data[512];
+static uint8_t Transmit_Queue_Data[NEXT_POWER_OF_2(512)];
 static FIFO_BUFFER Transmit_Queue;
 /* baud rate of the UART interface */
 static uint32_t Baud_Rate;

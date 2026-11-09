@@ -13,7 +13,8 @@
 #include "bacnet/bacdef.h"
 
 /**
- * FIFO buffer power of two alignment macro
+ * FIFO buffer power of two alignment macro.
+ * Unsigned long arithmetic supports targets with 16-bit int.
  *
  * @{
  */
@@ -23,7 +24,7 @@
 #define B8(x) (B4(x) | (B4(x) >> 4))
 #define B16(x) (B8(x) | (B8(x) >> 8))
 #define B32(x) (B16(x) | (B16(x) >> 16))
-#define NEXT_POWER_OF_2(x) (B32((x)-1) + 1)
+#define NEXT_POWER_OF_2(x) (B32((x)-1UL) + 1UL)
 #endif
 /** @} */
 

@@ -28,7 +28,7 @@
 #define DLMSTP_HEADER_MAX (2 + 1 + 1 + 1 + 2 + 1 + 2)
 #define DLMSTP_MPDU_MAX (DLMSTP_HEADER_MAX + MAX_PDU)
 
-/* count must be a power of 2 for ringbuf library */
+/* Minimum queue capacity, rounded up to a power of 2 for ringbuf. */
 #ifndef MSTP_PDU_PACKET_COUNT
 #define MSTP_PDU_PACKET_COUNT 8
 #endif
@@ -89,12 +89,12 @@ typedef struct shared_mstp_data {
     /* Ring buffer for incoming bytes, in order to speed up the receiving. */
     FIFO_BUFFER Rx_FIFO;
     /* buffer size needs to be a power of 2 */
-    uint8_t Rx_Buffer[4096];
+    uint8_t Rx_Buffer[NEXT_POWER_OF_2(4096)];
     struct timeval start;
 
     RING_BUFFER PDU_Queue;
 
-    struct mstp_pdu_packet PDU_Buffer[MSTP_PDU_PACKET_COUNT];
+    struct mstp_pdu_packet PDU_Buffer[NEXT_POWER_OF_2(MSTP_PDU_PACKET_COUNT)];
 
 } SHARED_MSTP_DATA;
 

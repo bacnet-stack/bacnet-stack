@@ -29,17 +29,6 @@
 #define BACNET_LOG debug_log_fprintf_disabled
 #endif
 
-#define BSC_NEXT_POWER_OF_TWO1(v) \
-    ((((unsigned int)v) - 1) | ((((unsigned int)v) - 1) >> 1))
-#define BSC_NEXT_POWER_OF_TWO2(v) \
-    (BSC_NEXT_POWER_OF_TWO1(v) | BSC_NEXT_POWER_OF_TWO1(v) >> 2)
-#define BSC_NEXT_POWER_OF_TWO3(v) \
-    (BSC_NEXT_POWER_OF_TWO2(v) | BSC_NEXT_POWER_OF_TWO2(v) >> 4)
-#define BSC_NEXT_POWER_OF_TWO4(v) \
-    (BSC_NEXT_POWER_OF_TWO3(v) | BSC_NEXT_POWER_OF_TWO3(v) >> 8)
-#define BSC_NEXT_POWER_OF_TWO(v) \
-    ((BSC_NEXT_POWER_OF_TWO4(v) | BSC_NEXT_POWER_OF_TWO4(v) >> 16)) + 1
-
 typedef enum {
     BSC_DATALINK_STATE_IDLE = 0,
     BSC_DATALINK_STATE_STARTING = 1,
@@ -48,8 +37,7 @@ typedef enum {
 } BSC_DATALINK_STATE;
 
 static FIFO_BUFFER bsc_fifo = { 0 };
-static uint8_t
-    bsc_fifo_buf[BSC_NEXT_POWER_OF_TWO(BSC_CONF_DATALINK_RX_BUFFER_SIZE)];
+static uint8_t bsc_fifo_buf[NEXT_POWER_OF_2(BSC_CONF_DATALINK_RX_BUFFER_SIZE)];
 static BSC_NODE *bsc_node = NULL;
 static BSC_NODE_CONF bsc_conf;
 static BSC_DATALINK_STATE bsc_datalink_state = BSC_DATALINK_STATE_IDLE;

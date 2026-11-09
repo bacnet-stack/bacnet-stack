@@ -221,6 +221,7 @@ ZTEST(ringbuf_tests, testRingBufPowerOfTwo)
 static void testRingBufPowerOfTwo(void)
 #endif
 {
+    zassert_equal(NEXT_POWER_OF_2(1), 1, NULL);
     zassert_equal(NEXT_POWER_OF_2(3), 4, NULL);
     zassert_equal(NEXT_POWER_OF_2(100), 128, NULL);
     zassert_equal(NEXT_POWER_OF_2(127), 128, NULL);
@@ -228,6 +229,7 @@ static void testRingBufPowerOfTwo(void)
     zassert_equal(NEXT_POWER_OF_2(129), 256, NULL);
     zassert_equal(NEXT_POWER_OF_2(300), 512, NULL);
     zassert_equal(NEXT_POWER_OF_2(500), 512, NULL);
+    zassert_equal(NEXT_POWER_OF_2(65537UL), 131072UL, NULL);
 }
 
 /**

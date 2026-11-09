@@ -1037,7 +1037,8 @@ bool dlmstp_init(const char *ifname)
         if (user && !user->Initialized) {
             Ringbuf_Initialize(
                 &user->PDU_Queue, user->PDU_Buffer, sizeof(user->PDU_Buffer),
-                sizeof(struct dlmstp_packet), DLMSTP_MAX_INFO_FRAMES);
+                sizeof(struct dlmstp_packet),
+                sizeof(user->PDU_Buffer) / sizeof(user->PDU_Buffer[0]));
             MSTP_Init(MSTP_Port);
             user->Initialized = true;
         }

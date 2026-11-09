@@ -95,7 +95,8 @@ static void test_MSTP_Datalink(void)
     zassert_true(status, NULL);
     zassert_true(MSTP_User.Initialized, NULL);
     zassert_equal(
-        Ringbuf_Size(&MSTP_User.PDU_Queue), DLMSTP_MAX_INFO_FRAMES, NULL);
+        Ringbuf_Size(&MSTP_User.PDU_Queue),
+        NEXT_POWER_OF_2(DLMSTP_MAX_INFO_FRAMES), NULL);
     zassert_equal(
         Ringbuf_Data_Size(&MSTP_User.PDU_Queue), sizeof(struct dlmstp_packet),
         NULL);

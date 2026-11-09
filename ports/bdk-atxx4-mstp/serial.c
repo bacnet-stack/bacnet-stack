@@ -16,7 +16,7 @@
 static uint32_t Baud_Rate = 9600;
 
 /* buffer for storing received bytes - size must be power of two */
-static uint8_t Receive_Buffer_Data[128];
+static uint8_t Receive_Buffer_Data[NEXT_POWER_OF_2(128)];
 static FIFO_BUFFER Receive_Buffer;
 
 static void serial_receiver_enable(void)

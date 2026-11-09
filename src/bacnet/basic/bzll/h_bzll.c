@@ -39,13 +39,14 @@ struct bzll_packet {
 /* Size of the protocol address size */
 #define BZLL_ADDRESS_SIZE (3)
 
-/* count must be a power of 2 for ringbuf library */
+/* Minimum queue capacity, rounded up to a power of 2 for ringbuf. */
 #ifndef BZLL_RECEIVE_PACKET_COUNT
 #define BZLL_RECEIVE_PACKET_COUNT 2
 #endif
 
 static uint16_t bzll_broadcast_group_id = 0;
-static struct bzll_packet Receive_Buffer[BZLL_RECEIVE_PACKET_COUNT];
+static struct bzll_packet
+    Receive_Buffer[NEXT_POWER_OF_2(BZLL_RECEIVE_PACKET_COUNT)];
 static RING_BUFFER Receive_Queue;
 static uint32_t bzll_time_scan_nodes_remaining = BZLL_SCAN_NODES_INTERVAL_S;
 
@@ -508,7 +509,8 @@ bool bzll_init(const char *interface_name)
     (void)interface_name;
     Ringbuf_Initialize(
         &Receive_Queue, Receive_Buffer, sizeof(Receive_Buffer),
-        sizeof(struct bzll_packet), BZLL_RECEIVE_PACKET_COUNT);
+        sizeof(struct bzll_packet),
+        sizeof(Receive_Buffer) / sizeof(Receive_Buffer[0]));
     BZLL_VMAC_Init();
     bzll_time_scan_nodes_remaining = BZLL_SCAN_NODES_INTERVAL_S;
 

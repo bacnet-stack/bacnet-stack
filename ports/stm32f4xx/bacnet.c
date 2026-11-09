@@ -30,11 +30,12 @@ struct mstp_rx_packet {
     uint16_t length;
     uint8_t buffer[MAX_MPDU];
 };
-/* count must be a power of 2 for ringbuf library */
+/* Minimum queue capacity, rounded up to a power of 2 for ringbuf. */
 #ifndef MSTP_RECEIVE_PACKET_COUNT
 #define MSTP_RECEIVE_PACKET_COUNT 2
 #endif
-static struct mstp_rx_packet Receive_Buffer[MSTP_RECEIVE_PACKET_COUNT];
+static struct mstp_rx_packet
+    Receive_Buffer[NEXT_POWER_OF_2(MSTP_RECEIVE_PACKET_COUNT)];
 static RING_BUFFER Receive_Queue;
 /* Device ID to track changes */
 static uint32_t Device_ID = 0xFFFFFFFF;
@@ -105,7 +106,7 @@ void bacnet_init(void)
 {
     Ringbuf_Init(
         &Receive_Queue, Receive_Buffer, sizeof(struct mstp_rx_packet),
-        MSTP_RECEIVE_PACKET_COUNT);
+        sizeof(Receive_Buffer) / sizeof(Receive_Buffer[0]));
     /* initialize objects */
     Device_Init(NULL);
     /* set up our confirmed service unrecognized service handler - required! */

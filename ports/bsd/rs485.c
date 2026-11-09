@@ -94,7 +94,7 @@ static bool RS485_SpecBaud = false;
 /* Ring buffer for incoming bytes, in order to speed up the receiving. */
 static FIFO_BUFFER Rx_FIFO;
 /* buffer size needs to be a power of 2 */
-static uint8_t Rx_Buffer[4096];
+static uint8_t Rx_Buffer[NEXT_POWER_OF_2(4096)];
 
 /**
  openSerialPort and closeSerialPort are adapted from Apple's own developer
