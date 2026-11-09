@@ -10,6 +10,7 @@
 #include <bacnet/bacapp.h>
 #include <bacnet/bacdcode.h>
 #include <bacnet/basic/object/device.h>
+#include <bacnet/basic/object/av.h>
 #include <bacnet/basic/object/loop.h>
 #include <bacnet/basic/service/h_apdu.h>
 #include <bacnet/bactext.h>
@@ -46,6 +47,67 @@ static bool Property_List_Proprietary(
     (void)object_instance;
     *property_list = Proprietary_Properties;
     return true;
+}
+
+/**
+ * @brief Only successful child object renames change the database revision.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Device_Object_Name_Database_Revision)
+#else
+static void test_Device_Object_Name_Database_Revision(void)
+#endif
+{
+    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
+    BACNET_CHARACTER_STRING name;
+    BACNET_CHARACTER_STRING actual_name;
+    uint32_t revision;
+    const uint32_t instance = 123456;
+
+    Device_Init(NULL);
+    zassert_equal(Analog_Value_Create(instance), instance, NULL);
+    wpdata.object_type = OBJECT_ANALOG_VALUE;
+    wpdata.object_instance = instance;
+    wpdata.object_property = PROP_OBJECT_NAME;
+    wpdata.array_index = BACNET_ARRAY_ALL;
+    characterstring_init_ansi(&name, "Renamed child for revision test");
+    wpdata.application_data_len =
+        encode_application_character_string(wpdata.application_data, &name);
+    revision = Device_Database_Revision();
+    zassert_true(Device_Write_Property(&wpdata), NULL);
+    zassert_equal(Device_Database_Revision(), revision + 1, NULL);
+    zassert_true(Analog_Value_Object_Name(instance, &actual_name), NULL);
+    zassert_true(characterstring_same(&name, &actual_name), NULL);
+
+    zassert_true(Device_Write_Property(&wpdata), NULL);
+    zassert_equal(Device_Database_Revision(), revision + 1, NULL);
+
+    zassert_true(
+        Device_Object_Name(Device_Object_Instance_Number(), &name), NULL);
+    wpdata.application_data_len =
+        encode_application_character_string(wpdata.application_data, &name);
+    zassert_false(Device_Write_Property(&wpdata), NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_DUPLICATE_NAME, NULL);
+    zassert_equal(Device_Database_Revision(), revision + 1, NULL);
+
+    characterstring_init_ansi(&name, "");
+    wpdata.application_data_len =
+        encode_application_character_string(wpdata.application_data, &name);
+    zassert_false(Device_Write_Property(&wpdata), NULL);
+    zassert_equal(Device_Database_Revision(), revision + 1, NULL);
+    zassert_true(Analog_Value_Object_Name(instance, &name), NULL);
+    zassert_true(characterstring_same(&name, &actual_name), NULL);
+    zassert_true(Analog_Value_Delete(instance), NULL);
+
+    wpdata.object_type = OBJECT_DEVICE;
+    wpdata.object_instance = Device_Object_Instance_Number();
+    wpdata.array_index = BACNET_ARRAY_ALL;
+    characterstring_init_ansi(&name, "Renamed device for revision test");
+    wpdata.application_data_len =
+        encode_application_character_string(wpdata.application_data, &name);
+    revision = Device_Database_Revision();
+    zassert_true(Device_Write_Property(&wpdata), NULL);
+    zassert_equal(Device_Database_Revision(), revision + 1, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -245,6 +307,52 @@ static bool Write_Property_Proprietary(BACNET_WRITE_PROPERTY_DATA *data)
 }
 
 #if defined(BAC_ROUTING)
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Routed_Device_Object_Name_Database_Revision)
+#else
+static void test_Routed_Device_Object_Name_Database_Revision(void)
+#endif
+{
+    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
+    BACNET_CHARACTER_STRING name;
+    const uint32_t instance = 123456;
+
+    Device_Init(NULL);
+    Routing_Device_Init(1000);
+    characterstring_init_ansi(&name, "Revision test virtual device");
+    zassert_equal(Add_Routed_Device(1001, &name, "Virtual"), 1, NULL);
+    zassert_equal(Analog_Value_Create(instance), instance, NULL);
+    zassert_true(Set_Routed_Device_Object_Index(0), NULL);
+    Device_Set_Database_Revision(10);
+    zassert_true(Set_Routed_Device_Object_Index(1), NULL);
+    Device_Set_Database_Revision(20);
+    wpdata.object_type = OBJECT_ANALOG_VALUE;
+    wpdata.object_instance = instance;
+    wpdata.object_property = PROP_OBJECT_NAME;
+    wpdata.array_index = BACNET_ARRAY_ALL;
+    characterstring_init_ansi(&name, "Renamed routed child for revision test");
+    wpdata.application_data_len =
+        encode_application_character_string(wpdata.application_data, &name);
+    zassert_true(Device_Write_Property(&wpdata), NULL);
+    zassert_equal(Device_Database_Revision(), 21, NULL);
+    zassert_true(Device_Write_Property(&wpdata), NULL);
+    zassert_equal(Device_Database_Revision(), 21, NULL);
+
+    wpdata.object_type = OBJECT_DEVICE;
+    wpdata.object_instance = Device_Object_Instance_Number();
+    characterstring_init_ansi(&name, "Renamed virtual device");
+    wpdata.application_data_len =
+        encode_application_character_string(wpdata.application_data, &name);
+    zassert_true(Device_Write_Property(&wpdata), NULL);
+    zassert_equal(Device_Database_Revision(), 22, NULL);
+
+    zassert_true(Set_Routed_Device_Object_Index(0), NULL);
+    zassert_equal(Device_Database_Revision(), 10, NULL);
+    zassert_true(Set_Routed_Device_Object_Index(1), NULL);
+    zassert_true(Analog_Value_Delete(instance), NULL);
+    zassert_true(Set_Routed_Device_Object_Index(0), NULL);
+}
+
 /**
  * @brief Verify routed virtual devices still do not expose DCC.
  */
@@ -1142,9 +1250,11 @@ void test_main(void)
         device_tests, ztest_unit_test(testDevice),
         ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Write_Property_Range),
+        ztest_unit_test(test_Device_Object_Name_Database_Revision),
         ztest_unit_test(test_Device_Write_Property_Empty_Payload),
         ztest_unit_test(test_Device_Backup_Failure_Timeout_Internal_Access),
         ztest_unit_test(test_Device_Backup_Failure_Timeout_Configuration_File),
+        ztest_unit_test(test_Routed_Device_Object_Name_Database_Revision),
         ztest_unit_test(test_Routed_Device_DCC_Remains_Blocked),
         ztest_unit_test(test_Routed_Device_Reinitialize),
         ztest_unit_test(test_Routed_Device_Read_Property_Instance),
@@ -1156,7 +1266,9 @@ void test_main(void)
         device_tests, ztest_unit_test(testDevice),
         ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Write_Property_Range),
+        ztest_unit_test(test_Device_Object_Name_Database_Revision),
         ztest_unit_test(test_Device_Write_Property_Empty_Payload),
+        ztest_unit_test(test_Routed_Device_Object_Name_Database_Revision),
         ztest_unit_test(test_Routed_Device_DCC_Remains_Blocked),
         ztest_unit_test(test_Routed_Device_Reinitialize),
         ztest_unit_test(test_Routed_Device_Read_Property_Instance),
@@ -1166,6 +1278,7 @@ void test_main(void)
         device_tests, ztest_unit_test(testDevice),
         ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Write_Property_Range),
+        ztest_unit_test(test_Device_Object_Name_Database_Revision),
         ztest_unit_test(test_Device_Write_Property_Empty_Payload),
         ztest_unit_test(test_Device_Backup_Failure_Timeout_Internal_Access),
         ztest_unit_test(test_Device_Backup_Failure_Timeout_Configuration_File));
@@ -1174,6 +1287,7 @@ void test_main(void)
         device_tests, ztest_unit_test(testDevice),
         ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Write_Property_Range),
+        ztest_unit_test(test_Device_Object_Name_Database_Revision),
         ztest_unit_test(test_Device_Write_Property_Empty_Payload));
 #endif
 

@@ -8,6 +8,7 @@
 #include <zephyr/ztest.h>
 #include <bacnet/bacdcode.h>
 #include <bacnet/basic/object/device.h>
+#include <bacnet/basic/object/av.h>
 #include <bacnet/basic/service/h_apdu.h>
 #include <bacnet/bactext.h>
 #include <datetime_local.h>
@@ -24,6 +25,57 @@ static bool Test_Write_Property_Store(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     Test_Write_Property_Store_Data = *wp_data;
     return Test_Write_Property_Return_Value;
+}
+
+/**
+ * @brief Only successful child object renames change the database revision.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Device_Object_Name_Database_Revision)
+#else
+static void test_Device_Object_Name_Database_Revision(void)
+#endif
+{
+    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
+    BACNET_CHARACTER_STRING name;
+    BACNET_CHARACTER_STRING actual_name;
+    uint32_t revision;
+    const uint32_t instance = 123456;
+
+    Device_Init(NULL);
+    zassert_equal(Analog_Value_Create(instance), instance, NULL);
+    wpdata.object_type = OBJECT_ANALOG_VALUE;
+    wpdata.object_instance = instance;
+    wpdata.object_property = PROP_OBJECT_NAME;
+    wpdata.array_index = BACNET_ARRAY_ALL;
+    characterstring_init_ansi(&name, "Renamed child for revision test");
+    wpdata.application_data_len =
+        encode_application_character_string(wpdata.application_data, &name);
+    revision = Device_Database_Revision();
+    zassert_true(Device_Write_Property(&wpdata), NULL);
+    zassert_equal(Device_Database_Revision(), revision + 1, NULL);
+    zassert_true(Analog_Value_Object_Name(instance, &actual_name), NULL);
+    zassert_true(characterstring_same(&name, &actual_name), NULL);
+
+    zassert_true(Device_Write_Property(&wpdata), NULL);
+    zassert_equal(Device_Database_Revision(), revision + 1, NULL);
+
+    zassert_true(
+        Device_Object_Name(Device_Object_Instance_Number(), &name), NULL);
+    wpdata.application_data_len =
+        encode_application_character_string(wpdata.application_data, &name);
+    zassert_false(Device_Write_Property(&wpdata), NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_DUPLICATE_NAME, NULL);
+    zassert_equal(Device_Database_Revision(), revision + 1, NULL);
+
+    characterstring_init_ansi(&name, "");
+    wpdata.application_data_len =
+        encode_application_character_string(wpdata.application_data, &name);
+    zassert_false(Device_Write_Property(&wpdata), NULL);
+    zassert_equal(Device_Database_Revision(), revision + 1, NULL);
+    zassert_true(Analog_Value_Object_Name(instance, &name), NULL);
+    zassert_true(characterstring_same(&name, &actual_name), NULL);
+    zassert_true(Analog_Value_Delete(instance), NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -905,6 +957,7 @@ void test_main(void)
         device_tests, ztest_unit_test(testDevice),
         ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Write_Property_Range),
+        ztest_unit_test(test_Device_Object_Name_Database_Revision),
         ztest_unit_test(test_Device_CharacterString_Property_Values),
         ztest_unit_test(test_Device_Last_Restart_Reason),
         ztest_unit_test(test_Device_Object_Functions_APIs),
@@ -916,6 +969,7 @@ void test_main(void)
         device_tests, ztest_unit_test(testDevice),
         ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Write_Property_Range),
+        ztest_unit_test(test_Device_Object_Name_Database_Revision),
         ztest_unit_test(test_Device_CharacterString_Property_Values),
         ztest_unit_test(test_Device_Last_Restart_Reason),
         ztest_unit_test(test_Device_Object_Functions_APIs),
