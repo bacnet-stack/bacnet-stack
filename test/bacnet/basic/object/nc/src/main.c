@@ -13,6 +13,7 @@
 #include <bacnet/list_element.h>
 #include <bacnet/basic/object/nc.h>
 #include <bacnet/basic/object/device.h>
+#include <property_test.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -171,6 +172,21 @@ static void test_Notification_Class_Read_Write_Property(void)
     wpdata.object_property = PROP_ALL;
     status = Notification_Class_Write_Property(&wpdata);
     zassert_false(status, NULL);
+    /* description */
+    zassert_equal(
+        strcmp(Notification_Class_Description(instance), ""), 0, NULL);
+    status = Notification_Class_Description_Set(instance, "Test NC");
+    zassert_true(status, NULL);
+    zassert_equal(
+        strcmp(Notification_Class_Description(instance), "Test NC"), 0, NULL);
+    status = Notification_Class_Description_Set(BACNET_MAX_INSTANCE, "Test NC");
+    zassert_false(status, NULL);
+    zassert_is_null(Notification_Class_Description(BACNET_MAX_INSTANCE), NULL);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Notification_Class_Description_Duplicate,
+        Notification_Class_Description);
+    status = Notification_Class_Delete(instance);
+    zassert_true(status, NULL);
 
     return;
 }
