@@ -141,7 +141,7 @@ static void testAlert_Enrollment_APIs(void)
 
     /* fill the ring buffer to capacity, then verify it rejects further
        alerts until the intrinsic-reporting hook drains it */
-    for (i = 0; i < (ALERT_ENROLLMENT_ALERT_COUNT - 1); i++) {
+    for (i = 0; i < (NEXT_POWER_OF_2(ALERT_ENROLLMENT_ALERT_COUNT) - 1); i++) {
         characterstring_buffer_ansi_init(&alert.messageText, "queued");
         status = Alert_Enrollment_Queue_Alert(instance, &alert);
         zassert_true(status, NULL);

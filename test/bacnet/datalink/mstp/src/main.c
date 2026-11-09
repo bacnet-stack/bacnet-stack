@@ -68,7 +68,7 @@ static void Load_Input_Buffer(const uint8_t *buffer, size_t len)
     static bool initialized = false; /* tracks our init */
     if (!initialized) {
         initialized = true;
-        FIFO_Init(&Test_Queue, Test_Queue_Data, MAX_MPDU);
+        FIFO_Init(&Test_Queue, Test_Queue_Data, sizeof(Test_Queue_Data));
     }
     /* empty any the existing data */
     FIFO_Flush(&Test_Queue);

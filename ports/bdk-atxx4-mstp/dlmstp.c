@@ -27,7 +27,7 @@
     Only one MS/TP datalink layer
 */
 
-/* count must be a power of 2 for ringbuf library */
+/* Minimum queue capacity, rounded up to a power of 2 for ringbuf. */
 #ifndef MSTP_PDU_PACKET_COUNT
 #error MSTP_PDU_PACKET_COUNT must be defined!
 #endif
@@ -155,14 +155,15 @@ struct mstp_pdu_packet {
     uint16_t length;
     uint8_t buffer[DLMSTP_MPDU_MAX];
 };
-static struct mstp_pdu_packet PDU_Buffer[MSTP_PDU_PACKET_COUNT];
+static struct mstp_pdu_packet PDU_Buffer[NEXT_POWER_OF_2(MSTP_PDU_PACKET_COUNT)];
 static RING_BUFFER PDU_Queue;
 
 bool dlmstp_init(const char *ifname)
 {
     (void)ifname;
     Ringbuf_Init(&PDU_Queue, PDU_Buffer,
-        sizeof(struct mstp_pdu_packet), MSTP_PDU_PACKET_COUNT);
+        sizeof(struct mstp_pdu_packet),
+        sizeof(PDU_Buffer) / sizeof(PDU_Buffer[0]));
 
     return true;
 }

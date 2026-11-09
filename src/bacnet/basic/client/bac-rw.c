@@ -70,11 +70,11 @@ typedef struct target_data_t {
     } type;
 } TARGET_DATA;
 #define TARGET_DATA_QUEUE_SIZE (sizeof(struct target_data_t))
-/* count must be a power of 2 for ringbuf library */
+/* Minimum queue capacity, rounded up to a power of 2 for ringbuf. */
 #ifndef TARGET_DATA_QUEUE_COUNT
 #define TARGET_DATA_QUEUE_COUNT 8
 #endif
-static TARGET_DATA Target_Data_Buffer[TARGET_DATA_QUEUE_COUNT];
+static TARGET_DATA Target_Data_Buffer[NEXT_POWER_OF_2(TARGET_DATA_QUEUE_COUNT)];
 static RING_BUFFER Target_Data_Queue;
 /* local storage - keeps it off the c-stack */
 static BACNET_APPLICATION_DATA_VALUE Target_Decoded_Property_Value;
@@ -979,7 +979,8 @@ void bacnet_read_write_init(void)
 {
     Ringbuf_Initialize(
         &Target_Data_Queue, Target_Data_Buffer, sizeof(Target_Data_Buffer),
-        TARGET_DATA_QUEUE_SIZE, TARGET_DATA_QUEUE_COUNT);
+        TARGET_DATA_QUEUE_SIZE,
+        sizeof(Target_Data_Buffer) / sizeof(Target_Data_Buffer[0]));
     /* handle i-am to support binding to other devices */
     apdu_set_unconfirmed_handler(SERVICE_UNCONFIRMED_I_AM, My_I_Am_Bind);
     /* handle the data coming back from confirmed requests */

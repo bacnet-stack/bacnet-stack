@@ -26,7 +26,7 @@ static void testFIFOBuffer(void)
     /* FIFO data structure */
     FIFO_BUFFER test_buffer = { 0 };
     /* FIFO data store. Note:  size must be a power of two! */
-    volatile uint8_t data_store[64] = { 0 };
+    volatile uint8_t data_store[NEXT_POWER_OF_2(63)] = { 0 };
     uint8_t add_data[40] = { "RoseSteveLouPatRachelJessicaDaniAmyHerb" };
     uint8_t test_add_data[40] = { 0 };
     uint8_t test_data = 0;
@@ -38,6 +38,7 @@ static void testFIFOBuffer(void)
     bool status = 0;
 
     FIFO_Init(&test_buffer, data_store, sizeof(data_store));
+    zassert_equal(sizeof(data_store), 64, NULL);
     zassert_true(FIFO_Empty(&test_buffer), NULL);
 
     /* load the buffer */

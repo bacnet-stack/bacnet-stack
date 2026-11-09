@@ -18,12 +18,9 @@
 
 #if BACNET_EVENT_EXTENDED_ENABLED && defined(INTRINSIC_REPORTING)
 
-/* count must be a power of 2 for ringbuf library */
+/* Minimum queue capacity, rounded up to a power of 2 for ringbuf. */
 #ifndef ALERT_ENROLLMENT_ALERT_COUNT
 #define ALERT_ENROLLMENT_ALERT_COUNT 2
-#endif
-#if (ALERT_ENROLLMENT_ALERT_COUNT & (ALERT_ENROLLMENT_ALERT_COUNT - 1)) != 0
-#error "ALERT_ENROLLMENT_ALERT_COUNT must be a power of 2"
 #endif
 
 typedef struct bacnet_alert {
@@ -40,7 +37,7 @@ typedef struct alert_enrollment_descr {
     BACNET_CHARACTER_CSTRING Description;
     void *Context;
     uint32_t Notification_Class;
-    BACNET_ALERT Alert_Buffer[ALERT_ENROLLMENT_ALERT_COUNT];
+    BACNET_ALERT Alert_Buffer[NEXT_POWER_OF_2(ALERT_ENROLLMENT_ALERT_COUNT)];
     RING_BUFFER Alert_Queue;
 } ALERT_ENROLLMENT_DESCR;
 

@@ -843,7 +843,9 @@ uint32_t Alert_Enrollment_Create(uint32_t object_instance)
             }
             Ringbuf_Init(
                 &pObject->Alert_Queue, pObject->Alert_Buffer,
-                sizeof(BACNET_ALERT), ALERT_ENROLLMENT_ALERT_COUNT);
+                sizeof(BACNET_ALERT),
+                sizeof(pObject->Alert_Buffer) /
+                    sizeof(pObject->Alert_Buffer[0]));
         } else {
             return BACNET_MAX_INSTANCE;
         }
