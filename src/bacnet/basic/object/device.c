@@ -2141,9 +2141,21 @@ void Device_UUID_Get(uint8_t *uuid, size_t length)
     }
 }
 
+static BACNET_DEVICE_STATUS *Device_System_Status_Value(void)
+{
+#if defined(BAC_ROUTING)
+    DEVICE_OBJECT_DATA *pDev = Device_Routed_Data();
+
+    if (pDev) {
+        return &pDev->System_Status;
+    }
+#endif
+    return &System_Status;
+}
+
 BACNET_DEVICE_STATUS Device_System_Status(void)
 {
-    return System_Status;
+    return *Device_System_Status_Value();
 }
 
 int Device_Set_System_Status(BACNET_DEVICE_STATUS status, bool local)
@@ -2162,7 +2174,7 @@ int Device_Set_System_Status(BACNET_DEVICE_STATUS status, bool local)
 #if defined BACNET_BACKUP_RESTORE
             case STATUS_BACKUP_IN_PROGRESS:
 #endif
-                System_Status = status;
+                *Device_System_Status_Value() = status;
                 break;
 #ifndef BACNET_BACKUP_RESTORE
             case STATUS_BACKUP_IN_PROGRESS:
@@ -2182,7 +2194,7 @@ int Device_Set_System_Status(BACNET_DEVICE_STATUS status, bool local)
                  * overall device operation. The lack of password protection
                  * or other authentication makes allowing writes to this
                  * property a risky facility to provide. */
-                System_Status = status;
+                *Device_System_Status_Value() = status;
                 break;
             case STATUS_DOWNLOAD_REQUIRED:
             case STATUS_DOWNLOAD_IN_PROGRESS:
@@ -3187,7 +3199,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 encode_application_character_string(&apdu[0], &char_string);
             break;
         case PROP_SYSTEM_STATUS:
-            apdu_len = encode_application_enumerated(&apdu[0], System_Status);
+            apdu_len =
+                encode_application_enumerated(&apdu[0], Device_System_Status());
             break;
         case PROP_VENDOR_NAME:
             characterstring_init_ansi(&char_string, Device_Vendor_Name());

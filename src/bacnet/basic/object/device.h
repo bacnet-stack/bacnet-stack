@@ -221,6 +221,7 @@ typedef struct devObj_s {
     uint32_t Database_Revision;
 
 #if defined(BAC_ROUTING)
+    BACNET_DEVICE_STATUS System_Status;
     BACNET_DEVICE_REINITIALIZE_DATA Reinitialize;
 
     /** Per-Device values set with Routed_Device_Set_<Property>().
