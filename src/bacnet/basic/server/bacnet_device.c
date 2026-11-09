@@ -3613,6 +3613,9 @@ static bool Device_Write_Property_Object_Name(
             }
         } else {
             status = Object_Write_Property(wp_data);
+            if (status && (wp_data->object_type != OBJECT_DEVICE)) {
+                Device_Inc_Database_Revision();
+            }
         }
     }
 
