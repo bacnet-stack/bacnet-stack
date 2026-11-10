@@ -46,6 +46,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <time.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <unistd.h>
@@ -64,7 +65,6 @@
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
-#include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
 #include "bacnet/basic/object/device.h"
@@ -95,10 +95,6 @@ static GW_CONFIG Gw_Config;
 
 /** Point table (loaded from JSON) */
 static GW_POINT_TABLE Point_Table;
-
-/* timers for cyclic tasks */
-static struct mstimer BACnet_Task_Timer;
-static struct mstimer Poll_Timer;
 
 /* ────────────────────────────────────────────────────────────────────────
  * Signal handler
@@ -150,8 +146,10 @@ int main(int argc, char *argv[])
     uint32_t override_inst = 0;
     BACNET_ADDRESS src = { 0 };
     uint16_t pdu_len = 0;
+    time_t current_sec = 0;
+    time_t last_sec = 0;
+    time_t last_poll_sec = 0;
     uint32_t elapsed_sec = 0;
-    uint32_t elapsed_msec = 0;
     char baud_str[16] = { 0 };
     char mac_str[8] = { 0 };
     char max_master_str[16] = { 0 };
@@ -350,14 +348,7 @@ int main(int argc, char *argv[])
     /* ── Broadcast I-Am ── */
     Send_I_Am(&Handler_Transmit_Buffer[0]);
 
-    /* ── Configure the timers ── */
-    mstimer_set(&BACnet_Task_Timer, 1000UL);
-    /* a zero interval never expires, so use the shortest interval */
-    mstimer_set(
-        &Poll_Timer,
-        (Gw_Config.poll_interval_sec > 0)
-            ? ((unsigned long)Gw_Config.poll_interval_sec * 1000UL)
-            : 1UL);
+    last_sec = last_poll_sec = time(NULL);
 
     /* ── Initial poll immediately on startup ── */
     point_table_poll_modbus(&Point_Table);
@@ -367,6 +358,8 @@ int main(int argc, char *argv[])
      * Main loop
      * ════════════════════════════════════════*/
     while (Running) {
+        current_sec = time(NULL);
+
         /* ── Receive BACnet frames ── */
         pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, 10 /*ms*/);
         if (pdu_len > 0) {
@@ -374,24 +367,22 @@ int main(int argc, char *argv[])
         }
 
         /* ── 1-second BACnet timer tasks ── */
-        if (mstimer_expired(&BACnet_Task_Timer)) {
-            mstimer_reset(&BACnet_Task_Timer);
-            /* presume that the elapsed time is the interval time */
-            elapsed_msec = mstimer_interval(&BACnet_Task_Timer);
-            elapsed_sec = elapsed_msec / 1000;
+        elapsed_sec = (uint32_t)(current_sec - last_sec);
+        if (elapsed_sec > 0) {
+            last_sec = current_sec;
             dcc_timer_seconds(elapsed_sec);
             datalink_maintenance_timer(elapsed_sec);
             dlenv_maintenance_timer(elapsed_sec);
-            tsm_timer_milliseconds(elapsed_msec);
-            Device_Timer(elapsed_msec);
+            tsm_timer_milliseconds(elapsed_sec * 1000);
+            Device_Timer(elapsed_sec * 1000);
         }
 
         /* ── COV task ── */
         handler_cov_task();
 
         /* ── Modbus polling ── */
-        if (mstimer_expired(&Poll_Timer)) {
-            mstimer_restart(&Poll_Timer);
+        if ((current_sec - last_poll_sec) >= Gw_Config.poll_interval_sec) {
+            last_poll_sec = current_sec;
             point_table_poll_modbus(&Point_Table);
         }
     }

@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <time.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
 /* BACnet Stack API */
@@ -28,7 +29,6 @@
 #include "bacnet/basic/tsm/tsm.h"
 #include "bacnet/basic/services.h"
 #include "bacnet/basic/sys/debug.h"
-#include "bacnet/basic/sys/mstimer.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/datalink/dlenv.h"
 /* include the device object */
@@ -60,9 +60,6 @@ int32_t DNET_list[2] = {
 
 /* current version of the BACnet stack */
 static const char *BACnet_Version = BACNET_VERSION_TEXT;
-
-/* timer for cyclic tasks */
-static struct mstimer BACnet_Task_Timer;
 
 /* routed devices - I-Am on startup */
 static unsigned Routed_Device_Index = 1;
@@ -212,6 +209,8 @@ int main(int argc, char *argv[])
     BACNET_ADDRESS src = { 0 }; /* address where message came from */
     uint16_t pdu_len = 0;
     unsigned timeout = 1000; /* milliseconds */
+    time_t last_seconds = 0;
+    time_t current_seconds = 0;
     uint32_t elapsed_seconds = 0;
     uint32_t elapsed_milliseconds = 0;
     uint32_t first_object_instance = FIRST_DEVICE_NUMBER;
@@ -260,8 +259,8 @@ int main(int argc, char *argv[])
     device = vmac_initialize(99, 2001);
     debug_printf(device->name, "ROUTER:%u", vmac_get_subnet());
 #endif
-    /* configure the timer */
-    mstimer_set(&BACnet_Task_Timer, 1000UL);
+    /* configure the timeout values */
+    last_seconds = time(NULL);
 
     /* broadcast an I-am-router-to-network on startup */
     printf("Remote Network DNET Number %d \n", DNET_list[0]);
@@ -270,6 +269,8 @@ int main(int argc, char *argv[])
     /* loop forever */
     for (;;) {
         /* input */
+        current_seconds = time(NULL);
+
         /* returns 0 bytes on timeout */
         pdu_len = datalink_receive(&src, &Rx_Buf[0], MAX_MPDU, timeout);
 
@@ -277,15 +278,14 @@ int main(int argc, char *argv[])
         if (pdu_len) {
             routing_npdu_handler(&src, DNET_list, &Rx_Buf[0], pdu_len);
         }
-        /* 1 second tasks */
-        if (mstimer_expired(&BACnet_Task_Timer)) {
-            mstimer_reset(&BACnet_Task_Timer);
-            /* presume that the elapsed time is the interval time */
-            elapsed_milliseconds = mstimer_interval(&BACnet_Task_Timer);
-            elapsed_seconds = elapsed_milliseconds / 1000;
+        /* at least one second has passed */
+        elapsed_seconds = current_seconds - last_seconds;
+        if (elapsed_seconds) {
+            last_seconds = current_seconds;
             dcc_timer_seconds(elapsed_seconds);
             datalink_maintenance_timer(elapsed_seconds);
             dlenv_maintenance_timer(elapsed_seconds);
+            elapsed_milliseconds = elapsed_seconds * 1000;
             tsm_timer_milliseconds(elapsed_milliseconds);
             Device_Timer(elapsed_milliseconds);
         }
