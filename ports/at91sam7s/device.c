@@ -853,7 +853,8 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
             i = 0;
             pObject = &Object_Table[i];
             while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
-                if ((pObject->Object_Count) && (pObject->Object_Count() > 0)) {
+                if ((pObject->Object_Type < MAX_ASHRAE_OBJECT_TYPE) &&
+                    (pObject->Object_Count) && (pObject->Object_Count() > 0)) {
                     bitstring_set_bit(&bit_string, pObject->Object_Type, true);
                 }
                 pObject++;
