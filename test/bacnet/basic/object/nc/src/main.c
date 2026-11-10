@@ -13,6 +13,7 @@
 #include <bacnet/list_element.h>
 #include <bacnet/basic/object/nc.h>
 #include <bacnet/basic/object/device.h>
+#include <property_test.h>
 
 /**
  * @addtogroup bacnet_tests
@@ -113,8 +114,7 @@ static void test_Notification_Class_Read_Write_Property(void)
             bactext_property_name(rpdata.object_property));
         if (len > 0) {
             test_len = bacapp_decode_application_data(
-                rpdata.application_data, (uint8_t)rpdata.application_data_len,
-                &value);
+                rpdata.application_data, len, &value);
             zassert_equal(
                 len, test_len, "property '%s': failed to decode!\n",
                 bactext_property_name(rpdata.object_property));
@@ -173,6 +173,89 @@ static void test_Notification_Class_Read_Write_Property(void)
     zassert_false(status, NULL);
 
     return;
+}
+
+/**
+ * @brief Test the Description property API, ReadProperty, and WriteProperty
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(notification_class_tests, test_Notification_Class_Description)
+#else
+static void test_Notification_Class_Description(void)
+#endif
+{
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int len = 0;
+    const uint32_t instance = 1;
+    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_CHARACTER_STRING char_string = { 0 };
+    bool status = false;
+
+    Notification_Class_Cleanup();
+    Notification_Class_Init();
+    Notification_Class_Create(instance);
+    /* API */
+    zassert_equal(
+        strcmp(Notification_Class_Description(instance), ""), 0, NULL);
+    status = Notification_Class_Description_Set(instance, "Test NC");
+    zassert_true(status, NULL);
+    zassert_equal(
+        strcmp(Notification_Class_Description(instance), "Test NC"), 0, NULL);
+    status = Notification_Class_Description_Set(BACNET_MAX_INSTANCE, "Test NC");
+    zassert_false(status, NULL);
+    zassert_is_null(Notification_Class_Description(BACNET_MAX_INSTANCE), NULL);
+    bacnet_object_name_ascii_duplicate_test(
+        instance, Notification_Class_Description_Duplicate,
+        Notification_Class_Description);
+    /* WriteProperty, then ReadProperty */
+    wpdata.object_type = OBJECT_NOTIFICATION_CLASS;
+    wpdata.object_instance = instance;
+    wpdata.object_property = PROP_DESCRIPTION;
+    wpdata.array_index = BACNET_ARRAY_ALL;
+    characterstring_init_ansi(&char_string, "Written NC");
+    wpdata.application_data_len = encode_application_character_string(
+        wpdata.application_data, &char_string);
+    status = Notification_Class_Write_Property(&wpdata);
+    zassert_true(status, NULL);
+    zassert_equal(
+        strcmp(Notification_Class_Description(instance), "Written NC"), 0,
+        NULL);
+    rpdata.application_data = &apdu[0];
+    rpdata.application_data_len = sizeof(apdu);
+    rpdata.object_type = OBJECT_NOTIFICATION_CLASS;
+    rpdata.object_instance = instance;
+    rpdata.object_property = PROP_DESCRIPTION;
+    rpdata.array_index = BACNET_ARRAY_ALL;
+    len = Notification_Class_Read_Property(&rpdata);
+    zassert_true(len > 0, NULL);
+    len = bacapp_decode_application_data(apdu, len, &value);
+    zassert_true(len > 0, NULL);
+    zassert_equal(value.tag, BACNET_APPLICATION_TAG_CHARACTER_STRING, NULL);
+    zassert_true(
+        characterstring_ansi_same(&value.type.Character_String, "Written NC"),
+        NULL);
+    /* WriteProperty - invalid UTF-8 */
+    characterstring_init(&char_string, CHARACTER_UTF8, "\xff", 1);
+    wpdata.application_data_len = encode_application_character_string(
+        wpdata.application_data, &char_string);
+    wpdata.error_code = ERROR_CODE_SUCCESS;
+    status = Notification_Class_Write_Property(&wpdata);
+    zassert_false(status, NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+    zassert_equal(
+        strcmp(Notification_Class_Description(instance), "Written NC"), 0,
+        NULL);
+    /* WriteProperty - wrong datatype */
+    wpdata.application_data_len =
+        encode_application_unsigned(wpdata.application_data, 1);
+    wpdata.error_code = ERROR_CODE_SUCCESS;
+    status = Notification_Class_Write_Property(&wpdata);
+    zassert_false(status, NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    status = Notification_Class_Delete(instance);
+    zassert_true(status, NULL);
 }
 
 /**
@@ -822,6 +905,7 @@ void test_main(void)
     ztest_test_suite(
         notification_class_tests,
         ztest_unit_test(test_Notification_Class_Read_Write_Property),
+        ztest_unit_test(test_Notification_Class_Description),
         ztest_unit_test(test_Notification_Class_Priority),
         ztest_unit_test(test_Notification_Class_Ack_Required),
         ztest_unit_test(test_Notification_Class_Recipient_List),

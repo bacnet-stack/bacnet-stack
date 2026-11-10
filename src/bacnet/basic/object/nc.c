@@ -18,6 +18,7 @@
 #include "bacnet/bacdcode.h"
 #include "bacnet/bacapp.h"
 #include "bacnet/bacdest.h"
+#include "bacnet/bacstr.h"
 #include "bacnet/datetime.h"
 #include "bacnet/event.h"
 #include "bacnet/wp.h"
@@ -67,7 +68,7 @@ static const int32_t Properties_Required[] = {
 
 static const int32_t Properties_Optional[] = {
     /* unordered list of optional properties */
-    -1
+    PROP_DESCRIPTION, -1
 };
 
 static const int32_t Properties_Proprietary[] = { -1 };
@@ -78,7 +79,7 @@ static const int32_t Properties_Proprietary[] = { -1 };
    that is always writable.  */
 static const int32_t Writable_Properties[] = {
     /* unordered list of always writable properties */
-    PROP_PRIORITY, PROP_ACK_REQUIRED, PROP_RECIPIENT_LIST, -1
+    PROP_PRIORITY, PROP_ACK_REQUIRED, PROP_RECIPIENT_LIST, PROP_DESCRIPTION, -1
 };
 
 void Notification_Class_Property_Lists(
@@ -233,6 +234,7 @@ bool Notification_Class_Delete(uint32_t object_instance)
 
     pObject = Keylist_Data_Delete(NC_Info, object_instance);
     if (pObject) {
+        bacnet_character_cstring_free(&pObject->Description);
         free(pObject);
         status = true;
     }
@@ -259,6 +261,7 @@ void Notification_Class_Cleanup(void)
             do {
                 pObject = Keylist_Data_Pop(NC_Info);
                 if (pObject) {
+                    bacnet_character_cstring_free(&pObject->Description);
                     free(pObject);
                 }
             } while (pObject);
@@ -333,6 +336,104 @@ bool Notification_Class_Object_Name(
     return status;
 }
 
+/**
+ * @brief For a given object instance-number, returns the description
+ * @param  object_instance - object-instance number of the object
+ * @return description text or NULL if not found
+ */
+const char *Notification_Class_Description(uint32_t object_instance)
+{
+    const char *name = NULL;
+    const NOTIFICATION_CLASS_INFO *pObject = NULL;
+
+    pObject = Notification_Class_Object(object_instance);
+    if (pObject) {
+        name =
+            bacnet_character_cstring_value_default(&pObject->Description, "");
+    }
+
+    return name;
+}
+
+/**
+ * @brief For a given object instance-number, sets a BACnet character string
+ *  by referencing an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name Holds a pointer to a static constant ANSI C string for
+ *  zero copy, or NULL to clear it.
+ * @return true if the description was set
+ */
+bool Notification_Class_Description_Set(
+    uint32_t object_instance, const char *new_name)
+{
+    bool status = false; /* return value */
+    NOTIFICATION_CLASS_INFO *pObject = NULL;
+
+    pObject = Notification_Class_Object(object_instance);
+    if (pObject) {
+        status = bacnet_character_cstring_set(&pObject->Description, new_name);
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the description
+ *  by duplicating (copying) an ANSI C string.
+ * @param object_instance object-instance number of the object
+ * @param new_name ANSI C string to copy, or NULL to clear it.
+ * @return true if description was set. The description is unchanged on
+ *  failure (object not found, string too long, or out of memory).
+ */
+bool Notification_Class_Description_Duplicate(
+    uint32_t object_instance, const char *new_name)
+{
+    bool status = false;
+    NOTIFICATION_CLASS_INFO *pObject = NULL;
+
+    pObject = Notification_Class_Object(object_instance);
+    if (pObject) {
+        status = bacnet_character_cstring_strndup(
+            &pObject->Description, new_name, SIZE_MAX);
+    }
+
+    return status;
+}
+
+/**
+ * @brief For a given object instance-number, sets the description property
+ *  value
+ * @param wp_data - BACnet WriteProperty data with the object-instance number
+ * @param cstring - holds the description to be set
+ * @return true if description was set
+ */
+static bool Notification_Class_Description_Write(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *cstring)
+{
+    bool status = false;
+    NOTIFICATION_CLASS_INFO *pObject = NULL;
+
+    pObject = Notification_Class_Object(wp_data->object_instance);
+    if (pObject) {
+        if (characterstring_utf8_valid(cstring)) {
+            status = bacnet_character_cstring_from_characterstring_strdup(
+                &pObject->Description, cstring);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+            }
+        } else {
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        }
+    } else {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_UNKNOWN_OBJECT;
+    }
+
+    return status;
+}
+
 int Notification_Class_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 {
     NOTIFICATION_CLASS_INFO *CurrentNotify;
@@ -374,6 +475,14 @@ int Notification_Class_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
         case PROP_OBJECT_TYPE:
             apdu_len = encode_application_enumerated(
                 &apdu[0], OBJECT_NOTIFICATION_CLASS);
+            break;
+
+        case PROP_DESCRIPTION:
+            characterstring_init_ansi(
+                &char_string,
+                Notification_Class_Description(rpdata->object_instance));
+            apdu_len =
+                encode_application_character_string(&apdu[0], &char_string);
             break;
 
         case PROP_PRIORITY:
@@ -497,6 +606,15 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
     switch (wp_data->object_property) {
+        case PROP_DESCRIPTION:
+            status = write_property_type_valid(
+                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            if (status) {
+                status = Notification_Class_Description_Write(
+                    wp_data, &value.type.Character_String);
+            }
+            break;
+
         case PROP_PRIORITY:
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
