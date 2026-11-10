@@ -436,7 +436,9 @@ int main(int argc, char *argv[])
             npdu_handler(&src, &Rx_Buf[0], pdu_len);
         }
         if (mstimer_expired(&BACnet_Task_Timer)) {
-            elapsed_seconds = mstimer_restart_unit(&BACnet_Task_Timer, 1000);
+            mstimer_reset(&BACnet_Task_Timer);
+            elapsed_milliseconds = mstimer_interval(&BACnet_Task_Timer);
+            elapsed_seconds = elapsed_milliseconds / 1000;
             /* 1 second tasks */
             dcc_timer_seconds(elapsed_seconds);
             datalink_maintenance_timer(elapsed_seconds);
@@ -452,11 +454,14 @@ int main(int argc, char *argv[])
 #endif
         }
         if (mstimer_expired(&BACnet_TSM_Timer)) {
-            elapsed_milliseconds = mstimer_restart_unit(&BACnet_TSM_Timer, 1);
+            mstimer_reset(&BACnet_TSM_Timer);
+            elapsed_milliseconds = mstimer_interval(&BACnet_TSM_Timer);
             tsm_timer_milliseconds(elapsed_milliseconds);
         }
         if (mstimer_expired(&BACnet_Address_Timer)) {
-            elapsed_seconds = mstimer_restart_unit(&BACnet_Address_Timer, 1000);
+            mstimer_reset(&BACnet_Address_Timer);
+            elapsed_milliseconds = mstimer_interval(&BACnet_Address_Timer);
+            elapsed_seconds = elapsed_milliseconds / 1000;
             address_cache_timer(elapsed_seconds);
         }
         handler_cov_task();
@@ -468,12 +473,8 @@ int main(int argc, char *argv[])
 #endif
         /* output */
         if (mstimer_expired(&BACnet_Object_Timer)) {
-            elapsed_milliseconds =
-                mstimer_restart_unit(&BACnet_Object_Timer, 1);
-            while (elapsed_milliseconds > UINT16_MAX) {
-                Device_Timer(UINT16_MAX);
-                elapsed_milliseconds -= UINT16_MAX;
-            }
+            mstimer_reset(&BACnet_Object_Timer);
+            elapsed_milliseconds = mstimer_interval(&BACnet_Object_Timer);
             Device_Timer(elapsed_milliseconds);
         }
     }
