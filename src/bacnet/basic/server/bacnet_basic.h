@@ -52,6 +52,8 @@ void bacnet_basic_task_callback_set(
     bacnet_basic_callback callback, void *context);
 BACNET_STACK_EXPORT
 void bacnet_basic_task_object_timer_set(unsigned long milliseconds);
+BACNET_STACK_EXPORT
+unsigned long bacnet_basic_task_object_timer_milliseconds(void);
 
 BACNET_STACK_EXPORT
 void bacnet_basic_store_callback_set(bacnet_basic_store_callback callback);
