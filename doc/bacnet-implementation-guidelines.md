@@ -244,6 +244,11 @@ String values from servers with lengths longer or shorter than those
 defined for the Protocol\_Revision value to which the client device was
 implemented.
 
+When encoding Protocol\_Object\_Types\_Supported, report only object types
+for the configured protocol revision. Do not set bits for proprietary
+object types or standard types introduced in later revisions.
+(ANSI/ASHRAE 135-2024, Clause 12.11.15).
+
 The length of Protocol\_Services\_Supported property value
 
 |          |      |                                                                                                                |

@@ -26,6 +26,55 @@ static uint8_t Proprietary_Serial_Number[16] = {
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16
 };
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Device_Protocol_Object_Types_Supported)
+#else
+static void test_Device_Protocol_Object_Types_Supported(void)
+#endif
+{
+    object_functions_t object_table[7] = { 0 };
+    const BACNET_OBJECT_TYPE object_types[] = { OBJECT_PROPRIETARY_MIN,
+                                                OBJECT_PROPRIETARY_MIN + 1,
+                                                OBJECT_PROPRIETARY_MIN +
+                                                    MAX_ASHRAE_OBJECT_TYPE,
+                                                MAX_ASHRAE_OBJECT_TYPE,
+                                                MAX_ASHRAE_OBJECT_TYPE - 1,
+                                                OBJECT_DEVICE,
+                                                MAX_BACNET_OBJECT_TYPE };
+    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    unsigned i;
+    int len;
+
+    Device_Init(NULL);
+    for (i = 0; i < ARRAY_SIZE(object_table); i++) {
+        object_table[i].Object_Type = object_types[i];
+        object_table[i].Object_Count = Device_Count;
+    }
+    Device_Object_Functions_Init(object_table);
+    rpdata.object_type = OBJECT_DEVICE;
+    rpdata.object_instance = Device_Object_Instance_Number();
+    rpdata.object_property = PROP_PROTOCOL_OBJECT_TYPES_SUPPORTED;
+    rpdata.array_index = BACNET_ARRAY_ALL;
+    rpdata.application_data = apdu;
+    rpdata.application_data_len = sizeof(apdu);
+    len = Device_Read_Property_Local(&rpdata);
+    zassert_true(len > 0, NULL);
+    zassert_equal(bacapp_decode_application_data(apdu, len, &value), len, NULL);
+    zassert_equal(value.tag, BACNET_APPLICATION_TAG_BIT_STRING, NULL);
+    zassert_equal(
+        bitstring_bits_used(&value.type.Bit_String), MAX_ASHRAE_OBJECT_TYPE,
+        NULL);
+    for (i = 0; i < MAX_ASHRAE_OBJECT_TYPE; i++) {
+        zassert_equal(
+            bitstring_bit(&value.type.Bit_String, i),
+            (i == OBJECT_DEVICE) || (i == MAX_ASHRAE_OBJECT_TYPE - 1),
+            "object type %u", i);
+    }
+    Device_Init(NULL);
+}
+
 /**
  * @brief Test implementation that returns the proprietary properties list.
  * @param object_type [in] The BACNET_OBJECT_TYPE of the object instance
@@ -1344,6 +1393,7 @@ void test_main(void)
 #if defined(BAC_ROUTING) && defined(BACNET_BACKUP_RESTORE)
     ztest_test_suite(
         device_tests, ztest_unit_test(testDevice),
+        ztest_unit_test(test_Device_Protocol_Object_Types_Supported),
         ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Write_Property_Range),
         ztest_unit_test(test_Device_Object_Name_Database_Revision),
@@ -1361,6 +1411,7 @@ void test_main(void)
 #elif defined(BAC_ROUTING)
     ztest_test_suite(
         device_tests, ztest_unit_test(testDevice),
+        ztest_unit_test(test_Device_Protocol_Object_Types_Supported),
         ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Write_Property_Range),
         ztest_unit_test(test_Device_Object_Name_Database_Revision),
@@ -1374,6 +1425,7 @@ void test_main(void)
 #elif defined(BACNET_BACKUP_RESTORE)
     ztest_test_suite(
         device_tests, ztest_unit_test(testDevice),
+        ztest_unit_test(test_Device_Protocol_Object_Types_Supported),
         ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Write_Property_Range),
         ztest_unit_test(test_Device_Object_Name_Database_Revision),
@@ -1383,6 +1435,7 @@ void test_main(void)
 #else
     ztest_test_suite(
         device_tests, ztest_unit_test(testDevice),
+        ztest_unit_test(test_Device_Protocol_Object_Types_Supported),
         ztest_unit_test(test_Device_Data_Sharing),
         ztest_unit_test(test_Device_Write_Property_Range),
         ztest_unit_test(test_Device_Object_Name_Database_Revision),
