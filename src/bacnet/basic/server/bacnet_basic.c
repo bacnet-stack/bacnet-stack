@@ -272,36 +272,6 @@ void bacnet_basic_init(void)
 static uint8_t PDUBuffer[MAX_MPDU];
 
 /**
- * @brief Consume the whole intervals that elapsed on a periodic timer.
- *  The partial interval stays in the timer, so a task that is called
- *  less often than the interval does not lose time.
- * @param timer - periodic timer that has expired
- * @return elapsed time in milliseconds, a multiple of the timer interval
- */
-static uint32_t timer_elapsed_milliseconds(struct mstimer *timer)
-{
-    uint32_t interval = (uint32_t)mstimer_interval(timer);
-
-    return (uint32_t)mstimer_restart_unit(timer, interval) * interval;
-}
-
-/**
- * @brief Deliver an elapsed time to a function that takes a 16-bit value
- * @param timer_function - function that accepts up to UINT16_MAX units
- * @param total - total elapsed time, in the units of the function
- */
-static void timer_chunked(void (*timer_function)(uint16_t), uint32_t total)
-{
-    uint16_t chunk;
-
-    while (total > 0) {
-        chunk = (total > UINT16_MAX) ? UINT16_MAX : (uint16_t)total;
-        timer_function(chunk);
-        total -= chunk;
-    }
-}
-
-/**
  * @brief non-blocking BACnet task
  */
 void bacnet_basic_task(void)
@@ -311,6 +281,7 @@ void bacnet_basic_task(void)
     BACNET_ADDRESS src = { 0 };
     uint32_t elapsed_milliseconds = 0;
     uint32_t elapsed_seconds = 0;
+    unsigned long interval_count = 0;
 #if defined(BACNET_TIME_MASTER)
     BACNET_DATE_TIME bdatetime;
 #endif
@@ -326,11 +297,15 @@ void bacnet_basic_task(void)
     /* handle non-time-critical cyclic tasks */
     if (mstimer_expired(&BACnet_Task_Timer)) {
         /* 1 second tasks */
-        elapsed_milliseconds = timer_elapsed_milliseconds(&BACnet_Task_Timer);
+        /* consume the whole intervals elapsed, keep the remainder */
+        interval_count = mstimer_restart_unit(
+            &BACnet_Task_Timer, mstimer_interval(&BACnet_Task_Timer));
+        elapsed_milliseconds =
+            interval_count * mstimer_interval(&BACnet_Task_Timer);
         elapsed_seconds = elapsed_milliseconds / 1000;
         BACnet_Uptime_Seconds += elapsed_seconds;
         dcc_timer_seconds(elapsed_seconds);
-        timer_chunked(datalink_maintenance_timer, elapsed_seconds);
+        datalink_maintenance_timer(elapsed_seconds);
 #if (BACNET_COV_SUBSCRIPTIONS_SIZE > 0)
         handler_cov_timer_seconds(elapsed_seconds);
 #endif
@@ -347,22 +322,40 @@ void bacnet_basic_task(void)
 #endif
     /* object specific cyclic tasks */
     if (mstimer_expired(&BACnet_Object_Timer)) {
-        elapsed_milliseconds = timer_elapsed_milliseconds(&BACnet_Object_Timer);
-        timer_chunked(Device_Timer, elapsed_milliseconds);
+        interval_count = mstimer_restart_unit(
+            &BACnet_Object_Timer, mstimer_interval(&BACnet_Object_Timer));
+        elapsed_milliseconds =
+            interval_count * mstimer_interval(&BACnet_Object_Timer);
+        /* Device_Timer() accepts 16-bit milliseconds */
+        while (elapsed_milliseconds > UINT16_MAX) {
+            Device_Timer(UINT16_MAX);
+            elapsed_milliseconds -= UINT16_MAX;
+        }
+        Device_Timer((uint16_t)elapsed_milliseconds);
     }
 #if (MAX_TSM_TRANSACTIONS)
     if (mstimer_expired(&BACnet_TSM_Timer)) {
-        elapsed_milliseconds = timer_elapsed_milliseconds(&BACnet_TSM_Timer);
-        timer_chunked(tsm_timer_milliseconds, elapsed_milliseconds);
+        interval_count = mstimer_restart_unit(
+            &BACnet_TSM_Timer, mstimer_interval(&BACnet_TSM_Timer));
+        elapsed_milliseconds =
+            interval_count * mstimer_interval(&BACnet_TSM_Timer);
+        /* tsm_timer_milliseconds() accepts 16-bit milliseconds */
+        while (elapsed_milliseconds > UINT16_MAX) {
+            tsm_timer_milliseconds(UINT16_MAX);
+            elapsed_milliseconds -= UINT16_MAX;
+        }
+        tsm_timer_milliseconds((uint16_t)elapsed_milliseconds);
     }
 #endif
 #if defined(BACNET_ADDRESS_CACHE)
     /* age the dynamic address bindings shared by COV, notifications, etc. */
     if (mstimer_expired(&BACnet_Address_Timer)) {
+        interval_count = mstimer_restart_unit(
+            &BACnet_Address_Timer, mstimer_interval(&BACnet_Address_Timer));
         elapsed_milliseconds =
-            timer_elapsed_milliseconds(&BACnet_Address_Timer);
+            interval_count * mstimer_interval(&BACnet_Address_Timer);
         elapsed_seconds = elapsed_milliseconds / 1000;
-        timer_chunked(address_cache_timer, elapsed_seconds);
+        address_cache_timer(elapsed_seconds);
     }
 #endif
     /* handle the messaging */
