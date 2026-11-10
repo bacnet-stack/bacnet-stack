@@ -164,7 +164,23 @@ unsigned long bacnet_basic_packet_count(void)
  */
 void bacnet_basic_task_object_timer_set(unsigned long milliseconds)
 {
+    /* Ensure the timer interval is within valid range for the
+       Device object timer uint16_t */
+    if (milliseconds < 1) {
+        milliseconds = 1;
+    } else if (milliseconds > UINT16_MAX) {
+        milliseconds = UINT16_MAX;
+    }
     mstimer_set(&BACnet_Object_Timer, milliseconds);
+}
+
+/**
+ * @brief Get the current BACnet task object timer interval in milliseconds
+ * @return The number of milliseconds for the timer interval
+ */
+unsigned long bacnet_basic_task_object_timer_milliseconds(void)
+{
+    return mstimer_interval(&BACnet_Object_Timer);
 }
 
 /**
@@ -280,6 +296,8 @@ void bacnet_basic_task(void)
     uint16_t pdu_len = 0;
     BACNET_ADDRESS src = { 0 };
     uint32_t elapsed_milliseconds = 0;
+    uint32_t elapsed_intervals = 0;
+    uint32_t interval_milliseconds = 0;
     uint32_t elapsed_seconds = 0;
 #if defined(BACNET_TIME_MASTER)
     BACNET_DATE_TIME bdatetime;
@@ -319,9 +337,14 @@ void bacnet_basic_task(void)
 #endif
     /* object specific cyclic tasks */
     if (mstimer_expired(&BACnet_Object_Timer)) {
-        elapsed_milliseconds = mstimer_elapsed(&BACnet_Object_Timer);
-        mstimer_restart(&BACnet_Object_Timer);
-        Device_Timer(elapsed_milliseconds);
+        /* configurable timer, so handle elapsed times
+           that are longer than the timer interval */
+        interval_milliseconds = mstimer_interval(&BACnet_Object_Timer);
+        elapsed_intervals =
+            mstimer_restart_unit(&BACnet_Object_Timer, interval_milliseconds);
+        while (elapsed_intervals--) {
+            Device_Timer((uint16_t)interval_milliseconds);
+        }
     }
 #if (MAX_TSM_TRANSACTIONS)
     if (mstimer_expired(&BACnet_TSM_Timer)) {
