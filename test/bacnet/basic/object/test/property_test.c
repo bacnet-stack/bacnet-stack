@@ -505,7 +505,7 @@ void bacnet_object_name_ascii_duplicate_test(
     const char *test_name = NULL;
     const char *first_name = NULL;
     char sample_name[] = "sample";
-    char long_name[MAX_CHARACTER_STRING_BYTES + 2];
+    char long_name[MAX_CHARACTER_STRING_BYTES + 1];
 
     status = ascii_duplicate(object_instance, sample_name);
     zassert_true(status, NULL);
@@ -522,13 +522,22 @@ void bacnet_object_name_ascii_duplicate_test(
     zassert_true(status, NULL);
     test_name = ascii_get(object_instance);
     zassert_equal(bacnet_strcmp(test_name, "another"), 0, NULL);
-    /* a string that is too long is rejected and the value is unchanged */
-    memset(long_name, 'a', sizeof(long_name) - 1);
-    long_name[sizeof(long_name) - 1] = 0;
+    /* a value at the fixed character-string capacity is stored */
+    memset(long_name, 'a', MAX_CHARACTER_STRING_BYTES - 1);
+    long_name[MAX_CHARACTER_STRING_BYTES - 1] = '\0';
+    status = ascii_duplicate(object_instance, long_name);
+    zassert_true(status, NULL);
+    test_name = ascii_get(object_instance);
+    zassert_equal(bacnet_strcmp(test_name, long_name), 0, NULL);
+    /* one more byte is rejected and the stored value is unchanged */
+    long_name[MAX_CHARACTER_STRING_BYTES - 1] = 'a';
+    long_name[MAX_CHARACTER_STRING_BYTES] = '\0';
     status = ascii_duplicate(object_instance, long_name);
     zassert_false(status, NULL);
     test_name = ascii_get(object_instance);
-    zassert_equal(bacnet_strcmp(test_name, "another"), 0, NULL);
+    zassert_equal(strlen(test_name), MAX_CHARACTER_STRING_BYTES - 1, NULL);
+    zassert_equal(test_name[0], 'a', NULL);
+    zassert_equal(test_name[MAX_CHARACTER_STRING_BYTES - 2], 'a', NULL);
     /* NULL clears the value */
     status = ascii_duplicate(object_instance, NULL);
     zassert_true(status, NULL);

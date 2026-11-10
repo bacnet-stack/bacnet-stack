@@ -1419,8 +1419,10 @@ void characterstring_buffer_free(BACNET_CHARACTER_STRING_BUFFER *char_string)
  * @brief Set a BACnet character string by referencing a C string.
  * @param char_string Pointer to destination structure.
  * @param value Pointer to a source C string, or NULL for empty.
- * @return true on success, false on argument failure or if the string exceeds
- * maximum length.
+ * @return true on success, false on argument failure or if the string is
+ *  longer than the fixed character-string capacity
+ *  (MAX_CHARACTER_STRING_BYTES - 1). A stored value must fit in a
+ *  BACNET_CHARACTER_STRING. That type keeps one byte for a NUL terminator.
  */
 bool bacnet_character_cstring_set(
     BACNET_CHARACTER_CSTRING *char_string, const char *value)
@@ -1437,7 +1439,8 @@ bool bacnet_character_cstring_set(
     }
     if (value) {
         length = strlen(value);
-        if (length > MAX_CHARACTER_STRING_BYTES) {
+        /* BACNET_CHARACTER_STRING reserves the last byte for a NUL. */
+        if (length > CHARACTER_STRING_CAPACITY) {
             return false;
         }
         bacnet_character_cstring_free(char_string);
@@ -1457,8 +1460,11 @@ bool bacnet_character_cstring_set(
  * @param char_string Pointer to destination BACNET_CHARACTER_CSTRING.
  * @param value Pointer to source C string, or NULL to free and set empty.
  * @param tmax Maximum number of characters to duplicate from the source string.
- * @return true on success, false on allocation/argument failure.
- * @note The CharacterString is unchanged if memory allocation fails
+ * @return true on success, false on allocation or argument failure, or if
+ *  the duplicated length is longer than the fixed character-string capacity
+ *  (MAX_CHARACTER_STRING_BYTES - 1).
+ * @note The CharacterString is unchanged if memory allocation fails or if
+ *  the string is too long.
  */
 bool bacnet_character_cstring_strndup(
     BACNET_CHARACTER_CSTRING *char_string, const char *value, size_t tmax)
@@ -1471,7 +1477,8 @@ bool bacnet_character_cstring_strndup(
     }
     if (value) {
         length = bacnet_strnlen(value, tmax);
-        if (length > MAX_CHARACTER_STRING_BYTES) {
+        /* BACNET_CHARACTER_STRING reserves the last byte for a NUL. */
+        if (length > CHARACTER_STRING_CAPACITY) {
             return false;
         }
         buffer = bacnet_strndup(value, length);
@@ -1696,7 +1703,10 @@ bool bacnet_character_cstring_to_characterstring_default(
  * @param char_string Pointer to BACNET_CHARACTER_CSTRING structure.
  * @param format Format string, like printf().
  * @param ... Additional arguments for the format string.
- * @return The number of characters written, or -1 on error.
+ * @return The number of characters written, or -1 on error. The function
+ *  returns -1 when the formatted string is longer than the fixed
+ *  character-string capacity (MAX_CHARACTER_STRING_BYTES - 1). The
+ *  destination is unchanged on error.
  */
 int bacnet_character_cstring_asprintf(
     BACNET_CHARACTER_CSTRING *char_string, const char *format, ...)
@@ -1715,6 +1725,10 @@ int bacnet_character_cstring_asprintf(
     va_end(args);
     /* check for encoding errors */
     if (len < 0) {
+        return -1;
+    }
+    /* BACNET_CHARACTER_STRING reserves the last byte for a NUL. */
+    if ((size_t)len > CHARACTER_STRING_CAPACITY) {
         return -1;
     }
     /* allocate the memory */
