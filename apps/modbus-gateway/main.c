@@ -150,6 +150,7 @@ int main(int argc, char *argv[])
     time_t last_sec = 0;
     time_t last_poll_sec = 0;
     uint32_t elapsed_sec = 0;
+    uint32_t elapsed_msec = 0;
     char baud_str[16] = { 0 };
     char mac_str[8] = { 0 };
     char max_master_str[16] = { 0 };
@@ -373,8 +374,13 @@ int main(int argc, char *argv[])
             dcc_timer_seconds(elapsed_sec);
             datalink_maintenance_timer(elapsed_sec);
             dlenv_maintenance_timer(elapsed_sec);
-            tsm_timer_milliseconds(elapsed_sec * 1000);
-            Device_Timer(elapsed_sec * 1000);
+            elapsed_msec = elapsed_sec * 1000;
+            tsm_timer_milliseconds(elapsed_msec);
+            while (elapsed_msec > UINT16_MAX) {
+                Device_Timer(UINT16_MAX);
+                elapsed_msec -= UINT16_MAX;
+            }
+            Device_Timer(elapsed_msec);
         }
 
         /* ── COV task ── */

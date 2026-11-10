@@ -330,6 +330,10 @@ int main(int argc, char *argv[])
             dlenv_maintenance_timer(elapsed_seconds);
             elapsed_milliseconds = elapsed_seconds * 1000;
             tsm_timer_milliseconds(elapsed_milliseconds);
+            while (elapsed_milliseconds > UINT16_MAX) {
+                Device_Timer(UINT16_MAX);
+                elapsed_milliseconds -= UINT16_MAX;
+            }
             Device_Timer(elapsed_milliseconds);
         }
 

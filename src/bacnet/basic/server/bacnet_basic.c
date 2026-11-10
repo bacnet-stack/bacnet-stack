@@ -296,10 +296,7 @@ void bacnet_basic_task(void)
     /* handle non-time-critical cyclic tasks */
     if (mstimer_expired(&BACnet_Task_Timer)) {
         /* 1 second tasks */
-        mstimer_reset(&BACnet_Task_Timer);
-        /* presume that the elapsed time is the interval time */
-        elapsed_milliseconds = mstimer_interval(&BACnet_Task_Timer);
-        elapsed_seconds = elapsed_milliseconds / 1000;
+        elapsed_seconds = mstimer_restart_unit(&BACnet_Task_Timer, 1000);
         BACnet_Uptime_Seconds += elapsed_seconds;
         dcc_timer_seconds(elapsed_seconds);
         datalink_maintenance_timer(elapsed_seconds);
@@ -319,23 +316,25 @@ void bacnet_basic_task(void)
 #endif
     /* object specific cyclic tasks */
     if (mstimer_expired(&BACnet_Object_Timer)) {
-        elapsed_milliseconds = mstimer_elapsed(&BACnet_Object_Timer);
-        mstimer_restart(&BACnet_Object_Timer);
+        elapsed_milliseconds = mstimer_restart_unit(&BACnet_Object_Timer, 1);
+        while (elapsed_milliseconds > UINT16_MAX) {
+            Device_Timer(UINT16_MAX);
+            elapsed_milliseconds -= UINT16_MAX;
+        }
         Device_Timer(elapsed_milliseconds);
     }
 #if (MAX_TSM_TRANSACTIONS)
+    /* handle TSM timer and retries */
     if (mstimer_expired(&BACnet_TSM_Timer)) {
-        mstimer_reset(&BACnet_TSM_Timer);
-        elapsed_milliseconds = mstimer_interval(&BACnet_TSM_Timer);
+        elapsed_milliseconds = mstimer_restart_unit(&BACnet_TSM_Timer, 1);
         tsm_timer_milliseconds(elapsed_milliseconds);
     }
 #endif
 #if defined(BACNET_ADDRESS_CACHE)
     /* age the dynamic address bindings shared by COV, notifications, etc. */
     if (mstimer_expired(&BACnet_Address_Timer)) {
-        mstimer_reset(&BACnet_Address_Timer);
-        elapsed_milliseconds = mstimer_interval(&BACnet_Address_Timer);
-        elapsed_seconds = elapsed_milliseconds / 1000;
+        /* 60s timer for address cache aging */
+        elapsed_seconds = mstimer_restart_unit(&BACnet_Address_Timer, 1000);
         address_cache_timer(elapsed_seconds);
     }
 #endif
