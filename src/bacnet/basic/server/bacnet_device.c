@@ -2890,15 +2890,19 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 /* initialize all the object types to not-supported */
                 bitstring_set_bit(&bit_string, (uint8_t)i, false);
             }
-            /* set the object types with objects to supported */
+            /* set the object types with objects, or that can be
+               created by the CreateObject service, to supported */
             count = Device_Object_Functions_Count();
             for (i = 0; i < count; i++) {
                 pObject = Device_Object_Functions_Index(i);
                 if (pObject == NULL) {
                     continue;
                 }
-                if ((pObject->Object_Type < MAX_ASHRAE_OBJECT_TYPE) &&
-                    (pObject->Object_Count) && (pObject->Object_Count() > 0)) {
+                if (pObject->Object_Type >= MAX_ASHRAE_OBJECT_TYPE) {
+                    continue;
+                }
+                if (pObject->Object_Create ||
+                    (pObject->Object_Count && (pObject->Object_Count() > 0))) {
                     bitstring_set_bit(
                         &bit_string, (uint8_t)pObject->Object_Type, true);
                 }

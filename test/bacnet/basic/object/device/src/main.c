@@ -26,6 +26,16 @@ static uint8_t Proprietary_Serial_Number[16] = {
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16
 };
 
+static unsigned Test_Zero_Count(void)
+{
+    return 0;
+}
+
+static uint32_t Test_Create_Stub(uint32_t object_instance)
+{
+    return object_instance;
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(device_tests, test_Device_Protocol_Object_Types_Supported)
 #else
@@ -42,6 +52,7 @@ static void test_Device_Protocol_Object_Types_Supported(void)
                                                 OBJECT_DEVICE,
                                                 MAX_BACNET_OBJECT_TYPE };
     BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+    object_functions_t create_table[6] = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     uint8_t apdu[MAX_APDU] = { 0 };
     unsigned i;
@@ -70,6 +81,34 @@ static void test_Device_Protocol_Object_Types_Supported(void)
         zassert_equal(
             bitstring_bit(&value.type.Bit_String, i),
             (i == OBJECT_DEVICE) || (i == MAX_ASHRAE_OBJECT_TYPE - 1),
+            "object type %u", i);
+    }
+    /* object types that can be created are supported even with zero objects */
+    create_table[0].Object_Type = OBJECT_ANALOG_VALUE;
+    create_table[0].Object_Count = Test_Zero_Count;
+    create_table[0].Object_Create = Test_Create_Stub;
+    create_table[1].Object_Type = OBJECT_ANALOG_INPUT;
+    create_table[1].Object_Count = Test_Zero_Count;
+    create_table[2].Object_Type = OBJECT_ANALOG_OUTPUT;
+    create_table[2].Object_Create = Test_Create_Stub;
+    create_table[3].Object_Type = OBJECT_DEVICE;
+    create_table[3].Object_Count = Device_Count;
+    create_table[4].Object_Type = OBJECT_PROPRIETARY_MIN;
+    create_table[4].Object_Create = Test_Create_Stub;
+    create_table[5].Object_Type = MAX_BACNET_OBJECT_TYPE;
+    Device_Object_Functions_Init(create_table);
+    len = Device_Read_Property_Local(&rpdata);
+    zassert_true(len > 0, NULL);
+    zassert_equal(bacapp_decode_application_data(apdu, len, &value), len, NULL);
+    zassert_equal(value.tag, BACNET_APPLICATION_TAG_BIT_STRING, NULL);
+    zassert_equal(
+        bitstring_bits_used(&value.type.Bit_String), MAX_ASHRAE_OBJECT_TYPE,
+        NULL);
+    for (i = 0; i < MAX_ASHRAE_OBJECT_TYPE; i++) {
+        zassert_equal(
+            bitstring_bit(&value.type.Bit_String, i),
+            (i == OBJECT_DEVICE) || (i == OBJECT_ANALOG_VALUE) ||
+                (i == OBJECT_ANALOG_OUTPUT),
             "object type %u", i);
     }
     Device_Init(NULL);

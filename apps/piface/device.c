@@ -1252,12 +1252,14 @@ int Device_Read_Property_Local(BACNET_READ_PROPERTY_DATA *rpdata)
                 /* initialize all the object types to not-supported */
                 bitstring_set_bit(&bit_string, (uint8_t)i, false);
             }
-            /* set the object types with objects to supported */
-
+            /* set the object types with objects, or that can be
+               created by the CreateObject service, to supported */
             pObject = Object_Table;
             while (pObject->Object_Type < MAX_BACNET_OBJECT_TYPE) {
                 if ((pObject->Object_Type < MAX_ASHRAE_OBJECT_TYPE) &&
-                    (pObject->Object_Count) && (pObject->Object_Count() > 0)) {
+                    (pObject->Object_Create ||
+                     (pObject->Object_Count &&
+                      (pObject->Object_Count() > 0)))) {
                     bitstring_set_bit(
                         &bit_string, (uint8_t)pObject->Object_Type, true);
                 }
