@@ -858,8 +858,8 @@ static void lighting_command_blink_handler(
         data->In_Progress = BACNET_LIGHTING_IDLE;
         data->Lighting_Operation = BACNET_LIGHTS_STOP;
         target_value = data->Blink.End_Value;
-    } else if (data->Blink.Target_Interval == 0) {
-        /* only 'on' level */
+    } else if ((data->Blink.Target_Interval == 0) || (data->Blink.Count == 0)) {
+        /* no blink, or blinks complete: hold the 'on' level for egress */
         target_value = data->Blink.On_Value;
     } else {
         /* 'blink' operation */
@@ -885,11 +885,9 @@ static void lighting_command_blink_handler(
                     data->Blink.Count--;
                 }
                 if (data->Blink.Count == 0) {
-                    /* 'end' operation */
-                    lighting_command_blink_stop_notify_nolock(data);
-                    data->In_Progress = BACNET_LIGHTING_IDLE;
-                    data->Lighting_Operation = BACNET_LIGHTS_STOP;
-                    target_value = data->Blink.End_Value;
+                    /* blinks complete: hold the 'on' level until
+                       the egress timer (Duration) expires */
+                    target_value = data->Blink.On_Value;
                 }
             }
         }
@@ -1182,11 +1180,11 @@ void lighting_command_blink_warn(
         lighting_command_blink_stop_notify_nolock(data);
         /* configure the new warning */
         data->Lighting_Operation = operation;
-        data->Blink.Target_Interval = blink->Interval;
+        data->Blink.Target_Interval = blink->Target_Interval;
+        data->Blink.Target_Count = blink->Target_Count;
         data->Blink.Duration = blink->Duration;
         data->Blink.Priority = blink->Priority;
         data->Blink.Callback = blink->Callback;
-        data->Blink.Count = blink->Count;
         data->Blink.On_Value = blink->On_Value;
         data->Blink.Off_Value = blink->Off_Value;
         data->Blink.End_Value = blink->End_Value;
@@ -1194,9 +1192,14 @@ void lighting_command_blink_warn(
         data->In_Progress = BACNET_LIGHTING_OTHER;
         /* configure next interval */
         data->Blink.State = false;
-        data->Blink.Interval = blink->Interval;
+        data->Blink.Interval = blink->Target_Interval;
+        if ((blink->Target_Count == 0) || (blink->Target_Count == UINT16_MAX)) {
+            data->Blink.Count = UINT16_MAX;
+        } else {
+            data->Blink.Count = blink->Target_Count;
+        }
         lighting_command_event_notify(
-            data, operation, blink->Interval, blink->Duration);
+            data, operation, blink->Target_Interval, blink->Duration);
     }
     lighting_command_unlock(data);
 }
@@ -1220,6 +1223,7 @@ void lighting_command_blink_copy(
     blink->Priority = data->Blink.Priority;
     blink->Callback = data->Blink.Callback;
     blink->Target_Interval = data->Blink.Target_Interval;
+    blink->Target_Count = data->Blink.Target_Count;
     blink->Interval = data->Blink.Interval;
     blink->Duration = data->Blink.Duration;
     blink->Count = data->Blink.Count;
@@ -1690,8 +1694,8 @@ void lighting_command_blink_warn_feature_set(
     }
     lighting_command_lock(data);
     data->Blink.Off_Value = off_value;
-    data->Blink.Interval = interval;
-    data->Blink.Count = count;
+    data->Blink.Target_Interval = interval;
+    data->Blink.Target_Count = count;
     lighting_command_unlock(data);
 }
 
@@ -1709,7 +1713,10 @@ bool lighting_command_blink_egress_active(
         return active;
     }
     lighting_command_lock(data);
-    active = data->Blink.Duration > 0;
+    if ((data->Lighting_Operation == BACNET_LIGHTS_WARN_OFF) ||
+        (data->Lighting_Operation == BACNET_LIGHTS_WARN_RELINQUISH)) {
+        active = data->Blink.Duration > 0;
+    }
     lighting_command_unlock(data);
 
     return active;
@@ -2012,6 +2019,7 @@ void lighting_command_init(struct bacnet_lighting_command_data *data)
     data->Blink.Off_Value = 0.0f;
     data->Blink.End_Value = 0.0f;
     data->Blink.Target_Interval = 0;
+    data->Blink.Target_Count = 0;
     data->Blink.Count = 0;
     data->Blink.Interval = 0;
     data->Blink.Duration = 0;

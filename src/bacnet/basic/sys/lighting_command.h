@@ -85,10 +85,15 @@ typedef struct bacnet_lighting_command_warn_data {
     float End_Value;
     uint8_t Priority;
     lighting_command_blink_callback Callback;
+    /* milliseconds per blink phase; 0=no blink, hold at On_Value */
     uint16_t Target_Interval;
+    /* number of blinks; 0 or UINT16_MAX=blink until Duration expires */
+    uint16_t Target_Count;
     /* internal tracking */
     uint16_t Interval;
+    /* remaining milliseconds of the blink-warn and egress timer */
     uint32_t Duration;
+    /* remaining blinks; 0=blinks complete, UINT16_MAX=unlimited */
     uint16_t Count;
     /* bits */
     bool State : 1;

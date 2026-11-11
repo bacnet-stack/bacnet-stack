@@ -629,6 +629,34 @@ static void Lighting_Command_Transition_Default(
 }
 
 /**
+ * @brief Compute the blink-warn duration for a WARN operation, which has
+ *  no egress delay. A limited number of blinks runs to completion;
+ *  unlimited blinking is bounded by the Egress_Time.
+ * @param pObject [in] BACnet object instance
+ * @param blink [in] blink-warn configuration
+ * @return duration in milliseconds
+ */
+static uint32_t Lighting_Command_Warn_Duration(
+    const struct object_data *pObject,
+    const BACNET_LIGHTING_COMMAND_WARN_DATA *blink)
+{
+    uint32_t period;
+
+    if (blink->Target_Interval == 0) {
+        return 0;
+    }
+    if ((blink->Target_Count == 0) || (blink->Target_Count == UINT16_MAX)) {
+        return pObject->Egress_Time_Seconds * 1000UL;
+    }
+    period = 2UL * blink->Target_Interval;
+    if (blink->Target_Count > (UINT32_MAX / period)) {
+        return UINT32_MAX;
+    }
+
+    return period * blink->Target_Count;
+}
+
+/**
  * @brief Set the lighting command if the priority is active
  * @param object [in] BACnet object instance
  * @param priority [in] BACnet priority array value 1..16
@@ -655,6 +683,11 @@ Lighting_Command_Warn(struct object_data *pObject, unsigned priority)
             (b) The value at the specified priority is 0.0%, or
             (c) Blink_Warn_Enable is FALSE. */
         lighting_command_blink_copy(&pObject->Lighting_Command, &blink);
+        /* the level of the lights is unaffected after the warning */
+        blink.On_Value =
+            lighting_command_tracking_value_get(&pObject->Lighting_Command);
+        blink.End_Value = blink.On_Value;
+        blink.Duration = Lighting_Command_Warn_Duration(pObject, &blink);
         lighting_command_blink_warn(
             &pObject->Lighting_Command, BACNET_LIGHTS_WARN, &blink);
     }
@@ -726,6 +759,9 @@ Lighting_Command_Warn_Off(struct object_data *pObject, unsigned priority)
                 (b) The Present_Value is 0.0%, or
                 (c) Blink_Warn_Enable is FALSE. */
             lighting_command_blink_copy(&pObject->Lighting_Command, &blink);
+            /* hold the lights at the current level during egress */
+            blink.On_Value =
+                lighting_command_tracking_value_get(&pObject->Lighting_Command);
             blink.Duration = pObject->Egress_Time_Seconds * 1000UL;
             blink.Priority = priority;
             blink.Callback = Lighting_Command_Blink_Stop;
@@ -797,6 +833,9 @@ Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
                 (c) The Present_Value would not evaluate to 0.0% after
                     the priority slot is relinquished. */
             lighting_command_blink_copy(&pObject->Lighting_Command, &blink);
+            /* hold the lights at the current level during egress */
+            blink.On_Value =
+                lighting_command_tracking_value_get(&pObject->Lighting_Command);
             blink.Duration = pObject->Egress_Time_Seconds * 1000UL;
             blink.Priority = priority;
             blink.Callback = Lighting_Command_Blink_Stop;
@@ -2008,8 +2047,13 @@ bool Lighting_Output_Blink_Warn_Enable_Set(
  * @param object_instance - object-instance number of the object
  * @param off_value - the value during the blinking when OFF: 0.0%..99.9%
  * @param interval - the amount of milliseconds between blinks: 0..65535
- * @param count - number of times to interval blink: 0..65535
- * @note duration of the blinking is controlled by Egress_Time property
+ * @param count - number of blinks: 1..65534, or 0 or 65535 to blink
+ *  until the Egress_Time expires
+ * @note Blinking starts when a WARN, WARN_OFF, or WARN_RELINQUISH
+ *  is executed. After count blinks, the lights are held at the current
+ *  level until the Egress_Time expires. A WARN operation with a limited
+ *  count ends after the blinks; with unlimited count it ends after the
+ *  Egress_Time.
  * @details Here are some examples:
  *  blink warn - defaults
  *      off_Value = 0.0, interval = 0, count = 65535
@@ -2017,8 +2061,10 @@ bool Lighting_Output_Blink_Warn_Enable_Set(
  *      off_Value = 1.0, interval = 0, count = 65535
  *  blink warn - on/off every 500ms for duration:
  *      off_Value = 0.0, interval = 500, count = 65535
- *  blink warn - on/off 3 times with 5m interval between blinks
- *      off_Value = 0.0, interval = 300000, count = 3
+ *  blink warn - on/off 3 times quickly, then hold until egress expires
+ *      off_Value = 0.0, interval = 500, count = 3
+ *  blink warn - dim down/up 3 times quickly, then hold until egress expires
+ *      off_Value = 50.0, interval = 500, count = 3
  * @return true if values are set
  */
 bool Lighting_Output_Blink_Warn_Feature_Set(
