@@ -201,6 +201,14 @@ static void testLightingOutputWarnRelinquishEgress(void)
     status = Lighting_Output_Present_Value_Set(
         instance, BACNET_LIGHTING_SPECIAL_VALUE_WARN_RELINQUISH, priority);
     zassert_true(status, NULL);
+    /* egress is 1 second: the slot stays active until it expires */
+    Lighting_Output_Timer(instance, 500);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(in_progress, BACNET_LIGHTING_OTHER, NULL);
+    status = Lighting_Output_Priority_Array_Relinquished(instance, priority);
+    zassert_false(status, NULL);
+    test_real = Lighting_Output_Present_Value(instance);
+    zassert_true(is_float_equal(test_real, 60.0f), NULL);
     Lighting_Output_Timer(instance, 500);
     in_progress = Lighting_Output_In_Progress(instance);
     zassert_equal(in_progress, BACNET_LIGHTING_IDLE, NULL);

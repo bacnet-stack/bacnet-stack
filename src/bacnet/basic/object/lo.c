@@ -821,8 +821,10 @@ Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
         if ((Priority_Array_Active(pObject, priority - 1)) &&
             (!is_float_equal(
                 Priority_Array_Value(pObject, priority - 1), 0.0)) &&
+            /* priority is 1..16. Start the search at the next lower
+               slot so the active slot being relinquished is skipped. */
             (is_float_equal(
-                Priority_Array_Next_Value(pObject, priority - 1), 0.0)) &&
+                Priority_Array_Next_Value(pObject, priority), 0.0)) &&
             pObject->Blink_Warn_Enable) {
             /* The blink-warn notification shall not occur,
                 and the value at the specified priority shall be
