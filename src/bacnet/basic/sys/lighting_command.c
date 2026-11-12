@@ -574,8 +574,29 @@ static void lighting_command_fade_handler(
     float old_value;
     float x1, x2, x3, y1, y3;
     float target_value;
+    bool trim_pending;
 
     old_value = data->Tracking_Value;
+    /* 135-2024 §12.54.51: a trim change runs for Trim_Fade_Time.
+       After the level fade ends, later ticks continue from the
+       current tracking value until the trim fade ends. */
+    trim_pending = (data->Lighting_Operation == BACNET_LIGHTS_FADE_TO) &&
+        (data->Fade_Time == 0) && (data->Trim_Fade_Time > 0) &&
+        (data->In_Progress == BACNET_LIGHTING_TRIM_ACTIVE);
+    if (trim_pending) {
+        data->Tracking_Value =
+            lighting_command_operating_range_clamp_fade_nolock(
+                data, data->Tracking_Value, milliseconds);
+        if ((data->Trim_Fade_Time == 0) ||
+            ((!isgreater(data->Tracking_Value, data->High_Trim_Value)) &&
+             (!isless(data->Tracking_Value, data->Low_Trim_Value)))) {
+            data->Trim_Fade_Time = 0;
+            data->Lighting_Operation = BACNET_LIGHTS_STOP;
+        }
+        lighting_command_tracking_value_event(
+            data, old_value, data->Tracking_Value);
+        return;
+    }
     if (isless(old_value, 1.0f) && isless(data->Target_Level, 1.0f)) {
         /* check for OFF to OFF transition */
         data->Tracking_Value = 0.0f;
@@ -616,6 +637,14 @@ static void lighting_command_fade_handler(
         data->Tracking_Value =
             lighting_command_operating_range_clamp_fade_nolock(
                 data, data->Tracking_Value, milliseconds);
+        /* The level fade is done and the trim fade is not.
+           Schedule the remaining trim for later timer ticks. */
+        if ((data->Lighting_Operation == BACNET_LIGHTS_STOP) &&
+            (data->Trim_Fade_Time > 0) &&
+            (data->In_Progress == BACNET_LIGHTING_TRIM_ACTIVE)) {
+            data->Lighting_Operation = BACNET_LIGHTS_FADE_TO;
+            data->Fade_Time = 0;
+        }
     }
     /* notify */
     lighting_command_tracking_value_event(
@@ -1044,6 +1073,8 @@ void lighting_command_fade_to_nolock(
     /* configure the lighting operation */
     data->Fade_Time = fade_time;
     data->Lighting_Operation = BACNET_LIGHTS_FADE_TO;
+    /* A new fade is not a continuation of an unfinished trim. */
+    data->In_Progress = BACNET_LIGHTING_FADE_ACTIVE;
     data->Target_Level = value;
     if (isgreaterequal(value, 1.0)) {
         /* the last value that was greater than or equal to 1.0%.*/
