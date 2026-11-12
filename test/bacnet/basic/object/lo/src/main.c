@@ -864,6 +864,95 @@ static void testLightingOutputWarnHaltTrimFade(void)
 }
 
 /**
+ * @brief STOP ends an unfinished trim fade and freezes Tracking_Value.
+ * 135-2024 §12.54.6 STOP.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lo_tests, testLightingOutputStopDuringTrimFade)
+#else
+static void testLightingOutputStopDuringTrimFade(void)
+#endif
+{
+    const uint32_t instance = 331;
+    const unsigned priority = 8;
+    const unsigned fallback_priority = 16;
+    BACNET_LIGHTING_COMMAND command = { 0 };
+    BACNET_LIGHTING_IN_PROGRESS in_progress;
+    float test_real;
+    bool status;
+
+    Lighting_Output_Init();
+    Lighting_Output_Create(instance);
+    status = Lighting_Output_Blink_Warn_Enable_Set(instance, true);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Egress_Time_Set(instance, 1);
+    zassert_true(status, NULL);
+    status =
+        Lighting_Output_Blink_Warn_Feature_Set(instance, 0.0f, 0, UINT16_MAX);
+    zassert_true(status, NULL);
+    status = Lighting_Output_High_End_Trim_Set(instance, 90.0f);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Trim_Fade_Time_Set(instance, 1000);
+    zassert_true(status, NULL);
+
+    status = Lighting_Output_Present_Value_Set(instance, 80.0f, priority);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 100);
+
+    status = Lighting_Output_Present_Value_Set(
+        instance, BACNET_LIGHTING_SPECIAL_VALUE_WARN_RELINQUISH, priority);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 200);
+    zassert_true(Lighting_Output_Egress_Active(instance), NULL);
+    status =
+        Lighting_Output_Present_Value_Set(instance, 100.0f, fallback_priority);
+    zassert_true(status, NULL);
+
+    /* Start the trim with the final 100 ms of egress. */
+    Lighting_Output_Timer(instance, 700);
+    Lighting_Output_Timer(instance, 100);
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(
+        is_float_equal(test_real, 99.0f), "Tracking_Value=%f",
+        (double)test_real);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(in_progress, BACNET_LIGHTING_TRIM_ACTIVE, NULL);
+
+    command.operation = BACNET_LIGHTS_STOP;
+    command.use_priority = true;
+    command.priority = fallback_priority;
+    status = Lighting_Output_Lighting_Command_Set(instance, &command);
+    zassert_true(status, NULL);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(
+        in_progress, BACNET_LIGHTING_IDLE, "in_progress=%s",
+        bactext_lighting_in_progress(in_progress));
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(
+        is_float_equal(test_real, 99.0f), "Tracking_Value=%f",
+        (double)test_real);
+    test_real = Lighting_Output_Present_Value(instance);
+    zassert_true(
+        is_float_equal(test_real, 99.0f), "Present_Value=%f",
+        (double)test_real);
+
+    /* Later ticks must not continue the trim. */
+    Lighting_Output_Timer(instance, 800);
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(
+        is_float_equal(test_real, 99.0f), "Tracking_Value=%f",
+        (double)test_real);
+    test_real = Lighting_Output_Present_Value(instance);
+    zassert_true(is_float_equal(test_real, 99.0f), NULL);
+    in_progress = Lighting_Output_In_Progress(instance);
+    zassert_equal(in_progress, BACNET_LIGHTING_IDLE, NULL);
+
+    status = Lighting_Output_Delete(instance);
+    zassert_true(status, NULL);
+    Lighting_Output_Cleanup();
+}
+
+/**
  * @brief Test
  */
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -1610,6 +1699,7 @@ void test_main(void)
         ztest_unit_test(testLightingOutputWarnRelinquishTrim),
         ztest_unit_test(testLightingOutputWarnRelinquishTrimFade),
         ztest_unit_test(testLightingOutputWarnHaltTrimFade),
+        ztest_unit_test(testLightingOutputStopDuringTrimFade),
         ztest_unit_test(testLightingOutputCommandCallback),
         ztest_unit_test(testLightingOutputMinMaxActualValue));
 

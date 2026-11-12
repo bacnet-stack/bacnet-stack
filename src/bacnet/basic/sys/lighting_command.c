@@ -1328,8 +1328,12 @@ void lighting_command_stop(struct bacnet_lighting_command_data *data)
     if (!data->Overridden) {
         /* cancel a pending warning without its delayed slot action */
         lighting_command_blink_cancel_nolock(data);
-        /* configure the lighting operation */
+        /* 135-2024 §12.54.6 STOP: end any fade, including an
+           unfinished trim fade, and set In_Progress to IDLE. */
         data->Lighting_Operation = BACNET_LIGHTS_STOP;
+        data->Fade_Time = 0;
+        data->Trim_Fade_Time = 0;
+        data->In_Progress = BACNET_LIGHTING_IDLE;
         if (isgreaterequal(data->Tracking_Value, 1.0)) {
             /* the last value that was greater than or equal to 1.0%.*/
             data->Last_On_Value = data->Tracking_Value;
@@ -2046,8 +2050,14 @@ bool lighting_command_active(struct bacnet_lighting_command_data *data)
         return in_progress;
     }
     lighting_command_lock(data);
+    /* 135-2024 §12.54.6 STOP: a FADE_TO is in progress while the
+       level fade runs, and while a trim fade continues after the
+       level fade ends with Trim_Fade_Time still remaining. */
     if ((data->In_Progress == BACNET_LIGHTING_FADE_ACTIVE) ||
         (data->In_Progress == BACNET_LIGHTING_RAMP_ACTIVE) ||
+        ((data->In_Progress == BACNET_LIGHTING_TRIM_ACTIVE) &&
+         (data->Lighting_Operation == BACNET_LIGHTS_FADE_TO) &&
+         (data->Trim_Fade_Time > 0)) ||
         (data->Blink.Duration > 0)) {
         in_progress = true;
     }
