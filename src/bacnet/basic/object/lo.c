@@ -521,9 +521,10 @@ unsigned Lighting_Output_Present_Value_Priority(uint32_t object_instance)
  * to the tracking value based on the priority of the command
  * @param pObject [in] object to apply the trim values to
  * @param priority [in] priority of the command
+ * @note The caller shall hold the lighting-command lock.
  */
-static void
-Lighting_Command_Trim_Apply(struct object_data *pObject, unsigned priority)
+static void Lighting_Command_Trim_Apply_Nolock(
+    struct object_data *pObject, unsigned priority)
 {
     if (!pObject) {
         return;
@@ -533,14 +534,42 @@ Lighting_Command_Trim_Apply(struct object_data *pObject, unsigned priority)
         the Tracking_Value shall not be clamped. */
     if ((priority == 1) || (priority == 2)) {
         /* remove any high or low trim */
-        lighting_command_trim_set(&pObject->Lighting_Command, 100.0f, 1.0f, 0);
+        lighting_command_trim_set_nolock(
+            &pObject->Lighting_Command, 100.0f, 1.0f, 0);
     } else {
         /* apply high and low trim */
-        lighting_command_trim_set(
+        lighting_command_trim_set_nolock(
             &pObject->Lighting_Command, pObject->High_End_Trim,
             pObject->Low_End_Trim, pObject->Trim_Fade_Time);
     }
 }
+
+/**
+ * @brief Configure the lighting command to apply low or high trim
+ * to the tracking value based on the priority of the command
+ * @param pObject [in] object to apply the trim values to
+ * @param priority [in] priority of the command
+ */
+static void
+Lighting_Command_Trim_Apply(struct object_data *pObject, unsigned priority)
+{
+    if (!pObject) {
+        return;
+    }
+    lighting_command_lock(&pObject->Lighting_Command);
+    Lighting_Command_Trim_Apply_Nolock(pObject, priority);
+    lighting_command_unlock(&pObject->Lighting_Command);
+}
+
+static void Lighting_Command_Blink_Stop(
+    uint32_t object_instance,
+    BACNET_LIGHTING_OPERATION operation,
+    uint8_t priority);
+static bool Lighting_Command_Halt_Egress(
+    struct object_data *pObject, unsigned new_priority);
+static void
+Lighting_Command_Track_Present_If_Stopped(struct object_data *pObject);
+static void Lighting_Command_Track_Present_Nolock(struct object_data *pObject);
 
 /**
  * @brief Set the lighting command if the priority is active
@@ -560,6 +589,8 @@ static void Lighting_Command_Fade_To(
     if (!pObject) {
         return;
     }
+    /* 135-2024 §12.54.6.1: halt egress before the new slot write */
+    (void)Lighting_Command_Halt_Egress(pObject, priority);
     Present_Value_Set(pObject, value, priority);
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
@@ -588,6 +619,8 @@ static void Lighting_Command_Ramp_To(
     if (!pObject) {
         return;
     }
+    /* 135-2024 §12.54.6.1: halt egress before the new slot write */
+    (void)Lighting_Command_Halt_Egress(pObject, priority);
     Present_Value_Set(pObject, value, priority);
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
@@ -666,10 +699,12 @@ Lighting_Command_Warn(struct object_data *pObject, unsigned priority)
 {
     unsigned current_priority;
     BACNET_LIGHTING_COMMAND_WARN_DATA blink = { 0 };
+    bool halted;
 
     if (!pObject) {
         return;
     }
+    halted = Lighting_Command_Halt_Egress(pObject, priority);
     current_priority = Present_Value_Priority(pObject);
     if ((priority <= current_priority) &&
         (Priority_Array_Active(pObject, priority - 1)) &&
@@ -690,6 +725,39 @@ Lighting_Command_Warn(struct object_data *pObject, unsigned priority)
         blink.Duration = Lighting_Command_Warn_Duration(pObject, &blink);
         lighting_command_blink_warn(
             &pObject->Lighting_Command, BACNET_LIGHTS_WARN, &blink);
+        halted = false;
+    }
+    if (halted) {
+        /* The halt relinquished the slot and this WARN did not start. */
+        Lighting_Command_Track_Present_If_Stopped(pObject);
+    }
+}
+
+/**
+ * @brief Perform the delayed priority-slot action of an egress command
+ * @param pObject [in] BACnet object instance
+ * @param operation [in] BACnet lighting operation
+ * @param priority [in] BACnet priority array value 1..16
+ * @return true if the operation was WARN_OFF or WARN_RELINQUISH
+ */
+static bool Lighting_Command_Egress_Slot_Action(
+    struct object_data *pObject,
+    BACNET_LIGHTING_OPERATION operation,
+    uint8_t priority)
+{
+    switch (operation) {
+        case BACNET_LIGHTS_WARN_OFF:
+            /* writes the value 0.0% to the specified priority slot
+               after a delay of Egress_Time seconds. */
+            (void)Present_Value_Set(pObject, 0.0, priority);
+            return true;
+        case BACNET_LIGHTS_WARN_RELINQUISH:
+            /* relinquishes the value at the specified priority slot
+               after a delay of Egress_Time seconds. */
+            (void)Present_Value_Relinquish(pObject, priority);
+            return true;
+        default:
+            return false;
     }
 }
 
@@ -699,6 +767,10 @@ Lighting_Command_Warn(struct object_data *pObject, unsigned priority)
  * @param object_instance object-instance number of the object
  * @param operation BACnet lighting operation
  * @param priority BACnet priority array value 1..16
+ * @note Called by the lighting command timer, which holds the
+ *  lighting-command lock. The move to the priority now in effect is
+ *  made here, under that same lock hold, so that a newer command cannot
+ *  be replaced by it.
  */
 static void Lighting_Command_Blink_Stop(
     uint32_t object_instance,
@@ -707,26 +779,88 @@ static void Lighting_Command_Blink_Stop(
 {
     struct object_data *pObject;
 
-    switch (operation) {
-        case BACNET_LIGHTS_WARN_OFF:
-            /* writes the value 0.0% to the specified priority slot
-               after a delay of Egress_Time seconds. */
-            pObject = Keylist_Data(Object_List, object_instance);
-            if (pObject) {
-                (void)Present_Value_Set(pObject, 0.0, priority);
-            }
-            break;
-        case BACNET_LIGHTS_WARN_RELINQUISH:
-            /* relinquishes the value at the specified priority slot
-               after a delay of Egress_Time seconds. */
-            pObject = Keylist_Data(Object_List, object_instance);
-            if (pObject) {
-                (void)Present_Value_Relinquish(pObject, priority);
-            }
-            break;
-        default:
-            break;
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject &&
+        Lighting_Command_Egress_Slot_Action(pObject, operation, priority)) {
+        /* 135-2024 §12.54.5 and §12.54.49: the slot action has run,
+           so move the output to the priority now in effect */
+        Lighting_Command_Track_Present_Nolock(pObject);
     }
+}
+
+/**
+ * @brief Expire WARN_OFF or WARN_RELINQUISH for a superseding command.
+ * @param pObject [in] BACnet object instance
+ * @param new_priority [in] priority of the command that may halt egress
+ * @return true if an egress command was halted
+ * @note 135-2024 §12.54.6.1. A higher or equal priority halts egress:
+ *  WARN_RELINQUISH relinquishes its slot, WARN_OFF writes 0.0% there.
+ *  STOP is not a halt. A numerically higher priority does not halt.
+ */
+static bool
+Lighting_Command_Halt_Egress(struct object_data *pObject, unsigned new_priority)
+{
+    BACNET_LIGHTING_OPERATION operation = BACNET_LIGHTS_NONE;
+    uint8_t blink_priority = 0;
+
+    if (!pObject) {
+        return false;
+    }
+    if ((new_priority < 1) || (new_priority > BACNET_MAX_PRIORITY) ||
+        (new_priority == 6)) {
+        return false;
+    }
+    if (!lighting_command_blink_halt(
+            &pObject->Lighting_Command, (uint8_t)new_priority, &operation,
+            &blink_priority)) {
+        return false;
+    }
+    (void)Lighting_Command_Egress_Slot_Action(
+        pObject, operation, blink_priority);
+
+    return true;
+}
+
+/**
+ * @brief Move the output to the priority array value now in effect.
+ * @param pObject [in] BACnet object instance
+ * @note The caller shall hold the lighting-command lock.
+ */
+static void Lighting_Command_Track_Present_Nolock(struct object_data *pObject)
+{
+    float value;
+    unsigned priority;
+
+    if (!pObject) {
+        return;
+    }
+    value = Priority_Array_Next_Value(pObject, 0);
+    priority = Present_Value_Priority(pObject);
+    if (priority > BACNET_MAX_PRIORITY) {
+        priority = BACNET_MAX_PRIORITY;
+    }
+    Lighting_Command_Trim_Apply_Nolock(pObject, priority);
+    lighting_command_fade_to_nolock(&pObject->Lighting_Command, value, 0);
+}
+
+/**
+ * @brief Move the output to the priority array value now in effect
+ *  if a halt was not followed by another lighting operation.
+ * @param pObject [in] BACnet object instance
+ * @note The STOP check and the move are made under one lock hold, so a
+ *  command that started after the halt is not replaced.
+ */
+static void
+Lighting_Command_Track_Present_If_Stopped(struct object_data *pObject)
+{
+    if (!pObject) {
+        return;
+    }
+    lighting_command_lock(&pObject->Lighting_Command);
+    if (pObject->Lighting_Command.Lighting_Operation == BACNET_LIGHTS_STOP) {
+        Lighting_Command_Track_Present_Nolock(pObject);
+    }
+    lighting_command_unlock(&pObject->Lighting_Command);
 }
 
 /**
@@ -739,10 +873,12 @@ Lighting_Command_Warn_Off(struct object_data *pObject, unsigned priority)
 {
     unsigned current_priority;
     BACNET_LIGHTING_COMMAND_WARN_DATA blink = { 0 };
+    bool halted;
 
     if (!pObject) {
         return;
     }
+    halted = Lighting_Command_Halt_Egress(pObject, priority);
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
         Lighting_Command_Trim_Apply(pObject, priority);
@@ -762,18 +898,26 @@ Lighting_Command_Warn_Off(struct object_data *pObject, unsigned priority)
             /* hold the lights at the current level during egress */
             blink.On_Value =
                 lighting_command_tracking_value_get(&pObject->Lighting_Command);
+            /* egress ends at the held level. The slot action and the
+               move to the priority in effect follow in the timer. */
+            blink.End_Value = blink.On_Value;
             blink.Duration = pObject->Egress_Time_Seconds * 1000UL;
             blink.Priority = priority;
             blink.Callback = Lighting_Command_Blink_Stop;
             lighting_command_blink_warn(
                 &pObject->Lighting_Command, BACNET_LIGHTS_WARN_OFF, &blink);
+            halted = false;
         } else {
             /* the value 0.0% written at the specified priority immediately */
             Present_Value_Set(pObject, 0.0, priority);
             Lighting_Command_Transition_Default(pObject, priority, 0.0);
+            halted = false;
         }
     } else {
         Present_Value_Set(pObject, 0.0, priority);
+    }
+    if (halted) {
+        Lighting_Command_Track_Present_If_Stopped(pObject);
     }
 }
 
@@ -811,18 +955,22 @@ Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
 {
     uint8_t current_priority;
     BACNET_LIGHTING_COMMAND_WARN_DATA blink;
+    bool halted;
 
     if (!pObject) {
         return;
     }
+    halted = Lighting_Command_Halt_Egress(pObject, priority);
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
         Lighting_Command_Trim_Apply(pObject, priority);
         if ((Priority_Array_Active(pObject, priority - 1)) &&
             (!is_float_equal(
                 Priority_Array_Value(pObject, priority - 1), 0.0)) &&
+            /* priority is 1..16. Start the search at the next lower
+               slot so the active slot being relinquished is skipped. */
             (is_float_equal(
-                Priority_Array_Next_Value(pObject, priority - 1), 0.0)) &&
+                Priority_Array_Next_Value(pObject, priority), 0.0)) &&
             pObject->Blink_Warn_Enable) {
             /* The blink-warn notification shall not occur,
                 and the value at the specified priority shall be
@@ -836,12 +984,16 @@ Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
             /* hold the lights at the current level during egress */
             blink.On_Value =
                 lighting_command_tracking_value_get(&pObject->Lighting_Command);
+            /* egress ends at the held level. The slot action and the
+               move to the priority in effect follow in the timer. */
+            blink.End_Value = blink.On_Value;
             blink.Duration = pObject->Egress_Time_Seconds * 1000UL;
             blink.Priority = priority;
             blink.Callback = Lighting_Command_Blink_Stop;
             lighting_command_blink_warn(
                 &pObject->Lighting_Command, BACNET_LIGHTS_WARN_RELINQUISH,
                 &blink);
+            halted = false;
         } else {
             /* the value at the specified priority shall be
                relinquished immediately */
@@ -849,6 +1001,9 @@ Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
         }
     } else {
         Present_Value_Relinquish(pObject, priority);
+    }
+    if (halted) {
+        Lighting_Command_Track_Present_If_Stopped(pObject);
     }
 }
 
@@ -896,6 +1051,7 @@ static void Lighting_Command_Step_Up_On(
     if (isgreater(value, 100.0)) {
         value = 100.0;
     }
+    (void)Lighting_Command_Halt_Egress(pObject, priority);
     Present_Value_Set(pObject, value, priority);
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
@@ -954,6 +1110,7 @@ static void Lighting_Command_Step_Down_Off(
             value = 0.0;
         }
     }
+    (void)Lighting_Command_Halt_Egress(pObject, priority);
     Present_Value_Set(pObject, value, priority);
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
@@ -1163,6 +1320,7 @@ bool Lighting_Output_Present_Value_Set(
                 debug_log_fprintf(
                     DEBUG_LOG_DEBUG, stderr, "LO[%u]: Present-Value@%u %0.2f\n",
                     object_instance, priority, (double)value);
+                (void)Lighting_Command_Halt_Egress(pObject, priority);
                 Present_Value_Set(pObject, value, priority);
                 Lighting_Command_Transition_Default(pObject, priority, value);
                 status = true;
@@ -1542,10 +1700,14 @@ Lighting_Command_Stop(struct object_data *pObject, unsigned priority)
     if (priority == current_priority) {
         if (lighting_command_active(&pObject->Lighting_Command)) {
             /* fade, ramp, or warn command is currently
-               executing at the specified priority */
-            value =
-                lighting_command_tracking_value_get(&pObject->Lighting_Command);
-            Present_Value_Set(pObject, value, priority);
+               executing at the specified priority.
+               A warning leaves the slot unchanged. */
+            if (!lighting_command_blink_egress_active(
+                    &pObject->Lighting_Command)) {
+                value = lighting_command_tracking_value_get(
+                    &pObject->Lighting_Command);
+                Present_Value_Set(pObject, value, priority);
+            }
             /* configure the Lighting Command */
             lighting_command_stop(&pObject->Lighting_Command);
         }
@@ -4234,6 +4396,31 @@ void Lighting_Output_Write_Lighting_Command_Callback_Set(
     lighting_command_event_callback cb)
 {
     Lighting_Command_Event_Callback = cb;
+}
+
+/**
+ * @brief Install the lighting-command lock callbacks for one object
+ * @param object_instance - object-instance number of the object
+ * @param lock_callback - called before shared lighting-command access
+ * @param unlock_callback - called after shared lighting-command access
+ * @return true if the callbacks were stored
+ */
+bool Lighting_Output_Command_Lock_Set(
+    uint32_t object_instance,
+    lighting_command_lock_callback lock_callback,
+    lighting_command_lock_callback unlock_callback)
+{
+    struct object_data *pObject;
+    bool status = false;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Lighting_Command.Lock = lock_callback;
+        pObject->Lighting_Command.Unlock = unlock_callback;
+        status = true;
+    }
+
+    return status;
 }
 
 /**

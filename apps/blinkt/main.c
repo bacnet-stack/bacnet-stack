@@ -64,6 +64,12 @@ static uint32_t CCT_Channel_Instance = 3;
 static uint32_t Vacancy_Timer_Instance = 1;
 static uint32_t Vacancy_Timeout_Milliseconds = 30UL * 60UL * 1000UL;
 static unsigned Default_Priority = 16;
+/* blink-warn is off unless --blink-warn is passed */
+static bool Blink_Warn_Enable = false;
+static uint32_t Blink_Warn_Egress_Seconds = 10;
+static uint16_t Blink_Warn_Interval_Milliseconds = 500;
+/* UINT16_MAX blinks until egress time ends */
+static uint16_t Blink_Warn_Count = UINT16_MAX;
 /**
  * Clean up the Blinkt! interface
  */
@@ -291,6 +297,13 @@ static void BACnet_Object_Table_Init(void *context)
     Timer_Reference_List_Member_Element_Add(Vacancy_Timer_Instance, &member);
     Timer_Priority_For_Writing_Set(Vacancy_Timer_Instance, Default_Priority);
     /* configure outputs and bindings */
+    if (Blink_Warn_Enable) {
+        printf(
+            "Blink-warn: egress=%lu s interval=%u ms count=%u\n",
+            (unsigned long)Blink_Warn_Egress_Seconds,
+            (unsigned)Blink_Warn_Interval_Milliseconds,
+            (unsigned)Blink_Warn_Count);
+    }
     led_max = blinkt_led_count();
     for (i = 0; i < led_max; i++) {
         object_instance = 1 + i;
@@ -336,6 +349,14 @@ static void BACnet_Object_Table_Init(void *context)
 
         /* lighting output */
         Lighting_Output_Create(object_instance);
+        if (Blink_Warn_Enable) {
+            Lighting_Output_Blink_Warn_Enable_Set(object_instance, true);
+            Lighting_Output_Egress_Time_Set(
+                object_instance, Blink_Warn_Egress_Seconds);
+            Lighting_Output_Blink_Warn_Feature_Set(
+                object_instance, 0.0f, Blink_Warn_Interval_Milliseconds,
+                Blink_Warn_Count);
+        }
 
         /* configure references */
         object_id.type = OBJECT_COLOR;
@@ -428,6 +449,8 @@ static void print_usage(const char *filename)
 {
     printf("Usage: %s [device-instance]\n", filename);
     printf("       [--device N][--test][--color COLOR][--vacancy MS]\n");
+    printf(
+        "       [--blink-warn][--egress SECONDS][--interval MS][--count N]\n");
     printf("       [--version][--help]\n");
 }
 
@@ -452,13 +475,29 @@ static void print_help(const char *filename)
     printf("--vacancy:\n"
            "Vacancy timeout in milliseconds.\n");
     printf("\n");
+    printf("--blink-warn:\n"
+           "Enable blink-warn on each lighting output.\n"
+           "The LEDs toggle, then stay on until egress time ends.\n");
+    printf("\n");
+    printf("--egress:\n"
+           "Blink-warn egress time in seconds. Default is 10.\n");
+    printf("\n");
+    printf("--interval:\n"
+           "Blink-warn toggle interval in milliseconds. Default is 500.\n");
+    printf("\n");
+    printf("--count:\n"
+           "Number of blinks before the output holds on for the rest\n"
+           "of the egress time. Default is 65535, which blinks until\n"
+           "egress time ends.\n");
+    printf("\n");
     printf("--test:\n"
            "Test the Blinkt! RGB LEDs with a cycling pattern.\n");
     printf("\n");
     printf(
         "Example:\n"
-        "%s 9009\n",
-        filename);
+        "%s 9009\n"
+        "%s 86044 --blink-warn --egress 10 --interval 500 --vacancy 20000\n",
+        filename, filename);
 }
 
 /** Main function of server demo.
@@ -470,6 +509,7 @@ int main(int argc, char *argv[])
 {
     unsigned int target_args = 0;
     uint32_t device_id = BACNET_MAX_INSTANCE, vacancy_timeout = 0;
+    uint32_t egress_seconds = 0, interval_ms = 0, blink_count = 0;
     int argi = 0;
     const char *filename = NULL;
     const char *color_name = "darkred";
@@ -524,6 +564,47 @@ int main(int argc, char *argv[])
                     return 1;
                 }
                 Vacancy_Timeout_Milliseconds = vacancy_timeout;
+            }
+        } else if (strcmp(argv[argi], "--blink-warn") == 0) {
+            Blink_Warn_Enable = true;
+        } else if (strcmp(argv[argi], "--egress") == 0) {
+            if (++argi < argc) {
+                if (!bacnet_string_to_uint32(argv[argi], &egress_seconds) ||
+                    (egress_seconds > (UINT32_MAX / 1000UL))) {
+                    fprintf(stderr, "egress=%s invalid\n", argv[argi]);
+                    return 1;
+                }
+                Blink_Warn_Egress_Seconds = egress_seconds;
+            } else {
+                fprintf(stderr, "Missing seconds after --egress\n");
+                print_usage(filename);
+                return 1;
+            }
+        } else if (strcmp(argv[argi], "--interval") == 0) {
+            if (++argi < argc) {
+                if (!bacnet_string_to_uint32(argv[argi], &interval_ms) ||
+                    (interval_ms > UINT16_MAX)) {
+                    fprintf(stderr, "interval=%s invalid\n", argv[argi]);
+                    return 1;
+                }
+                Blink_Warn_Interval_Milliseconds = (uint16_t)interval_ms;
+            } else {
+                fprintf(stderr, "Missing milliseconds after --interval\n");
+                print_usage(filename);
+                return 1;
+            }
+        } else if (strcmp(argv[argi], "--count") == 0) {
+            if (++argi < argc) {
+                if (!bacnet_string_to_uint32(argv[argi], &blink_count) ||
+                    (blink_count > UINT16_MAX)) {
+                    fprintf(stderr, "count=%s invalid\n", argv[argi]);
+                    return 1;
+                }
+                Blink_Warn_Count = (uint16_t)blink_count;
+            } else {
+                fprintf(stderr, "Missing count after --count\n");
+                print_usage(filename);
+                return 1;
             }
         } else {
             if (target_args == 0) {
