@@ -436,6 +436,28 @@ static void testAnalogOutput_COV_Status_Flags_Current_Value(void)
     Analog_Output_Cleanup();
 }
 /**
+ * @brief Test Reliability WriteProperty while Out_Of_Service
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ao_tests, testAnalogOutput_Reliability_Write)
+#else
+static void testAnalogOutput_Reliability_Write(void)
+#endif
+{
+    uint32_t object_instance = 0;
+
+    Analog_Output_Init();
+    object_instance = Analog_Output_Create(1);
+    bacnet_object_reliability_write_test(
+        OBJECT_ANALOG_OUTPUT, object_instance, Analog_Output_Read_Property,
+        Analog_Output_Write_Property, Analog_Output_Out_Of_Service_Set,
+        Analog_Output_Reliability_Set, Analog_Output_Change_Of_Value,
+        Analog_Output_Change_Of_Value_Clear, UINT8_MAX);
+    Analog_Output_Delete(object_instance);
+    Analog_Output_Cleanup();
+}
+
+/**
  * @}
  */
 
@@ -452,7 +474,8 @@ void test_main(void)
         ztest_unit_test(testAnalogOutput_Priority_Array_Unknown_Instance),
         ztest_unit_test(testAnalogOutput_COV),
         ztest_unit_test(testAnalogOutput_COV_Overridden),
-        ztest_unit_test(testAnalogOutput_COV_Status_Flags_Current_Value));
+        ztest_unit_test(testAnalogOutput_COV_Status_Flags_Current_Value),
+        ztest_unit_test(testAnalogOutput_Reliability_Write));
 
     ztest_run_test_suite(ao_tests);
 }

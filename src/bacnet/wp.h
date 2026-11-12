@@ -124,6 +124,13 @@ bool write_property_enumerated_decode(
     BACNET_WRITE_PROPERTY_DATA *wp_data, uint32_t *value, uint32_t maximum);
 
 BACNET_STACK_EXPORT
+bool write_property_reliability_decode(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
+    bool out_of_service,
+    BACNET_RELIABILITY *value,
+    uint32_t maximum);
+
+BACNET_STACK_EXPORT
 bool write_property_boolean_decode(
     BACNET_WRITE_PROPERTY_DATA *wp_data, bool *value);
 

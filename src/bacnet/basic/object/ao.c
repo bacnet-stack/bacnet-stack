@@ -1332,6 +1332,7 @@ bool Analog_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool status = false; /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_RELIABILITY reliability = RELIABILITY_NO_FAULT_DETECTED;
 
     /* Valid data? */
     if (wp_data == NULL) {
@@ -1380,6 +1381,15 @@ bool Analog_Output_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                         wp_data->object_instance, wp_data->priority,
                         &wp_data->error_class, &wp_data->error_code);
                 }
+            }
+            break;
+        case PROP_RELIABILITY:
+            status = write_property_reliability_decode(
+                wp_data, Analog_Output_Out_Of_Service(wp_data->object_instance),
+                &reliability, UINT8_MAX);
+            if (status) {
+                status = Analog_Output_Reliability_Set(
+                    wp_data->object_instance, reliability);
             }
             break;
         case PROP_OUT_OF_SERVICE:
