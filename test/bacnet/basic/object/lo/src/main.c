@@ -952,6 +952,123 @@ static void testLightingOutputStopDuringTrimFade(void)
     Lighting_Output_Cleanup();
 }
 
+static unsigned Test_Lock_Depth;
+static unsigned Test_Lock_Count;
+
+/**
+ * @brief Non-recursive lock. A nested take fails the test.
+ */
+static void
+test_lighting_command_lock(struct bacnet_lighting_command_data *data)
+{
+    (void)data;
+    zassert_equal(Test_Lock_Depth, 0, NULL);
+    Test_Lock_Depth++;
+    Test_Lock_Count++;
+}
+
+/**
+ * @brief Pair of test_lighting_command_lock()
+ */
+static void
+test_lighting_command_unlock(struct bacnet_lighting_command_data *data)
+{
+    (void)data;
+    zassert_equal(Test_Lock_Depth, 1, NULL);
+    Test_Lock_Depth--;
+}
+
+/**
+ * @brief A halt and an egress expiry take the lighting-command lock
+ * and do not take it again. 135-2024 §12.54.6.1.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lo_tests, testLightingOutputHaltLock)
+#else
+static void testLightingOutputHaltLock(void)
+#endif
+{
+    const uint32_t instance = 332;
+    const unsigned priority = 8;
+    const unsigned higher_priority = 4;
+    float test_real;
+    bool status;
+
+    Test_Lock_Depth = 0;
+    Test_Lock_Count = 0;
+    Lighting_Output_Init();
+    Lighting_Output_Create(instance);
+    status = Lighting_Output_Command_Lock_Set(
+        instance, test_lighting_command_lock, test_lighting_command_unlock);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Blink_Warn_Enable_Set(instance, true);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Egress_Time_Set(instance, 1);
+    zassert_true(status, NULL);
+    status =
+        Lighting_Output_Blink_Warn_Feature_Set(instance, 0.0f, 0, UINT16_MAX);
+    zassert_true(status, NULL);
+
+    status = Lighting_Output_Present_Value_Set(instance, 60.0f, priority);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 100);
+    status = Lighting_Output_Present_Value_Set(
+        instance, BACNET_LIGHTING_SPECIAL_VALUE_WARN_RELINQUISH, priority);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 200);
+    zassert_true(Lighting_Output_Egress_Active(instance), NULL);
+
+    status =
+        Lighting_Output_Present_Value_Set(instance, 80.0f, higher_priority);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Priority_Array_Relinquished(instance, priority);
+    zassert_true(status, NULL);
+    test_real = Lighting_Output_Present_Value(instance);
+    zassert_true(is_float_equal(test_real, 80.0f), NULL);
+    zassert_false(Lighting_Output_Egress_Active(instance), NULL);
+    zassert_equal(Test_Lock_Depth, 0, NULL);
+    zassert_true(Test_Lock_Count > 0, NULL);
+
+    status = Lighting_Output_Delete(instance);
+    zassert_true(status, NULL);
+    Lighting_Output_Cleanup();
+
+    /* Expiry runs the completion fade while the timer holds the lock. */
+    Test_Lock_Depth = 0;
+    Test_Lock_Count = 0;
+    Lighting_Output_Init();
+    Lighting_Output_Create(instance);
+    status = Lighting_Output_Command_Lock_Set(
+        instance, test_lighting_command_lock, test_lighting_command_unlock);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Blink_Warn_Enable_Set(instance, true);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Egress_Time_Set(instance, 1);
+    zassert_true(status, NULL);
+    status =
+        Lighting_Output_Blink_Warn_Feature_Set(instance, 0.0f, 0, UINT16_MAX);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Present_Value_Set(instance, 60.0f, priority);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 100);
+    status = Lighting_Output_Present_Value_Set(
+        instance, BACNET_LIGHTING_SPECIAL_VALUE_WARN_RELINQUISH, priority);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 1000);
+    status = Lighting_Output_Priority_Array_Relinquished(instance, priority);
+    zassert_true(status, NULL);
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(
+        is_float_equal(test_real, 0.0f), "Tracking_Value=%f",
+        (double)test_real);
+    zassert_equal(Test_Lock_Depth, 0, NULL);
+    zassert_true(Test_Lock_Count > 0, NULL);
+
+    status = Lighting_Output_Delete(instance);
+    zassert_true(status, NULL);
+    Lighting_Output_Cleanup();
+}
+
 /**
  * @brief Test
  */
@@ -1700,6 +1817,7 @@ void test_main(void)
         ztest_unit_test(testLightingOutputWarnRelinquishTrimFade),
         ztest_unit_test(testLightingOutputWarnHaltTrimFade),
         ztest_unit_test(testLightingOutputStopDuringTrimFade),
+        ztest_unit_test(testLightingOutputHaltLock),
         ztest_unit_test(testLightingOutputCommandCallback),
         ztest_unit_test(testLightingOutputMinMaxActualValue));
 

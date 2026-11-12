@@ -266,6 +266,11 @@ void Lighting_Output_Write_Present_Value_Callback_Set(
 BACNET_STACK_EXPORT
 void Lighting_Output_Write_Lighting_Command_Callback_Set(
     lighting_command_event_callback cb);
+BACNET_STACK_EXPORT
+bool Lighting_Output_Command_Lock_Set(
+    uint32_t object_instance,
+    lighting_command_lock_callback lock_callback,
+    lighting_command_lock_callback unlock_callback);
 
 BACNET_STACK_EXPORT
 void *Lighting_Output_Context_Get(uint32_t object_instance);

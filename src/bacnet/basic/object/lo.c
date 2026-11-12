@@ -804,7 +804,9 @@ Lighting_Command_Halt_Egress(struct object_data *pObject, unsigned new_priority)
 {
     BACNET_LIGHTING_OPERATION operation;
     uint8_t blink_priority;
+    bool halted;
 
+    halted = false;
     if (!pObject) {
         return false;
     }
@@ -812,30 +814,31 @@ Lighting_Command_Halt_Egress(struct object_data *pObject, unsigned new_priority)
         (new_priority == 6)) {
         return false;
     }
+    /* The timer holds this lock while it reads Blink.Callback and
+       runs the completion fade. Hold it here so a halt cannot clear
+       the callback between that check and the call, and cannot
+       replace the completion fade. 135-2024 §12.54.6.1. */
+    lighting_command_lock(&pObject->Lighting_Command);
     operation = pObject->Lighting_Command.Lighting_Operation;
-    if ((operation != BACNET_LIGHTS_WARN_OFF) &&
-        (operation != BACNET_LIGHTS_WARN_RELINQUISH)) {
-        return false;
-    }
     blink_priority = pObject->Lighting_Command.Blink.Priority;
-    if (blink_priority == 0) {
-        return false;
+    /* Only a higher or equal priority halts. Compare with the warned
+       slot. After that slot is relinquished, the fallback is the
+       priority in effect, and a fade to that fallback is not a halt. */
+    if (((operation == BACNET_LIGHTS_WARN_OFF) ||
+         (operation == BACNET_LIGHTS_WARN_RELINQUISH)) &&
+        (blink_priority != 0) && (new_priority <= blink_priority)) {
+        Lighting_Command_Blink_Stop(
+            pObject->Lighting_Command.Key, operation, blink_priority);
+        /* The slot action has run. Drop the timer so expiry cannot
+           repeat it after the superseding write. */
+        pObject->Lighting_Command.Blink.Callback = NULL;
+        pObject->Lighting_Command.Blink.Duration = 0;
+        pObject->Lighting_Command.Lighting_Operation = BACNET_LIGHTS_STOP;
+        halted = true;
     }
-    /* 135-2024 §12.54.6.1: only a higher or equal priority halts.
-       Compare with the warned slot. After that slot is relinquished,
-       the fallback is the priority in effect, and a fade to that
-       fallback must not be treated as a halt. */
-    if (new_priority > blink_priority) {
-        return false;
-    }
-    Lighting_Command_Blink_Stop(
-        pObject->Lighting_Command.Key, operation, blink_priority);
-    /* The slot action has run. Drop the timer so expiry cannot
-       repeat it after the superseding write. */
-    pObject->Lighting_Command.Blink.Callback = NULL;
-    pObject->Lighting_Command.Blink.Duration = 0;
-    pObject->Lighting_Command.Lighting_Operation = BACNET_LIGHTS_STOP;
-    return true;
+    lighting_command_unlock(&pObject->Lighting_Command);
+
+    return halted;
 }
 
 /**
@@ -4389,6 +4392,31 @@ void Lighting_Output_Write_Lighting_Command_Callback_Set(
     lighting_command_event_callback cb)
 {
     Lighting_Command_Event_Callback = cb;
+}
+
+/**
+ * @brief Install the lighting-command lock callbacks for one object
+ * @param object_instance - object-instance number of the object
+ * @param lock_callback - called before shared lighting-command access
+ * @param unlock_callback - called after shared lighting-command access
+ * @return true if the callbacks were stored
+ */
+bool Lighting_Output_Command_Lock_Set(
+    uint32_t object_instance,
+    lighting_command_lock_callback lock_callback,
+    lighting_command_lock_callback unlock_callback)
+{
+    struct object_data *pObject;
+    bool status = false;
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        pObject->Lighting_Command.Lock = lock_callback;
+        pObject->Lighting_Command.Unlock = unlock_callback;
+        status = true;
+    }
+
+    return status;
 }
 
 /**
