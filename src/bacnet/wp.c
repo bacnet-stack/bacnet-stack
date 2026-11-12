@@ -605,6 +605,57 @@ bool write_property_enumerated_decode(
 }
 
 /**
+ * @brief Helper to decode a WriteProperty Reliability value that is
+ *  only writable while Out_Of_Service is TRUE
+ * @param wp_data - #BACNET_WRITE_PROPERTY_DATA data including any
+ *  error response.
+ * @param out_of_service - Out_Of_Service property value of the object
+ * @param value - pointer to the reliability value, or NULL to only validate
+ * @param maximum - maximum reliability value the object can store
+ * @return true if the value was decoded and no error occurred
+ */
+bool write_property_reliability_decode(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
+    bool out_of_service,
+    BACNET_RELIABILITY *value,
+    uint32_t maximum)
+{
+    bool status = false;
+    int len = 0;
+    uint32_t enumerated_value = 0;
+
+    len = bacnet_enumerated_application_decode(
+        wp_data->application_data, wp_data->application_data_len,
+        &enumerated_value);
+    if (len < 0) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
+    } else if ((len == 0) || (len != wp_data->application_data_len)) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+    } else if (!out_of_service) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+    } else if (enumerated_value > maximum) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+    } else if (
+        (enumerated_value == RELIABILITY_RESERVED_11) ||
+        ((enumerated_value >= RELIABILITY_RESERVED_MIN) &&
+         (enumerated_value <= RELIABILITY_RESERVED_MAX))) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_INVALID_VALUE_IN_THIS_STATE;
+    } else {
+        if (value) {
+            *value = (BACNET_RELIABILITY)enumerated_value;
+        }
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * @brief Helper to decode a WriteProperty boolean value
  * @param wp_data - #BACNET_WRITE_PROPERTY_DATA data including any
  *  error response.

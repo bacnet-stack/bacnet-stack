@@ -193,6 +193,28 @@ static void testBinaryOutput_COV(void)
     Binary_Output_Cleanup();
 }
 /**
+ * @brief Test Reliability WriteProperty while Out_Of_Service
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bo_tests, testBinaryOutput_Reliability_Write)
+#else
+static void testBinaryOutput_Reliability_Write(void)
+#endif
+{
+    uint32_t object_instance = 0;
+
+    Binary_Output_Init();
+    object_instance = Binary_Output_Create(1);
+    bacnet_object_reliability_write_test(
+        OBJECT_BINARY_OUTPUT, object_instance, Binary_Output_Read_Property,
+        Binary_Output_Write_Property, Binary_Output_Out_Of_Service_Set,
+        Binary_Output_Reliability_Set, Binary_Output_Change_Of_Value,
+        Binary_Output_Change_Of_Value_Clear, UINT8_MAX);
+    Binary_Output_Delete(object_instance);
+    Binary_Output_Cleanup();
+}
+
+/**
  * @}
  */
 
@@ -205,7 +227,8 @@ void test_main(void)
         bo_tests, ztest_unit_test(testBinaryOutput),
         ztest_unit_test(testBinaryOutput_Writable_Properties),
         ztest_unit_test(testBinaryOutput_Priority_Array_Unknown_Instance),
-        ztest_unit_test(testBinaryOutput_COV));
+        ztest_unit_test(testBinaryOutput_COV),
+        ztest_unit_test(testBinaryOutput_Reliability_Write));
 
     ztest_run_test_suite(bo_tests);
 }

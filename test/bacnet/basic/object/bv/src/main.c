@@ -541,6 +541,28 @@ static void testBinary_Value_Empty_Payload(void)
     Binary_Value_Delete(instance);
 }
 
+/**
+ * @brief Test Reliability WriteProperty while Out_Of_Service
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bv_tests, testBinaryValue_Reliability_Write)
+#else
+static void testBinaryValue_Reliability_Write(void)
+#endif
+{
+    uint32_t object_instance = 0;
+
+    Binary_Value_Init();
+    object_instance = Binary_Value_Create(1);
+    bacnet_object_reliability_write_test(
+        OBJECT_BINARY_VALUE, object_instance, Binary_Value_Read_Property,
+        Binary_Value_Write_Property, Binary_Value_Out_Of_Service_Set,
+        Binary_Value_Reliability_Set, Binary_Value_Change_Of_Value,
+        Binary_Value_Change_Of_Value_Clear, UINT8_MAX);
+    Binary_Value_Delete(object_instance);
+    Binary_Value_Cleanup();
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(bv_tests, NULL, NULL, NULL, NULL, NULL);
 #else
@@ -553,7 +575,8 @@ void test_main(void)
         ztest_unit_test(testBinary_Value_Priority_Array),
         ztest_unit_test(testBinary_Value_Relinquish_Default_Write),
         ztest_unit_test(testBinary_Value_Present_Value_Set),
-        ztest_unit_test(testBinary_Value_Empty_Payload));
+        ztest_unit_test(testBinary_Value_Empty_Payload),
+        ztest_unit_test(testBinaryValue_Reliability_Write));
 
     ztest_run_test_suite(bv_tests);
 }

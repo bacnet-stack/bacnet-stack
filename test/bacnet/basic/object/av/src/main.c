@@ -466,6 +466,28 @@ static void testAnalog_Value_Commandable(void)
  * @}
  */
 
+/**
+ * @brief Test Reliability WriteProperty while Out_Of_Service
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(av_tests, testAnalogValue_Reliability_Write)
+#else
+static void testAnalogValue_Reliability_Write(void)
+#endif
+{
+    uint32_t object_instance = 0;
+
+    Analog_Value_Init();
+    object_instance = Analog_Value_Create(1);
+    bacnet_object_reliability_write_test(
+        OBJECT_ANALOG_VALUE, object_instance, Analog_Value_Read_Property,
+        Analog_Value_Write_Property, Analog_Value_Out_Of_Service_Set,
+        Analog_Value_Reliability_Set, Analog_Value_Change_Of_Value,
+        Analog_Value_Change_Of_Value_Clear, RELIABILITY_PROPRIETARY_MAX);
+    Analog_Value_Delete(object_instance);
+    Analog_Value_Cleanup();
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(av_tests, NULL, NULL, NULL, NULL, NULL);
 #else
@@ -476,12 +498,14 @@ void test_main(void)
         av_tests, ztest_unit_test(testAnalog_Value),
         ztest_unit_test(testAnalog_Value_APIs),
         ztest_unit_test(testAnalog_Value_Writable_Properties),
-        ztest_unit_test(testAnalog_Value_Commandable));
+        ztest_unit_test(testAnalog_Value_Commandable),
+        ztest_unit_test(testAnalogValue_Reliability_Write));
 #else
     ztest_test_suite(
         av_tests, ztest_unit_test(testAnalog_Value),
         ztest_unit_test(testAnalog_Value_APIs),
-        ztest_unit_test(testAnalog_Value_Writable_Properties));
+        ztest_unit_test(testAnalog_Value_Writable_Properties),
+        ztest_unit_test(testAnalogValue_Reliability_Write));
 #endif
 
     ztest_run_test_suite(av_tests);

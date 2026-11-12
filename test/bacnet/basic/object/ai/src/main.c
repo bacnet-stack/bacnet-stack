@@ -476,6 +476,28 @@ static void testAnalogInput_Time_Delay(void)
 #endif
 }
 /**
+ * @brief Test Reliability WriteProperty while Out_Of_Service
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ai_tests, testAnalogInput_Reliability_Write)
+#else
+static void testAnalogInput_Reliability_Write(void)
+#endif
+{
+    uint32_t object_instance = 0;
+
+    Analog_Input_Init();
+    object_instance = Analog_Input_Create(1);
+    bacnet_object_reliability_write_test(
+        OBJECT_ANALOG_INPUT, object_instance, Analog_Input_Read_Property,
+        Analog_Input_Write_Property, Analog_Input_Out_Of_Service_Set,
+        Analog_Input_Reliability_Set, Analog_Input_Change_Of_Value,
+        Analog_Input_Change_Of_Value_Clear, RELIABILITY_PROPRIETARY_MAX);
+    Analog_Input_Delete(object_instance);
+    Analog_Input_Cleanup();
+}
+
+/**
  * @}
  */
 
@@ -490,7 +512,8 @@ void test_main(void)
         ztest_unit_test(testAnalogInput_Writable_Properties),
         ztest_unit_test(testAnalogInput_Min_Max_Pres_Value),
         ztest_unit_test(testAnalogInput_Limits),
-        ztest_unit_test(testAnalogInput_Time_Delay));
+        ztest_unit_test(testAnalogInput_Time_Delay),
+        ztest_unit_test(testAnalogInput_Reliability_Write));
 
     ztest_run_test_suite(ai_tests);
 }

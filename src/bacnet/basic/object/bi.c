@@ -1222,6 +1222,7 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
     bool status = false; /* return value */
     int len = 0;
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_RELIABILITY reliability = RELIABILITY_NO_FAULT_DETECTED;
     struct object_data *pObject;
 
     /* Valid data? */
@@ -1242,7 +1243,7 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 #if (!BINARY_INPUT_INTRINSIC_REPORTING)
         (void)pObject;
 #endif
-        return BACNET_STATUS_ERROR;
+        return false;
     }
     switch (wp_data->object_property) {
         case PROP_PRESENT_VALUE:
@@ -1268,6 +1269,15 @@ bool Binary_Input_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (status) {
                 status = Binary_Input_Description_Write(
                     wp_data, &value.type.Character_String);
+            }
+            break;
+        case PROP_RELIABILITY:
+            status = write_property_reliability_decode(
+                wp_data, Binary_Input_Out_Of_Service(wp_data->object_instance),
+                &reliability, UINT8_MAX);
+            if (status) {
+                status = Binary_Input_Reliability_Set(
+                    wp_data->object_instance, reliability);
             }
             break;
         case PROP_OUT_OF_SERVICE:

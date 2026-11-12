@@ -269,6 +269,29 @@ static void testMultistateOutput_Empty_Payload(void)
     Multistate_Output_Delete(instance);
 }
 
+/**
+ * @brief Test Reliability WriteProperty while Out_Of_Service
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(mso_tests, testMultistateOutput_Reliability_Write)
+#else
+static void testMultistateOutput_Reliability_Write(void)
+#endif
+{
+    uint32_t object_instance = 0;
+
+    Multistate_Output_Init();
+    object_instance = Multistate_Output_Create(1);
+    bacnet_object_reliability_write_test(
+        OBJECT_MULTI_STATE_OUTPUT, object_instance,
+        Multistate_Output_Read_Property, Multistate_Output_Write_Property,
+        Multistate_Output_Out_Of_Service_Set, Multistate_Output_Reliability_Set,
+        Multistate_Output_Change_Of_Value,
+        Multistate_Output_Change_Of_Value_Clear, UINT8_MAX);
+    Multistate_Output_Delete(object_instance);
+    Multistate_Output_Cleanup();
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(mso_tests, NULL, NULL, NULL, NULL, NULL);
 #else
@@ -279,7 +302,8 @@ void test_main(void)
         ztest_unit_test(testMultistateOutputByName),
         ztest_unit_test(testMultistateOutput_Priority_6_Reserved),
         ztest_unit_test(testMultistateOutput_COV),
-        ztest_unit_test(testMultistateOutput_Empty_Payload));
+        ztest_unit_test(testMultistateOutput_Empty_Payload),
+        ztest_unit_test(testMultistateOutput_Reliability_Write));
 
     ztest_run_test_suite(mso_tests);
 }

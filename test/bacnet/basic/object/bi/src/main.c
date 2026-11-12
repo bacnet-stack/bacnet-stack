@@ -121,6 +121,28 @@ static void testBinaryInput_Writable_Properties(void)
     Binary_Input_Cleanup();
 }
 /**
+ * @brief Test Reliability WriteProperty while Out_Of_Service
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bi_tests, testBinaryInput_Reliability_Write)
+#else
+static void testBinaryInput_Reliability_Write(void)
+#endif
+{
+    uint32_t object_instance = 0;
+
+    Binary_Input_Init();
+    object_instance = Binary_Input_Create(1);
+    bacnet_object_reliability_write_test(
+        OBJECT_BINARY_INPUT, object_instance, Binary_Input_Read_Property,
+        Binary_Input_Write_Property, Binary_Input_Out_Of_Service_Set,
+        Binary_Input_Reliability_Set, Binary_Input_Change_Of_Value,
+        Binary_Input_Change_Of_Value_Clear, UINT8_MAX);
+    Binary_Input_Delete(object_instance);
+    Binary_Input_Cleanup();
+}
+
+/**
  * @}
  */
 
@@ -131,7 +153,8 @@ void test_main(void)
 {
     ztest_test_suite(
         bi_tests, ztest_unit_test(testBinaryInput),
-        ztest_unit_test(testBinaryInput_Writable_Properties));
+        ztest_unit_test(testBinaryInput_Writable_Properties),
+        ztest_unit_test(testBinaryInput_Reliability_Write));
 
     ztest_run_test_suite(bi_tests);
 }

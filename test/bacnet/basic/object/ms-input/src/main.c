@@ -307,6 +307,29 @@ static void testMultistateInput_Empty_Payload(void)
     Multistate_Input_Delete(instance);
 }
 
+/**
+ * @brief Test Reliability WriteProperty while Out_Of_Service
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(ms_input_tests, testMultistateInput_Reliability_Write)
+#else
+static void testMultistateInput_Reliability_Write(void)
+#endif
+{
+    uint32_t object_instance = 0;
+
+    Multistate_Input_Init();
+    object_instance = Multistate_Input_Create(1);
+    bacnet_object_reliability_write_test(
+        OBJECT_MULTI_STATE_INPUT, object_instance,
+        Multistate_Input_Read_Property, Multistate_Input_Write_Property,
+        Multistate_Input_Out_Of_Service_Set, Multistate_Input_Reliability_Set,
+        Multistate_Input_Change_Of_Value,
+        Multistate_Input_Change_Of_Value_Clear, UINT8_MAX);
+    Multistate_Input_Delete(object_instance);
+    Multistate_Input_Cleanup();
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(ms_input_tests, NULL, NULL, NULL, NULL, NULL);
 #else
@@ -318,7 +341,8 @@ void test_main(void)
         ztest_unit_test(testMultistateInput_Writable_Properties),
         ztest_unit_test(testMultistateInput_CreateCleanup),
         ztest_unit_test(testMultistateInput_PresentValueRange),
-        ztest_unit_test(testMultistateInput_Empty_Payload));
+        ztest_unit_test(testMultistateInput_Empty_Payload),
+        ztest_unit_test(testMultistateInput_Reliability_Write));
 
     ztest_run_test_suite(ms_input_tests);
 }
