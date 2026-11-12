@@ -337,10 +337,11 @@ static void lighting_command_blink_complete_nolock(
 }
 
 /**
- * @brief Cancel a pending WARN_OFF or WARN_RELINQUISH.
+ * @brief Drop a pending WARN_OFF or WARN_RELINQUISH callback.
  * @param data - dimmer data structure
- * @note The priority array is left unchanged. A replacement command
- *  or STOP must not run the egress slot action.
+ * @note Does not change the priority array. STOP uses this so the
+ *  slot is left unchanged. A superseding command performs the
+ *  egress slot action before it calls in here.
  */
 static void
 lighting_command_blink_cancel_nolock(struct bacnet_lighting_command_data *data)

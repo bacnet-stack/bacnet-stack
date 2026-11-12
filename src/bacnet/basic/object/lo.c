@@ -542,6 +542,14 @@ Lighting_Command_Trim_Apply(struct object_data *pObject, unsigned priority)
     }
 }
 
+static void Lighting_Command_Blink_Stop(
+    uint32_t object_instance,
+    BACNET_LIGHTING_OPERATION operation,
+    uint8_t priority);
+static bool Lighting_Command_Halt_Egress(
+    struct object_data *pObject, unsigned new_priority);
+static void Lighting_Command_Track_Present(struct object_data *pObject);
+
 /**
  * @brief Set the lighting command if the priority is active
  * @param object [in] BACnet object instance
@@ -560,6 +568,8 @@ static void Lighting_Command_Fade_To(
     if (!pObject) {
         return;
     }
+    /* 135-2024 §12.54.6.1: halt egress before the new slot write */
+    (void)Lighting_Command_Halt_Egress(pObject, priority);
     Present_Value_Set(pObject, value, priority);
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
@@ -588,6 +598,8 @@ static void Lighting_Command_Ramp_To(
     if (!pObject) {
         return;
     }
+    /* 135-2024 §12.54.6.1: halt egress before the new slot write */
+    (void)Lighting_Command_Halt_Egress(pObject, priority);
     Present_Value_Set(pObject, value, priority);
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
@@ -666,10 +678,12 @@ Lighting_Command_Warn(struct object_data *pObject, unsigned priority)
 {
     unsigned current_priority;
     BACNET_LIGHTING_COMMAND_WARN_DATA blink = { 0 };
+    bool halted;
 
     if (!pObject) {
         return;
     }
+    halted = Lighting_Command_Halt_Egress(pObject, priority);
     current_priority = Present_Value_Priority(pObject);
     if ((priority <= current_priority) &&
         (Priority_Array_Active(pObject, priority - 1)) &&
@@ -690,6 +704,12 @@ Lighting_Command_Warn(struct object_data *pObject, unsigned priority)
         blink.Duration = Lighting_Command_Warn_Duration(pObject, &blink);
         lighting_command_blink_warn(
             &pObject->Lighting_Command, BACNET_LIGHTS_WARN, &blink);
+        halted = false;
+    }
+    if (halted &&
+        (pObject->Lighting_Command.Lighting_Operation == BACNET_LIGHTS_STOP)) {
+        /* The halt relinquished the slot and this WARN did not start. */
+        Lighting_Command_Track_Present(pObject);
     }
 }
 
@@ -706,27 +726,105 @@ static void Lighting_Command_Blink_Stop(
     uint8_t priority)
 {
     struct object_data *pObject;
+    float value;
 
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (!pObject) {
+        return;
+    }
     switch (operation) {
         case BACNET_LIGHTS_WARN_OFF:
             /* writes the value 0.0% to the specified priority slot
                after a delay of Egress_Time seconds. */
-            pObject = Keylist_Data(Object_List, object_instance);
-            if (pObject) {
-                (void)Present_Value_Set(pObject, 0.0, priority);
-            }
+            (void)Present_Value_Set(pObject, 0.0, priority);
             break;
         case BACNET_LIGHTS_WARN_RELINQUISH:
             /* relinquishes the value at the specified priority slot
                after a delay of Egress_Time seconds. */
-            pObject = Keylist_Data(Object_List, object_instance);
-            if (pObject) {
-                (void)Present_Value_Relinquish(pObject, priority);
-            }
+            (void)Present_Value_Relinquish(pObject, priority);
             break;
         default:
-            break;
+            return;
     }
+    /* 135-2024 §12.54.5: once In_Progress is IDLE, Tracking_Value
+       equals Present_Value. A lower-priority write during egress is
+       not a halt (§12.54.6.1), so recompute the value in effect
+       after the slot action. The blink handler applies End_Value. */
+    value = Priority_Array_Next_Value(pObject, 0);
+    pObject->Lighting_Command.Blink.End_Value = value;
+    /* 135-2024 §12.54.44: Last_On_Value is the last Present_Value
+       that was at least 1.0%. Off leaves the previous on-level. */
+    if (isgreaterequal(value, 1.0f)) {
+        pObject->Lighting_Command.Last_On_Value = value;
+    }
+}
+
+/**
+ * @brief Expire WARN_OFF or WARN_RELINQUISH for a superseding command.
+ * @param pObject [in] BACnet object instance
+ * @param new_priority [in] priority of the command that may halt egress
+ * @return true if an egress command was halted
+ * @note 135-2024 §12.54.6.1. A higher or equal priority halts egress:
+ *  WARN_RELINQUISH relinquishes its slot, WARN_OFF writes 0.0% there.
+ *  STOP is not a halt. A numerically higher priority does not halt.
+ */
+static bool
+Lighting_Command_Halt_Egress(struct object_data *pObject, unsigned new_priority)
+{
+    unsigned current_priority;
+    BACNET_LIGHTING_OPERATION operation;
+    uint8_t blink_priority;
+
+    if (!pObject) {
+        return false;
+    }
+    if ((new_priority < 1) || (new_priority > BACNET_MAX_PRIORITY) ||
+        (new_priority == 6)) {
+        return false;
+    }
+    current_priority = Present_Value_Priority(pObject);
+    if (new_priority > current_priority) {
+        return false;
+    }
+    operation = pObject->Lighting_Command.Lighting_Operation;
+    if ((operation != BACNET_LIGHTS_WARN_OFF) &&
+        (operation != BACNET_LIGHTS_WARN_RELINQUISH)) {
+        return false;
+    }
+    blink_priority = pObject->Lighting_Command.Blink.Priority;
+    if (blink_priority == 0) {
+        return false;
+    }
+    Lighting_Command_Blink_Stop(
+        pObject->Lighting_Command.Key, operation, blink_priority);
+    /* The slot action has run. Drop the timer so expiry cannot
+       repeat it after the superseding write. */
+    pObject->Lighting_Command.Blink.Callback = NULL;
+    pObject->Lighting_Command.Blink.Duration = 0;
+    pObject->Lighting_Command.Lighting_Operation = BACNET_LIGHTS_STOP;
+    return true;
+}
+
+/**
+ * @brief Move the output to the priority array value now in effect.
+ * @param pObject [in] BACnet object instance
+ * @note Used when a halt is not followed by another lighting operation.
+ */
+static void Lighting_Command_Track_Present(struct object_data *pObject)
+{
+    float value;
+    unsigned priority;
+
+    if (!pObject) {
+        return;
+    }
+    value = Priority_Array_Next_Value(pObject, 0);
+    priority = Present_Value_Priority(pObject);
+    if (priority > BACNET_MAX_PRIORITY) {
+        priority = BACNET_MAX_PRIORITY;
+    }
+    Lighting_Command_Trim_Apply(pObject, priority);
+    lighting_command_fade_to(&pObject->Lighting_Command, value, 0);
 }
 
 /**
@@ -739,10 +837,12 @@ Lighting_Command_Warn_Off(struct object_data *pObject, unsigned priority)
 {
     unsigned current_priority;
     BACNET_LIGHTING_COMMAND_WARN_DATA blink = { 0 };
+    bool halted;
 
     if (!pObject) {
         return;
     }
+    halted = Lighting_Command_Halt_Egress(pObject, priority);
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
         Lighting_Command_Trim_Apply(pObject, priority);
@@ -769,13 +869,19 @@ Lighting_Command_Warn_Off(struct object_data *pObject, unsigned priority)
             blink.Callback = Lighting_Command_Blink_Stop;
             lighting_command_blink_warn(
                 &pObject->Lighting_Command, BACNET_LIGHTS_WARN_OFF, &blink);
+            halted = false;
         } else {
             /* the value 0.0% written at the specified priority immediately */
             Present_Value_Set(pObject, 0.0, priority);
             Lighting_Command_Transition_Default(pObject, priority, 0.0);
+            halted = false;
         }
     } else {
         Present_Value_Set(pObject, 0.0, priority);
+    }
+    if (halted &&
+        (pObject->Lighting_Command.Lighting_Operation == BACNET_LIGHTS_STOP)) {
+        Lighting_Command_Track_Present(pObject);
     }
 }
 
@@ -813,10 +919,12 @@ Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
 {
     uint8_t current_priority;
     BACNET_LIGHTING_COMMAND_WARN_DATA blink;
+    bool halted;
 
     if (!pObject) {
         return;
     }
+    halted = Lighting_Command_Halt_Egress(pObject, priority);
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
         Lighting_Command_Trim_Apply(pObject, priority);
@@ -848,6 +956,7 @@ Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
             lighting_command_blink_warn(
                 &pObject->Lighting_Command, BACNET_LIGHTS_WARN_RELINQUISH,
                 &blink);
+            halted = false;
         } else {
             /* the value at the specified priority shall be
                relinquished immediately */
@@ -855,6 +964,10 @@ Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
         }
     } else {
         Present_Value_Relinquish(pObject, priority);
+    }
+    if (halted &&
+        (pObject->Lighting_Command.Lighting_Operation == BACNET_LIGHTS_STOP)) {
+        Lighting_Command_Track_Present(pObject);
     }
 }
 
@@ -902,6 +1015,7 @@ static void Lighting_Command_Step_Up_On(
     if (isgreater(value, 100.0)) {
         value = 100.0;
     }
+    (void)Lighting_Command_Halt_Egress(pObject, priority);
     Present_Value_Set(pObject, value, priority);
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
@@ -960,6 +1074,7 @@ static void Lighting_Command_Step_Down_Off(
             value = 0.0;
         }
     }
+    (void)Lighting_Command_Halt_Egress(pObject, priority);
     Present_Value_Set(pObject, value, priority);
     current_priority = Present_Value_Priority(pObject);
     if (priority <= current_priority) {
@@ -1169,6 +1284,7 @@ bool Lighting_Output_Present_Value_Set(
                 debug_log_fprintf(
                     DEBUG_LOG_DEBUG, stderr, "LO[%u]: Present-Value@%u %0.2f\n",
                     object_instance, priority, (double)value);
+                (void)Lighting_Command_Halt_Egress(pObject, priority);
                 Present_Value_Set(pObject, value, priority);
                 Lighting_Command_Transition_Default(pObject, priority, value);
                 status = true;
