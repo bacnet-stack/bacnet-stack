@@ -567,7 +567,8 @@ static void Lighting_Command_Blink_Stop(
     uint8_t priority);
 static bool Lighting_Command_Halt_Egress(
     struct object_data *pObject, unsigned new_priority);
-static void Lighting_Command_Track_Present(struct object_data *pObject);
+static void
+Lighting_Command_Track_Present_If_Stopped(struct object_data *pObject);
 static void Lighting_Command_Track_Present_Nolock(struct object_data *pObject);
 
 /**
@@ -726,10 +727,9 @@ Lighting_Command_Warn(struct object_data *pObject, unsigned priority)
             &pObject->Lighting_Command, BACNET_LIGHTS_WARN, &blink);
         halted = false;
     }
-    if (halted &&
-        (pObject->Lighting_Command.Lighting_Operation == BACNET_LIGHTS_STOP)) {
+    if (halted) {
         /* The halt relinquished the slot and this WARN did not start. */
-        Lighting_Command_Track_Present(pObject);
+        Lighting_Command_Track_Present_If_Stopped(pObject);
     }
 }
 
@@ -844,17 +844,22 @@ static void Lighting_Command_Track_Present_Nolock(struct object_data *pObject)
 }
 
 /**
- * @brief Move the output to the priority array value now in effect.
+ * @brief Move the output to the priority array value now in effect
+ *  if a halt was not followed by another lighting operation.
  * @param pObject [in] BACnet object instance
- * @note Used when a halt is not followed by another lighting operation.
+ * @note The STOP check and the move are made under one lock hold, so a
+ *  command that started after the halt is not replaced.
  */
-static void Lighting_Command_Track_Present(struct object_data *pObject)
+static void
+Lighting_Command_Track_Present_If_Stopped(struct object_data *pObject)
 {
     if (!pObject) {
         return;
     }
     lighting_command_lock(&pObject->Lighting_Command);
-    Lighting_Command_Track_Present_Nolock(pObject);
+    if (pObject->Lighting_Command.Lighting_Operation == BACNET_LIGHTS_STOP) {
+        Lighting_Command_Track_Present_Nolock(pObject);
+    }
     lighting_command_unlock(&pObject->Lighting_Command);
 }
 
@@ -911,9 +916,8 @@ Lighting_Command_Warn_Off(struct object_data *pObject, unsigned priority)
     } else {
         Present_Value_Set(pObject, 0.0, priority);
     }
-    if (halted &&
-        (pObject->Lighting_Command.Lighting_Operation == BACNET_LIGHTS_STOP)) {
-        Lighting_Command_Track_Present(pObject);
+    if (halted) {
+        Lighting_Command_Track_Present_If_Stopped(pObject);
     }
 }
 
@@ -998,9 +1002,8 @@ Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
     } else {
         Present_Value_Relinquish(pObject, priority);
     }
-    if (halted &&
-        (pObject->Lighting_Command.Lighting_Operation == BACNET_LIGHTS_STOP)) {
-        Lighting_Command_Track_Present(pObject);
+    if (halted) {
+        Lighting_Command_Track_Present_If_Stopped(pObject);
     }
 }
 
