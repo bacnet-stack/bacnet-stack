@@ -58,6 +58,8 @@ struct object_data {
     /* bits */
     bool Blink_Warn_Enable : 1;
     bool Egress_Active : 1;
+    /* set by the egress-end callback, handled by Lighting_Output_Timer */
+    bool Egress_Complete : 1;
     bool Color_Override : 1;
 };
 /* Key List for storing the object data sorted by instance number  */
@@ -714,25 +716,30 @@ Lighting_Command_Warn(struct object_data *pObject, unsigned priority)
 }
 
 /**
- * @brief Apply operating-range trim without taking the command lock.
- * @param pObject [in] object to apply the trim values to
- * @param priority [in] priority of the command now in effect
- * @note Caller holds the lighting-command lock, or no lock is installed.
- *  135-2024 §12.54.49 and §12.54.50: priority 1 and 2 are not trimmed.
+ * @brief Perform the delayed priority-slot action of an egress command
+ * @param pObject [in] BACnet object instance
+ * @param operation [in] BACnet lighting operation
+ * @param priority [in] BACnet priority array value 1..16
+ * @return true if the operation was WARN_OFF or WARN_RELINQUISH
  */
-static void Lighting_Command_Trim_Apply_Unlocked(
-    struct object_data *pObject, unsigned priority)
+static bool Lighting_Command_Egress_Slot_Action(
+    struct object_data *pObject,
+    BACNET_LIGHTING_OPERATION operation,
+    uint8_t priority)
 {
-    if (!pObject) {
-        return;
-    }
-    if ((priority == 1) || (priority == 2)) {
-        lighting_command_trim_set_nolock(
-            &pObject->Lighting_Command, 100.0f, 1.0f, 0);
-    } else {
-        lighting_command_trim_set_nolock(
-            &pObject->Lighting_Command, pObject->High_End_Trim,
-            pObject->Low_End_Trim, pObject->Trim_Fade_Time);
+    switch (operation) {
+        case BACNET_LIGHTS_WARN_OFF:
+            /* writes the value 0.0% to the specified priority slot
+               after a delay of Egress_Time seconds. */
+            (void)Present_Value_Set(pObject, 0.0, priority);
+            return true;
+        case BACNET_LIGHTS_WARN_RELINQUISH:
+            /* relinquishes the value at the specified priority slot
+               after a delay of Egress_Time seconds. */
+            (void)Present_Value_Relinquish(pObject, priority);
+            return true;
+        default:
+            return false;
     }
 }
 
@@ -742,6 +749,9 @@ static void Lighting_Command_Trim_Apply_Unlocked(
  * @param object_instance object-instance number of the object
  * @param operation BACnet lighting operation
  * @param priority BACnet priority array value 1..16
+ * @note Called by the lighting command timer, which holds the
+ *  lighting-command lock. Moving the output to the priority now in
+ *  effect is left to Lighting_Output_Timer(), outside of the lock.
  */
 static void Lighting_Command_Blink_Stop(
     uint32_t object_instance,
@@ -749,45 +759,12 @@ static void Lighting_Command_Blink_Stop(
     uint8_t priority)
 {
     struct object_data *pObject;
-    float value;
-    unsigned effective_priority;
 
     pObject = Keylist_Data(Object_List, object_instance);
-    if (!pObject) {
-        return;
+    if (pObject &&
+        Lighting_Command_Egress_Slot_Action(pObject, operation, priority)) {
+        pObject->Egress_Complete = true;
     }
-    switch (operation) {
-        case BACNET_LIGHTS_WARN_OFF:
-            /* writes the value 0.0% to the specified priority slot
-               after a delay of Egress_Time seconds. */
-            (void)Present_Value_Set(pObject, 0.0, priority);
-            break;
-        case BACNET_LIGHTS_WARN_RELINQUISH:
-            /* relinquishes the value at the specified priority slot
-               after a delay of Egress_Time seconds. */
-            (void)Present_Value_Relinquish(pObject, priority);
-            break;
-        default:
-            return;
-    }
-    /* A halt calls this while Duration is still running. The
-       superseding command writes its own level and starts its own
-       fade. Expiry (Duration already 0) is under the timer lock, so
-       start the trim-aware fade without locking again. */
-    if (pObject->Lighting_Command.Blink.Duration != 0) {
-        return;
-    }
-    /* 135-2024 §12.54.5 and §12.54.49: Tracking_Value is the clamped
-       operating level. Present_Value and Last_On_Value stay the
-       requested level. A lower-priority write during egress is not a
-       halt (§12.54.6.1), so use the priority now in effect. */
-    value = Priority_Array_Next_Value(pObject, 0);
-    effective_priority = Present_Value_Priority(pObject);
-    if (effective_priority > BACNET_MAX_PRIORITY) {
-        effective_priority = BACNET_MAX_PRIORITY;
-    }
-    Lighting_Command_Trim_Apply_Unlocked(pObject, effective_priority);
-    lighting_command_fade_to_nolock(&pObject->Lighting_Command, value, 0);
 }
 
 /**
@@ -802,11 +779,9 @@ static void Lighting_Command_Blink_Stop(
 static bool
 Lighting_Command_Halt_Egress(struct object_data *pObject, unsigned new_priority)
 {
-    BACNET_LIGHTING_OPERATION operation;
-    uint8_t blink_priority;
-    bool halted;
+    BACNET_LIGHTING_OPERATION operation = BACNET_LIGHTS_NONE;
+    uint8_t blink_priority = 0;
 
-    halted = false;
     if (!pObject) {
         return false;
     }
@@ -814,31 +789,15 @@ Lighting_Command_Halt_Egress(struct object_data *pObject, unsigned new_priority)
         (new_priority == 6)) {
         return false;
     }
-    /* The timer holds this lock while it reads Blink.Callback and
-       runs the completion fade. Hold it here so a halt cannot clear
-       the callback between that check and the call, and cannot
-       replace the completion fade. 135-2024 §12.54.6.1. */
-    lighting_command_lock(&pObject->Lighting_Command);
-    operation = pObject->Lighting_Command.Lighting_Operation;
-    blink_priority = pObject->Lighting_Command.Blink.Priority;
-    /* Only a higher or equal priority halts. Compare with the warned
-       slot. After that slot is relinquished, the fallback is the
-       priority in effect, and a fade to that fallback is not a halt. */
-    if (((operation == BACNET_LIGHTS_WARN_OFF) ||
-         (operation == BACNET_LIGHTS_WARN_RELINQUISH)) &&
-        (blink_priority != 0) && (new_priority <= blink_priority)) {
-        Lighting_Command_Blink_Stop(
-            pObject->Lighting_Command.Key, operation, blink_priority);
-        /* The slot action has run. Drop the timer so expiry cannot
-           repeat it after the superseding write. */
-        pObject->Lighting_Command.Blink.Callback = NULL;
-        pObject->Lighting_Command.Blink.Duration = 0;
-        pObject->Lighting_Command.Lighting_Operation = BACNET_LIGHTS_STOP;
-        halted = true;
+    if (!lighting_command_blink_halt(
+            &pObject->Lighting_Command, (uint8_t)new_priority, &operation,
+            &blink_priority)) {
+        return false;
     }
-    lighting_command_unlock(&pObject->Lighting_Command);
+    (void)Lighting_Command_Egress_Slot_Action(
+        pObject, operation, blink_priority);
 
-    return halted;
+    return true;
 }
 
 /**
@@ -898,8 +857,9 @@ Lighting_Command_Warn_Off(struct object_data *pObject, unsigned priority)
             /* hold the lights at the current level during egress */
             blink.On_Value =
                 lighting_command_tracking_value_get(&pObject->Lighting_Command);
-            /* egress ends at off; do not restore a previous WARN level */
-            blink.End_Value = 0.0f;
+            /* egress ends at the held level. The slot action and the
+               move to the priority in effect follow in the timer. */
+            blink.End_Value = blink.On_Value;
             blink.Duration = pObject->Egress_Time_Seconds * 1000UL;
             blink.Priority = priority;
             blink.Callback = Lighting_Command_Blink_Stop;
@@ -984,8 +944,9 @@ Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
             /* hold the lights at the current level during egress */
             blink.On_Value =
                 lighting_command_tracking_value_get(&pObject->Lighting_Command);
-            /* egress ends at off; do not restore a previous WARN level */
-            blink.End_Value = 0.0f;
+            /* egress ends at the held level. The slot action and the
+               move to the priority in effect follow in the timer. */
+            blink.End_Value = blink.On_Value;
             blink.Duration = pObject->Egress_Time_Seconds * 1000UL;
             blink.Priority = priority;
             blink.Callback = Lighting_Command_Blink_Stop;
@@ -1700,10 +1661,14 @@ Lighting_Command_Stop(struct object_data *pObject, unsigned priority)
     if (priority == current_priority) {
         if (lighting_command_active(&pObject->Lighting_Command)) {
             /* fade, ramp, or warn command is currently
-               executing at the specified priority */
-            value =
-                lighting_command_tracking_value_get(&pObject->Lighting_Command);
-            Present_Value_Set(pObject, value, priority);
+               executing at the specified priority.
+               A warning leaves the slot unchanged. */
+            if (!lighting_command_blink_egress_active(
+                    &pObject->Lighting_Command)) {
+                value = lighting_command_tracking_value_get(
+                    &pObject->Lighting_Command);
+                Present_Value_Set(pObject, value, priority);
+            }
             /* configure the Lighting Command */
             lighting_command_stop(&pObject->Lighting_Command);
         }
@@ -4331,6 +4296,14 @@ void Lighting_Output_Timer(uint32_t object_instance, uint16_t milliseconds)
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         lighting_command_timer(&pObject->Lighting_Command, milliseconds);
+        if (pObject->Egress_Complete) {
+            pObject->Egress_Complete = false;
+            /* 135-2024 §12.54.5 and §12.54.49: the slot action has run,
+               so move the output to the priority now in effect */
+            Lighting_Command_Track_Present(pObject);
+            /* start the new fade with the tick that ended the egress */
+            lighting_command_timer(&pObject->Lighting_Command, milliseconds);
+        }
     }
 }
 

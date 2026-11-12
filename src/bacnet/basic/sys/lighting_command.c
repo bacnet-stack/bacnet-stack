@@ -337,26 +337,6 @@ static void lighting_command_blink_complete_nolock(
 }
 
 /**
- * @brief Drop a pending WARN_OFF or WARN_RELINQUISH callback.
- * @param data - dimmer data structure
- * @note Does not change the priority array. STOP uses this so the
- *  slot is left unchanged. A superseding command performs the
- *  egress slot action before it calls in here.
- */
-static void
-lighting_command_blink_cancel_nolock(struct bacnet_lighting_command_data *data)
-{
-    switch (data->Lighting_Operation) {
-        case BACNET_LIGHTS_WARN_OFF:
-        case BACNET_LIGHTS_WARN_RELINQUISH:
-            data->Blink.Callback = NULL;
-            break;
-        default:
-            break;
-    }
-}
-
-/**
  * @brief Clamps the ramp rate value
  * @param ramp_rate [in] ramp rate value
  * @return clamped ramp rate value
@@ -558,6 +538,40 @@ static void lighting_command_tracking_value_event(
     } else {
         debug_printf(
             "Lighting-Command[%lu]-Out-of-Service\n", (unsigned long)data->Key);
+    }
+}
+
+/**
+ * @brief End a WARN, WARN_OFF, or WARN_RELINQUISH in progress
+ *  without its delayed slot action.
+ * @param data - dimmer data structure
+ * @note Does not change the priority array. The egress timer is
+ *  cancelled and callback-driven outputs go back to the held
+ *  tracking value if the 'off' phase of a blink was showing.
+ */
+static void
+lighting_command_blink_cancel_nolock(struct bacnet_lighting_command_data *data)
+{
+    float old_value;
+
+    switch (data->Lighting_Operation) {
+        case BACNET_LIGHTS_WARN:
+        case BACNET_LIGHTS_WARN_OFF:
+        case BACNET_LIGHTS_WARN_RELINQUISH:
+            data->Blink.Callback = NULL;
+            if (data->Blink.Duration > 0) {
+                if (data->Blink.State) {
+                    old_value = data->Blink.On_Value;
+                } else {
+                    old_value = data->Blink.Off_Value;
+                }
+                data->Blink.Duration = 0;
+                lighting_command_tracking_value_event(
+                    data, old_value, data->Tracking_Value);
+            }
+            break;
+        default:
+            break;
     }
 }
 
@@ -909,13 +923,6 @@ static void lighting_command_blink_handler(
     if (data->Blink.Duration == 0) {
         /* 'end' operation */
         lighting_command_blink_complete_nolock(data);
-        /* WARN_OFF and WARN_RELINQUISH completion starts a fade so the
-           priority now in effect is trimmed. Run that fade in this tick.
-           Copying Blink.End_Value would skip the operating range. */
-        if (data->Lighting_Operation == BACNET_LIGHTS_FADE_TO) {
-            lighting_command_fade_handler(data, milliseconds);
-            return;
-        }
         data->In_Progress = BACNET_LIGHTING_IDLE;
         data->Lighting_Operation = BACNET_LIGHTS_STOP;
         target_value = data->Blink.End_Value;
@@ -1062,28 +1069,6 @@ void lighting_command_timer(
  * @param value [in] BACnet lighting value
  * @param fade_time [in] BACnet lighting fade time
  */
-void lighting_command_fade_to_nolock(
-    struct bacnet_lighting_command_data *data, float value, uint32_t fade_time)
-{
-    if (!data) {
-        return;
-    }
-    /* cancel a pending warning without its delayed slot action */
-    lighting_command_blink_cancel_nolock(data);
-    /* configure the lighting operation */
-    data->Fade_Time = fade_time;
-    data->Lighting_Operation = BACNET_LIGHTS_FADE_TO;
-    /* A new fade is not a continuation of an unfinished trim. */
-    data->In_Progress = BACNET_LIGHTING_FADE_ACTIVE;
-    data->Target_Level = value;
-    if (isgreaterequal(value, 1.0)) {
-        /* the last value that was greater than or equal to 1.0%.*/
-        data->Last_On_Value = value;
-    }
-    lighting_command_event_notify(
-        data, BACNET_LIGHTS_FADE_TO, value, fade_time);
-}
-
 void lighting_command_fade_to(
     struct bacnet_lighting_command_data *data, float value, uint32_t fade_time)
 {
@@ -1098,7 +1083,20 @@ void lighting_command_fade_to(
         }
     }
     if (!data->Overridden) {
-        lighting_command_fade_to_nolock(data, value, fade_time);
+        /* cancel a pending warning without its delayed slot action */
+        lighting_command_blink_cancel_nolock(data);
+        /* configure the lighting operation */
+        data->Fade_Time = fade_time;
+        data->Lighting_Operation = BACNET_LIGHTS_FADE_TO;
+        /* A new fade is not a continuation of an unfinished trim. */
+        data->In_Progress = BACNET_LIGHTING_FADE_ACTIVE;
+        data->Target_Level = value;
+        if (isgreaterequal(value, 1.0)) {
+            /* the last value that was greater than or equal to 1.0%.*/
+            data->Last_On_Value = value;
+        }
+        lighting_command_event_notify(
+            data, BACNET_LIGHTS_FADE_TO, value, fade_time);
     }
     lighting_command_unlock(data);
 }
@@ -1224,6 +1222,56 @@ void lighting_command_step(
     }
 done:
     lighting_command_unlock(data);
+}
+
+/**
+ * @brief Halt a WARN_OFF or WARN_RELINQUISH in egress
+ * @param data [in] dimmer data
+ * @param priority [in] priority of the superseding command
+ * @param operation [out] operation that was halted, or NULL
+ * @param blink_priority [out] priority slot that was warned, or NULL
+ * @return true if egress was halted. The egress timer is expired and
+ *  callback-driven outputs are returned to the held level. The caller
+ *  performs the delayed slot action for the returned operation.
+ * @note 135-2024 §12.54.6.1: a command at the same or a higher
+ *  priority than the warned slot halts it.
+ *  The Blink.Callback is not called, so the caller is free to take
+ *  its own locks and to change the priority array.
+ */
+bool lighting_command_blink_halt(
+    struct bacnet_lighting_command_data *data,
+    uint8_t priority,
+    BACNET_LIGHTING_OPERATION *operation,
+    uint8_t *blink_priority)
+{
+    bool halted = false;
+
+    if (!data) {
+        return false;
+    }
+    lighting_command_lock(data);
+    switch (data->Lighting_Operation) {
+        case BACNET_LIGHTS_WARN_OFF:
+        case BACNET_LIGHTS_WARN_RELINQUISH:
+            if ((data->Blink.Priority != 0) &&
+                (priority <= data->Blink.Priority)) {
+                if (operation) {
+                    *operation = data->Lighting_Operation;
+                }
+                if (blink_priority) {
+                    *blink_priority = data->Blink.Priority;
+                }
+                lighting_command_blink_cancel_nolock(data);
+                data->Lighting_Operation = BACNET_LIGHTS_STOP;
+                halted = true;
+            }
+            break;
+        default:
+            break;
+    }
+    lighting_command_unlock(data);
+
+    return halted;
 }
 
 /**
@@ -1613,7 +1661,7 @@ void lighting_command_override_momentary(
  * @param low_end_trim [in] BACnet lighting low end trim
  * @param trim_fade_time [in] BACnet lighting trim fade time
  */
-void lighting_command_trim_set_nolock(
+void lighting_command_trim_set(
     struct bacnet_lighting_command_data *data,
     float high_end_trim,
     float low_end_trim,
@@ -1624,6 +1672,7 @@ void lighting_command_trim_set_nolock(
     if (!data) {
         return;
     }
+    lighting_command_lock(data);
     /* clamp range within normalized limits */
     high_trim = lighting_command_normalized_on_range_clamp(high_end_trim);
     low_trim = lighting_command_normalized_on_range_clamp(low_end_trim);
@@ -1637,20 +1686,6 @@ void lighting_command_trim_set_nolock(
     data->High_Trim_Value = high_trim;
     data->Low_Trim_Value = low_trim;
     data->Trim_Fade_Time = trim_fade_time;
-}
-
-void lighting_command_trim_set(
-    struct bacnet_lighting_command_data *data,
-    float high_end_trim,
-    float low_end_trim,
-    uint32_t trim_fade_time)
-{
-    if (!data) {
-        return;
-    }
-    lighting_command_lock(data);
-    lighting_command_trim_set_nolock(
-        data, high_end_trim, low_end_trim, trim_fade_time);
     lighting_command_unlock(data);
 }
 

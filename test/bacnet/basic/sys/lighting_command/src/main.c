@@ -1064,8 +1064,77 @@ static void test_lighting_command_blink_count_egress_unit(void)
     blink.Duration = egress_ms;
     lighting_command_blink_warn(&data, BACNET_LIGHTS_WARN, &blink);
     lighting_command_timer(&data, milliseconds);
-    zassert_true(lighting_command_active(&data), NULL);
+}
+
+/**
+ * Tests that STOP and a halt end a blink-warn in its 'off' phase
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lighting_command_tests, test_lighting_command_blink_stop_halt_unit)
+#else
+static void test_lighting_command_blink_stop_halt_unit(void)
+#endif
+{
+    BACNET_LIGHTING_COMMAND_DATA data = { 0 };
+    struct lighting_command_notification observer = { 0 };
+    BACNET_LIGHTING_COMMAND_WARN_DATA blink = { 0 };
+    BACNET_LIGHTING_OPERATION operation = BACNET_LIGHTS_NONE;
+    uint8_t blink_priority = 0;
+    unsigned i;
+
+    lighting_command_init(&data);
+    data.Key = 42;
+    Test_Blink_End_Priority = 0;
+    observer.callback = dimmer_tracking_value;
+    lighting_command_notification_add(&data, &observer);
+    lighting_command_blink_warn_feature_set(&data, 0.0f, 500, UINT16_MAX);
+    lighting_command_fade_to(&data, 100.0f, 0);
+    lighting_command_timer(&data, 10);
+    lighting_command_blink_copy(&data, &blink);
+    blink.On_Value = 100.0f;
+    blink.End_Value = 100.0f;
+    blink.Duration = 10000;
+    blink.Priority = 8;
+    blink.Callback = test_blink_end;
+    lighting_command_blink_warn(&data, BACNET_LIGHTS_WARN_OFF, &blink);
+    /* run to the 'off' phase of the blink */
+    for (i = 0; i < 105; i++) {
+        lighting_command_timer(&data, 10);
+    }
+    zassert_true(is_float_equal(Tracking_Value, 0.0f), NULL);
+    /* a lower priority command does not halt */
+    zassert_false(
+        lighting_command_blink_halt(&data, 9, &operation, &blink_priority),
+        NULL);
+    zassert_true(lighting_command_blink_egress_active(&data), NULL);
+    /* STOP puts the output back at the held level and ends the egress */
+    lighting_command_stop(&data);
+    zassert_true(is_float_equal(Tracking_Value, 100.0f), NULL);
+    zassert_false(lighting_command_active(&data), NULL);
     zassert_false(lighting_command_blink_egress_active(&data), NULL);
+    /* the slot action is not run by STOP */
+    for (i = 0; i < 10; i++) {
+        lighting_command_timer(&data, 10);
+    }
+    zassert_equal(Test_Blink_End_Priority, 0, NULL);
+
+    /* an equal priority command halts, and the caller does the slot action */
+    lighting_command_blink_warn(&data, BACNET_LIGHTS_WARN_RELINQUISH, &blink);
+    for (i = 0; i < 105; i++) {
+        lighting_command_timer(&data, 10);
+    }
+    zassert_true(is_float_equal(Tracking_Value, 0.0f), NULL);
+    zassert_true(
+        lighting_command_blink_halt(&data, 8, &operation, &blink_priority),
+        NULL);
+    zassert_equal(operation, BACNET_LIGHTS_WARN_RELINQUISH, NULL);
+    zassert_equal(blink_priority, 8, NULL);
+    zassert_true(is_float_equal(Tracking_Value, 100.0f), NULL);
+    zassert_false(lighting_command_active(&data), NULL);
+    zassert_equal(Test_Blink_End_Priority, 0, NULL);
+    zassert_false(
+        lighting_command_blink_halt(&data, 1, &operation, &blink_priority),
+        NULL);
 }
 
 /**
@@ -1080,7 +1149,8 @@ void test_main(void)
     ztest_test_suite(
         lighting_command_tests, ztest_unit_test(test_lighting_command_unit),
         ztest_unit_test(test_lighting_command_refresh_unit),
-        ztest_unit_test(test_lighting_command_blink_count_egress_unit));
+        ztest_unit_test(test_lighting_command_blink_count_egress_unit),
+        ztest_unit_test(test_lighting_command_blink_stop_halt_unit));
 
     ztest_run_test_suite(lighting_command_tests);
 }

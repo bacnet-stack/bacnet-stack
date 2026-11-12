@@ -952,6 +952,71 @@ static void testLightingOutputStopDuringTrimFade(void)
     Lighting_Output_Cleanup();
 }
 
+/**
+ * @brief STOP of a WARN_OFF in egress cancels the egress timer and
+ * leaves the priority slot unchanged. 135-2024 §12.54.6.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lo_tests, testLightingOutputStopWarnOff)
+#else
+static void testLightingOutputStopWarnOff(void)
+#endif
+{
+    const uint32_t instance = 332;
+    const unsigned priority = 8;
+    BACNET_LIGHTING_COMMAND command = { 0 };
+    float test_real;
+    bool status;
+
+    Lighting_Output_Init();
+    Lighting_Output_Create(instance);
+    status = Lighting_Output_Blink_Warn_Enable_Set(instance, true);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Egress_Time_Set(instance, 1);
+    zassert_true(status, NULL);
+    status =
+        Lighting_Output_Blink_Warn_Feature_Set(instance, 0.0f, 0, UINT16_MAX);
+    zassert_true(status, NULL);
+    status = Lighting_Output_High_End_Trim_Set(instance, 90.0f);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Present_Value_Set(instance, 100.0f, priority);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 10000);
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(
+        is_float_equal(test_real, 90.0f), "Tracking_Value=%f",
+        (double)test_real);
+
+    status = Lighting_Output_Present_Value_Set(
+        instance, BACNET_LIGHTING_SPECIAL_VALUE_WARN_OFF, priority);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 100);
+    zassert_true(Lighting_Output_Egress_Active(instance), NULL);
+
+    command.operation = BACNET_LIGHTS_STOP;
+    command.use_priority = true;
+    command.priority = priority;
+    status = Lighting_Output_Lighting_Command_Set(instance, &command);
+    zassert_true(status, NULL);
+    zassert_false(Lighting_Output_Egress_Active(instance), NULL);
+    test_real = Lighting_Output_Priority_Array_Value(instance, priority);
+    zassert_true(
+        is_float_equal(test_real, 100.0f), "Priority_Array=%f",
+        (double)test_real);
+    /* the egress timer is cancelled: no slot action when it would expire */
+    Lighting_Output_Timer(instance, 1000);
+    test_real = Lighting_Output_Priority_Array_Value(instance, priority);
+    zassert_true(is_float_equal(test_real, 100.0f), NULL);
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(
+        is_float_equal(test_real, 90.0f), "Tracking_Value=%f",
+        (double)test_real);
+
+    status = Lighting_Output_Delete(instance);
+    zassert_true(status, NULL);
+    Lighting_Output_Cleanup();
+}
+
 static unsigned Test_Lock_Depth;
 static unsigned Test_Lock_Count;
 
@@ -1817,6 +1882,7 @@ void test_main(void)
         ztest_unit_test(testLightingOutputWarnRelinquishTrimFade),
         ztest_unit_test(testLightingOutputWarnHaltTrimFade),
         ztest_unit_test(testLightingOutputStopDuringTrimFade),
+        ztest_unit_test(testLightingOutputStopWarnOff),
         ztest_unit_test(testLightingOutputHaltLock),
         ztest_unit_test(testLightingOutputCommandCallback),
         ztest_unit_test(testLightingOutputMinMaxActualValue));
