@@ -912,6 +912,7 @@ static void lighting_command_blink_handler(
     struct bacnet_lighting_command_data *data, uint16_t milliseconds)
 {
     float old_value, target_value, operating_value;
+    BACNET_LIGHTING_OPERATION operation;
 
     old_value = data->Tracking_Value;
     /* detect 'end' operation */
@@ -922,7 +923,14 @@ static void lighting_command_blink_handler(
     }
     if (data->Blink.Duration == 0) {
         /* 'end' operation */
+        operation = data->Lighting_Operation;
         lighting_command_blink_complete_nolock(data);
+        if (data->Lighting_Operation != operation) {
+            /* the callback started the follow-on operation under this
+               same lock hold: start it with the tick that ended the egress */
+            lighting_command_fade_handler(data, milliseconds);
+            return;
+        }
         data->In_Progress = BACNET_LIGHTING_IDLE;
         data->Lighting_Operation = BACNET_LIGHTS_STOP;
         target_value = data->Blink.End_Value;
@@ -1068,14 +1076,15 @@ void lighting_command_timer(
  * @param data [in] dimmer data
  * @param value [in] BACnet lighting value
  * @param fade_time [in] BACnet lighting fade time
+ * @note The caller shall hold the lighting-command lock, for example
+ *  in a lighting_command_blink_callback.
  */
-void lighting_command_fade_to(
+void lighting_command_fade_to_nolock(
     struct bacnet_lighting_command_data *data, float value, uint32_t fade_time)
 {
     if (!data) {
         return;
     }
-    lighting_command_lock(data);
     if (data->Overridden) {
         if (data->Overridden_Momentary) {
             data->Overridden_Momentary = false;
@@ -1098,6 +1107,22 @@ void lighting_command_fade_to(
         lighting_command_event_notify(
             data, BACNET_LIGHTS_FADE_TO, value, fade_time);
     }
+}
+
+/**
+ * @brief Set the lighting command to perform a fade to value operation
+ * @param data [in] dimmer data
+ * @param value [in] BACnet lighting value
+ * @param fade_time [in] BACnet lighting fade time
+ */
+void lighting_command_fade_to(
+    struct bacnet_lighting_command_data *data, float value, uint32_t fade_time)
+{
+    if (!data) {
+        return;
+    }
+    lighting_command_lock(data);
+    lighting_command_fade_to_nolock(data, value, fade_time);
     lighting_command_unlock(data);
 }
 
@@ -1660,8 +1685,9 @@ void lighting_command_override_momentary(
  * @param high_end_trim [in] BACnet lighting high end trim
  * @param low_end_trim [in] BACnet lighting low end trim
  * @param trim_fade_time [in] BACnet lighting trim fade time
+ * @note The caller shall hold the lighting-command lock.
  */
-void lighting_command_trim_set(
+void lighting_command_trim_set_nolock(
     struct bacnet_lighting_command_data *data,
     float high_end_trim,
     float low_end_trim,
@@ -1672,7 +1698,6 @@ void lighting_command_trim_set(
     if (!data) {
         return;
     }
-    lighting_command_lock(data);
     /* clamp range within normalized limits */
     high_trim = lighting_command_normalized_on_range_clamp(high_end_trim);
     low_trim = lighting_command_normalized_on_range_clamp(low_end_trim);
@@ -1686,6 +1711,27 @@ void lighting_command_trim_set(
     data->High_Trim_Value = high_trim;
     data->Low_Trim_Value = low_trim;
     data->Trim_Fade_Time = trim_fade_time;
+}
+
+/**
+ * @brief Configure the lighting command to apply low or high trim
+ * @param data [in] dimmer data
+ * @param high_end_trim [in] BACnet lighting high end trim
+ * @param low_end_trim [in] BACnet lighting low end trim
+ * @param trim_fade_time [in] BACnet lighting trim fade time
+ */
+void lighting_command_trim_set(
+    struct bacnet_lighting_command_data *data,
+    float high_end_trim,
+    float low_end_trim,
+    uint32_t trim_fade_time)
+{
+    if (!data) {
+        return;
+    }
+    lighting_command_lock(data);
+    lighting_command_trim_set_nolock(
+        data, high_end_trim, low_end_trim, trim_fade_time);
     lighting_command_unlock(data);
 }
 

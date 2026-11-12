@@ -74,6 +74,8 @@ typedef void (*lighting_command_lock_callback)(
  * @param object_instance object-instance number of the object
  * @param operation BACnet lighting operation
  * @param priority BACnet priority array value 1..16
+ * @note Called with the lighting-command lock held. The callback may start
+ *  the follow-on operation with the _nolock functions.
  */
 typedef void (*lighting_command_blink_callback)(
     uint32_t key, BACNET_LIGHTING_OPERATION operation, uint8_t priority);
@@ -139,6 +141,9 @@ void lighting_command_timer(
     struct bacnet_lighting_command_data *data, uint16_t milliseconds);
 BACNET_STACK_EXPORT
 void lighting_command_fade_to(
+    struct bacnet_lighting_command_data *data, float value, uint32_t fade_time);
+BACNET_STACK_EXPORT
+void lighting_command_fade_to_nolock(
     struct bacnet_lighting_command_data *data, float value, uint32_t fade_time);
 BACNET_STACK_EXPORT
 void lighting_command_ramp_to(
@@ -220,6 +225,12 @@ float lighting_command_feedback_value(
 
 BACNET_STACK_EXPORT
 void lighting_command_trim_set(
+    struct bacnet_lighting_command_data *data,
+    float High_End_Trim,
+    float Low_End_Trim,
+    uint32_t Trim_Fade_Time);
+BACNET_STACK_EXPORT
+void lighting_command_trim_set_nolock(
     struct bacnet_lighting_command_data *data,
     float High_End_Trim,
     float Low_End_Trim,
