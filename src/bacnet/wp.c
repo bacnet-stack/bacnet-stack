@@ -672,6 +672,40 @@ bool write_property_real_decode(
 }
 
 /**
+ * @brief Helper to decode a WriteProperty bit string value
+ * @note The number of bits used is not validated
+ * @param wp_data - #BACNET_WRITE_PROPERTY_DATA data including any
+ *  error response.
+ * @param value - pointer to the bit string data, or NULL to only validate
+ * @return true if the value was decoded and no error occurred
+ */
+bool write_property_bit_string_decode(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_BIT_STRING *value)
+{
+    bool status = false;
+    int len;
+    BACNET_BIT_STRING bit_string = { 0 };
+
+    len = bacnet_bitstring_application_decode(
+        wp_data->application_data, wp_data->application_data_len, &bit_string);
+    if (len <= 0) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        if (len < 0) {
+            wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
+        } else {
+            wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        }
+    } else {
+        if (value) {
+            bitstring_copy(value, &bit_string);
+        }
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * @brief Helper to decode a WriteProperty character string value
  * @note The character set and the length of the string are not validated
  * @param wp_data - #BACNET_WRITE_PROPERTY_DATA data including any

@@ -557,6 +557,46 @@ static void testWritePropertyCharacterStringDecode(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(wp_tests, testWritePropertyBitStringDecode)
+#else
+static void testWritePropertyBitStringDecode(void)
+#endif
+{
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    BACNET_BIT_STRING expected = { 0 };
+    BACNET_BIT_STRING value = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int len;
+    bool status;
+
+    bitstring_init(&expected);
+    bitstring_set_bit(&expected, 0, true);
+    bitstring_set_bit(&expected, 2, true);
+    len = encode_application_bitstring(apdu, &expected);
+    test_write_property_data_load(&wp_data, apdu, len);
+    status = write_property_bit_string_decode(&wp_data, &value);
+    zassert_true(status, NULL);
+    zassert_true(bitstring_same(&expected, &value), NULL);
+    /* NULL value pointer only validates */
+    status = write_property_bit_string_decode(&wp_data, NULL);
+    zassert_true(status, NULL);
+    /* wrong datatype */
+    len = encode_application_unsigned(apdu, 3);
+    test_write_property_data_load(&wp_data, apdu, len);
+    status = write_property_bit_string_decode(&wp_data, &value);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    /* truncated */
+    len = encode_application_bitstring(apdu, &expected);
+    test_write_property_data_load(&wp_data, apdu, len - 1);
+    status = write_property_bit_string_decode(&wp_data, &value);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_DATA_ENCODING, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(wp_tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
@@ -568,6 +608,7 @@ void test_main(void)
         ztest_unit_test(testWritePropertyEnumeratedDecode),
         ztest_unit_test(testWritePropertyBooleanDecode),
         ztest_unit_test(testWritePropertyRealDecode),
+        ztest_unit_test(testWritePropertyBitStringDecode),
         ztest_unit_test(testWritePropertyCharacterStringDecode));
     ztest_run_test_suite(wp_tests);
 }

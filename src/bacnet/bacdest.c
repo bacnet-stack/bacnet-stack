@@ -386,9 +386,12 @@ int bacnet_destination_context_encode(
  *
  * @param apdu  Pointer to the buffer for decoding.
  * @param apdu_size  Count of valid bytes in the buffer.
- * @param destination  Pointer to the property data to be encoded.
+ * @param destination  Pointer to the property data to be decoded, or NULL
+ *  for decoding to determine the length.
  *
- * @return bytes encoded or #BACNET_STATUS_REJECT on error.
+ * @return number of bytes decoded, zero if the first element is not
+ *  an application tagged bit string (tag mismatch or no data),
+ *  or #BACNET_STATUS_ERROR (-1) if malformed
  */
 int bacnet_destination_decode(
     const uint8_t *apdu, int apdu_size, BACNET_DESTINATION *destination)
@@ -401,13 +404,14 @@ int bacnet_destination_decode(
     bool boolean_value = false;
 
     if (!apdu) {
-        return BACNET_STATUS_REJECT;
+        return BACNET_STATUS_ERROR;
     }
     /* Decode Valid Days */
     len = bacnet_bitstring_application_decode(
         &apdu[apdu_len], apdu_size - apdu_len, &bitstring);
     if (len <= 0) {
-        return BACNET_STATUS_REJECT;
+        /* zero for a tag mismatch, or negative if malformed */
+        return len;
     }
     if (destination) {
         bitstring_copy(&destination->ValidDays, &bitstring);
@@ -417,7 +421,7 @@ int bacnet_destination_decode(
     len = bacnet_time_application_decode(
         &apdu[apdu_len], apdu_size - apdu_len, &btime);
     if (len <= 0) {
-        return BACNET_STATUS_REJECT;
+        return BACNET_STATUS_ERROR;
     }
     if (destination) {
         datetime_copy_time(&destination->FromTime, &btime);
@@ -427,7 +431,7 @@ int bacnet_destination_decode(
     len = bacnet_time_application_decode(
         &apdu[apdu_len], apdu_size - apdu_len, &btime);
     if (len <= 0) {
-        return BACNET_STATUS_REJECT;
+        return BACNET_STATUS_ERROR;
     }
     if (destination) {
         datetime_copy_time(&destination->ToTime, &btime);
@@ -437,7 +441,7 @@ int bacnet_destination_decode(
     len = bacnet_recipient_decode(
         &apdu[apdu_len], apdu_size - apdu_len, &recipient);
     if (len < 0) {
-        return BACNET_STATUS_REJECT;
+        return BACNET_STATUS_ERROR;
     }
     if (destination) {
         bacnet_recipient_copy(&destination->Recipient, &recipient);
@@ -447,7 +451,7 @@ int bacnet_destination_decode(
     len = bacnet_unsigned_application_decode(
         &apdu[apdu_len], apdu_size - apdu_len, &unsigned_value);
     if (len <= 0) {
-        return BACNET_STATUS_REJECT;
+        return BACNET_STATUS_ERROR;
     }
     if (destination) {
         destination->ProcessIdentifier = unsigned_value;
@@ -457,7 +461,7 @@ int bacnet_destination_decode(
     len = bacnet_boolean_application_decode(
         &apdu[apdu_len], apdu_size - apdu_len, &boolean_value);
     if (len <= 0) {
-        return BACNET_STATUS_REJECT;
+        return BACNET_STATUS_ERROR;
     }
     if (destination) {
         destination->ConfirmedNotify = boolean_value;
@@ -467,7 +471,7 @@ int bacnet_destination_decode(
     len = bacnet_bitstring_application_decode(
         &apdu[apdu_len], apdu_size - apdu_len, &bitstring);
     if (len <= 0) {
-        return BACNET_STATUS_REJECT;
+        return BACNET_STATUS_ERROR;
     }
     if (destination) {
         bitstring_copy(&destination->Transitions, &bitstring);
@@ -504,7 +508,7 @@ int bacnet_destination_context_decode(
     apdu_len += len;
     len =
         bacnet_destination_decode(&apdu[apdu_len], apdu_size - apdu_len, value);
-    if (len < 0) {
+    if (len <= 0) {
         return BACNET_STATUS_ERROR;
     }
     apdu_len += len;

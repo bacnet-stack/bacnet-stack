@@ -1119,7 +1119,7 @@ static void testScheduleListOfObjectPropertyReferencesSelfReference(void)
     wp_data.application_data_len--;
     status = Schedule_Write_Property(&wp_data);
     zassert_false(status, NULL);
-    zassert_equal(wp_data.error_code, ERROR_CODE_ABORT_OTHER, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_DATA_ENCODING, NULL);
     zassert_equal(
         Schedule_List_Of_Object_Property_References_Count(object_instance), 0,
         NULL);
