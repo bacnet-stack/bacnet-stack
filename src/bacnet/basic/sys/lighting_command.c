@@ -1143,6 +1143,8 @@ static void lighting_command_ramp_to_nolock(
     /* configure the lighting operation */
     data->Ramp_Rate = lighting_command_ramp_rate_clamp(ramp_rate);
     data->Lighting_Operation = BACNET_LIGHTS_RAMP_TO;
+    /* a STOP before the first timer tick must see the ramp as active */
+    data->In_Progress = BACNET_LIGHTING_RAMP_ACTIVE;
     data->Target_Level = value;
     if (isgreaterequal(value, 1.0)) {
         /* the last value that was greater than or equal to 1.0%.*/

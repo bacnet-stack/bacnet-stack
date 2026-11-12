@@ -1138,6 +1138,61 @@ static void test_lighting_command_blink_stop_halt_unit(void)
 }
 
 /**
+ * Tests that a ramp is active, and can be stopped, before its first tick
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lighting_command_tests, test_lighting_command_ramp_stop_before_tick_unit)
+#else
+static void test_lighting_command_ramp_stop_before_tick_unit(void)
+#endif
+{
+    BACNET_LIGHTING_COMMAND_DATA data = { 0 };
+    BACNET_LIGHTING_COMMAND_WARN_DATA blink = { 0 };
+    unsigned i;
+
+    lighting_command_init(&data);
+    data.Key = 42;
+    lighting_command_blink_warn_feature_set(&data, 0.0f, 500, UINT16_MAX);
+    lighting_command_fade_to(&data, 100.0f, 0);
+    lighting_command_timer(&data, 10);
+
+    /* ramp from IDLE */
+    zassert_false(lighting_command_active(&data), NULL);
+    lighting_command_ramp_to(&data, 0.0f, 10.0f);
+    zassert_equal(
+        lighting_command_in_progress_get(&data), BACNET_LIGHTING_RAMP_ACTIVE,
+        NULL);
+    zassert_true(lighting_command_active(&data), NULL);
+    lighting_command_stop(&data);
+    zassert_false(lighting_command_active(&data), NULL);
+    zassert_equal(
+        lighting_command_in_progress_get(&data), BACNET_LIGHTING_IDLE, NULL);
+
+    /* ramp that replaces a warning */
+    lighting_command_blink_copy(&data, &blink);
+    blink.On_Value = 100.0f;
+    blink.End_Value = 100.0f;
+    blink.Duration = 10000;
+    blink.Priority = 8;
+    lighting_command_blink_warn(&data, BACNET_LIGHTS_WARN_OFF, &blink);
+    for (i = 0; i < 10; i++) {
+        lighting_command_timer(&data, 10);
+    }
+    zassert_equal(
+        lighting_command_in_progress_get(&data), BACNET_LIGHTING_OTHER, NULL);
+    lighting_command_ramp_to(&data, 0.0f, 10.0f);
+    zassert_false(lighting_command_blink_egress_active(&data), NULL);
+    zassert_equal(
+        lighting_command_in_progress_get(&data), BACNET_LIGHTING_RAMP_ACTIVE,
+        NULL);
+    zassert_true(lighting_command_active(&data), NULL);
+    lighting_command_stop(&data);
+    zassert_false(lighting_command_active(&data), NULL);
+    zassert_equal(
+        lighting_command_in_progress_get(&data), BACNET_LIGHTING_IDLE, NULL);
+}
+
+/**
  * @}
  */
 
@@ -1150,7 +1205,8 @@ void test_main(void)
         lighting_command_tests, ztest_unit_test(test_lighting_command_unit),
         ztest_unit_test(test_lighting_command_refresh_unit),
         ztest_unit_test(test_lighting_command_blink_count_egress_unit),
-        ztest_unit_test(test_lighting_command_blink_stop_halt_unit));
+        ztest_unit_test(test_lighting_command_blink_stop_halt_unit),
+        ztest_unit_test(test_lighting_command_ramp_stop_before_tick_unit));
 
     ztest_run_test_suite(lighting_command_tests);
 }

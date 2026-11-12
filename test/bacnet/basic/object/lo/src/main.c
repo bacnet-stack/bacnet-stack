@@ -1017,6 +1017,73 @@ static void testLightingOutputStopWarnOff(void)
     Lighting_Output_Cleanup();
 }
 
+/**
+ * @brief STOP right after a RAMP_TO replaced a WARN_OFF in egress is not
+ * ignored while waiting for the first timer tick.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lo_tests, testLightingOutputStopRampAfterWarnOff)
+#else
+static void testLightingOutputStopRampAfterWarnOff(void)
+#endif
+{
+    const uint32_t instance = 333;
+    const unsigned priority = 8;
+    BACNET_LIGHTING_COMMAND command = { 0 };
+    BACNET_LIGHTING_COMMAND stop = { 0 };
+    float test_real;
+    bool status;
+
+    Lighting_Output_Init();
+    Lighting_Output_Create(instance);
+    status = Lighting_Output_Blink_Warn_Enable_Set(instance, true);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Egress_Time_Set(instance, 10);
+    zassert_true(status, NULL);
+    status =
+        Lighting_Output_Blink_Warn_Feature_Set(instance, 0.0f, 0, UINT16_MAX);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Present_Value_Set(instance, 100.0f, priority);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 10000);
+    status = Lighting_Output_Present_Value_Set(
+        instance, BACNET_LIGHTING_SPECIAL_VALUE_WARN_OFF, priority);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 100);
+    zassert_true(Lighting_Output_Egress_Active(instance), NULL);
+
+    command.operation = BACNET_LIGHTS_RAMP_TO;
+    command.use_target_level = true;
+    command.target_level = 0.0f;
+    command.use_ramp_rate = true;
+    command.ramp_rate = 10.0f;
+    command.use_priority = true;
+    command.priority = priority;
+    status = Lighting_Output_Lighting_Command_Set(instance, &command);
+    zassert_true(status, NULL);
+    zassert_false(Lighting_Output_Egress_Active(instance), NULL);
+
+    /* STOP before the next timer tick */
+    stop.operation = BACNET_LIGHTS_STOP;
+    stop.use_priority = true;
+    stop.priority = priority;
+    status = Lighting_Output_Lighting_Command_Set(instance, &stop);
+    zassert_true(status, NULL);
+    /* the ramp ended: the slot holds the tracking value, not the command */
+    Lighting_Output_Timer(instance, 1000);
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(
+        is_float_equal(
+            test_real,
+            Lighting_Output_Priority_Array_Value(instance, priority)),
+        "Tracking_Value=%f", (double)test_real);
+    zassert_true(test_real > 50.0f, "Tracking_Value=%f", (double)test_real);
+
+    status = Lighting_Output_Delete(instance);
+    zassert_true(status, NULL);
+    Lighting_Output_Cleanup();
+}
+
 static unsigned Test_Lock_Depth;
 static unsigned Test_Lock_Count;
 
@@ -1883,6 +1950,7 @@ void test_main(void)
         ztest_unit_test(testLightingOutputWarnHaltTrimFade),
         ztest_unit_test(testLightingOutputStopDuringTrimFade),
         ztest_unit_test(testLightingOutputStopWarnOff),
+        ztest_unit_test(testLightingOutputStopRampAfterWarnOff),
         ztest_unit_test(testLightingOutputHaltLock),
         ztest_unit_test(testLightingOutputCommandCallback),
         ztest_unit_test(testLightingOutputMinMaxActualValue));
