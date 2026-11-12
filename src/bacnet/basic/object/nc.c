@@ -628,8 +628,8 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                     for (idx = 0; idx < MAX_BACNET_EVENT_TRANSITION; idx++) {
                         len = bacapp_decode_application_data(
                             &wp_data->application_data[iOffset],
-                            wp_data->application_data_len, &value);
-                        if ((len == 0) ||
+                            wp_data->application_data_len - iOffset, &value);
+                        if ((len <= 0) ||
                             (value.tag !=
                              BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
                             /* Bad decode, wrong tag or following required
@@ -699,7 +699,7 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 destination = &TmpNotify.Recipient_List[idx];
                 len = bacnet_destination_decode(
                     &wp_data->application_data[iOffset],
-                    wp_data->application_data_len, destination);
+                    wp_data->application_data_len - iOffset, destination);
                 if (len == BACNET_STATUS_REJECT) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
