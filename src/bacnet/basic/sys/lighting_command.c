@@ -880,6 +880,13 @@ static void lighting_command_blink_handler(
     if (data->Blink.Duration == 0) {
         /* 'end' operation */
         lighting_command_blink_complete_nolock(data);
+        /* WARN_OFF and WARN_RELINQUISH completion starts a fade so the
+           priority now in effect is trimmed. Run that fade in this tick.
+           Copying Blink.End_Value would skip the operating range. */
+        if (data->Lighting_Operation == BACNET_LIGHTS_FADE_TO) {
+            lighting_command_fade_handler(data, milliseconds);
+            return;
+        }
         data->In_Progress = BACNET_LIGHTING_IDLE;
         data->Lighting_Operation = BACNET_LIGHTS_STOP;
         target_value = data->Blink.End_Value;
@@ -1026,6 +1033,26 @@ void lighting_command_timer(
  * @param value [in] BACnet lighting value
  * @param fade_time [in] BACnet lighting fade time
  */
+void lighting_command_fade_to_nolock(
+    struct bacnet_lighting_command_data *data, float value, uint32_t fade_time)
+{
+    if (!data) {
+        return;
+    }
+    /* cancel a pending warning without its delayed slot action */
+    lighting_command_blink_cancel_nolock(data);
+    /* configure the lighting operation */
+    data->Fade_Time = fade_time;
+    data->Lighting_Operation = BACNET_LIGHTS_FADE_TO;
+    data->Target_Level = value;
+    if (isgreaterequal(value, 1.0)) {
+        /* the last value that was greater than or equal to 1.0%.*/
+        data->Last_On_Value = value;
+    }
+    lighting_command_event_notify(
+        data, BACNET_LIGHTS_FADE_TO, value, fade_time);
+}
+
 void lighting_command_fade_to(
     struct bacnet_lighting_command_data *data, float value, uint32_t fade_time)
 {
@@ -1040,18 +1067,7 @@ void lighting_command_fade_to(
         }
     }
     if (!data->Overridden) {
-        /* cancel a pending warning without its delayed slot action */
-        lighting_command_blink_cancel_nolock(data);
-        /* configure the lighting operation */
-        data->Fade_Time = fade_time;
-        data->Lighting_Operation = BACNET_LIGHTS_FADE_TO;
-        data->Target_Level = value;
-        if (isgreaterequal(value, 1.0)) {
-            /* the last value that was greater than or equal to 1.0%.*/
-            data->Last_On_Value = value;
-        }
-        lighting_command_event_notify(
-            data, BACNET_LIGHTS_FADE_TO, value, fade_time);
+        lighting_command_fade_to_nolock(data, value, fade_time);
     }
     lighting_command_unlock(data);
 }
@@ -1562,7 +1578,7 @@ void lighting_command_override_momentary(
  * @param low_end_trim [in] BACnet lighting low end trim
  * @param trim_fade_time [in] BACnet lighting trim fade time
  */
-void lighting_command_trim_set(
+void lighting_command_trim_set_nolock(
     struct bacnet_lighting_command_data *data,
     float high_end_trim,
     float low_end_trim,
@@ -1573,7 +1589,6 @@ void lighting_command_trim_set(
     if (!data) {
         return;
     }
-    lighting_command_lock(data);
     /* clamp range within normalized limits */
     high_trim = lighting_command_normalized_on_range_clamp(high_end_trim);
     low_trim = lighting_command_normalized_on_range_clamp(low_end_trim);
@@ -1587,6 +1602,20 @@ void lighting_command_trim_set(
     data->High_Trim_Value = high_trim;
     data->Low_Trim_Value = low_trim;
     data->Trim_Fade_Time = trim_fade_time;
+}
+
+void lighting_command_trim_set(
+    struct bacnet_lighting_command_data *data,
+    float high_end_trim,
+    float low_end_trim,
+    uint32_t trim_fade_time)
+{
+    if (!data) {
+        return;
+    }
+    lighting_command_lock(data);
+    lighting_command_trim_set_nolock(
+        data, high_end_trim, low_end_trim, trim_fade_time);
     lighting_command_unlock(data);
 }
 

@@ -141,6 +141,9 @@ BACNET_STACK_EXPORT
 void lighting_command_fade_to(
     struct bacnet_lighting_command_data *data, float value, uint32_t fade_time);
 BACNET_STACK_EXPORT
+void lighting_command_fade_to_nolock(
+    struct bacnet_lighting_command_data *data, float value, uint32_t fade_time);
+BACNET_STACK_EXPORT
 void lighting_command_ramp_to(
     struct bacnet_lighting_command_data *data, float value, float ramp_rate);
 BACNET_STACK_EXPORT
@@ -214,6 +217,12 @@ float lighting_command_feedback_value(
 
 BACNET_STACK_EXPORT
 void lighting_command_trim_set(
+    struct bacnet_lighting_command_data *data,
+    float High_End_Trim,
+    float Low_End_Trim,
+    uint32_t Trim_Fade_Time);
+BACNET_STACK_EXPORT
+void lighting_command_trim_set_nolock(
     struct bacnet_lighting_command_data *data,
     float High_End_Trim,
     float Low_End_Trim,

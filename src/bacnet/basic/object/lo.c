@@ -714,6 +714,29 @@ Lighting_Command_Warn(struct object_data *pObject, unsigned priority)
 }
 
 /**
+ * @brief Apply operating-range trim without taking the command lock.
+ * @param pObject [in] object to apply the trim values to
+ * @param priority [in] priority of the command now in effect
+ * @note Caller holds the lighting-command lock, or no lock is installed.
+ *  135-2024 §12.54.49 and §12.54.50: priority 1 and 2 are not trimmed.
+ */
+static void Lighting_Command_Trim_Apply_Unlocked(
+    struct object_data *pObject, unsigned priority)
+{
+    if (!pObject) {
+        return;
+    }
+    if ((priority == 1) || (priority == 2)) {
+        lighting_command_trim_set_nolock(
+            &pObject->Lighting_Command, 100.0f, 1.0f, 0);
+    } else {
+        lighting_command_trim_set_nolock(
+            &pObject->Lighting_Command, pObject->High_End_Trim,
+            pObject->Low_End_Trim, pObject->Trim_Fade_Time);
+    }
+}
+
+/**
  * @brief Callback that manipulates the value at the specified priority slot
     after a delay of Egress_Time seconds.
  * @param object_instance object-instance number of the object
@@ -727,6 +750,7 @@ static void Lighting_Command_Blink_Stop(
 {
     struct object_data *pObject;
     float value;
+    unsigned effective_priority;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (!pObject) {
@@ -746,17 +770,24 @@ static void Lighting_Command_Blink_Stop(
         default:
             return;
     }
-    /* 135-2024 §12.54.5: once In_Progress is IDLE, Tracking_Value
-       equals Present_Value. A lower-priority write during egress is
-       not a halt (§12.54.6.1), so recompute the value in effect
-       after the slot action. The blink handler applies End_Value. */
-    value = Priority_Array_Next_Value(pObject, 0);
-    pObject->Lighting_Command.Blink.End_Value = value;
-    /* 135-2024 §12.54.44: Last_On_Value is the last Present_Value
-       that was at least 1.0%. Off leaves the previous on-level. */
-    if (isgreaterequal(value, 1.0f)) {
-        pObject->Lighting_Command.Last_On_Value = value;
+    /* A halt calls this while Duration is still running. The
+       superseding command writes its own level and starts its own
+       fade. Expiry (Duration already 0) is under the timer lock, so
+       start the trim-aware fade without locking again. */
+    if (pObject->Lighting_Command.Blink.Duration != 0) {
+        return;
     }
+    /* 135-2024 §12.54.5 and §12.54.49: Tracking_Value is the clamped
+       operating level. Present_Value and Last_On_Value stay the
+       requested level. A lower-priority write during egress is not a
+       halt (§12.54.6.1), so use the priority now in effect. */
+    value = Priority_Array_Next_Value(pObject, 0);
+    effective_priority = Present_Value_Priority(pObject);
+    if (effective_priority > BACNET_MAX_PRIORITY) {
+        effective_priority = BACNET_MAX_PRIORITY;
+    }
+    Lighting_Command_Trim_Apply_Unlocked(pObject, effective_priority);
+    lighting_command_fade_to_nolock(&pObject->Lighting_Command, value, 0);
 }
 
 /**
@@ -771,7 +802,6 @@ static void Lighting_Command_Blink_Stop(
 static bool
 Lighting_Command_Halt_Egress(struct object_data *pObject, unsigned new_priority)
 {
-    unsigned current_priority;
     BACNET_LIGHTING_OPERATION operation;
     uint8_t blink_priority;
 
@@ -782,10 +812,6 @@ Lighting_Command_Halt_Egress(struct object_data *pObject, unsigned new_priority)
         (new_priority == 6)) {
         return false;
     }
-    current_priority = Present_Value_Priority(pObject);
-    if (new_priority > current_priority) {
-        return false;
-    }
     operation = pObject->Lighting_Command.Lighting_Operation;
     if ((operation != BACNET_LIGHTS_WARN_OFF) &&
         (operation != BACNET_LIGHTS_WARN_RELINQUISH)) {
@@ -793,6 +819,13 @@ Lighting_Command_Halt_Egress(struct object_data *pObject, unsigned new_priority)
     }
     blink_priority = pObject->Lighting_Command.Blink.Priority;
     if (blink_priority == 0) {
+        return false;
+    }
+    /* 135-2024 §12.54.6.1: only a higher or equal priority halts.
+       Compare with the warned slot. After that slot is relinquished,
+       the fallback is the priority in effect, and a fade to that
+       fallback must not be treated as a halt. */
+    if (new_priority > blink_priority) {
         return false;
     }
     Lighting_Command_Blink_Stop(
