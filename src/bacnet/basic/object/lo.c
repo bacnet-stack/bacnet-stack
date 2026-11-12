@@ -762,6 +762,8 @@ Lighting_Command_Warn_Off(struct object_data *pObject, unsigned priority)
             /* hold the lights at the current level during egress */
             blink.On_Value =
                 lighting_command_tracking_value_get(&pObject->Lighting_Command);
+            /* egress ends at off; do not restore a previous WARN level */
+            blink.End_Value = 0.0f;
             blink.Duration = pObject->Egress_Time_Seconds * 1000UL;
             blink.Priority = priority;
             blink.Callback = Lighting_Command_Blink_Stop;
@@ -838,6 +840,8 @@ Lighting_Command_Warn_Relinquish(struct object_data *pObject, unsigned priority)
             /* hold the lights at the current level during egress */
             blink.On_Value =
                 lighting_command_tracking_value_get(&pObject->Lighting_Command);
+            /* egress ends at off; do not restore a previous WARN level */
+            blink.End_Value = 0.0f;
             blink.Duration = pObject->Egress_Time_Seconds * 1000UL;
             blink.Priority = priority;
             blink.Callback = Lighting_Command_Blink_Stop;

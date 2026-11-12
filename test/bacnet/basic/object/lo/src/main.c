@@ -223,6 +223,130 @@ static void testLightingOutputWarnRelinquishEgress(void)
 }
 
 /**
+ * @brief WARN then WARN_RELINQUISH must end at off.
+ * A previous WARN stores its level as the blink end value. After
+ * egress, Tracking_Value follows that end value, so it has to be zero.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lo_tests, testLightingOutputWarnThenRelinquish)
+#else
+static void testLightingOutputWarnThenRelinquish(void)
+#endif
+{
+    const uint32_t instance = 323;
+    const unsigned priority = 8;
+    float test_real;
+    bool status;
+
+    Lighting_Output_Init();
+    Lighting_Output_Create(instance);
+    status = Lighting_Output_Blink_Warn_Enable_Set(instance, true);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Egress_Time_Set(instance, 1);
+    zassert_true(status, NULL);
+    status =
+        Lighting_Output_Blink_Warn_Feature_Set(instance, 0.0f, 0, UINT16_MAX);
+    zassert_true(status, NULL);
+
+    status = Lighting_Output_Present_Value_Set(instance, 60.0f, priority);
+    zassert_true(status, NULL);
+    /* default fade time is 100 ms */
+    Lighting_Output_Timer(instance, 100);
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(is_float_equal(test_real, 60.0f), NULL);
+
+    status = Lighting_Output_Present_Value_Set(
+        instance, BACNET_LIGHTING_SPECIAL_VALUE_WARN, priority);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 10);
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(is_float_equal(test_real, 60.0f), NULL);
+
+    status = Lighting_Output_Present_Value_Set(
+        instance, BACNET_LIGHTING_SPECIAL_VALUE_WARN_RELINQUISH, priority);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 1000);
+    status = Lighting_Output_Priority_Array_Relinquished(instance, priority);
+    zassert_true(status, NULL);
+    test_real = Lighting_Output_Present_Value(instance);
+    zassert_true(is_float_equal(test_real, 0.0f), NULL);
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(
+        is_float_equal(test_real, 0.0f), "Tracking_Value=%f",
+        (double)test_real);
+
+    status = Lighting_Output_Delete(instance);
+    zassert_true(status, NULL);
+    Lighting_Output_Cleanup();
+}
+
+/**
+ * @brief A level written at the same priority during egress replaces
+ * the pending relinquish and must remain after the old timer expires.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lo_tests, testLightingOutputWarnRelinquishReplacement)
+#else
+static void testLightingOutputWarnRelinquishReplacement(void)
+#endif
+{
+    const uint32_t instance = 324;
+    const unsigned priority = 8;
+    float test_real;
+    bool status;
+
+    Lighting_Output_Init();
+    Lighting_Output_Create(instance);
+    status = Lighting_Output_Blink_Warn_Enable_Set(instance, true);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Egress_Time_Set(instance, 1);
+    zassert_true(status, NULL);
+    status =
+        Lighting_Output_Blink_Warn_Feature_Set(instance, 0.0f, 0, UINT16_MAX);
+    zassert_true(status, NULL);
+
+    status = Lighting_Output_Present_Value_Set(instance, 60.0f, priority);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 100);
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(is_float_equal(test_real, 60.0f), NULL);
+
+    status = Lighting_Output_Present_Value_Set(
+        instance, BACNET_LIGHTING_SPECIAL_VALUE_WARN_RELINQUISH, priority);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 500);
+    status = Lighting_Output_Priority_Array_Relinquished(instance, priority);
+    zassert_false(status, NULL);
+
+    status = Lighting_Output_Present_Value_Set(instance, 40.0f, priority);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Priority_Array_Relinquished(instance, priority);
+    zassert_false(status, NULL);
+    test_real = Lighting_Output_Priority_Array_Value(instance, priority);
+    zassert_true(is_float_equal(test_real, 40.0f), NULL);
+    test_real = Lighting_Output_Present_Value(instance);
+    zassert_true(
+        is_float_equal(test_real, 40.0f), "Present_Value=%f",
+        (double)test_real);
+
+    /* finish the replacement fade, then pass the old egress deadline */
+    Lighting_Output_Timer(instance, 100);
+    Lighting_Output_Timer(instance, 1000);
+    status = Lighting_Output_Priority_Array_Relinquished(instance, priority);
+    zassert_false(status, NULL);
+    test_real = Lighting_Output_Present_Value(instance);
+    zassert_true(is_float_equal(test_real, 40.0f), NULL);
+    test_real = Lighting_Output_Tracking_Value(instance);
+    zassert_true(
+        is_float_equal(test_real, 40.0f), "Tracking_Value=%f",
+        (double)test_real);
+
+    status = Lighting_Output_Delete(instance);
+    zassert_true(status, NULL);
+    Lighting_Output_Cleanup();
+}
+
+/**
  * @brief Test
  */
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -961,6 +1085,8 @@ void test_main(void)
         ztest_unit_test(testLightingOutputWritablePropertyList),
         ztest_unit_test(testLightingOutputBlinkStop),
         ztest_unit_test(testLightingOutputWarnRelinquishEgress),
+        ztest_unit_test(testLightingOutputWarnThenRelinquish),
+        ztest_unit_test(testLightingOutputWarnRelinquishReplacement),
         ztest_unit_test(testLightingOutputCommandCallback),
         ztest_unit_test(testLightingOutputMinMaxActualValue));
 

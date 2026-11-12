@@ -569,7 +569,8 @@ int main(int argc, char *argv[])
             Blink_Warn_Enable = true;
         } else if (strcmp(argv[argi], "--egress") == 0) {
             if (++argi < argc) {
-                if (!bacnet_string_to_uint32(argv[argi], &egress_seconds)) {
+                if (!bacnet_string_to_uint32(argv[argi], &egress_seconds) ||
+                    (egress_seconds > (UINT32_MAX / 1000UL))) {
                     fprintf(stderr, "egress=%s invalid\n", argv[argi]);
                     return 1;
                 }

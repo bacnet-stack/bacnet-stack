@@ -307,20 +307,25 @@ void lighting_command_timer_notification_add(
 }
 
 /**
- * @brief call the lighting command blink stop callback
- *        for WARN_OFF/WARN_RELINQUISH operations
+ * @brief Perform the delayed priority-slot action when egress expires.
  * @param data - dimmer data structure
+ * @note Only egress expiry writes or relinquishes the priority slot.
+ *  Cancelling WARN_OFF or WARN_RELINQUISH leaves that slot unchanged.
  */
-static void lighting_command_blink_stop_notify_nolock(
+static void lighting_command_blink_complete_nolock(
     struct bacnet_lighting_command_data *data)
 {
+    lighting_command_blink_callback callback;
+
     if (data->Blink.Callback) {
         /* do some checking to avoid extra callbacks */
         switch (data->Lighting_Operation) {
             case BACNET_LIGHTS_WARN_OFF:
             case BACNET_LIGHTS_WARN_RELINQUISH:
                 if (data->Blink.Priority != 0) {
-                    data->Blink.Callback(
+                    callback = data->Blink.Callback;
+                    data->Blink.Callback = NULL;
+                    callback(
                         data->Key, data->Lighting_Operation,
                         data->Blink.Priority);
                 }
@@ -328,6 +333,25 @@ static void lighting_command_blink_stop_notify_nolock(
             default:
                 break;
         }
+    }
+}
+
+/**
+ * @brief Cancel a pending WARN_OFF or WARN_RELINQUISH.
+ * @param data - dimmer data structure
+ * @note The priority array is left unchanged. A replacement command
+ *  or STOP must not run the egress slot action.
+ */
+static void
+lighting_command_blink_cancel_nolock(struct bacnet_lighting_command_data *data)
+{
+    switch (data->Lighting_Operation) {
+        case BACNET_LIGHTS_WARN_OFF:
+        case BACNET_LIGHTS_WARN_RELINQUISH:
+            data->Blink.Callback = NULL;
+            break;
+        default:
+            break;
     }
 }
 
@@ -854,7 +878,7 @@ static void lighting_command_blink_handler(
     }
     if (data->Blink.Duration == 0) {
         /* 'end' operation */
-        lighting_command_blink_stop_notify_nolock(data);
+        lighting_command_blink_complete_nolock(data);
         data->In_Progress = BACNET_LIGHTING_IDLE;
         data->Lighting_Operation = BACNET_LIGHTS_STOP;
         target_value = data->Blink.End_Value;
@@ -1015,8 +1039,8 @@ void lighting_command_fade_to(
         }
     }
     if (!data->Overridden) {
-        /* possibly interrupting a blink warn, so notify */
-        lighting_command_blink_stop_notify_nolock(data);
+        /* cancel a pending warning without its delayed slot action */
+        lighting_command_blink_cancel_nolock(data);
         /* configure the lighting operation */
         data->Fade_Time = fade_time;
         data->Lighting_Operation = BACNET_LIGHTS_FADE_TO;
@@ -1043,8 +1067,8 @@ static void lighting_command_ramp_to_nolock(
     if (!data) {
         return;
     }
-    /* possibly interrupting a blink warn, so notify */
-    lighting_command_blink_stop_notify_nolock(data);
+    /* cancel a pending warning without its delayed slot action */
+    lighting_command_blink_cancel_nolock(data);
     /* configure the lighting operation */
     data->Ramp_Rate = lighting_command_ramp_rate_clamp(ramp_rate);
     data->Lighting_Operation = BACNET_LIGHTS_RAMP_TO;
@@ -1106,8 +1130,6 @@ void lighting_command_step(
         }
     }
     if (!data->Overridden) {
-        /* possibly interrupting a blink warn, so notify */
-        lighting_command_blink_stop_notify_nolock(data);
         /* configure the lighting operation */
         if (((operation == BACNET_LIGHTS_STEP_UP) ||
              (operation == BACNET_LIGHTS_STEP_DOWN)) &&
@@ -1116,6 +1138,8 @@ void lighting_command_step(
             then this operation is ignored. */
             goto done;
         }
+        /* cancel a pending warning without its delayed slot action */
+        lighting_command_blink_cancel_nolock(data);
         data->Lighting_Operation = operation;
         data->Fade_Time = 0;
         data->Step_Increment = step_increment;
@@ -1165,10 +1189,15 @@ void lighting_command_blink_warn(
     BACNET_LIGHTING_OPERATION operation,
     struct bacnet_lighting_command_warn_data *blink)
 {
+    struct bacnet_lighting_command_warn_data warn;
+
     if (!data || !blink) {
         return;
     }
     lighting_command_lock(data);
+    /* blink may alias data->Blink. Copy before cancellation clears
+       the pending callback. */
+    warn = *blink;
     if (data->Overridden) {
         if (data->Overridden_Momentary) {
             data->Overridden_Momentary = false;
@@ -1176,30 +1205,30 @@ void lighting_command_blink_warn(
         }
     }
     if (!data->Overridden) {
-        /* possibly interrupting a blink warn, so notify */
-        lighting_command_blink_stop_notify_nolock(data);
+        /* cancel a pending warning without its delayed slot action */
+        lighting_command_blink_cancel_nolock(data);
         /* configure the new warning */
         data->Lighting_Operation = operation;
-        data->Blink.Target_Interval = blink->Target_Interval;
-        data->Blink.Target_Count = blink->Target_Count;
-        data->Blink.Duration = blink->Duration;
-        data->Blink.Priority = blink->Priority;
-        data->Blink.Callback = blink->Callback;
-        data->Blink.On_Value = blink->On_Value;
-        data->Blink.Off_Value = blink->Off_Value;
-        data->Blink.End_Value = blink->End_Value;
+        data->Blink.Target_Interval = warn.Target_Interval;
+        data->Blink.Target_Count = warn.Target_Count;
+        data->Blink.Duration = warn.Duration;
+        data->Blink.Priority = warn.Priority;
+        data->Blink.Callback = warn.Callback;
+        data->Blink.On_Value = warn.On_Value;
+        data->Blink.Off_Value = warn.Off_Value;
+        data->Blink.End_Value = warn.End_Value;
         /* start blinking */
         data->In_Progress = BACNET_LIGHTING_OTHER;
         /* configure next interval */
         data->Blink.State = false;
-        data->Blink.Interval = blink->Target_Interval;
-        if ((blink->Target_Count == 0) || (blink->Target_Count == UINT16_MAX)) {
+        data->Blink.Interval = warn.Target_Interval;
+        if ((warn.Target_Count == 0) || (warn.Target_Count == UINT16_MAX)) {
             data->Blink.Count = UINT16_MAX;
         } else {
-            data->Blink.Count = blink->Target_Count;
+            data->Blink.Count = warn.Target_Count;
         }
         lighting_command_event_notify(
-            data, operation, blink->Target_Interval, blink->Duration);
+            data, operation, warn.Target_Interval, warn.Duration);
     }
     lighting_command_unlock(data);
 }
@@ -1249,8 +1278,8 @@ void lighting_command_stop(struct bacnet_lighting_command_data *data)
         }
     }
     if (!data->Overridden) {
-        /* possibly interrupting a blink warn, so notify */
-        lighting_command_blink_stop_notify_nolock(data);
+        /* cancel a pending warning without its delayed slot action */
+        lighting_command_blink_cancel_nolock(data);
         /* configure the lighting operation */
         data->Lighting_Operation = BACNET_LIGHTS_STOP;
         if (isgreaterequal(data->Tracking_Value, 1.0)) {
@@ -1280,8 +1309,8 @@ void lighting_command_none(struct bacnet_lighting_command_data *data)
         }
     }
     if (!data->Overridden) {
-        /* possibly interrupting a blink warn, so notify */
-        lighting_command_blink_stop_notify_nolock(data);
+        /* cancel a pending warning without its delayed slot action */
+        lighting_command_blink_cancel_nolock(data);
         /* configure the lighting operation */
         data->Lighting_Operation = BACNET_LIGHTS_NONE;
         lighting_command_event_notify(data, BACNET_LIGHTS_NONE, 0.0f, 0.0f);
@@ -1308,8 +1337,8 @@ void lighting_command_restore_on(
         }
     }
     if (!data->Overridden) {
-        /* possibly interrupting a blink warn, so notify */
-        lighting_command_blink_stop_notify_nolock(data);
+        /* cancel a pending warning without its delayed slot action */
+        lighting_command_blink_cancel_nolock(data);
         /* configure the lighting operation */
         data->Fade_Time = fade_time;
         data->Lighting_Operation = BACNET_LIGHTS_RESTORE_ON;
@@ -1340,8 +1369,8 @@ void lighting_command_default_on(
         }
     }
     if (!data->Overridden) {
-        /* possibly interrupting a blink warn, so notify */
-        lighting_command_blink_stop_notify_nolock(data);
+        /* cancel a pending warning without its delayed slot action */
+        lighting_command_blink_cancel_nolock(data);
         /* configure the lighting operation */
         data->Fade_Time = fade_time;
         data->Lighting_Operation = BACNET_LIGHTS_DEFAULT_ON;
@@ -1372,8 +1401,8 @@ void lighting_command_toggle_restore(
         }
     }
     if (!data->Overridden) {
-        /* possibly interrupting a blink warn, so notify */
-        lighting_command_blink_stop_notify_nolock(data);
+        /* cancel a pending warning without its delayed slot action */
+        lighting_command_blink_cancel_nolock(data);
         /* configure the lighting operation */
         data->Fade_Time = fade_time;
         data->Lighting_Operation = BACNET_LIGHTS_TOGGLE_RESTORE;
@@ -1410,8 +1439,8 @@ void lighting_command_toggle_default(
         }
     }
     if (!data->Overridden) {
-        /* possibly interrupting a blink warn, so notify */
-        lighting_command_blink_stop_notify_nolock(data);
+        /* cancel a pending warning without its delayed slot action */
+        lighting_command_blink_cancel_nolock(data);
         /* configure the lighting operation */
         data->Fade_Time = fade_time;
         data->Lighting_Operation = BACNET_LIGHTS_TOGGLE_DEFAULT;
