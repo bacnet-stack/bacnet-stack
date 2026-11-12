@@ -445,7 +445,9 @@ static void test_Timer_Read_Write(void)
     status = Timer_Write_Property(&wp_data);
     zassert_false(status, NULL);
     zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
-    zassert_equal(wp_data.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+    zassert_equal(
+        wp_data.error_code, ERROR_CODE_INVALID_DATA_ENCODING, "%s",
+        bactext_error_code_name(wp_data.error_code));
     /* state-change-values - wrong datatype */
     wp_data.array_index = 1;
     wp_data.application_data_len =

@@ -12,6 +12,7 @@
 #include <string.h>
 #include <zephyr/ztest.h>
 #include <bacnet/bacaddr.h>
+#include <bacnet/bacdcode.h>
 #include <bacnet/bacdest.h>
 
 /**
@@ -30,7 +31,7 @@ static void testBACnetDestination(void)
 {
     uint8_t apdu[MAX_APDU] = { 0 };
     BACNET_DESTINATION destination = { 0 }, test_destination = { 0 };
-    int apdu_len = 0, null_len = 0, test_len = 0;
+    int apdu_len = 0, null_len = 0, test_len = 0, i = 0;
     bool status = false;
 
     destination.Recipient.tag = BACNET_RECIPIENT_TAG_DEVICE;
@@ -76,9 +77,19 @@ static void testBACnetDestination(void)
 
     /* decoding, some negative tests */
     test_len = bacnet_destination_decode(NULL, apdu_len, &test_destination);
-    zassert_equal(test_len, BACNET_STATUS_REJECT, NULL);
+    zassert_equal(test_len, BACNET_STATUS_ERROR, NULL);
+    /* no data, or a first element that is not a bit string: tag mismatch */
     test_len = bacnet_destination_decode(apdu, 0, &test_destination);
-    zassert_equal(test_len, BACNET_STATUS_REJECT, NULL);
+    zassert_equal(test_len, 0, NULL);
+    encode_application_unsigned(apdu, 1);
+    test_len = bacnet_destination_decode(apdu, 1, &test_destination);
+    zassert_equal(test_len, 0, NULL);
+    /* malformed: truncated at every length */
+    apdu_len = bacnet_destination_encode(apdu, &destination);
+    for (i = 1; i < apdu_len; i++) {
+        test_len = bacnet_destination_decode(apdu, i, &test_destination);
+        zassert_equal(test_len, BACNET_STATUS_ERROR, "i=%d", i);
+    }
     /* context */
     null_len = bacnet_destination_context_encode(NULL, 4, &destination);
     apdu_len = bacnet_destination_context_encode(apdu, 4, &destination);

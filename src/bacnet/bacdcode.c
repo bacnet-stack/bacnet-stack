@@ -6124,7 +6124,8 @@ int bacnet_array_encode(
  *    1 to n for individual array members
  *    BACNET_ARRAY_ALL for the full array to be written.
  * @param decode_function [in] function to decode one property array element and
- * determine the length
+ * determine the length: zero if the tag does not match (INVALID_DATA_TYPE),
+ * or negative if the element is malformed (INVALID_DATA_ENCODING)
  * @param write_function [in] function to write one property array element with
  * the encoded value
  * @param array_size [in] number of elements in the array
@@ -6157,7 +6158,7 @@ BACNET_ERROR_CODE bacnet_array_write_resizable(
         } else if (len == 0) {
             error_code = ERROR_CODE_INVALID_DATA_TYPE;
         } else {
-            error_code = ERROR_CODE_ABORT_OTHER;
+            error_code = ERROR_CODE_INVALID_DATA_ENCODING;
         }
     } else if (array_index == BACNET_ARRAY_ALL) {
         /* verify decoding of all elements */
@@ -6165,10 +6166,14 @@ BACNET_ERROR_CODE bacnet_array_write_resizable(
         for (index = 1; index <= array_size; index++) {
             len = decode_function(
                 object_instance, &apdu[apdu_len], apdu_size - apdu_len);
-            if (len >= 0) {
+            if (len > 0) {
                 apdu_len += len;
+            } else if (len == 0) {
+                /* a non-empty array element must consume input */
+                error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                break;
             } else {
-                error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                error_code = ERROR_CODE_INVALID_DATA_ENCODING;
                 break;
             }
         }
@@ -6247,7 +6252,8 @@ BACNET_ERROR_CODE bacnet_array_write(
  *    1 to n for individual array members - not permitted for a list
  *    BACNET_ARRAY_ALL for the full list to be written
  * @param decode_function [in] function to decode one property list element and
- * determine the length
+ * determine the length: zero if the tag does not match (INVALID_DATA_TYPE),
+ * or negative if the element is malformed (INVALID_DATA_ENCODING)
  * @param add_function [in] function to add one property list element with
  * the encoded value
  * @param max_elements [in] number of elements in the list
@@ -6283,8 +6289,8 @@ BACNET_ERROR_CODE bacnet_list_write(
                 error_code = ERROR_CODE_INVALID_DATA_TYPE;
                 break;
             } else {
-                /* bad decode */
-                error_code = ERROR_CODE_ABORT_OTHER;
+                /* malformed list element */
+                error_code = ERROR_CODE_INVALID_DATA_ENCODING;
                 break;
             }
         }
@@ -6303,7 +6309,7 @@ BACNET_ERROR_CODE bacnet_list_write(
                 len = decode_function(
                     object_instance, &apdu[apdu_len], apdu_size - apdu_len);
                 if (len < 0) {
-                    error_code = ERROR_CODE_ABORT_OTHER;
+                    error_code = ERROR_CODE_INVALID_DATA_ENCODING;
                     break;
                 } else if (len == 0) {
                     error_code = ERROR_CODE_INVALID_DATA_TYPE;

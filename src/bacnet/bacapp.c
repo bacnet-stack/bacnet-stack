@@ -1539,6 +1539,9 @@ int bacapp_decode_application_tag_value(
             /* BACnetDestination */
             apdu_len = bacnet_destination_decode(
                 apdu, apdu_size, &value->type.Destination);
+            if (apdu_len == 0) {
+                apdu_len = BACNET_STATUS_ERROR;
+            }
             break;
 #endif
 #if defined(BACAPP_BDT_ENTRY)

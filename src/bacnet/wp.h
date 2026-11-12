@@ -139,6 +139,10 @@ bool write_property_real_decode(
     BACNET_WRITE_PROPERTY_DATA *wp_data, float *value);
 
 BACNET_STACK_EXPORT
+bool write_property_bit_string_decode(
+    BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_BIT_STRING *value);
+
+BACNET_STACK_EXPORT
 bool write_property_character_string_decode(
     BACNET_WRITE_PROPERTY_DATA *wp_data, BACNET_CHARACTER_STRING *value);
 

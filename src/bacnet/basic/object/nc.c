@@ -573,17 +573,152 @@ int Notification_Class_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
     return apdu_len;
 }
 
+/**
+ * @brief Decode a Priority array element to determine the element length
+ * @param object_instance [in] BACnet object instance number
+ * @param apdu [in] Buffer in which the APDU contents are extracted
+ * @param apdu_size [in] The size of the APDU buffer
+ * @return The length of the decoded element, zero if the tag does not match,
+ *  or BACNET_STATUS_ERROR if the element is malformed
+ */
+static int Notification_Class_Priority_Element_Length(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
+{
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+
+    (void)object_instance;
+
+    return bacnet_unsigned_application_decode(
+        apdu, (uint32_t)apdu_size, &unsigned_value);
+}
+
+/**
+ * @brief Write a Priority array element
+ * @param object_instance [in] BACnet object instance number
+ * @param array_index [in] array index to write: 1 to N for array members
+ * @param array_size [in] number of elements in the array, unused
+ *  because the array is not resizable
+ * @param application_data [in] encoded element value
+ * @param application_data_len [in] The size of the encoded element value
+ * @return BACNET_ERROR_CODE value or ERROR_CODE_SUCCESS
+ */
+static BACNET_ERROR_CODE Notification_Class_Priority_Element_Write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
+    uint8_t *application_data,
+    size_t application_data_len)
+{
+    NOTIFICATION_CLASS_INFO *CurrentNotify;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    int len;
+
+    (void)array_size;
+    CurrentNotify = Notification_Class_Object(object_instance);
+    if (!CurrentNotify) {
+        return ERROR_CODE_UNKNOWN_OBJECT;
+    }
+    if ((array_index == 0) || (array_index > MAX_BACNET_EVENT_TRANSITION)) {
+        return ERROR_CODE_INVALID_ARRAY_INDEX;
+    }
+    len = bacnet_unsigned_application_decode(
+        application_data, (uint32_t)application_data_len, &unsigned_value);
+    if (len < 0) {
+        return ERROR_CODE_INVALID_DATA_ENCODING;
+    }
+    if (len == 0) {
+        return ERROR_CODE_INVALID_DATA_TYPE;
+    }
+    if (unsigned_value > UINT8_MAX) {
+        return ERROR_CODE_VALUE_OUT_OF_RANGE;
+    }
+    CurrentNotify->Priority[array_index - 1] = (uint8_t)unsigned_value;
+
+    return ERROR_CODE_SUCCESS;
+}
+
+/**
+ * @brief Decode a Recipient_List element to determine the element length
+ * @param object_instance [in] BACnet object instance number
+ * @param apdu [in] Buffer in which the APDU contents are extracted
+ * @param apdu_size [in] The size of the APDU buffer
+ * @return The length of the decoded element, zero if the tag does not match,
+ *  or BACNET_STATUS_ERROR if the element is malformed
+ */
+static int Notification_Class_Recipient_List_Element_Length(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
+{
+    (void)object_instance;
+
+    return bacnet_destination_decode(apdu, (int)apdu_size, NULL);
+}
+
+/**
+ * @brief Add an element to the Recipient_List, or empty the list
+ * @param object_instance [in] BACnet object instance number
+ * @param application_data [in] encoded element value, or NULL to empty
+ * @param application_data_len [in] The size of the encoded element value
+ * @return BACNET_ERROR_CODE value or ERROR_CODE_SUCCESS
+ */
+static BACNET_ERROR_CODE Notification_Class_Recipient_List_Element_Add(
+    uint32_t object_instance,
+    uint8_t *application_data,
+    size_t application_data_len)
+{
+    NOTIFICATION_CLASS_INFO *CurrentNotify;
+    BACNET_DESTINATION destination = { 0 };
+    BACNET_DESTINATION *slot;
+    BACNET_ADDRESS src = { 0 };
+    unsigned max_apdu = 0;
+    unsigned idx;
+    int len;
+
+    CurrentNotify = Notification_Class_Object(object_instance);
+    if (!CurrentNotify) {
+        return ERROR_CODE_UNKNOWN_OBJECT;
+    }
+    if ((!application_data) && (application_data_len == 0)) {
+        /* empty the BACnetLIST - remove all */
+        for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++) {
+            bacnet_destination_default_init(
+                &CurrentNotify->Recipient_List[idx]);
+        }
+        return ERROR_CODE_SUCCESS;
+    }
+    len = bacnet_destination_decode(
+        application_data, (int)application_data_len, &destination);
+    if (len < 0) {
+        return ERROR_CODE_INVALID_DATA_ENCODING;
+    }
+    if (len == 0) {
+        return ERROR_CODE_INVALID_DATA_TYPE;
+    }
+    for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++) {
+        slot = &CurrentNotify->Recipient_List[idx];
+        if (bacnet_recipient_device_wildcard(&slot->Recipient)) {
+            /* unused slots denoted by wildcard */
+            bacnet_destination_copy(slot, &destination);
+            if (bacnet_recipient_device_valid(&slot->Recipient)) {
+                address_bind_request(
+                    slot->Recipient.type.device.instance, &max_apdu, &src);
+            }
+            return ERROR_CODE_SUCCESS;
+        }
+    }
+
+    return ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+}
+
 bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     NOTIFICATION_CLASS_INFO *CurrentNotify;
     NOTIFICATION_CLASS_INFO TmpNotify;
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_CHARACTER_STRING char_string = { 0 };
+    BACNET_BIT_STRING bit_string = { 0 };
     uint8_t TmpPriority[MAX_BACNET_EVENT_TRANSITION]; /* BACnetARRAY[3] of
                                                          Unsigned */
     bool status = false;
-    int iOffset;
     uint8_t idx;
-    int len = 0;
 
     /* Valid data? */
     if (wp_data == NULL) {
@@ -596,145 +731,78 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         return false;
     }
 
-    /* decode some of the request */
-    len = bacapp_decode_application_data(
-        wp_data->application_data, wp_data->application_data_len, &value);
-    if (len < 0) {
-        /* error while decoding - a value larger than we can handle */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
     switch (wp_data->object_property) {
         case PROP_DESCRIPTION:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
+            status =
+                write_property_character_string_decode(wp_data, &char_string);
             if (status) {
-                status = Notification_Class_Description_Write(
-                    wp_data, &value.type.Character_String);
+                status =
+                    Notification_Class_Description_Write(wp_data, &char_string);
             }
             break;
 
         case PROP_PRIORITY:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
-            if (status) {
-                if (wp_data->array_index == 0) {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                    status = false;
-                } else if (wp_data->array_index == BACNET_ARRAY_ALL) {
-                    iOffset = 0;
-                    for (idx = 0; idx < MAX_BACNET_EVENT_TRANSITION; idx++) {
-                        len = bacapp_decode_application_data(
-                            &wp_data->application_data[iOffset],
-                            wp_data->application_data_len, &value);
-                        if ((len == 0) ||
-                            (value.tag !=
-                             BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
-                            /* Bad decode, wrong tag or following required
-                             * parameter missing */
-                            wp_data->error_class = ERROR_CLASS_PROPERTY;
-                            wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                            status = false;
-                            break;
-                        }
-                        if (value.type.Unsigned_Int > 255) {
-                            wp_data->error_class = ERROR_CLASS_PROPERTY;
-                            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                            status = false;
-                            break;
-                        }
-                        TmpPriority[idx] = (uint8_t)value.type.Unsigned_Int;
-                        iOffset += len;
-                    }
-                    if (status == true) {
-                        for (idx = 0; idx < MAX_BACNET_EVENT_TRANSITION;
-                             idx++) {
-                            CurrentNotify->Priority[idx] = TmpPriority[idx];
-                        }
-                    }
-                } else if (wp_data->array_index <= 3) {
-                    if (value.type.Unsigned_Int > 255) {
-                        wp_data->error_class = ERROR_CLASS_PROPERTY;
-                        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                        status = false;
-                    } else {
-                        CurrentNotify->Priority[wp_data->array_index - 1] =
-                            value.type.Unsigned_Int;
-                    }
-                } else {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-                    status = false;
+            /* keep a copy so that a failed write leaves the array unchanged */
+            for (idx = 0; idx < MAX_BACNET_EVENT_TRANSITION; idx++) {
+                TmpPriority[idx] = CurrentNotify->Priority[idx];
+            }
+            wp_data->error_code = bacnet_array_write(
+                wp_data->object_instance, wp_data->array_index,
+                Notification_Class_Priority_Element_Length,
+                Notification_Class_Priority_Element_Write,
+                MAX_BACNET_EVENT_TRANSITION, wp_data->application_data,
+                wp_data->application_data_len);
+            if (wp_data->error_code == ERROR_CODE_SUCCESS) {
+                status = true;
+            } else {
+                for (idx = 0; idx < MAX_BACNET_EVENT_TRANSITION; idx++) {
+                    CurrentNotify->Priority[idx] = TmpPriority[idx];
                 }
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
             }
             break;
 
         case PROP_ACK_REQUIRED:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_BIT_STRING);
+            status = write_property_bit_string_decode(wp_data, &bit_string);
             if (status) {
-                if (value.type.Bit_String.bits_used == 3) {
+                if (bitstring_bits_used(&bit_string) == 3) {
                     CurrentNotify->Ack_Required =
-                        value.type.Bit_String.value[0];
+                        bitstring_octet(&bit_string, 0);
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    status = false;
                 }
             }
             break;
 
         case PROP_RECIPIENT_LIST:
+            /* keep a copy so that a failed write leaves the list unchanged */
             for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++) {
-                BACNET_DESTINATION *destination;
-                destination = &TmpNotify.Recipient_List[idx];
-                bacnet_destination_default_init(destination);
+                TmpNotify.Recipient_List[idx] =
+                    CurrentNotify->Recipient_List[idx];
             }
-            idx = 0;
-            iOffset = 0;
-            /* decode all packed */
-            while (iOffset < wp_data->application_data_len) {
-                BACNET_DESTINATION *destination;
-                destination = &TmpNotify.Recipient_List[idx];
-                len = bacnet_destination_decode(
-                    &wp_data->application_data[iOffset],
-                    wp_data->application_data_len, destination);
-                if (len == BACNET_STATUS_REJECT) {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                    return false;
+            /* a BACnetLIST can only be written all-at-once */
+            wp_data->error_code = bacnet_list_write(
+                wp_data->object_instance, wp_data->array_index,
+                Notification_Class_Recipient_List_Element_Length,
+                Notification_Class_Recipient_List_Element_Add,
+                NC_MAX_RECIPIENTS, wp_data->application_data,
+                wp_data->application_data_len);
+            if (wp_data->error_code == ERROR_CODE_SUCCESS) {
+                status = true;
+            } else {
+                for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++) {
+                    CurrentNotify->Recipient_List[idx] =
+                        TmpNotify.Recipient_List[idx];
                 }
-                iOffset += len;
-                /* Increasing element of list */
-                if ((++idx >= NC_MAX_RECIPIENTS) &&
-                    (iOffset < wp_data->application_data_len)) {
+                if (wp_data->error_code ==
+                    ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY) {
                     wp_data->error_class = ERROR_CLASS_RESOURCES;
-                    wp_data->error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
-                    return false;
+                } else {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
                 }
             }
-            /* Decoded all recipient list */
-            /* copy elements from temporary object */
-            for (idx = 0; idx < NC_MAX_RECIPIENTS; idx++) {
-                BACNET_ADDRESS src = { 0 };
-                unsigned max_apdu = 0;
-                uint32_t device_id;
-                BACNET_DESTINATION *destination;
-                BACNET_RECIPIENT *recipient;
-
-                destination = &CurrentNotify->Recipient_List[idx];
-                bacnet_destination_copy(
-                    destination, &TmpNotify.Recipient_List[idx]);
-                recipient = &destination->Recipient;
-                if (bacnet_recipient_device_valid(recipient)) {
-                    device_id = recipient->type.device.instance;
-                    address_bind_request(device_id, &max_apdu, &src);
-                } else if (recipient->tag == BACNET_RECIPIENT_TAG_ADDRESS) {
-                    /* nothing to do - we have the address */
-                }
-            }
-            status = true;
             break;
         default:
             if (property_lists_member(

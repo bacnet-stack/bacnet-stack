@@ -65,7 +65,7 @@ static void test_ListElement(void)
         zassert_true(
             bacnet_destination_same(&destination[i], &test_destination[i]),
             NULL);
-        zassert_not_equal(test_len, BACNET_STATUS_REJECT, NULL);
+        zassert_true(test_len > 0, NULL);
         test_application_data_len -= test_len;
         test_application_data += test_len;
     }
