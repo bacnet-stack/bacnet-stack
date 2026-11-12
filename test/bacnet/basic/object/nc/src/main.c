@@ -309,6 +309,72 @@ static void test_Notification_Class_Priority(void)
 }
 
 /**
+ * @brief Test WriteProperty Recipient_List error codes for bad encodings
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(
+    notification_class_tests,
+    test_Notification_Class_Recipient_List_Write_Errors)
+#else
+static void test_Notification_Class_Recipient_List_Write_Errors(void)
+#endif
+{
+    const uint32_t instance = 1;
+    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
+    BACNET_DESTINATION destination = { 0 };
+    BACNET_DESTINATION recipient_list[NC_MAX_RECIPIENTS] = { 0 };
+    int len = 0;
+    bool status = false;
+
+    Notification_Class_Cleanup();
+    Notification_Class_Init();
+    Notification_Class_Create(instance);
+    wpdata.object_type = OBJECT_NOTIFICATION_CLASS;
+    wpdata.object_instance = instance;
+    wpdata.array_index = BACNET_ARRAY_ALL;
+    wpdata.object_property = PROP_RECIPIENT_LIST;
+    for (unsigned i = 0; i < MAX_BACNET_DAYS_OF_WEEK; i++) {
+        bitstring_set_bit(&destination.ValidDays, i, true);
+    }
+    datetime_set_time(&destination.FromTime, 0, 0, 0, 0);
+    datetime_set_time(&destination.ToTime, 23, 59, 59, 99);
+    destination.ProcessIdentifier = 1;
+    destination.ConfirmedNotify = true;
+    bacnet_recipient_device_set(&destination.Recipient, OBJECT_DEVICE, 1);
+    bitstring_set_bit(&destination.Transitions, TRANSITION_TO_OFFNORMAL, true);
+    bitstring_set_bit(&destination.Transitions, TRANSITION_TO_FAULT, true);
+    bitstring_set_bit(&destination.Transitions, TRANSITION_TO_NORMAL, true);
+    len = bacnet_destination_encode(&wpdata.application_data[0], &destination);
+    wpdata.application_data_len = len;
+    status = Notification_Class_Write_Property(&wpdata);
+    zassert_true(status, NULL);
+    /* destination truncated by one octet */
+    wpdata.application_data_len = len - 1;
+    wpdata.error_class = ERROR_CLASS_DEVICE;
+    wpdata.error_code = ERROR_CODE_SUCCESS;
+    status = Notification_Class_Write_Property(&wpdata);
+    zassert_false(status, NULL);
+    zassert_equal(wpdata.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_INVALID_DATA_ENCODING, NULL);
+    /* wrong tag where a BACnetDestination should start */
+    len = encode_application_unsigned(&wpdata.application_data[0], 5);
+    wpdata.application_data_len = len;
+    wpdata.error_class = ERROR_CLASS_DEVICE;
+    wpdata.error_code = ERROR_CODE_SUCCESS;
+    status = Notification_Class_Write_Property(&wpdata);
+    zassert_false(status, NULL);
+    zassert_equal(wpdata.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    /* failed writes leave the existing list unchanged */
+    status = Notification_Class_Get_Recipient_List(instance, recipient_list);
+    zassert_true(status, NULL);
+    zassert_equal(recipient_list[0].ProcessIdentifier, 1, NULL);
+
+    status = Notification_Class_Delete(instance);
+    zassert_true(status, NULL);
+}
+
+/**
  * @brief Test
  */
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -907,6 +973,7 @@ void test_main(void)
         ztest_unit_test(test_Notification_Class_Read_Write_Property),
         ztest_unit_test(test_Notification_Class_Description),
         ztest_unit_test(test_Notification_Class_Priority),
+        ztest_unit_test(test_Notification_Class_Recipient_List_Write_Errors),
         ztest_unit_test(test_Notification_Class_Ack_Required),
         ztest_unit_test(test_Notification_Class_Recipient_List),
         ztest_unit_test(test_Notification_Class_Common_Reporting),

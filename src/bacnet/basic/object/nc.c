@@ -696,13 +696,26 @@ bool Notification_Class_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             /* decode all packed */
             while (iOffset < wp_data->application_data_len) {
                 BACNET_DESTINATION *destination;
+                BACNET_TAG tag = { 0 };
                 destination = &TmpNotify.Recipient_List[idx];
+                /* first element of BACnetDestination is ValidDays */
+                len = bacnet_tag_decode(
+                    &wp_data->application_data[iOffset],
+                    wp_data->application_data_len - iOffset, &tag);
+                if (len > 0) {
+                    if (!tag.application ||
+                        (tag.number != BACNET_APPLICATION_TAG_BIT_STRING)) {
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                        return false;
+                    }
+                }
                 len = bacnet_destination_decode(
                     &wp_data->application_data[iOffset],
                     wp_data->application_data_len, destination);
                 if (len == BACNET_STATUS_REJECT) {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                    wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
                     return false;
                 }
                 iOffset += len;
