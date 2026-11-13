@@ -112,6 +112,73 @@ static void testLightingOutputWritablePropertyList(void)
 }
 
 /**
+ * @brief Test setting and getting the blink-warn feature values
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lo_tests, testLightingOutputBlinkWarnFeature)
+#else
+static void testLightingOutputBlinkWarnFeature(void)
+#endif
+{
+    const uint32_t instance = 322;
+    float off_value = 0.0f;
+    uint16_t interval = 0;
+    uint16_t count = 0;
+    bool status;
+
+    Lighting_Output_Init();
+    status = Lighting_Output_Blink_Warn_Feature(
+        instance, &off_value, &interval, &count);
+    zassert_false(status, NULL);
+    Lighting_Output_Create(instance);
+    status = Lighting_Output_Blink_Warn_Feature(
+        instance, &off_value, &interval, &count);
+    zassert_true(status, NULL);
+
+    status = Lighting_Output_Blink_Warn_Feature_Set(instance, 25.0f, 500, 3);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Blink_Warn_Feature(
+        instance, &off_value, &interval, &count);
+    zassert_true(status, NULL);
+    zassert_true(is_float_equal(off_value, 25.0f), NULL);
+    zassert_equal(interval, 500, NULL);
+    zassert_equal(count, 3, NULL);
+
+    /* the off value is clamped */
+    status =
+        Lighting_Output_Blink_Warn_Feature_Set(instance, 150.0f, 0, UINT16_MAX);
+    zassert_true(status, NULL);
+    status =
+        Lighting_Output_Blink_Warn_Feature(instance, &off_value, NULL, NULL);
+    zassert_true(status, NULL);
+    zassert_true(is_float_equal(off_value, 100.0f), NULL);
+
+    /* the configured values do not change while blinking */
+    status = Lighting_Output_Blink_Warn_Enable_Set(instance, true);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Egress_Time_Set(instance, 10);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Blink_Warn_Feature_Set(instance, 0.0f, 100, 3);
+    zassert_true(status, NULL);
+    status = Lighting_Output_Present_Value_Set(instance, 75.0f, 8);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 10);
+    status = Lighting_Output_Present_Value_Set(
+        instance, BACNET_LIGHTING_SPECIAL_VALUE_WARN_OFF, 8);
+    zassert_true(status, NULL);
+    Lighting_Output_Timer(instance, 250);
+    status = Lighting_Output_Blink_Warn_Feature(
+        instance, &off_value, &interval, &count);
+    zassert_true(status, NULL);
+    zassert_equal(interval, 100, NULL);
+    zassert_equal(count, 3, NULL);
+
+    status = Lighting_Output_Delete(instance);
+    zassert_true(status, NULL);
+    Lighting_Output_Cleanup();
+}
+
+/**
  * @brief Test delayed WARN_OFF path that triggers blink-stop callback
  */
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -1938,6 +2005,7 @@ void test_main(void)
     ztest_test_suite(
         lo_tests, ztest_unit_test(testLightingOutput),
         ztest_unit_test(testLightingOutputWritablePropertyList),
+        ztest_unit_test(testLightingOutputBlinkWarnFeature),
         ztest_unit_test(testLightingOutputBlinkStop),
         ztest_unit_test(testLightingOutputWarnRelinquishEgress),
         ztest_unit_test(testLightingOutputWarnThenRelinquish),
