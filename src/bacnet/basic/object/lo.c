@@ -2255,6 +2255,44 @@ bool Lighting_Output_Blink_Warn_Feature_Set(
 }
 
 /**
+ * For a given object instance-number, gets the blink-warn feature
+ * values used by the next WARN, WARN_OFF, or WARN_RELINQUISH.
+ *
+ * @param object_instance - object-instance number of the object
+ * @param off_value - the value during the blinking when OFF: 0.0%..100.0%
+ * @param interval - the amount of milliseconds between blinks: 0..65535
+ * @param count - number of blinks: 0..65535
+ * @return true if the object was found
+ */
+bool Lighting_Output_Blink_Warn_Feature(
+    uint32_t object_instance,
+    float *off_value,
+    uint16_t *interval,
+    uint16_t *count)
+{
+    bool status = false;
+    struct object_data *pObject;
+    BACNET_LIGHTING_COMMAND_WARN_DATA blink = { 0 };
+
+    pObject = Keylist_Data(Object_List, object_instance);
+    if (pObject) {
+        lighting_command_blink_copy(&pObject->Lighting_Command, &blink);
+        if (off_value) {
+            *off_value = blink.Off_Value;
+        }
+        if (interval) {
+            *interval = blink.Target_Interval;
+        }
+        if (count) {
+            *count = blink.Target_Count;
+        }
+        status = true;
+    }
+
+    return status;
+}
+
+/**
  * For a given object instance-number, gets the egress-time
  * property value
  *

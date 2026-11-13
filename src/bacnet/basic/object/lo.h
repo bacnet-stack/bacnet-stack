@@ -171,6 +171,12 @@ bool Lighting_Output_Blink_Warn_Feature_Set(
     float off_value,
     uint16_t interval,
     uint16_t count);
+BACNET_STACK_EXPORT
+bool Lighting_Output_Blink_Warn_Feature(
+    uint32_t object_instance,
+    float *off_value,
+    uint16_t *interval,
+    uint16_t *count);
 
 BACNET_STACK_EXPORT
 uint32_t Lighting_Output_Egress_Time(uint32_t object_instance);
