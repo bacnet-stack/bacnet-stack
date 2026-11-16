@@ -1975,6 +1975,76 @@ static void test_bacapp_setpoint_reference_empty(void)
 }
 
 /**
+ * @brief Test that the Command object Action array keeps the list
+ *  boundaries and the empty lists after decode and re-encode
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacapp_tests, test_bacapp_action_list_entry)
+#else
+static void test_bacapp_action_list_entry(void)
+#endif
+{
+    uint8_t apdu[MAX_APDU] = { 0 };
+    uint8_t test_apdu[MAX_APDU] = { 0 };
+    BACNET_ACTION_LIST cmd[3] = { 0 };
+    BACNET_APPLICATION_DATA_VALUE value[4] = { 0 };
+    BACNET_APPLICATION_DATA_VALUE reused = { 0 };
+    int apdu_len = 0, len = 0, test_len = 0, empty_offset = 0;
+    unsigned i;
+
+    for (i = 0; i < 3; i++) {
+        cmd[i].Object_Id.type = OBJECT_ANALOG_VALUE;
+        cmd[i].Object_Id.instance = 1 + i;
+        cmd[i].Property_Identifier = PROP_PRESENT_VALUE;
+        cmd[i].Property_Array_Index = BACNET_ARRAY_ALL;
+        cmd[i].Priority = BACNET_NO_PRIORITY;
+        cmd[i].Post_Delay = UINT32_MAX;
+        cmd[i].Property_Value.data_len = (uint16_t)encode_application_unsigned(
+            cmd[i].Property_Value.data, i);
+    }
+    /* Action array: {cmd0, cmd1}, {}, {cmd2} */
+    cmd[0].next = &cmd[1];
+    apdu_len = bacnet_action_list_encode(apdu, &cmd[0]);
+    empty_offset = apdu_len;
+    apdu_len += bacnet_action_list_encode(&apdu[apdu_len], NULL);
+    apdu_len += bacnet_action_list_encode(&apdu[apdu_len], &cmd[2]);
+    for (i = 0; i < 4; i++) {
+        len = bacapp_decode_known_property(
+            &apdu[test_len], apdu_len - test_len, &value[i], OBJECT_COMMAND,
+            PROP_ACTION);
+        zassert_true(len > 0, NULL);
+        zassert_equal(
+            value[i].tag, BACNET_APPLICATION_TAG_ACTION_LIST_ENTRY, NULL);
+        test_len += len;
+        if (i < 3) {
+            value[i].next = &value[i + 1];
+        }
+    }
+    zassert_equal(test_len, apdu_len, NULL);
+    zassert_true(value[2].type.Action_List_Entry.Empty_List, NULL);
+    /* re-encode the list of values */
+    test_len = bacapp_encode_data_list(NULL, &value[0]);
+    zassert_equal(test_len, apdu_len, NULL);
+    test_len = bacapp_encode_data_list(test_apdu, &value[0]);
+    zassert_equal(test_len, apdu_len, NULL);
+    zassert_mem_equal(test_apdu, apdu, apdu_len, NULL);
+    /* decode an empty slot into a value that holds a stale command */
+    reused = value[3];
+    reused.next = NULL;
+    len = bacapp_decode_known_property(
+        &apdu[empty_offset], 2, &reused, OBJECT_COMMAND, PROP_ACTION);
+    zassert_equal(len, 2, NULL);
+    zassert_true(reused.type.Action_List_Entry.Empty_List, NULL);
+    zassert_true(bacapp_same_value(&reused, &value[2]), NULL);
+    zassert_false(bacapp_same_value(&reused, &value[3]), NULL);
+    len = bacapp_encode_known_property(
+        test_apdu, &reused, OBJECT_COMMAND, PROP_ACTION);
+    zassert_equal(len, 2, NULL);
+    zassert_equal(test_apdu[0], 0x0E, NULL);
+    zassert_equal(test_apdu[1], 0x0F, NULL);
+}
+
+/**
  * @}
  */
 
@@ -1993,6 +2063,7 @@ void test_main(void)
         ztest_unit_test(test_bacapp_data),
         ztest_unit_test(test_bacapp_encode_data_list),
         ztest_unit_test(test_bacapp_setpoint_reference_empty),
+        ztest_unit_test(test_bacapp_action_list_entry),
         ztest_unit_test(test_bacapp_sprintf_epics),
         ztest_unit_test(test_parse_weeklyschedule),
         ztest_unit_test(testBACnetApplicationData),

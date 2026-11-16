@@ -131,6 +131,19 @@ typedef struct bacnet_action_list {
     struct bacnet_action_list *next;
 } BACNET_ACTION_LIST;
 
+/* One element of a BACnetActionList, as decoded one element at a time.
+   A zero-initialized entry is a complete list with one command. */
+typedef struct bacnet_action_list_entry {
+    /* the command; not used when Empty_List is true */
+    BACNET_ACTION_LIST Command;
+    /* a command of the same list precedes this one (no opening tag [0]) */
+    bool Has_Previous;
+    /* a command of the same list follows this one (no closing tag [0]) */
+    bool Has_Next;
+    /* the list has no commands: encoded as opening and closing tag [0] */
+    bool Empty_List;
+} BACNET_ACTION_LIST_ENTRY;
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -166,13 +179,14 @@ typedef bool (*bacnet_action_list_store_fn)(
 
 BACNET_STACK_EXPORT
 int bacnet_action_list_entry_encode(
-    uint8_t *apdu, const BACNET_ACTION_LIST *entry);
+    uint8_t *apdu, const BACNET_ACTION_LIST_ENTRY *entry);
 BACNET_STACK_EXPORT
 int bacnet_action_list_entry_decode(
-    const uint8_t *apdu,
-    size_t apdu_size,
-    BACNET_ACTION_LIST *entry,
-    bool *empty_list);
+    const uint8_t *apdu, size_t apdu_size, BACNET_ACTION_LIST_ENTRY *entry);
+BACNET_STACK_EXPORT
+bool bacnet_action_list_entry_same(
+    const BACNET_ACTION_LIST_ENTRY *entry1,
+    const BACNET_ACTION_LIST_ENTRY *entry2);
 BACNET_STACK_EXPORT
 int bacnet_action_list_encode(uint8_t *apdu, const BACNET_ACTION_LIST *list);
 BACNET_STACK_EXPORT
