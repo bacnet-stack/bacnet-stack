@@ -1546,17 +1546,52 @@ static bool Load_Control_Duty_Window_Write(
 }
 
 /**
+ * @brief Is the Shed Level within Range?
+ * @param shed_level [in] shed level to check
+ * @return true if the shed level is supported and in range
+ */
+static bool BACnet_Shed_Level_Element_In_Range(BACNET_SHED_LEVEL *shed_level)
+{
+    bool status = false;
+
+    if (shed_level) {
+        /* our implementation uses:
+           - LEVEL choice
+           - percent of baseline */
+        if ((shed_level->type == BACNET_SHED_TYPE_LEVEL) &&
+            (shed_level->value.level <= 100)) {
+            status = true;
+        }
+    }
+
+    return status;
+}
+
+/**
  * @brief Decode a BACnetLIST property element to determine the element length
  * @param object_instance [in] BACnet object instance number
  * @param apdu [in] Buffer in which the APDU contents are extracted
  * @param apdu_size [in] The size of the APDU buffer
- * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ * @return number of bytes decoded, or:
+ *    zero if the tag does not match (INVALID_DATA_TYPE)
+ *    BACNET_STATUS_ERANGE if decoded but is out-of-range (VALUE_OUT_OF_RANGE)
+ *    negative if the element is malformed (INVALID_DATA_ENCODING)
  */
 static int BACnet_Shed_Level_Element_Length(
     uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
 {
+    int len = 0;
+    BACNET_SHED_LEVEL shed_level = { 0 };
+
     (void)object_instance;
-    return bacnet_shed_level_decode(apdu, apdu_size, NULL);
+    len = bacnet_shed_level_decode(apdu, apdu_size, &shed_level);
+    if (len > 0) {
+        if (!BACnet_Shed_Level_Element_In_Range(&shed_level)) {
+            len = BACNET_STATUS_ERANGE;
+        }
+    }
+
+    return len;
 }
 
 /**
@@ -1598,11 +1633,8 @@ static BACNET_ERROR_CODE BACnet_Shed_Level_Element_Write(
             len = bacnet_shed_level_decode(
                 application_data, application_data_len, &shed_level);
             if (len > 0) {
-                /* represents the shed levels for the LEVEL choice */
-                if (shed_level.type != BACNET_SHED_TYPE_LEVEL) {
-                    error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                } else if (shed_level.value.level <= 100) {
-                    /* our implementation uses percent of baseline */
+                if (BACnet_Shed_Level_Element_In_Range(&shed_level)) {
+                    /* our implementation uses LEVEL & percent of baseline */
                     key = array_index - 1;
                     entry = Keylist_Data(pObject->Shed_Level_List, key);
                     if (entry) {

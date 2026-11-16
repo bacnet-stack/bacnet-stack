@@ -2355,6 +2355,71 @@ static void test_bacnet_array_encode(void)
     zassert_true(apdu_len == 0, NULL);
 }
 
+static unsigned Array_Write_Count;
+
+static int array_write_unsigned_decode(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
+{
+    int len;
+    BACNET_UNSIGNED_INTEGER value = 0;
+
+    (void)object_instance;
+    len = bacnet_unsigned_application_decode(apdu, apdu_size, &value);
+    if ((len > 0) && (value > 100)) {
+        len = BACNET_STATUS_ERANGE;
+    }
+
+    return len;
+}
+
+static BACNET_ERROR_CODE array_write_unsigned_write(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    BACNET_UNSIGNED_INTEGER array_size,
+    uint8_t *application_data,
+    size_t application_data_len)
+{
+    (void)object_instance;
+    (void)array_index;
+    (void)array_size;
+    (void)application_data;
+    (void)application_data_len;
+    Array_Write_Count++;
+
+    return ERROR_CODE_SUCCESS;
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacdcode_tests, test_bacnet_array_write_range)
+#else
+static void test_bacnet_array_write_range(void)
+#endif
+{
+    uint8_t apdu[16] = { 0 };
+    int apdu_len = 0;
+    BACNET_ERROR_CODE error_code;
+
+    /* all elements in range: every element is written */
+    apdu_len += encode_application_unsigned(&apdu[apdu_len], 1);
+    apdu_len += encode_application_unsigned(&apdu[apdu_len], 100);
+    Array_Write_Count = 0;
+    error_code = bacnet_array_write(
+        1, BACNET_ARRAY_ALL, array_write_unsigned_decode,
+        array_write_unsigned_write, 2, apdu, apdu_len);
+    zassert_equal(error_code, ERROR_CODE_SUCCESS, NULL);
+    zassert_equal(Array_Write_Count, 2, NULL);
+    /* second element out of range: pre-flight check writes nothing */
+    apdu_len = 0;
+    apdu_len += encode_application_unsigned(&apdu[apdu_len], 1);
+    apdu_len += encode_application_unsigned(&apdu[apdu_len], 101);
+    Array_Write_Count = 0;
+    error_code = bacnet_array_write(
+        1, BACNET_ARRAY_ALL, array_write_unsigned_decode,
+        array_write_unsigned_write, 2, apdu, apdu_len);
+    zassert_equal(error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+    zassert_equal(Array_Write_Count, 0, NULL);
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(bacdcode_tests, test_bacnet_enclosed_data_length)
 #else
@@ -2778,6 +2843,7 @@ void test_main(void)
         ztest_unit_test(testOctetStringContextDecodes),
         ztest_unit_test(testBACDCodeDouble),
         ztest_unit_test(test_bacnet_array_encode),
+        ztest_unit_test(test_bacnet_array_write_range),
         ztest_unit_test(test_bacnet_enclosed_data_length),
         ztest_unit_test(test_octet_string_buffer),
         ztest_unit_test(test_bacnet_character_string_buffer),

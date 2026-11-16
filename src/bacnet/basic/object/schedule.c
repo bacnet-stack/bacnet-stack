@@ -1442,14 +1442,25 @@ static int Schedule_Exception_Schedule_Encode(
  * @param object_instance [in] BACnet object instance number
  * @param apdu [in] Buffer in which the APDU contents are extracted
  * @param apdu_size [in] The size of the APDU buffer
- * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ * @return number of bytes decoded, or:
+ *    zero if the tag does not match (INVALID_DATA_TYPE)
+ *    BACNET_STATUS_ERANGE if decoded but is out-of-range (VALUE_OUT_OF_RANGE)
+ *    negative if the element is malformed (INVALID_DATA_ENCODING)
  */
 static int Schedule_Exception_Schedule_Element_Length(
     uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
 {
-    (void)object_instance;
+    BACNET_SPECIAL_EVENT_ENTRY special_event = { 0 };
+    int len;
 
-    return bacnet_special_event_entry_decode(apdu, apdu_size, NULL, NULL, NULL);
+    (void)object_instance;
+    len = bacnet_special_event_entry_decode(
+        apdu, apdu_size, &special_event, NULL, NULL);
+    if ((len > 0) && (special_event.priority > BACNET_MAX_PRIORITY)) {
+        len = BACNET_STATUS_ERANGE;
+    }
+
+    return len;
 }
 
 /**

@@ -1100,18 +1100,25 @@ static int Command_Action_List_Encode(
  * @param object_instance [in] BACnet object instance number.
  * @param apdu [in] Encoded action command bytes.
  * @param apdu_size [in] Remaining buffer size.
- * @return Encoded byte length for the command, or BACNET_STATUS_ERROR if
- * invalid.
+ * @return number of bytes decoded, or:
+ *    zero if the tag does not match (INVALID_DATA_TYPE)
+ *    BACNET_STATUS_ERANGE if decoded but is out-of-range (VALUE_OUT_OF_RANGE)
+ *    negative if the element is malformed (INVALID_DATA_ENCODING)
  */
 static int Command_Action_List_Member_Decode(
     uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
 {
-    /* returns one command's byte length for BACNET_ARRAY_ALL slot partitioning
-     */
-    if (!Object_Data(object_instance)) {
-        return BACNET_STATUS_ERROR;
+    BACNET_ACTION_LIST action = { 0 };
+    int len = 0;
+
+    if (Object_Data(object_instance)) {
+        len = bacnet_action_command_decode(apdu, apdu_size, &action);
+        if (len > 0) {
+            /* optional: is the value in range? */
+        }
     }
-    return bacnet_action_command_decode(apdu, apdu_size, NULL);
+
+    return len;
 }
 
 /**
@@ -1139,28 +1146,17 @@ static BACNET_ERROR_CODE Command_Action_List_Member_Write(
     }
     if (array_index == 0) {
         if (array_size > BACNET_COMMAND_ACTION_LIST_MAX) {
-            return ERROR_CODE_VALUE_OUT_OF_RANGE;
+            return ERROR_CODE_INVALID_ARRAY_INDEX;
         }
         return Action_Array_Resize(pObject, array_size);
     }
-    array_index--; /* 1-based protocol index → 0-based internal index */
+    /* 1-based protocol index → 0-based internal index */
+    array_index--;
     inner = Keylist_Data(pObject->Action_Array, (KEY)array_index);
     if (!inner) {
         return ERROR_CODE_INVALID_ARRAY_INDEX;
     }
-
-    /* first pass: validate all commands before modifying stored state */
-    offset = 0;
-    while (offset < apdu_size) {
-        len = bacnet_action_command_decode(
-            &apdu[offset], apdu_size - offset, NULL);
-        if (len <= 0) {
-            return ERROR_CODE_INVALID_DATA_TYPE;
-        }
-        offset += len;
-    }
-
-    /* second pass: purge then store validated commands in-place */
+    /* purge then store commands in-place */
     Action_Inner_List_Purge(inner);
     offset = 0;
     key = 0;

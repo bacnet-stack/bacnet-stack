@@ -6124,8 +6124,10 @@ int bacnet_array_encode(
  *    1 to n for individual array members
  *    BACNET_ARRAY_ALL for the full array to be written.
  * @param decode_function [in] function to decode one property array element and
- * determine the length: zero if the tag does not match (INVALID_DATA_TYPE),
- * or negative if the element is malformed (INVALID_DATA_ENCODING)
+ * determine the length:
+ *    zero if the tag does not match (INVALID_DATA_TYPE),
+ *    BACNET_STATUS_ERANGE if the element decodes but is out-of-range,
+ *    or negative if the element is malformed (INVALID_DATA_ENCODING)
  * @param write_function [in] function to write one property array element with
  * the encoded value
  * @param array_size [in] number of elements in the array
@@ -6169,8 +6171,10 @@ BACNET_ERROR_CODE bacnet_array_write_resizable(
             if (len > 0) {
                 apdu_len += len;
             } else if (len == 0) {
-                /* a non-empty array element must consume input */
                 error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                break;
+            } else if (len == BACNET_STATUS_ERANGE) {
+                error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 break;
             } else {
                 error_code = ERROR_CODE_INVALID_DATA_ENCODING;
@@ -6212,7 +6216,10 @@ BACNET_ERROR_CODE bacnet_array_write_resizable(
  *    1 to n for individual array members
  *    BACNET_ARRAY_ALL for the full array to be written.
  * @param decode_function [in] function to decode one property array element and
- * determine the length
+ * determine the length:
+ *    zero if the tag does not match (INVALID_DATA_TYPE),
+ *    BACNET_STATUS_ERANGE if the element decodes but is out-of-range,
+ *    or negative if the element is malformed (INVALID_DATA_ENCODING)
  * @param write_function [in] function to write one property array element with
  * the encoded value
  * @param array_size [in] number of elements in the array

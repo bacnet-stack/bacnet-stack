@@ -2935,8 +2935,15 @@ static int Device_Configuration_File_Encode(
 static int Device_Configuration_File_Length(
     uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
 {
+    int len = 0;
+
     (void)object_instance;
-    return bacnet_object_id_application_decode(apdu, apdu_size, NULL, NULL);
+    len = bacnet_object_id_application_decode(apdu, apdu_size, NULL, NULL);
+    if (len > 0) {
+        /* optional: is the value in range? */
+    }
+
+    return len;
 }
 
 /**

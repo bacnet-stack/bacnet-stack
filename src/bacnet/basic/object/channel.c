@@ -1367,29 +1367,6 @@ int Channel_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
 }
 
 /**
- * @brief Decode a BACnetARRAY property element to determine the length
- * @param object_instance [in] BACnet network port object instance number
- * @param apdu [in] Buffer in which the APDU contents are extracted
- * @param apdu_size [in] The size of the APDU buffer
- * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
- */
-static int Channel_List_Of_Object_Property_References_Length(
-    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
-{
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE value = { 0 };
-    int len = 0;
-    struct object_data *pObject;
-
-    pObject = Object_Data(object_instance);
-    if (pObject) {
-        len = bacnet_device_object_property_reference_decode(
-            apdu, apdu_size, &value);
-    }
-
-    return len;
-}
-
-/**
  * @brief For a given object instance-number and reference, determines if the
  * reference is for a direct self present-value reference
  * @param channel_instance [in] BACnet channel object instance number
@@ -1407,6 +1384,35 @@ static bool Channel_Member_Is_Direct_Self_Present_Value(
     return (ref->objectIdentifier.type == OBJECT_CHANNEL) &&
         (ref->objectIdentifier.instance == channel_instance) &&
         (ref->propertyIdentifier == PROP_PRESENT_VALUE);
+}
+
+/**
+ * @brief Decode a BACnetARRAY property element to determine the length
+ * @param object_instance [in] BACnet network port object instance number
+ * @param apdu [in] Buffer in which the APDU contents are extracted
+ * @param apdu_size [in] The size of the APDU buffer
+ * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ */
+static int Channel_List_Of_Object_Property_References_Length(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
+{
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE value = { 0 };
+    int len = 0;
+    struct object_data *pObject;
+
+    pObject = Object_Data(object_instance);
+    if (pObject) {
+        len = bacnet_device_object_property_reference_decode(
+            apdu, apdu_size, &value);
+        if (len > 0) {
+            if (Channel_Member_Is_Direct_Self_Present_Value(
+                    object_instance, &value)) {
+                len = BACNET_STATUS_ERANGE;
+            }
+        }
+    }
+
+    return len;
 }
 
 /**
@@ -1487,6 +1493,11 @@ static int Channel_Control_Groups_Length(
     if (pObject) {
         len = bacnet_unsigned_application_decode(
             apdu, apdu_size, &value_unsigned);
+        if (len > 0) {
+            if (value_unsigned > UINT16_MAX) {
+                len = BACNET_STATUS_ERANGE;
+            }
+        }
     }
 
     return len;
