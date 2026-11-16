@@ -6187,12 +6187,24 @@ BACNET_ERROR_CODE bacnet_array_write_resizable(
             for (index = 1; index <= array_size; index++) {
                 len = decode_function(
                     object_instance, &apdu[apdu_len], apdu_size - apdu_len);
-                error_code = write_function(
-                    object_instance, index, array_size, &apdu[apdu_len], len);
-                if (error_code != ERROR_CODE_SUCCESS) {
+                if (len > 0) {
+                    error_code = write_function(
+                        object_instance, index, array_size, &apdu[apdu_len],
+                        len);
+                    if (error_code != ERROR_CODE_SUCCESS) {
+                        break;
+                    }
+                    apdu_len += len;
+                } else if (len == 0) {
+                    error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                    break;
+                } else if (len == BACNET_STATUS_ERANGE) {
+                    error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    break;
+                } else {
+                    error_code = ERROR_CODE_INVALID_DATA_ENCODING;
                     break;
                 }
-                apdu_len += len;
             }
         }
     } else {
@@ -6320,19 +6332,24 @@ BACNET_ERROR_CODE bacnet_list_write(
             while (apdu_len < apdu_size) {
                 len = decode_function(
                     object_instance, &apdu[apdu_len], apdu_size - apdu_len);
-                if (len < 0) {
-                    error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                    break;
-                } else if (len == 0) {
-                    error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                    break;
-                } else {
+                if (len > 0) {
                     error_code =
                         add_function(object_instance, &apdu[apdu_len], len);
                     if (error_code != ERROR_CODE_SUCCESS) {
                         break;
                     }
                     apdu_len += len;
+                } else if (len == 0) {
+                    /* a non-empty list element must consume input */
+                    error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                    break;
+                } else if (len == BACNET_STATUS_ERANGE) {
+                    error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    break;
+                } else {
+                    /* malformed list element */
+                    error_code = ERROR_CODE_INVALID_DATA_ENCODING;
+                    break;
                 }
             }
         }
