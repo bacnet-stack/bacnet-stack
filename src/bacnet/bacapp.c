@@ -3823,7 +3823,7 @@ static int bacapp_snprintf_action_command(
     slen = bacapp_snprintf(str, str_len, ",");
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     /* objectIdentifier [1] BACnetObjectIdentifier */
-    slen = bacapp_snprintf_object_id(str, str_len, &value->Device_Id);
+    slen = bacapp_snprintf_object_id(str, str_len, &value->Object_Id);
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     slen = bacapp_snprintf(str, str_len, ",");
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);

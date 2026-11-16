@@ -1989,6 +1989,8 @@ static void test_bacapp_action_list_entry(void)
     BACNET_ACTION_LIST cmd[3] = { 0 };
     BACNET_APPLICATION_DATA_VALUE value[4] = { 0 };
     BACNET_APPLICATION_DATA_VALUE reused = { 0 };
+    BACNET_OBJECT_PROPERTY_VALUE object_value = { 0 };
+    char text[256] = { 0 };
     int apdu_len = 0, len = 0, test_len = 0, empty_offset = 0;
     unsigned i;
 
@@ -2022,6 +2024,15 @@ static void test_bacapp_action_list_entry(void)
     }
     zassert_equal(test_len, apdu_len, NULL);
     zassert_true(value[2].type.Action_List_Entry.Empty_List, NULL);
+    /* the printed command shows its own object identifier */
+    object_value.object_type = OBJECT_COMMAND;
+    object_value.object_instance = 1;
+    object_value.object_property = PROP_ACTION;
+    object_value.array_index = BACNET_ARRAY_ALL;
+    object_value.value = &value[3];
+    len = bacapp_snprintf_value(text, sizeof(text), &object_value);
+    zassert_true(len > 0, NULL);
+    zassert_not_null(strstr(text, "(analog-value, 3)"), "%s", text);
     /* re-encode the list of values */
     test_len = bacapp_encode_data_list(NULL, &value[0]);
     zassert_equal(test_len, apdu_len, NULL);
