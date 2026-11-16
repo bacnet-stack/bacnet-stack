@@ -6258,9 +6258,11 @@ BACNET_ERROR_CODE bacnet_array_write(
  *    0 for the list size - not permitted for a list
  *    1 to n for individual array members - not permitted for a list
  *    BACNET_ARRAY_ALL for the full list to be written
- * @param decode_function [in] function to decode one property list element and
- * determine the length: zero if the tag does not match (INVALID_DATA_TYPE),
- * or negative if the element is malformed (INVALID_DATA_ENCODING)
+ * @param decode_function [in] function to decode one property array element and
+ * determine the length:
+ *    zero if the tag does not match (INVALID_DATA_TYPE),
+ *    BACNET_STATUS_ERANGE if the element decodes but is out-of-range,
+ *    or negative if the element is malformed (INVALID_DATA_ENCODING)
  * @param add_function [in] function to add one property list element with
  * the encoded value
  * @param max_elements [in] number of elements in the list
@@ -6294,6 +6296,9 @@ BACNET_ERROR_CODE bacnet_list_write(
             } else if (len == 0) {
                 /* a non-empty list element must consume input */
                 error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                break;
+            } else if (len == BACNET_STATUS_ERANGE) {
+                error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 break;
             } else {
                 /* malformed list element */

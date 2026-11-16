@@ -1785,25 +1785,6 @@ static int Schedule_List_Of_Object_Property_References_Encode(
 }
 
 /**
- * @brief Decode a BACnetLIST property element to determine the element
- *  length
- * @param object_instance [in] BACnet object instance number
- * @param apdu [in] Buffer in which the APDU contents are extracted
- * @param apdu_size [in] The size of the APDU buffer
- * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
- */
-static int Schedule_List_Of_Object_Property_References_Length(
-    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
-{
-    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE value = { 0 };
-
-    (void)object_instance;
-
-    return bacnet_device_object_property_reference_decode(
-        apdu, (uint32_t)apdu_size, &value);
-}
-
-/**
  * @brief Determine if a member reference targets an object on this device.
  * @param pMember [in] Member reference to check.
  * @return true if deviceIdentifier is absent, or names this device.
@@ -1851,6 +1832,36 @@ static bool Schedule_Reference_List_Member_Self(
     }
 
     return false;
+}
+
+/**
+ * @brief Decode a BACnetLIST property element to determine the element
+ *  length
+ * @param object_instance [in] BACnet object instance number
+ * @param apdu [in] Buffer in which the APDU contents are extracted
+ * @param apdu_size [in] The size of the APDU buffer
+ * @return number of bytes decoded, or:
+ *    zero if the tag does not match (INVALID_DATA_TYPE)
+ *    BACNET_STATUS_ERANGE if decoded but is out-of-range (VALUE_OUT_OF_RANGE)
+ *    negative if the element is malformed (INVALID_DATA_ENCODING)
+ */
+static int Schedule_List_Of_Object_Property_References_Length(
+    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
+{
+    int len = 0;
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE value = { 0 };
+
+    len = bacnet_device_object_property_reference_decode(
+        apdu, (uint32_t)apdu_size, &value);
+    if (len > 0) {
+        if (Schedule_Reference_List_Member_Self(object_instance, &value)) {
+            /* self-reference to a property that can re-enter
+            Schedule_Write_Members() for this same object */
+            len = BACNET_STATUS_ERANGE;
+        }
+    }
+
+    return len;
 }
 
 /**
