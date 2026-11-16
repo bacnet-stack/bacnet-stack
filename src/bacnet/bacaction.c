@@ -695,6 +695,92 @@ bool bacnet_action_command_same(
 }
 
 /**
+ * @brief Encode one command as a BACnetActionList with one entry
+ * @param apdu [out] Buffer or NULL for length-only.
+ * @param entry [in] Action command to encode. The next pointer is not used.
+ * @return encoded byte count, or BACNET_STATUS_ERROR on encode failure.
+ */
+int bacnet_action_list_entry_encode(
+    uint8_t *apdu, const BACNET_ACTION_LIST *entry)
+{
+    int apdu_len = 0;
+    int len;
+
+    /* action [0] SEQUENCE OF BACnetActionCommand */
+    len = encode_opening_tag(apdu, 0);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = bacnet_action_command_encode(apdu, entry);
+    if (len < 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
+    len = encode_closing_tag(apdu, 0);
+    apdu_len += len;
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode one entry of a BACnetActionList.
+ *
+ *  Call this function again for each entry until all of the data is
+ *  decoded. It decodes the opening tag [0] before the first entry and
+ *  the closing tag [0] after the last entry of the list.
+ *
+ * @param apdu [in] Buffer that starts with the entry to decode.
+ * @param apdu_size [in] Number of bytes available.
+ * @param entry [out] Decoded action command, or NULL for length-only.
+ * @param empty_list [out] Set to true if the data is an empty list.
+ *  The entry is not changed for an empty list. Can be NULL.
+ * @return number of bytes decoded, or BACNET_STATUS_ERROR if malformed.
+ */
+int bacnet_action_list_entry_decode(
+    const uint8_t *apdu,
+    size_t apdu_size,
+    BACNET_ACTION_LIST *entry,
+    bool *empty_list)
+{
+    int apdu_len = 0;
+    int len = 0;
+
+    if (empty_list) {
+        *empty_list = false;
+    }
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (bacnet_is_opening_tag_number(apdu, apdu_size, 0, &len)) {
+        apdu_len += len;
+        if (bacnet_is_closing_tag_number(
+                &apdu[apdu_len], apdu_size - apdu_len, 0, &len)) {
+            apdu_len += len;
+            if (empty_list) {
+                *empty_list = true;
+            }
+            return apdu_len;
+        }
+    }
+    len = bacnet_action_command_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, entry);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    if (bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, 0, &len)) {
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
  * @brief Encode a BACnetActionList
  *
  *  BACnetActionList ::= SEQUENCE {

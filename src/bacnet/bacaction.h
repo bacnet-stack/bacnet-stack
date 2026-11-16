@@ -165,6 +165,15 @@ typedef bool (*bacnet_action_list_store_fn)(
     const BACNET_ACTION_LIST *entry, void *ctx);
 
 BACNET_STACK_EXPORT
+int bacnet_action_list_entry_encode(
+    uint8_t *apdu, const BACNET_ACTION_LIST *entry);
+BACNET_STACK_EXPORT
+int bacnet_action_list_entry_decode(
+    const uint8_t *apdu,
+    size_t apdu_size,
+    BACNET_ACTION_LIST *entry,
+    bool *empty_list);
+BACNET_STACK_EXPORT
 int bacnet_action_list_encode(uint8_t *apdu, const BACNET_ACTION_LIST *list);
 BACNET_STACK_EXPORT
 int bacnet_action_list_decode(
