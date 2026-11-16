@@ -6151,10 +6151,11 @@ BACNET_ERROR_CODE bacnet_array_write_resizable(
     BACNET_UNSIGNED_INTEGER unsigned_value;
 
     if (array_index == 0) {
-        /* Array element zero is the number of objects in the list */
+        /* Array element zero is the number of elements in the list */
         len = bacnet_unsigned_application_decode(
             apdu, apdu_size, &unsigned_value);
         if (len > 0) {
+            /* resize the array */
             error_code = write_function(
                 object_instance, array_index, unsigned_value, apdu, apdu_size);
         } else if (len == 0) {
@@ -6208,12 +6209,21 @@ BACNET_ERROR_CODE bacnet_array_write_resizable(
             }
         }
     } else {
-        /* index was specified; write a single array element */
-        /* note: write function is responsible for handling the array_index
-           bounds checking and return array_index out of range error if
-           the array is not resizable */
-        error_code = write_function(
-            object_instance, array_index, array_size, apdu, apdu_size);
+        /* array index was specified; write the single array element */
+        len = decode_function(object_instance, apdu, apdu_size);
+        if (len > 0) {
+            /* note: write function is responsible for handling the array_index
+            bounds checking and return array_index out of range error if
+            the array is not resizable */
+            error_code = write_function(
+                object_instance, array_index, array_size, apdu, apdu_size);
+        } else if (len == 0) {
+            error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        } else if (len == BACNET_STATUS_ERANGE) {
+            error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        } else {
+            error_code = ERROR_CODE_INVALID_DATA_ENCODING;
+        }
     }
 
     return error_code;
