@@ -156,7 +156,7 @@ typedef struct BACnet_Application_Data_Value {
         BACNET_FDT_ENTRY FDT_Entry;
 #endif
 #if defined(BACAPP_ACTION_COMMAND)
-        BACNET_ACTION_LIST Action_Command;
+        BACNET_ACTION_LIST_ENTRY Action_List_Entry;
 #endif
 #if defined(BACAPP_SCALE)
         BACNET_SCALE Scale;

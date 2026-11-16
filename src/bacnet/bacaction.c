@@ -695,9 +695,153 @@ bool bacnet_action_command_same(
 }
 
 /**
- * @brief Encode a BACnetActionList as a flat sequence of action commands.
+ * @brief Encode one element of a BACnetActionList
+ *
+ *  The opening tag [0] is encoded before the first command of the list,
+ *  and the closing tag [0] is encoded after the last command of the list.
+ *  An empty list is encoded as the opening and closing tag [0].
+ *
  * @param apdu [out] Buffer or NULL for length-only.
- * @param list [in] Head of linked list; NULL encodes an empty list (0 bytes).
+ * @param entry [in] List element to encode. The command next pointer
+ *  is not used.
+ * @return encoded byte count, or BACNET_STATUS_ERROR on encode failure.
+ */
+int bacnet_action_list_entry_encode(
+    uint8_t *apdu, const BACNET_ACTION_LIST_ENTRY *entry)
+{
+    int apdu_len = 0;
+    int len;
+
+    if (!entry) {
+        return BACNET_STATUS_ERROR;
+    }
+    /* action [0] SEQUENCE OF BACnetActionCommand */
+    if (entry->Empty_List || !entry->Has_Previous) {
+        len = encode_opening_tag(apdu, 0);
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+    }
+    if (!entry->Empty_List) {
+        len = bacnet_action_command_encode(apdu, &entry->Command);
+        if (len < 0) {
+            return BACNET_STATUS_ERROR;
+        }
+        apdu_len += len;
+        if (apdu) {
+            apdu += len;
+        }
+    }
+    if (entry->Empty_List || !entry->Has_Next) {
+        len = encode_closing_tag(apdu, 0);
+        apdu_len += len;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Decode one element of a BACnetActionList.
+ *
+ *  Call this function again for each element until all of the data is
+ *  decoded. It decodes the opening tag [0] before the first command and
+ *  the closing tag [0] after the last command of the list, and stores
+ *  these list boundaries in the entry. When the opening tag [0] is found,
+ *  the complete list up to its closing tag [0] is validated before the
+ *  first command is decoded.
+ *
+ * @param apdu [in] Buffer that starts with the element to decode.
+ * @param apdu_size [in] Number of bytes available.
+ * @param entry [out] Decoded list element, or NULL for length-only.
+ *  For an empty list, Empty_List is set and the command is not changed.
+ * @return number of bytes decoded, or BACNET_STATUS_ERROR if malformed.
+ */
+int bacnet_action_list_entry_decode(
+    const uint8_t *apdu, size_t apdu_size, BACNET_ACTION_LIST_ENTRY *entry)
+{
+    int apdu_len = 0;
+    int len = 0;
+    bool has_previous = true;
+    bool has_next = true;
+
+    if (!apdu) {
+        return BACNET_STATUS_ERROR;
+    }
+    if (bacnet_is_opening_tag_number(apdu, apdu_size, 0, &len)) {
+        apdu_len += len;
+        has_previous = false;
+        if (bacnet_is_closing_tag_number(
+                &apdu[apdu_len], apdu_size - apdu_len, 0, &len)) {
+            apdu_len += len;
+            if (entry) {
+                entry->Empty_List = true;
+                entry->Has_Previous = false;
+                entry->Has_Next = false;
+            }
+            return apdu_len;
+        }
+        /* validate the complete list, including its closing tag */
+        if (bacnet_action_list_decode(apdu, apdu_size, NULL, NULL) <= 0) {
+            return BACNET_STATUS_ERROR;
+        }
+    }
+    len = bacnet_action_command_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, entry ? &entry->Command : NULL);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    if (bacnet_is_closing_tag_number(
+            &apdu[apdu_len], apdu_size - apdu_len, 0, &len)) {
+        apdu_len += len;
+        has_next = false;
+    }
+    if (entry) {
+        entry->Empty_List = false;
+        entry->Has_Previous = has_previous;
+        entry->Has_Next = has_next;
+    }
+
+    return apdu_len;
+}
+
+/**
+ * @brief Compare two BACnetActionList elements
+ * @param entry1 [in] The first list element to compare
+ * @param entry2 [in] The second list element to compare
+ * @return true if the list boundaries and commands are the same
+ */
+bool bacnet_action_list_entry_same(
+    const BACNET_ACTION_LIST_ENTRY *entry1,
+    const BACNET_ACTION_LIST_ENTRY *entry2)
+{
+    if (!entry1 || !entry2) {
+        return false;
+    }
+    if (entry1->Empty_List != entry2->Empty_List) {
+        return false;
+    }
+    if (entry1->Empty_List) {
+        return true;
+    }
+    if ((entry1->Has_Previous != entry2->Has_Previous) ||
+        (entry1->Has_Next != entry2->Has_Next)) {
+        return false;
+    }
+
+    return bacnet_action_command_same(&entry1->Command, &entry2->Command);
+}
+
+/**
+ * @brief Encode a BACnetActionList
+ *
+ *  BACnetActionList ::= SEQUENCE {
+ *      action [0] SEQUENCE OF BACnetActionCommand
+ *  }
+ *
+ * @param apdu [out] Buffer or NULL for length-only.
+ * @param list [in] Head of linked list; NULL encodes an empty list.
  * @return encoded byte count, or BACNET_STATUS_ERROR on encode failure.
  */
 int bacnet_action_list_encode(uint8_t *apdu, const BACNET_ACTION_LIST *list)
@@ -705,28 +849,43 @@ int bacnet_action_list_encode(uint8_t *apdu, const BACNET_ACTION_LIST *list)
     int apdu_len = 0;
     int len;
     const BACNET_ACTION_LIST *entry;
-    uint8_t *p = apdu;
 
+    /* action [0] SEQUENCE OF BACnetActionCommand */
+    len = encode_opening_tag(apdu, 0);
+    apdu_len += len;
+    if (apdu) {
+        apdu += len;
+    }
     for (entry = list; entry; entry = entry->next) {
-        len = bacnet_action_command_encode(p, entry);
+        len = bacnet_action_command_encode(apdu, entry);
         if (len < 0) {
             return BACNET_STATUS_ERROR;
         }
         apdu_len += len;
-        if (p) {
-            p += len;
+        if (apdu) {
+            apdu += len;
         }
     }
+    len = encode_closing_tag(apdu, 0);
+    apdu_len += len;
+
     return apdu_len;
 }
 
 /**
- * @brief Decode a flat sequence of action commands, calling @p store_fn each.
- * @param apdu [in] Buffer of concatenated BACnetActionCommand encodings.
+ * @brief Decode a BACnetActionList, calling @p store_fn for each command.
+ *
+ *  BACnetActionList ::= SEQUENCE {
+ *      action [0] SEQUENCE OF BACnetActionCommand
+ *  }
+ *
+ * @param apdu [in] Buffer that starts with the BACnetActionList encoding.
  * @param apdu_size [in] Number of bytes available.
  * @param store_fn [in] Called per decoded entry; return false to abort.
  * @param ctx [in] Caller context passed to store_fn.
- * @return total bytes consumed (0 for empty buffer), or BACNET_STATUS_ERROR.
+ * @return number of bytes decoded, including the opening and closing tags,
+ *  zero if the opening tag [0] does not match, or
+ *  BACNET_STATUS_ERROR if the list is malformed or store_fn aborts.
  */
 int bacnet_action_list_decode(
     const uint8_t *apdu,
@@ -735,17 +894,26 @@ int bacnet_action_list_decode(
     void *ctx)
 {
     int apdu_len = 0;
-    int len;
+    int len = 0;
     BACNET_ACTION_LIST entry;
 
-    if (!apdu && (apdu_size > 0)) {
+    if (!apdu) {
         return BACNET_STATUS_ERROR;
     }
-    while ((size_t)apdu_len < apdu_size) {
+    /* action [0] SEQUENCE OF BACnetActionCommand */
+    if (!bacnet_is_opening_tag_number(apdu, apdu_size, 0, &len)) {
+        return 0;
+    }
+    apdu_len += len;
+    while (!bacnet_is_closing_tag_number(
+        &apdu[apdu_len], apdu_size - apdu_len, 0, &len)) {
+        if ((size_t)apdu_len >= apdu_size) {
+            /* missing closing tag */
+            return BACNET_STATUS_ERROR;
+        }
         len = bacnet_action_command_decode(
             &apdu[apdu_len], apdu_size - apdu_len, &entry);
         if (len <= 0) {
-            /* trailing bytes that don't form a valid command */
             return BACNET_STATUS_ERROR;
         }
         if (store_fn && !store_fn(&entry, ctx)) {
@@ -753,5 +921,7 @@ int bacnet_action_list_decode(
         }
         apdu_len += len;
     }
+    apdu_len += len;
+
     return apdu_len;
 }

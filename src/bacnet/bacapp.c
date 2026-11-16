@@ -356,10 +356,11 @@ int bacapp_encode_application_data(
                 break;
 #endif
 #if defined(BACAPP_ACTION_COMMAND)
-            case BACNET_APPLICATION_TAG_ACTION_COMMAND:
-                /* BACnetActionCommand */
-                apdu_len = bacnet_action_command_encode(
-                    apdu, &value->type.Action_Command);
+            case BACNET_APPLICATION_TAG_ACTION_LIST_ENTRY:
+                /* one BACnetActionCommand of a BACnetActionList, with the
+                   [0] tags at the list boundaries, or an empty list */
+                apdu_len = bacnet_action_list_entry_encode(
+                    apdu, &value->type.Action_List_Entry);
                 break;
 #endif
 #if defined(BACAPP_SCALE)
@@ -1223,8 +1224,8 @@ int bacapp_known_property_tag(
             return BACNET_APPLICATION_TAG_LOG_RECORD;
         case PROP_ACTION:
             if (object_type == OBJECT_COMMAND) {
-                /* BACnetActionCommand */
-                return BACNET_APPLICATION_TAG_ACTION_COMMAND;
+                /* BACnetActionList */
+                return BACNET_APPLICATION_TAG_ACTION_LIST_ENTRY;
             }
             return -1;
         case PROP_SCALE:
@@ -1559,10 +1560,11 @@ int bacapp_decode_application_tag_value(
             break;
 #endif
 #if defined(BACAPP_ACTION_COMMAND)
-        case BACNET_APPLICATION_TAG_ACTION_COMMAND:
-            /* BACnetActionCommand */
-            apdu_len = bacnet_action_command_decode(
-                apdu, apdu_size, &value->type.Action_Command);
+        case BACNET_APPLICATION_TAG_ACTION_LIST_ENTRY:
+            /* one BACnetActionCommand of a BACnetActionList, or an
+               empty BACnetActionList, with its list boundaries */
+            apdu_len = bacnet_action_list_entry_decode(
+                apdu, apdu_size, &value->type.Action_List_Entry);
             break;
 #endif
 #if defined(BACAPP_SCALE)
@@ -3821,7 +3823,7 @@ static int bacapp_snprintf_action_command(
     slen = bacapp_snprintf(str, str_len, ",");
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     /* objectIdentifier [1] BACnetObjectIdentifier */
-    slen = bacapp_snprintf_object_id(str, str_len, &value->Device_Id);
+    slen = bacapp_snprintf_object_id(str, str_len, &value->Object_Id);
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     slen = bacapp_snprintf(str, str_len, ",");
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
@@ -3877,6 +3879,37 @@ static int bacapp_snprintf_action_command(
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     slen = bacapp_snprintf(str, str_len, "}");
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+
+    return ret_val;
+}
+
+/**
+ * @brief Print one element of a BACnetActionList, with the list braces
+ *  at the list boundaries, or "{}" for an empty list
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param value - value to print
+ * @return number of characters written
+ */
+static int bacapp_snprintf_action_list_entry(
+    char *str, size_t str_len, const BACNET_ACTION_LIST_ENTRY *value)
+{
+    int slen;
+    int ret_val = 0;
+
+    if (value->Empty_List) {
+        return bacapp_snprintf(str, str_len, "{}");
+    }
+    if (!value->Has_Previous) {
+        slen = bacapp_snprintf(str, str_len, "{");
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    }
+    slen = bacapp_snprintf_action_command(str, str_len, &value->Command);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    if (!value->Has_Next) {
+        slen = bacapp_snprintf(str, str_len, "}");
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    }
 
     return ret_val;
 }
@@ -4140,9 +4173,9 @@ int bacapp_snprintf_value(
                 break;
 #endif
 #if defined(BACAPP_ACTION_COMMAND)
-            case BACNET_APPLICATION_TAG_ACTION_COMMAND:
-                ret_val = bacapp_snprintf_action_command(
-                    str, str_len, &value->type.Action_Command);
+            case BACNET_APPLICATION_TAG_ACTION_LIST_ENTRY:
+                ret_val = bacapp_snprintf_action_list_entry(
+                    str, str_len, &value->type.Action_List_Entry);
                 break;
 #endif
 #if defined(BACAPP_SCALE)
@@ -5367,8 +5400,8 @@ bool bacapp_parse_application_data(
                 break;
 #endif
 #if defined(BACAPP_ACTION_COMMAND)
-            case BACNET_APPLICATION_TAG_ACTION_COMMAND:
-                /* BACnetActionCommand - not implemented */
+            case BACNET_APPLICATION_TAG_ACTION_LIST_ENTRY:
+                /* BACnetActionList entry - not implemented */
                 break;
 #endif
 #if defined(BACAPP_SCALE)
@@ -6142,10 +6175,10 @@ bool bacapp_same_value(
                 break;
 #endif
 #if defined(BACAPP_ACTION_COMMAND)
-            case BACNET_APPLICATION_TAG_ACTION_COMMAND:
-                status = bacnet_action_command_same(
-                    &value->type.Action_Command,
-                    &test_value->type.Action_Command);
+            case BACNET_APPLICATION_TAG_ACTION_LIST_ENTRY:
+                status = bacnet_action_list_entry_same(
+                    &value->type.Action_List_Entry,
+                    &test_value->type.Action_List_Entry);
                 break;
 #endif
 #if defined(BACAPP_SCALE)

@@ -51,6 +51,38 @@ uint32_t Device_Object_Instance_Number(void)
     return 260001;
 }
 
+struct action_list_test_context {
+    BACNET_ACTION_LIST entries[4];
+    unsigned count;
+};
+
+static bool action_list_test_store(const BACNET_ACTION_LIST *entry, void *ctx)
+{
+    struct action_list_test_context *context = ctx;
+
+    if (context->count >=
+        (sizeof(context->entries) / sizeof(context->entries[0]))) {
+        return false;
+    }
+    context->entries[context->count] = *entry;
+    context->count++;
+
+    return true;
+}
+
+/**
+ * @brief Decode one BACnetActionList element into the test context
+ * @return number of bytes decoded, or a negative value on error
+ */
+static int action_list_test_decode(
+    const uint8_t *apdu, int apdu_len, struct action_list_test_context *context)
+{
+    memset(context, 0, sizeof(*context));
+
+    return bacnet_action_list_decode(
+        apdu, (size_t)apdu_len, action_list_test_store, context);
+}
+
 static bool Write_Property_Internal(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
@@ -259,7 +291,7 @@ static void test_object_command_action_array_write(void)
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
     BACNET_READ_PROPERTY_DATA rp_data = { 0 };
     BACNET_ACTION_LIST action_expected = { 0 };
-    BACNET_ACTION_LIST action_decoded = { 0 };
+    struct action_list_test_context decoded = { 0 };
     BACNET_ACTION_PROPERTY_VALUE action_value = { 0 };
     BACNET_ACTION_LIST *pAction = NULL;
     uint8_t apdu[MAX_APDU] = { 0 };
@@ -297,8 +329,8 @@ static void test_object_command_action_array_write(void)
     action_expected.Write_Successful = false;
 
     wp_data.array_index = 1;
-    wp_data.application_data_len = bacnet_action_command_encode(
-        wp_data.application_data, &action_expected);
+    wp_data.application_data_len =
+        bacnet_action_list_encode(wp_data.application_data, &action_expected);
     status = Command_Write_Property(&wp_data);
     zassert_true(status, NULL);
 
@@ -315,10 +347,17 @@ static void test_object_command_action_array_write(void)
     rp_data.application_data_len = sizeof(apdu);
     len = Command_Read_Property(&rp_data);
     zassert_true(len > 0, NULL);
-    len = bacnet_action_command_decode(apdu, len, &action_decoded);
-    zassert_true(len > 0, NULL);
+    zassert_equal(action_list_test_decode(apdu, len, &decoded), len, NULL);
+    zassert_equal(decoded.count, 1, NULL);
     zassert_true(
-        bacnet_action_command_same(&action_expected, &action_decoded), NULL);
+        bacnet_action_command_same(&action_expected, &decoded.entries[0]),
+        NULL);
+    /* Read back the empty second element */
+    rp_data.array_index = 2;
+    len = Command_Read_Property(&rp_data);
+    zassert_equal(len, 2, NULL);
+    zassert_equal(action_list_test_decode(apdu, len, &decoded), len, NULL);
+    zassert_equal(decoded.count, 0, NULL);
 
     status = Command_Delete(object_instance);
     zassert_true(status, NULL);
@@ -688,7 +727,8 @@ static void test_object_command_action_write_atomic_on_error(void)
     BACNET_READ_PROPERTY_DATA rp = { 0 };
     uint8_t apdu[MAX_APDU];
     BACNET_ACTION_LIST original = { 0 };
-    BACNET_ACTION_LIST decoded = { 0 };
+    BACNET_ACTION_LIST replacement = { 0 };
+    struct action_list_test_context decoded = { 0 };
     BACNET_ACTION_PROPERTY_VALUE val = { 0 };
     int rp_len;
     int wp_len;
@@ -717,7 +757,7 @@ static void test_object_command_action_write_atomic_on_error(void)
     wp.object_property = PROP_ACTION;
     wp.array_index = 1;
     wp.priority = BACNET_NO_PRIORITY;
-    wp_len = bacnet_action_command_encode(wp.application_data, &original);
+    wp_len = bacnet_action_list_encode(wp.application_data, &original);
     zassert_true(wp_len > 0, NULL);
     wp.application_data_len = wp_len;
     status = Command_Write_Property(&wp);
@@ -730,6 +770,20 @@ static void test_object_command_action_write_atomic_on_error(void)
     zassert_false(status, "malformed write must be rejected");
     zassert_equal(wp.error_class, ERROR_CLASS_PROPERTY, NULL);
 
+    /* attempt to overwrite with a valid command followed by garbage */
+    replacement = original;
+    replacement.Object_Id.instance = 43;
+    wp_len = bacnet_action_list_encode(wp.application_data, &replacement);
+    zassert_true(wp_len > 0, NULL);
+    wp.application_data[wp_len - 1] = 0xFF;
+    wp.application_data[wp_len] = 0xFF;
+    wp.application_data[wp_len + 1] = 0x0F;
+    wp.application_data_len = wp_len + 2;
+    status = Command_Write_Property(&wp);
+    zassert_false(status, "trailing garbage write must be rejected");
+    zassert_equal(wp.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wp.error_code, ERROR_CODE_INVALID_DATA_ENCODING, NULL);
+
     /* slot must be unchanged — read back and compare */
     rp.object_type = OBJECT_COMMAND;
     rp.object_instance = instance;
@@ -739,10 +793,11 @@ static void test_object_command_action_write_atomic_on_error(void)
     rp.application_data_len = sizeof(apdu);
     rp_len = Command_Read_Property(&rp);
     zassert_true(rp_len > 0, NULL);
+    zassert_equal(
+        action_list_test_decode(apdu, rp_len, &decoded), rp_len, NULL);
+    zassert_equal(decoded.count, 1, NULL);
     zassert_true(
-        bacnet_action_command_decode(apdu, rp_len, &decoded) > 0, NULL);
-    zassert_true(
-        bacnet_action_command_same(&original, &decoded),
+        bacnet_action_command_same(&original, &decoded.entries[0]),
         "slot was modified by rejected write");
 
     Command_Delete(instance);
@@ -752,9 +807,10 @@ static void test_object_command_action_write_atomic_on_error(void)
 /**
  * @brief Test PROP_ACTION write with BACNET_ARRAY_ALL round-trips correctly.
  *
- * Resize to 2 slots, populate each, read the full array encoding, overwrite
- * both slots with different values, then restore via ARRAY_ALL write and
- * verify both slots match the original content.
+ * Resize to 2 slots, populate slot 0 with two commands and slot 1 with one,
+ * read the full array encoding, overwrite both slots with different values,
+ * then restore via ARRAY_ALL write and verify both slots match the original
+ * content.
  */
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(tests_object_command, test_object_command_action_write_array_all)
@@ -769,10 +825,12 @@ static void test_object_command_action_write_array_all(void)
     uint8_t apdu[MAX_APDU];
     BACNET_ACTION_LIST cmd0 = { 0 };
     BACNET_ACTION_LIST cmd1 = { 0 };
-    BACNET_ACTION_LIST decoded = { 0 };
+    BACNET_ACTION_LIST cmd2 = { 0 };
+    struct action_list_test_context decoded = { 0 };
     BACNET_ACTION_LIST clobber = { 0 };
     BACNET_ACTION_PROPERTY_VALUE val = { 0 };
     int snap_len;
+    int len;
     bool status;
 
     Command_Cleanup();
@@ -809,6 +867,13 @@ static void test_object_command_action_write_array_all(void)
     val.type.Real = 2.0f;
     action_list_set_property_value(&cmd1, &val);
 
+    /* slot 0, second command: AV instance 3 */
+    cmd2 = cmd0;
+    cmd2.Object_Id.instance = 3;
+    val.type.Real = 3.0f;
+    action_list_set_property_value(&cmd2, &val);
+    cmd0.next = &cmd2;
+
     Command_Action_List_Set(instance, 0, &cmd0);
     Command_Action_List_Set(instance, 1, &cmd1);
 
@@ -825,6 +890,7 @@ static void test_object_command_action_write_array_all(void)
     /* clobber both slots with a different command */
     clobber = cmd0;
     clobber.Object_Id.instance = 99;
+    clobber.next = NULL;
     Command_Action_List_Set(instance, 0, &clobber);
     Command_Action_List_Set(instance, 1, &clobber);
     zassert_equal(
@@ -850,23 +916,33 @@ static void test_object_command_action_write_array_all(void)
         "slot 1 member is NULL, count=%u",
         Command_Action_List_Count(instance, 1));
 
-    /* verify slot 0 restored to cmd0 */
+    zassert_equal(Command_Action_List_Count(instance, 0), 2u, NULL);
+    zassert_equal(Command_Action_List_Count(instance, 1), 1u, NULL);
+
+    /* verify slot 0 restored to cmd0, cmd2 */
     rp.array_index = 1;
     rp.application_data = apdu;
     rp.application_data_len = sizeof(apdu);
-    int len = Command_Read_Property(&rp);
+    len = Command_Read_Property(&rp);
     zassert_true(len > 0, NULL);
-    zassert_true(bacnet_action_command_decode(apdu, len, &decoded) > 0, NULL);
+    zassert_equal(action_list_test_decode(apdu, len, &decoded), len, NULL);
+    zassert_equal(decoded.count, 2, NULL);
     zassert_true(
-        bacnet_action_command_same(&cmd0, &decoded), "slot 0 mismatch");
+        bacnet_action_command_same(&cmd0, &decoded.entries[0]),
+        "slot 0 mismatch");
+    zassert_true(
+        bacnet_action_command_same(&cmd2, &decoded.entries[1]),
+        "slot 0 mismatch");
 
     /* verify slot 1 restored to cmd1 */
     rp.array_index = 2;
     len = Command_Read_Property(&rp);
     zassert_true(len > 0, NULL);
-    zassert_true(bacnet_action_command_decode(apdu, len, &decoded) > 0, NULL);
+    zassert_equal(action_list_test_decode(apdu, len, &decoded), len, NULL);
+    zassert_equal(decoded.count, 1, NULL);
     zassert_true(
-        bacnet_action_command_same(&cmd1, &decoded), "slot 1 mismatch");
+        bacnet_action_command_same(&cmd1, &decoded.entries[0]),
+        "slot 1 mismatch");
 
     Command_Delete(instance);
     Command_Cleanup();
