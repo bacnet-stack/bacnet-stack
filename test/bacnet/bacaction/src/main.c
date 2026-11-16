@@ -267,12 +267,14 @@ static void test_BACnetActionListEntryEncodeDecode(void)
 #endif
 {
     BACNET_ACTION_LIST in[3] = { 0 };
-    BACNET_ACTION_LIST out = { 0 };
+    BACNET_ACTION_LIST_ENTRY entry = { 0 };
+    BACNET_ACTION_LIST_ENTRY out[4] = { 0 };
     uint8_t apdu[MAX_APDU] = { 0 };
+    uint8_t test_apdu[MAX_APDU] = { 0 };
     int apdu_len = 0;
+    int test_len = 0;
     int len = 0;
     int null_len = 0;
-    bool empty_list = false;
     unsigned i;
 
     for (i = 0; i < 3; i++) {
@@ -287,48 +289,76 @@ static void test_BACnetActionListEntryEncodeDecode(void)
         in[i].Property_Value.data_len =
             (uint16_t)encode_application_unsigned(in[i].Property_Value.data, i);
     }
-    /* one entry encodes as a list with one command */
-    null_len = bacnet_action_list_entry_encode(NULL, &in[0]);
-    apdu_len = bacnet_action_list_entry_encode(apdu, &in[0]);
+    /* a zero-initialized entry encodes as a list with one command */
+    entry.Command = in[0];
+    null_len = bacnet_action_list_entry_encode(NULL, &entry);
+    apdu_len = bacnet_action_list_entry_encode(apdu, &entry);
     zassert_equal(null_len, apdu_len, NULL);
-    len = bacnet_action_list_entry_decode(apdu, apdu_len, &out, &empty_list);
+    test_len = bacnet_action_list_encode(test_apdu, &in[0]);
+    zassert_equal(apdu_len, test_len, NULL);
+    zassert_mem_equal(apdu, test_apdu, apdu_len, NULL);
+    len = bacnet_action_list_entry_decode(apdu, apdu_len, &out[0]);
     zassert_equal(len, apdu_len, NULL);
-    zassert_false(empty_list, NULL);
-    zassert_true(bacnet_action_command_same(&in[0], &out), NULL);
+    zassert_true(bacnet_action_list_entry_same(&entry, &out[0]), NULL);
+    zassert_false(bacnet_action_list_entry_encode(apdu, NULL) > 0, NULL);
     /* array of lists: {in0, in1}, {}, {in2} */
     in[0].next = &in[1];
     apdu_len = bacnet_action_list_encode(apdu, &in[0]);
     apdu_len += bacnet_action_list_encode(&apdu[apdu_len], NULL);
     apdu_len += bacnet_action_list_encode(&apdu[apdu_len], &in[2]);
+    /* a stale command in a reused entry must not be encoded */
+    out[2].Command = in[1];
     len = 0;
     for (i = 0; i < 4; i++) {
-        null_len = bacnet_action_list_entry_decode(
-            &apdu[len], apdu_len - len, NULL, &empty_list);
+        null_len =
+            bacnet_action_list_entry_decode(&apdu[len], apdu_len - len, NULL);
         zassert_true(null_len > 0, NULL);
         null_len = bacnet_action_list_entry_decode(
-            &apdu[len], apdu_len - len, &out, &empty_list);
+            &apdu[len], apdu_len - len, &out[i]);
         zassert_true(null_len > 0, NULL);
         len += null_len;
-        if (i == 2) {
-            zassert_true(empty_list, NULL);
-        } else {
-            zassert_false(empty_list, NULL);
-            /* the 4th decoded entry is in[2] */
-            if (i == 3) {
-                zassert_true(bacnet_action_command_same(&in[2], &out), NULL);
-            } else {
-                zassert_true(bacnet_action_command_same(&in[i], &out), NULL);
-            }
-        }
     }
     zassert_equal(len, apdu_len, NULL);
+    zassert_false(out[0].Empty_List, NULL);
+    zassert_false(out[0].Has_Previous, NULL);
+    zassert_true(out[0].Has_Next, NULL);
+    zassert_true(bacnet_action_command_same(&in[0], &out[0].Command), NULL);
+    zassert_false(out[1].Empty_List, NULL);
+    zassert_true(out[1].Has_Previous, NULL);
+    zassert_false(out[1].Has_Next, NULL);
+    zassert_true(bacnet_action_command_same(&in[1], &out[1].Command), NULL);
+    zassert_true(out[2].Empty_List, NULL);
+    zassert_false(out[3].Empty_List, NULL);
+    zassert_false(out[3].Has_Previous, NULL);
+    zassert_false(out[3].Has_Next, NULL);
+    zassert_true(bacnet_action_command_same(&in[2], &out[3].Command), NULL);
+    zassert_false(bacnet_action_list_entry_same(&out[0], &out[3]), NULL);
+    /* re-encoding the entries keeps the list boundaries */
+    test_len = 0;
+    for (i = 0; i < 4; i++) {
+        null_len = bacnet_action_list_entry_encode(NULL, &out[i]);
+        len = bacnet_action_list_entry_encode(&test_apdu[test_len], &out[i]);
+        zassert_equal(null_len, len, NULL);
+        test_len += len;
+    }
+    zassert_equal(test_len, apdu_len, NULL);
+    zassert_mem_equal(test_apdu, apdu, apdu_len, NULL);
     /* malformed */
     zassert_true(
-        bacnet_action_list_entry_decode(NULL, apdu_len, &out, NULL) < 0, NULL);
+        bacnet_action_list_entry_decode(NULL, apdu_len, &out[0]) < 0, NULL);
     apdu[0] = 0x0E;
     apdu[1] = 0xFF;
+    zassert_true(bacnet_action_list_entry_decode(apdu, 2, &out[0]) < 0, NULL);
+    /* opening tag and complete command, but missing closing tag */
+    apdu_len = bacnet_action_list_entry_encode(apdu, &entry);
+    zassert_true(apdu_len > 1, NULL);
     zassert_true(
-        bacnet_action_list_entry_decode(apdu, 2, &out, NULL) < 0, NULL);
+        bacnet_action_list_entry_decode(apdu, apdu_len - 1, &out[0]) < 0, NULL);
+    /* without the opening tag, a complete command still decodes */
+    len = bacnet_action_list_entry_decode(&apdu[1], apdu_len - 2, &out[0]);
+    zassert_equal(len, apdu_len - 2, NULL);
+    zassert_true(out[0].Has_Previous, NULL);
+    zassert_true(out[0].Has_Next, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)

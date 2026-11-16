@@ -357,7 +357,8 @@ int bacapp_encode_application_data(
 #endif
 #if defined(BACAPP_ACTION_COMMAND)
             case BACNET_APPLICATION_TAG_ACTION_LIST_ENTRY:
-                /* BACnetActionList with one BACnetActionCommand */
+                /* one BACnetActionCommand of a BACnetActionList, with the
+                   [0] tags at the list boundaries, or an empty list */
                 apdu_len = bacnet_action_list_entry_encode(
                     apdu, &value->type.Action_List_Entry);
                 break;
@@ -1291,9 +1292,6 @@ int bacapp_decode_application_tag_value(
     BACNET_APPLICATION_DATA_VALUE *value)
 {
     int apdu_len = 0;
-#if defined(BACAPP_ACTION_COMMAND)
-    bool empty_list = false;
-#endif
 
     if (!value) {
         return 0;
@@ -1563,12 +1561,10 @@ int bacapp_decode_application_tag_value(
 #endif
 #if defined(BACAPP_ACTION_COMMAND)
         case BACNET_APPLICATION_TAG_ACTION_LIST_ENTRY:
-            /* one BACnetActionCommand of a BACnetActionList */
+            /* one BACnetActionCommand of a BACnetActionList, or an
+               empty BACnetActionList, with its list boundaries */
             apdu_len = bacnet_action_list_entry_decode(
-                apdu, apdu_size, &value->type.Action_List_Entry, &empty_list);
-            if ((apdu_len > 0) && empty_list) {
-                value->tag = BACNET_APPLICATION_TAG_EMPTYLIST;
-            }
+                apdu, apdu_size, &value->type.Action_List_Entry);
             break;
 #endif
 #if defined(BACAPP_SCALE)
@@ -3827,7 +3823,7 @@ static int bacapp_snprintf_action_command(
     slen = bacapp_snprintf(str, str_len, ",");
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     /* objectIdentifier [1] BACnetObjectIdentifier */
-    slen = bacapp_snprintf_object_id(str, str_len, &value->Device_Id);
+    slen = bacapp_snprintf_object_id(str, str_len, &value->Object_Id);
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     slen = bacapp_snprintf(str, str_len, ",");
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
@@ -3883,6 +3879,37 @@ static int bacapp_snprintf_action_command(
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
     slen = bacapp_snprintf(str, str_len, "}");
     ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+
+    return ret_val;
+}
+
+/**
+ * @brief Print one element of a BACnetActionList, with the list braces
+ *  at the list boundaries, or "{}" for an empty list
+ * @param str - destination string, or NULL for length only
+ * @param str_len - length of the destination string, or 0 for length only
+ * @param value - value to print
+ * @return number of characters written
+ */
+static int bacapp_snprintf_action_list_entry(
+    char *str, size_t str_len, const BACNET_ACTION_LIST_ENTRY *value)
+{
+    int slen;
+    int ret_val = 0;
+
+    if (value->Empty_List) {
+        return bacapp_snprintf(str, str_len, "{}");
+    }
+    if (!value->Has_Previous) {
+        slen = bacapp_snprintf(str, str_len, "{");
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    }
+    slen = bacapp_snprintf_action_command(str, str_len, &value->Command);
+    ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    if (!value->Has_Next) {
+        slen = bacapp_snprintf(str, str_len, "}");
+        ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+    }
 
     return ret_val;
 }
@@ -4147,7 +4174,7 @@ int bacapp_snprintf_value(
 #endif
 #if defined(BACAPP_ACTION_COMMAND)
             case BACNET_APPLICATION_TAG_ACTION_LIST_ENTRY:
-                ret_val = bacapp_snprintf_action_command(
+                ret_val = bacapp_snprintf_action_list_entry(
                     str, str_len, &value->type.Action_List_Entry);
                 break;
 #endif
@@ -6149,7 +6176,7 @@ bool bacapp_same_value(
 #endif
 #if defined(BACAPP_ACTION_COMMAND)
             case BACNET_APPLICATION_TAG_ACTION_LIST_ENTRY:
-                status = bacnet_action_command_same(
+                status = bacnet_action_list_entry_same(
                     &value->type.Action_List_Entry,
                     &test_value->type.Action_List_Entry);
                 break;
