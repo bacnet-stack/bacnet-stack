@@ -1456,9 +1456,6 @@ static int Schedule_Exception_Schedule_Element_Length(
     (void)object_instance;
     len = bacnet_special_event_entry_decode(
         apdu, apdu_size, &special_event, NULL, NULL);
-    if ((len > 0) && (special_event.priority > BACNET_MAX_PRIORITY)) {
-        len = BACNET_STATUS_ERANGE;
-    }
 
     return len;
 }

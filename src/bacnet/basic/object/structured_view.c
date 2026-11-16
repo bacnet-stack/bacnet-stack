@@ -1010,7 +1010,8 @@ static int Structured_View_Subordinate_Relationship_Member_Decode(
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        len = bacnet_enumerated_application_decode(apdu, apdu_size, NULL);
+        len = bacnet_enumerated_application_decode(
+            apdu, apdu_size, &relationship);
         if (len > 0) {
             if (relationship > BACNET_RELATIONSHIP_PROPRIETARY_MAX) {
                 len = BACNET_STATUS_ERANGE;
