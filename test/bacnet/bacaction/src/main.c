@@ -227,10 +227,16 @@ static void test_BACnetActionListEncodeDecode(void)
 
     in[0].next = &in[1];
 
-    zassert_equal(bacnet_action_list_encode(apdu, NULL), 0, NULL);
+    zassert_equal(bacnet_action_list_encode(apdu, NULL), 2, NULL);
+    zassert_equal(apdu[0], 0x0E, NULL);
+    zassert_equal(apdu[1], 0x0F, NULL);
+    len = bacnet_action_list_decode(apdu, 2, bacnet_action_store_entry, &out);
+    zassert_equal(len, 2, NULL);
+    zassert_equal(out.count, 0, NULL);
 
     apdu_len = bacnet_action_list_encode(apdu, &in[0]);
     zassert_true(apdu_len > 0, NULL);
+    zassert_equal(bacnet_action_list_encode(NULL, &in[0]), apdu_len, NULL);
 
     len = bacnet_action_list_decode(apdu, (size_t)apdu_len, NULL, NULL);
     zassert_equal(len, apdu_len, NULL);
@@ -241,6 +247,17 @@ static void test_BACnetActionListEncodeDecode(void)
     zassert_equal(out.count, 2, NULL);
     zassert_true(bacnet_action_command_same(&in[0], &out.entries[0]), NULL);
     zassert_true(bacnet_action_command_same(&in[1], &out.entries[1]), NULL);
+    /* missing closing tag */
+    len = bacnet_action_list_decode(apdu, (size_t)apdu_len - 1, NULL, NULL);
+    zassert_true(len < 0, NULL);
+    /* missing opening tag */
+    len = bacnet_action_list_decode(&apdu[1], (size_t)apdu_len - 1, NULL, NULL);
+    zassert_equal(len, 0, NULL);
+    /* valid commands followed by garbage before the closing tag */
+    apdu[apdu_len - 1] = 0xFF;
+    apdu[apdu_len] = 0x0F;
+    len = bacnet_action_list_decode(apdu, (size_t)apdu_len + 1, NULL, NULL);
+    zassert_true(len < 0, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
