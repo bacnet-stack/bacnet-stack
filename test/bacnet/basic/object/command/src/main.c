@@ -152,7 +152,7 @@ static void test_object_command(void)
     bool status = false;
     unsigned count = 0;
     uint32_t object_instance = BACNET_MAX_INSTANCE;
-    const int32_t skip_fail_property_list[] = { PROP_ACTION, -1 };
+    const int32_t skip_fail_property_list[] = { -1 };
     BACNET_ACTION_LIST *pAction;
     BACNET_ACTION_PROPERTY_VALUE action_value = { 0 };
 

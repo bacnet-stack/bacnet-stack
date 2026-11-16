@@ -68,8 +68,8 @@ static const BACNET_APPLICATION_TAG tag_list[] = {
     BACNET_APPLICATION_TAG_BDT_ENTRY,
     /* BACnetFDTEntry */
     BACNET_APPLICATION_TAG_FDT_ENTRY,
-    /* BACnetActionCommand */
-    BACNET_APPLICATION_TAG_ACTION_COMMAND,
+    /* BACnetActionList entry */
+    BACNET_APPLICATION_TAG_ACTION_LIST_ENTRY,
     /* BACnetScale */
     BACNET_APPLICATION_TAG_SCALE,
     /* BACnetShedLevel */

@@ -261,6 +261,73 @@ static void test_BACnetActionListEncodeDecode(void)
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(BACnetAction_Tests, test_BACnetActionListEntryEncodeDecode)
+#else
+static void test_BACnetActionListEntryEncodeDecode(void)
+#endif
+{
+    BACNET_ACTION_LIST in[3] = { 0 };
+    BACNET_ACTION_LIST out = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int apdu_len = 0;
+    int len = 0;
+    int null_len = 0;
+    bool empty_list = false;
+    unsigned i;
+
+    for (i = 0; i < 3; i++) {
+        in[i].Device_Id.type = OBJECT_DEVICE;
+        in[i].Device_Id.instance = 100 + i;
+        in[i].Object_Id.type = OBJECT_ANALOG_VALUE;
+        in[i].Object_Id.instance = 200 + i;
+        in[i].Property_Identifier = PROP_PRESENT_VALUE;
+        in[i].Property_Array_Index = BACNET_ARRAY_ALL;
+        in[i].Priority = BACNET_NO_PRIORITY;
+        in[i].Post_Delay = UINT32_MAX;
+        in[i].Property_Value.data_len =
+            (uint16_t)encode_application_unsigned(in[i].Property_Value.data, i);
+    }
+    /* one entry encodes as a list with one command */
+    null_len = bacnet_action_list_entry_encode(NULL, &in[0]);
+    apdu_len = bacnet_action_list_entry_encode(apdu, &in[0]);
+    zassert_equal(null_len, apdu_len, NULL);
+    len = bacnet_action_list_entry_decode(apdu, apdu_len, &out, &empty_list);
+    zassert_equal(len, apdu_len, NULL);
+    zassert_false(empty_list, NULL);
+    zassert_true(bacnet_action_command_same(&in[0], &out), NULL);
+    /* array of lists: {in0, in1}, {}, {in2} */
+    in[0].next = &in[1];
+    apdu_len = bacnet_action_list_encode(apdu, &in[0]);
+    apdu_len += bacnet_action_list_encode(&apdu[apdu_len], NULL);
+    apdu_len += bacnet_action_list_encode(&apdu[apdu_len], &in[2]);
+    len = 0;
+    for (i = 0; i < 4; i++) {
+        null_len = bacnet_action_list_entry_decode(
+            &apdu[len], apdu_len - len, NULL, &empty_list);
+        zassert_true(null_len > 0, NULL);
+        null_len = bacnet_action_list_entry_decode(
+            &apdu[len], apdu_len - len, &out, &empty_list);
+        zassert_true(null_len > 0, NULL);
+        len += null_len;
+        if (i == 2) {
+            zassert_true(empty_list, NULL);
+        } else {
+            zassert_false(empty_list, NULL);
+            zassert_true(
+                bacnet_action_command_same(&in[i < 2 ? i : 2], &out), NULL);
+        }
+    }
+    zassert_equal(len, apdu_len, NULL);
+    /* malformed */
+    zassert_true(
+        bacnet_action_list_entry_decode(NULL, apdu_len, &out, NULL) < 0, NULL);
+    apdu[0] = 0x0E;
+    apdu[1] = 0xFF;
+    zassert_true(
+        bacnet_action_list_entry_decode(apdu, 2, &out, NULL) < 0, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(BACnetAction_Tests, NULL, NULL, NULL, NULL, NULL);
 #else
 void test_main(void)
@@ -268,7 +335,8 @@ void test_main(void)
     ztest_test_suite(
         BACnetAction_Tests, ztest_unit_test(test_BACnetActionPropertyValue),
         ztest_unit_test(test_BACnetActionCommandConstructedValue),
-        ztest_unit_test(test_BACnetActionListEncodeDecode));
+        ztest_unit_test(test_BACnetActionListEncodeDecode),
+        ztest_unit_test(test_BACnetActionListEntryEncodeDecode));
 
     ztest_run_test_suite(BACnetAction_Tests);
 }
