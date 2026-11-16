@@ -6129,7 +6129,8 @@ int bacnet_array_encode(
  *    BACNET_STATUS_ERANGE if the element decodes but is out-of-range,
  *    or negative if the element is malformed (INVALID_DATA_ENCODING)
  * @param write_function [in] function to write one property array element with
- * the encoded value
+ * the encoded value. For array index 1..n, the encoded value is limited to
+ * the length of one element, as returned by decode_function.
  * @param array_size [in] number of elements in the array
  * @param apdu [out] Buffer in which the APDU contents are built.
  * @param max_apdu [in] Max length of the APDU buffer.
@@ -6216,7 +6217,7 @@ BACNET_ERROR_CODE bacnet_array_write_resizable(
             bounds checking and return array_index out of range error if
             the array is not resizable */
             error_code = write_function(
-                object_instance, array_index, array_size, apdu, apdu_size);
+                object_instance, array_index, array_size, apdu, (size_t)len);
         } else if (len == 0) {
             error_code = ERROR_CODE_INVALID_DATA_TYPE;
         } else if (len == BACNET_STATUS_ERANGE) {
@@ -6243,7 +6244,8 @@ BACNET_ERROR_CODE bacnet_array_write_resizable(
  *    BACNET_STATUS_ERANGE if the element decodes but is out-of-range,
  *    or negative if the element is malformed (INVALID_DATA_ENCODING)
  * @param write_function [in] function to write one property array element with
- * the encoded value
+ * the encoded value. For array index 1..n, the encoded value is limited to
+ * the length of one element, as returned by decode_function.
  * @param array_size [in] number of elements in the array
  * @param apdu [out] Buffer in which the APDU contents are built.
  * @param max_apdu [in] Max length of the APDU buffer.

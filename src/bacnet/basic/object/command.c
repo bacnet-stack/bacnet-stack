@@ -1096,34 +1096,66 @@ static int Command_Action_List_Encode(
 }
 
 /**
- * @brief Decode a single BACnet action command to determine its byte length.
+ * @brief Decode one BACnetActionList array element to determine its length.
  * @param object_instance [in] BACnet object instance number.
- * @param apdu [in] Encoded action command bytes.
+ * @param apdu [in] Encoded BACnetActionList bytes.
  * @param apdu_size [in] Remaining buffer size.
  * @return number of bytes decoded, or:
  *    zero if the tag does not match (INVALID_DATA_TYPE)
- *    BACNET_STATUS_ERANGE if decoded but is out-of-range (VALUE_OUT_OF_RANGE)
  *    negative if the element is malformed (INVALID_DATA_ENCODING)
  */
 static int Command_Action_List_Member_Decode(
     uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
 {
-    BACNET_ACTION_LIST action = { 0 };
     int len = 0;
 
     if (Object_Data(object_instance)) {
-        len = bacnet_action_command_decode(apdu, apdu_size, &action);
-        if (len > 0) {
-            /* optional: is the value in range? */
-        }
+        len = bacnet_action_list_decode(apdu, apdu_size, NULL, NULL);
     }
 
     return len;
 }
 
 /**
+ * @brief Context used to store decoded commands into one Action slot
+ */
+struct command_action_store_context {
+    OS_Keylist list;
+    KEY key;
+};
+
+/**
+ * @brief Store one decoded command at the end of an Action slot.
+ * @param entry [in] Decoded action command.
+ * @param ctx [in] Store context with the Action slot list.
+ * @return true if the command was stored.
+ */
+static bool
+Command_Action_List_Store(const BACNET_ACTION_LIST *entry, void *ctx)
+{
+    struct command_action_store_context *context = ctx;
+    BACNET_ACTION_LIST *data;
+
+    data = calloc(1, sizeof(BACNET_ACTION_LIST));
+    if (!data) {
+        return false;
+    }
+    memmove(data, entry, sizeof(BACNET_ACTION_LIST));
+    data->next = NULL;
+    if (Keylist_Data_Add(context->list, context->key, data) < 0) {
+        free(data);
+        return false;
+    }
+    context->key++;
+
+    return true;
+}
+
+/**
  * @brief Write one BACnetARRAY element: resize (index 0) or replace a list
  * slot.
+ * @note The BACnetActionList element was validated by
+ *  Command_Action_List_Member_Decode() before this write.
  */
 static BACNET_ERROR_CODE Command_Action_List_Member_Write(
     uint32_t object_instance,
@@ -1132,13 +1164,9 @@ static BACNET_ERROR_CODE Command_Action_List_Member_Write(
     uint8_t *apdu,
     size_t apdu_size)
 {
-    BACNET_ACTION_LIST action = { 0 };
-    BACNET_ACTION_LIST *data;
-    OS_Keylist inner;
+    struct command_action_store_context context = { 0 };
     struct object_data *pObject;
     int len;
-    size_t offset;
-    KEY key;
 
     pObject = Object_Data(object_instance);
     if (!pObject) {
@@ -1146,36 +1174,25 @@ static BACNET_ERROR_CODE Command_Action_List_Member_Write(
     }
     if (array_index == 0) {
         if (array_size > BACNET_COMMAND_ACTION_LIST_MAX) {
-            return ERROR_CODE_INVALID_ARRAY_INDEX;
+            return ERROR_CODE_VALUE_OUT_OF_RANGE;
         }
         return Action_Array_Resize(pObject, array_size);
     }
     /* 1-based protocol index → 0-based internal index */
     array_index--;
-    inner = Keylist_Data(pObject->Action_Array, (KEY)array_index);
-    if (!inner) {
+    context.list = Keylist_Data(pObject->Action_Array, (KEY)array_index);
+    if (!context.list) {
         return ERROR_CODE_INVALID_ARRAY_INDEX;
     }
     /* purge then store commands in-place */
-    Action_Inner_List_Purge(inner);
-    offset = 0;
-    key = 0;
-    while (offset < apdu_size) {
-        len = bacnet_action_command_decode(
-            &apdu[offset], apdu_size - offset, &action);
-        data = calloc(1, sizeof(BACNET_ACTION_LIST));
-        if (!data) {
-            return ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
-        }
-        memmove(data, &action, sizeof(BACNET_ACTION_LIST));
-        data->next = NULL;
-        if (Keylist_Data_Add(inner, key, data) < 0) {
-            free(data);
-            return ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
-        }
-        key++;
-        offset += len;
+    Action_Inner_List_Purge(context.list);
+    context.key = 0;
+    len = bacnet_action_list_decode(
+        apdu, apdu_size, Command_Action_List_Store, &context);
+    if (len <= 0) {
+        return ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
     }
+
     return ERROR_CODE_SUCCESS;
 }
 
