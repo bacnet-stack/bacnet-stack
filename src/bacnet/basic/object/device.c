@@ -2930,13 +2930,28 @@ static int Device_Configuration_File_Encode(
  * @param object_instance [in] BACnet object instance number
  * @param apdu [in] Buffer in which the APDU contents are extracted
  * @param apdu_size [in] The size of the APDU buffer
- * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ * @return The length of the decoded apdu,
+ *  BACNET_STATUS_ERANGE if decoded but is not an existing File object,
+ *  or BACNET_STATUS_ERROR on error
  */
 static int Device_Configuration_File_Length(
     uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
 {
+    int len = 0;
+    uint32_t instance = 0;
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
+
     (void)object_instance;
-    return bacnet_object_id_application_decode(apdu, apdu_size, NULL, NULL);
+    len = bacnet_object_id_application_decode(
+        apdu, apdu_size, &object_type, &instance);
+    if (len > 0) {
+        if ((object_type != OBJECT_FILE) ||
+            !Device_Valid_Object_Id(object_type, instance)) {
+            len = BACNET_STATUS_ERANGE;
+        }
+    }
+
+    return len;
 }
 
 /**

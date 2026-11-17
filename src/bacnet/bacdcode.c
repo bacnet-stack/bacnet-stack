@@ -6124,10 +6124,13 @@ int bacnet_array_encode(
  *    1 to n for individual array members
  *    BACNET_ARRAY_ALL for the full array to be written.
  * @param decode_function [in] function to decode one property array element and
- * determine the length: zero if the tag does not match (INVALID_DATA_TYPE),
- * or negative if the element is malformed (INVALID_DATA_ENCODING)
+ * determine the length:
+ *    zero if the tag does not match (INVALID_DATA_TYPE),
+ *    BACNET_STATUS_ERANGE if the element decodes but is out-of-range,
+ *    or negative if the element is malformed (INVALID_DATA_ENCODING)
  * @param write_function [in] function to write one property array element with
- * the encoded value
+ * the encoded value. For array index 1..n, the encoded value is limited to
+ * the length of one element, as returned by decode_function.
  * @param array_size [in] number of elements in the array
  * @param apdu [out] Buffer in which the APDU contents are built.
  * @param max_apdu [in] Max length of the APDU buffer.
@@ -6149,10 +6152,11 @@ BACNET_ERROR_CODE bacnet_array_write_resizable(
     BACNET_UNSIGNED_INTEGER unsigned_value;
 
     if (array_index == 0) {
-        /* Array element zero is the number of objects in the list */
+        /* Array element zero is the number of elements in the list */
         len = bacnet_unsigned_application_decode(
             apdu, apdu_size, &unsigned_value);
         if (len > 0) {
+            /* resize the array */
             error_code = write_function(
                 object_instance, array_index, unsigned_value, apdu, apdu_size);
         } else if (len == 0) {
@@ -6169,8 +6173,10 @@ BACNET_ERROR_CODE bacnet_array_write_resizable(
             if (len > 0) {
                 apdu_len += len;
             } else if (len == 0) {
-                /* a non-empty array element must consume input */
                 error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                break;
+            } else if (len == BACNET_STATUS_ERANGE) {
+                error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 break;
             } else {
                 error_code = ERROR_CODE_INVALID_DATA_ENCODING;
@@ -6183,21 +6189,48 @@ BACNET_ERROR_CODE bacnet_array_write_resizable(
             for (index = 1; index <= array_size; index++) {
                 len = decode_function(
                     object_instance, &apdu[apdu_len], apdu_size - apdu_len);
-                error_code = write_function(
-                    object_instance, index, array_size, &apdu[apdu_len], len);
-                if (error_code != ERROR_CODE_SUCCESS) {
+                if (len > 0) {
+                    error_code = write_function(
+                        object_instance, index, array_size, &apdu[apdu_len],
+                        len);
+                    if (error_code != ERROR_CODE_SUCCESS) {
+                        break;
+                    }
+                    apdu_len += len;
+                } else if (len == 0) {
+                    error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                    break;
+                } else if (len == BACNET_STATUS_ERANGE) {
+                    error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    break;
+                } else {
+                    error_code = ERROR_CODE_INVALID_DATA_ENCODING;
                     break;
                 }
-                apdu_len += len;
             }
         }
     } else {
-        /* index was specified; write a single array element */
-        /* note: write function is responsible for handling the array_index
-           bounds checking and return array_index out of range error if
-           the array is not resizable */
-        error_code = write_function(
-            object_instance, array_index, array_size, apdu, apdu_size);
+        /* array index was specified; write the single array element */
+        len = decode_function(object_instance, apdu, apdu_size);
+        if (len > 0) {
+            if ((size_t)len != apdu_size) {
+                /* trailing data after the single element */
+                error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            } else {
+                /* note: write function is responsible for handling the
+                array_index bounds checking and return array_index out of
+                range error if the array is not resizable */
+                error_code = write_function(
+                    object_instance, array_index, array_size, apdu,
+                    (size_t)len);
+            }
+        } else if (len == 0) {
+            error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        } else if (len == BACNET_STATUS_ERANGE) {
+            error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+        } else {
+            error_code = ERROR_CODE_INVALID_DATA_ENCODING;
+        }
     }
 
     return error_code;
@@ -6212,9 +6245,13 @@ BACNET_ERROR_CODE bacnet_array_write_resizable(
  *    1 to n for individual array members
  *    BACNET_ARRAY_ALL for the full array to be written.
  * @param decode_function [in] function to decode one property array element and
- * determine the length
+ * determine the length:
+ *    zero if the tag does not match (INVALID_DATA_TYPE),
+ *    BACNET_STATUS_ERANGE if the element decodes but is out-of-range,
+ *    or negative if the element is malformed (INVALID_DATA_ENCODING)
  * @param write_function [in] function to write one property array element with
- * the encoded value
+ * the encoded value. For array index 1..n, the encoded value is limited to
+ * the length of one element, as returned by decode_function.
  * @param array_size [in] number of elements in the array
  * @param apdu [out] Buffer in which the APDU contents are built.
  * @param max_apdu [in] Max length of the APDU buffer.
@@ -6251,9 +6288,11 @@ BACNET_ERROR_CODE bacnet_array_write(
  *    0 for the list size - not permitted for a list
  *    1 to n for individual array members - not permitted for a list
  *    BACNET_ARRAY_ALL for the full list to be written
- * @param decode_function [in] function to decode one property list element and
- * determine the length: zero if the tag does not match (INVALID_DATA_TYPE),
- * or negative if the element is malformed (INVALID_DATA_ENCODING)
+ * @param decode_function [in] function to decode one property array element and
+ * determine the length:
+ *    zero if the tag does not match (INVALID_DATA_TYPE),
+ *    BACNET_STATUS_ERANGE if the element decodes but is out-of-range,
+ *    or negative if the element is malformed (INVALID_DATA_ENCODING)
  * @param add_function [in] function to add one property list element with
  * the encoded value
  * @param max_elements [in] number of elements in the list
@@ -6288,6 +6327,9 @@ BACNET_ERROR_CODE bacnet_list_write(
                 /* a non-empty list element must consume input */
                 error_code = ERROR_CODE_INVALID_DATA_TYPE;
                 break;
+            } else if (len == BACNET_STATUS_ERANGE) {
+                error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                break;
             } else {
                 /* malformed list element */
                 error_code = ERROR_CODE_INVALID_DATA_ENCODING;
@@ -6308,19 +6350,24 @@ BACNET_ERROR_CODE bacnet_list_write(
             while (apdu_len < apdu_size) {
                 len = decode_function(
                     object_instance, &apdu[apdu_len], apdu_size - apdu_len);
-                if (len < 0) {
-                    error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                    break;
-                } else if (len == 0) {
-                    error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                    break;
-                } else {
+                if (len > 0) {
                     error_code =
                         add_function(object_instance, &apdu[apdu_len], len);
                     if (error_code != ERROR_CODE_SUCCESS) {
                         break;
                     }
                     apdu_len += len;
+                } else if (len == 0) {
+                    /* a non-empty list element must consume input */
+                    error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                    break;
+                } else if (len == BACNET_STATUS_ERANGE) {
+                    error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    break;
+                } else {
+                    /* malformed list element */
+                    error_code = ERROR_CODE_INVALID_DATA_ENCODING;
+                    break;
                 }
             }
         }

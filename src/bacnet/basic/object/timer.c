@@ -1898,7 +1898,10 @@ int Timer_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
  * @param object_instance [in] BACnet object instance number
  * @param apdu [in] Buffer in which the APDU contents are extracted
  * @param apdu_size [in] The size of the APDU buffer
- * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ * @return number of bytes decoded, or:
+ *    zero if the tag does not match (INVALID_DATA_TYPE)
+ *    BACNET_STATUS_ERANGE if decoded but is out-of-range (VALUE_OUT_OF_RANGE)
+ *    negative if the element is malformed (INVALID_DATA_ENCODING)
  */
 static int Timer_State_Change_Value_Length(
     uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
@@ -1966,18 +1969,30 @@ static BACNET_ERROR_CODE Timer_State_Change_Value_Write(
  * @param object_instance [in] BACnet object instance number
  * @param apdu [in] Buffer in which the APDU contents are extracted
  * @param apdu_size [in] The size of the APDU buffer
- * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ * @return The length of the decoded apdu, or:
+ *    zero if the tag does not match (INVALID_DATA_TYPE),
+ *    BACNET_STATUS_ERANGE if the element decodes but is out-of-range,
+ *    or negative if the element is malformed (INVALID_DATA_ENCODING)
  */
 static int Timer_List_Of_Object_Property_References_Length(
     uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
 {
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE value = { 0 };
     int len = 0;
 
     (void)object_instance;
-    len = bacapp_decode_known_property(
-        apdu, apdu_size, &value, OBJECT_TIMER,
-        PROP_LIST_OF_OBJECT_PROPERTY_REFERENCES);
+    len =
+        bacnet_device_object_property_reference_decode(apdu, apdu_size, &value);
+    if (len > 0) {
+        if (Timer_Reference_List_Member_Empty(&value)) {
+            /* The element value is out of range for the property. */
+            len = BACNET_STATUS_ERANGE;
+        } else if (Timer_Reference_List_Member_Self(object_instance, &value)) {
+            /* The element value is a self-reference with
+                properties that can re-enter Timer transition logic */
+            len = BACNET_STATUS_ERANGE;
+        }
+    }
 
     return len;
 }

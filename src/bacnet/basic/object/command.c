@@ -1154,8 +1154,8 @@ Command_Action_List_Store(const BACNET_ACTION_LIST *entry, void *ctx)
 /**
  * @brief Write one BACnetARRAY element: resize (index 0) or replace a list
  * slot.
- * @note The BACnetActionList element is validated before the slot is
- *  changed, because an indexed write is not validated before this call.
+ * @note The BACnetActionList element was validated by
+ *  Command_Action_List_Member_Decode() before this write.
  */
 static BACNET_ERROR_CODE Command_Action_List_Member_Write(
     uint32_t object_instance,
@@ -1183,13 +1183,6 @@ static BACNET_ERROR_CODE Command_Action_List_Member_Write(
     context.list = Keylist_Data(pObject->Action_Array, (KEY)array_index);
     if (!context.list) {
         return ERROR_CODE_INVALID_ARRAY_INDEX;
-    }
-    /* validate the whole element before the slot is changed */
-    len = bacnet_action_list_decode(apdu, apdu_size, NULL, NULL);
-    if (len == 0) {
-        return ERROR_CODE_INVALID_DATA_TYPE;
-    } else if ((len < 0) || ((size_t)len != apdu_size)) {
-        return ERROR_CODE_INVALID_DATA_ENCODING;
     }
     /* purge then store commands in-place */
     Action_Inner_List_Purge(context.list);

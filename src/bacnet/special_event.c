@@ -254,6 +254,12 @@ bool bacnet_special_event_same(
                 &value1->period.calendarEntry, &value2->period.calendarEntry)) {
             return false;
         }
+    } else if (
+        (value1->period.calendarReference.type !=
+         value2->period.calendarReference.type) ||
+        (value1->period.calendarReference.instance !=
+         value2->period.calendarReference.instance)) {
+        return false;
     }
 
     if (value1->timeValues.TV_Count != value2->timeValues.TV_Count) {
@@ -391,8 +397,10 @@ int bacnet_special_event_entry_context_encode(
  *  get the length
  * @param store_fn - called per decoded time-value; return false to abort
  * @param ctx - caller context passed to store_fn
- * @return length of the APDU buffer, or BACNET_STATUS_ERROR if unable to
- *  decode
+ * @return number of bytes decoded, or:
+ *    zero if the tag does not match (INVALID_DATA_TYPE)
+ *    BACNET_STATUS_ERANGE if decoded but is out-of-range (VALUE_OUT_OF_RANGE)
+ *    BACNET_STATUS_ERROR if the element is malformed (INVALID_DATA_ENCODING)
  */
 int bacnet_special_event_entry_decode(
     const uint8_t *apdu,
@@ -414,6 +422,7 @@ int bacnet_special_event_entry_decode(
     }
     len = bacnet_tag_decode(&apdu[apdu_len], apdu_size - apdu_len, &tag);
     if (len <= 0) {
+        /* the element is malformed (INVALID_DATA_ENCODING) */
         return BACNET_STATUS_ERROR;
     }
     if (tag.opening &&
@@ -426,6 +435,7 @@ int bacnet_special_event_entry_decode(
             &apdu[apdu_len], apdu_size - apdu_len,
             BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY, calendar_entry);
         if (len < 0) {
+            /* the element is malformed (INVALID_DATA_ENCODING) */
             return BACNET_STATUS_ERROR;
         }
         apdu_len += len;
@@ -442,17 +452,20 @@ int bacnet_special_event_entry_decode(
             BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE, object_type,
             object_instance);
         if (len < 0) {
+            /* the element is malformed (INVALID_DATA_ENCODING) */
             return BACNET_STATUS_ERROR;
         }
         apdu_len += len;
     } else {
-        return BACNET_STATUS_ERROR;
+        /* zero if the tag does not match (INVALID_DATA_TYPE) */
+        return 0;
     }
     /* Values [2] - built by the caller via store_fn, since this module
        does not allocate list nodes */
     len = bacnet_dailyschedule_list_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 2, store_fn, ctx);
     if (len < 0) {
+        /* the element is malformed (INVALID_DATA_ENCODING) */
         return BACNET_STATUS_ERROR;
     }
     apdu_len += len;
@@ -463,11 +476,14 @@ int bacnet_special_event_entry_decode(
     /* Priority [3] */
     len = bacnet_unsigned_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 3, &priority);
-    if (len < 0) {
+    if (len <= 0) {
+        /* the element is missing, mistagged, or malformed
+           (INVALID_DATA_ENCODING) */
         return BACNET_STATUS_ERROR;
     }
-    if ((priority == 0) || (priority > BACNET_MAX_PRIORITY)) {
-        return BACNET_STATUS_ERROR;
+    if ((priority < BACNET_MIN_PRIORITY) || (priority > BACNET_MAX_PRIORITY)) {
+        /* if decoded but is out-of-range (VALUE_OUT_OF_RANGE) */
+        return BACNET_STATUS_ERANGE;
     }
     if (value) {
         value->priority = (uint8_t)priority;
@@ -486,8 +502,10 @@ int bacnet_special_event_entry_decode(
  *  get the length
  * @param store_fn - called per decoded time-value; return false to abort
  * @param ctx - caller context passed to store_fn
- * @return length of the APDU buffer, or BACNET_STATUS_ERROR if unable to
- *  decode
+ * @return number of bytes decoded, or:
+ *    zero if the tag does not match (INVALID_DATA_TYPE)
+ *    BACNET_STATUS_ERANGE if decoded but is out-of-range (VALUE_OUT_OF_RANGE)
+ *    BACNET_STATUS_ERROR if the element is malformed (INVALID_DATA_ENCODING)
  */
 int bacnet_special_event_entry_context_decode(
     const uint8_t *apdu,
@@ -508,8 +526,8 @@ int bacnet_special_event_entry_context_decode(
     }
     len = bacnet_special_event_entry_decode(
         &apdu[apdu_len], apdu_size - apdu_len, value, store_fn, ctx);
-    if (len < 0) {
-        return BACNET_STATUS_ERROR;
+    if (len <= 0) {
+        return len;
     }
     apdu_len += len;
     if (bacnet_is_closing_tag_number(

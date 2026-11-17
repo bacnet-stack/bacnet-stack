@@ -731,7 +731,10 @@ static BACNET_ERROR_CODE Structured_View_Subordinate_List_Resize(
  * @param object_instance [in] BACnet network port object instance number
  * @param apdu [in] Buffer in which the APDU contents are extracted
  * @param apdu_size [in] The size of the APDU buffer
- * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ * @return number of bytes decoded, or:
+ *    zero if the tag does not match (INVALID_DATA_TYPE)
+ *    BACNET_STATUS_ERANGE if decoded but is out-of-range (VALUE_OUT_OF_RANGE)
+ *    negative if the element is malformed (INVALID_DATA_ENCODING)
  */
 static int Structured_View_Subordinate_List_Member_Decode(
     uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
@@ -742,6 +745,9 @@ static int Structured_View_Subordinate_List_Member_Decode(
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
         len = bacnet_device_object_reference_decode(apdu, apdu_size, NULL);
+        if (len > 0) {
+            /* optional: is the value in range? */
+        }
     }
 
     return len;
@@ -810,17 +816,27 @@ static BACNET_ERROR_CODE Structured_View_Subordinate_List_Member_Write(
  * @param object_instance [in] BACnet network port object instance number
  * @param apdu [in] Buffer in which the APDU contents are extracted
  * @param apdu_size [in] The size of the APDU buffer
- * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ * @return number of bytes decoded, or:
+ *    zero if the tag does not match (INVALID_DATA_TYPE)
+ *    BACNET_STATUS_ERANGE if decoded but is out-of-range (VALUE_OUT_OF_RANGE)
+ *    negative if the element is malformed (INVALID_DATA_ENCODING)
  */
 static int Structured_View_Subordinate_Annotation_Member_Decode(
     uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
 {
     int len = 0;
     struct object_data *pObject;
+    BACNET_CHARACTER_STRING annotation = { 0 };
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        len = bacnet_character_string_application_decode(apdu, apdu_size, NULL);
+        len = bacnet_character_string_application_decode(
+            apdu, apdu_size, &annotation);
+        if (len > 0) {
+            if (!characterstring_utf8_valid(&annotation)) {
+                len = BACNET_STATUS_ERANGE;
+            }
+        }
     }
 
     return len;
@@ -896,17 +912,26 @@ static BACNET_ERROR_CODE Structured_View_Subordinate_Annotation_Member_Write(
  * @param object_instance [in] BACnet network port object instance number
  * @param apdu [in] Buffer in which the APDU contents are extracted
  * @param apdu_size [in] The size of the APDU buffer
- * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ * @return number of bytes decoded, or:
+ *    zero if the tag does not match (INVALID_DATA_TYPE)
+ *    BACNET_STATUS_ERANGE if decoded but is out-of-range (VALUE_OUT_OF_RANGE)
+ *    negative if the element is malformed (INVALID_DATA_ENCODING)
  */
 static int Structured_View_Subordinate_Node_Type_Member_Decode(
     uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
 {
     int len = 0;
     struct object_data *pObject;
+    uint32_t node_type = 0;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        len = bacnet_enumerated_application_decode(apdu, apdu_size, NULL);
+        len = bacnet_enumerated_application_decode(apdu, apdu_size, &node_type);
+        if (len > 0) {
+            if (node_type >= BACNET_NODE_TYPE_MAX) {
+                len = BACNET_STATUS_ERANGE;
+            }
+        }
     }
 
     return len;
@@ -946,7 +971,7 @@ static BACNET_ERROR_CODE Structured_View_Subordinate_Node_Type_Member_Write(
             len = bacnet_enumerated_application_decode(
                 apdu, apdu_size, &node_type);
             if (len > 0) {
-                if (node_type > BACNET_NODE_TYPE_MAX) {
+                if (node_type >= BACNET_NODE_TYPE_MAX) {
                     error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 } else {
                     element = Subordinate_List_Element(pObject, array_index);
@@ -971,17 +996,27 @@ static BACNET_ERROR_CODE Structured_View_Subordinate_Node_Type_Member_Write(
  * @param object_instance [in] BACnet network port object instance number
  * @param apdu [in] Buffer in which the APDU contents are extracted
  * @param apdu_size [in] The size of the APDU buffer
- * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ * @return number of bytes decoded, or:
+ *    zero if the tag does not match (INVALID_DATA_TYPE)
+ *    BACNET_STATUS_ERANGE if decoded but is out-of-range (VALUE_OUT_OF_RANGE)
+ *    negative if the element is malformed (INVALID_DATA_ENCODING)
  */
 static int Structured_View_Subordinate_Relationship_Member_Decode(
     uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
 {
     int len = 0;
     struct object_data *pObject;
+    uint32_t relationship = 0;
 
     pObject = Keylist_Data(Object_List, object_instance);
     if (pObject) {
-        len = bacnet_enumerated_application_decode(apdu, apdu_size, NULL);
+        len = bacnet_enumerated_application_decode(
+            apdu, apdu_size, &relationship);
+        if (len > 0) {
+            if (relationship > BACNET_RELATIONSHIP_PROPRIETARY_MAX) {
+                len = BACNET_STATUS_ERANGE;
+            }
+        }
     }
 
     return len;
@@ -1707,7 +1742,7 @@ bool Structured_View_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
-                if (value.type.Enumerated > BACNET_NODE_TYPE_MAX) {
+                if (value.type.Enumerated >= BACNET_NODE_TYPE_MAX) {
                     status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;

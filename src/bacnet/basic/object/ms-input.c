@@ -907,7 +907,10 @@ int Multistate_Input_Read_Property(BACNET_READ_PROPERTY_DATA *rpdata)
  * @param object_instance [in] BACnet network port object instance number
  * @param apdu [in] Buffer in which the APDU contents are extracted
  * @param apdu_size [in] The size of the APDU buffer
- * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
+ * @return number of bytes decoded, or:
+ *    zero if the tag does not match (INVALID_DATA_TYPE)
+ *    BACNET_STATUS_ERANGE if decoded but is out-of-range (VALUE_OUT_OF_RANGE)
+ *    negative if the element is malformed (INVALID_DATA_ENCODING)
  */
 static int State_Text_Element_Length(
     uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
@@ -918,6 +921,11 @@ static int State_Text_Element_Length(
     (void)object_instance;
     len = bacnet_character_string_buffer_application_decode(
         apdu, apdu_size, &value);
+    if (len > 0) {
+        if (value.encoding != CHARACTER_UTF8) {
+            len = BACNET_STATUS_ERANGE;
+        }
+    }
 
     return len;
 }

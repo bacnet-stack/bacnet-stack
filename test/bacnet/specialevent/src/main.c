@@ -1,6 +1,7 @@
 /**
  * @file
- * @brief Unit test for BACnetSpecialEvent. This test also indirectly tests
+ * @brief Unit test for BACnetSpecialEvent and its linked-list variant
+ *  BACnetSpecialEventEntry. This test also indirectly tests
  *  BACnetCalendarEntry, BACnetDailySchedule, and BACnetTimeValue.
  * @author Ondřej Hruška <ondra@ondrovo.com>
  * @date Aug 2023
@@ -336,6 +337,288 @@ static void test_BACnetSpecialEvent_DecodeRealAPDU(void)
 }
 
 /**
+ * @brief Test the context tagged, same, and copy API of BACnetSpecialEvent
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(BACnetSpecialEvent_tests, test_BACnetSpecialEvent_ContextSameCopy)
+#else
+static void test_BACnetSpecialEvent_ContextSameCopy(void)
+#endif
+{
+    int len, apdu_len, null_len;
+    uint8_t apdu[MAX_APDU] = { 0 };
+    BACNET_SPECIAL_EVENT in = { 0 };
+    BACNET_SPECIAL_EVENT out = { 0 };
+    BACNET_SPECIAL_EVENT copy = { 0 };
+    const uint8_t tag_number = 4;
+
+    in.periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE;
+    in.period.calendarReference.type = OBJECT_CALENDAR;
+    in.period.calendarReference.instance = 7;
+    in.timeValues.TV_Count = 1;
+    in.timeValues.Time_Values[0].Time.hour = 8;
+    in.timeValues.Time_Values[0].Value.tag =
+        BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    in.timeValues.Time_Values[0].Value.type.Unsigned_Int = 42;
+    in.priority = 8;
+
+    len = bacnet_special_event_context_encode(apdu, tag_number, &in);
+    null_len = bacnet_special_event_context_encode(NULL, tag_number, &in);
+    zassert_true(len > 0, NULL);
+    zassert_equal(len, null_len, NULL);
+    zassert_equal(
+        bacnet_special_event_context_encode(apdu, tag_number, NULL), 0, NULL);
+
+    apdu_len = bacnet_special_event_context_decode(apdu, len, tag_number, &out);
+    zassert_equal(apdu_len, len, "apdu_len=%d len=%d", apdu_len, len);
+    zassert_true(bacnet_special_event_same(&in, &out), NULL);
+
+    /* negative testing */
+    apdu_len =
+        bacnet_special_event_context_decode(apdu, len, tag_number + 1, &out);
+    zassert_equal(apdu_len, BACNET_STATUS_ERROR, NULL);
+    apdu_len =
+        bacnet_special_event_context_decode(apdu, len - 1, tag_number, &out);
+    zassert_equal(apdu_len, BACNET_STATUS_ERROR, NULL);
+
+    /* same */
+    zassert_true(bacnet_special_event_same(&in, &in), NULL);
+    out = in;
+    out.priority = 9;
+    zassert_false(bacnet_special_event_same(&in, &out), NULL);
+    out = in;
+    out.period.calendarReference.instance++;
+    zassert_false(bacnet_special_event_same(&in, &out), NULL);
+    out = in;
+    out.timeValues.Time_Values[0].Value.type.Unsigned_Int++;
+    zassert_false(bacnet_special_event_same(&in, &out), NULL);
+    out = in;
+    out.timeValues.TV_Count = 0;
+    zassert_false(bacnet_special_event_same(&in, &out), NULL);
+    out = in;
+    out.periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY;
+    zassert_false(bacnet_special_event_same(&in, &out), NULL);
+
+    /* copy */
+    zassert_true(bacnet_special_event_copy(&copy, &in), NULL);
+    zassert_true(bacnet_special_event_same(&in, &copy), NULL);
+    zassert_false(bacnet_special_event_copy(NULL, &in), NULL);
+    zassert_false(bacnet_special_event_copy(&copy, NULL), NULL);
+}
+
+#define STORE_MAX 4
+typedef struct {
+    BACNET_TIME_VALUE entries[STORE_MAX];
+    unsigned count;
+    unsigned limit;
+} STORE_CONTEXT;
+
+static bool store_entry(const BACNET_TIME_VALUE *time_value, void *ctx)
+{
+    STORE_CONTEXT *store = ctx;
+
+    if (!time_value || !store || (store->count >= store->limit)) {
+        return false;
+    }
+    store->entries[store->count] = *time_value;
+    store->count++;
+
+    return true;
+}
+
+/**
+ * @brief Test the linked-list BACnetSpecialEvent entry encode/decode API
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(BACnetSpecialEvent_tests, test_BACnetSpecialEventEntry)
+#else
+static void test_BACnetSpecialEventEntry(void)
+#endif
+{
+    int len, apdu_len, null_len, test_len;
+    uint8_t apdu[MAX_APDU] = { 0 };
+    BACNET_DAILY_SCHEDULE_ENTRY tv[2] = { 0 };
+    BACNET_SPECIAL_EVENT_ENTRY in = { 0 };
+    BACNET_SPECIAL_EVENT_ENTRY out = { 0 };
+    BACNET_SPECIAL_EVENT_ENTRY other = { 0 };
+    STORE_CONTEXT store = { 0 };
+    const uint8_t tag_number = 4;
+    unsigned i;
+
+    tv[0].Time_Value.Time.hour = 12;
+    tv[0].Time_Value.Time.min = 30;
+    tv[0].Time_Value.Value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    tv[0].Time_Value.Value.type.Unsigned_Int = 15;
+    tv[0].next = &tv[1];
+    tv[1].Time_Value.Time.hour = 16;
+    tv[1].Time_Value.Time.min = 1;
+    tv[1].Time_Value.Value.tag = BACNET_APPLICATION_TAG_UNSIGNED_INT;
+    tv[1].Time_Value.Value.type.Unsigned_Int = 0;
+
+    /* calendar reference period */
+    in.periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE;
+    in.period.calendarReference.type = OBJECT_CALENDAR;
+    in.period.calendarReference.instance = 5;
+    in.timeValues = &tv[0];
+    in.priority = 5;
+    len = bacnet_special_event_entry_encode(apdu, &in);
+    null_len = bacnet_special_event_entry_encode(NULL, &in);
+    zassert_true(len > 0, NULL);
+    zassert_equal(len, null_len, NULL);
+
+    /* NULL value only measures the length */
+    test_len = bacnet_special_event_entry_decode(apdu, len, NULL, NULL, NULL);
+    zassert_equal(test_len, len, NULL);
+    out.timeValues = &tv[1];
+    store.limit = STORE_MAX;
+    apdu_len =
+        bacnet_special_event_entry_decode(apdu, len, &out, store_entry, &store);
+    zassert_equal(apdu_len, len, NULL);
+    zassert_equal(out.periodTag, in.periodTag, NULL);
+    zassert_equal(out.period.calendarReference.type, OBJECT_CALENDAR, NULL);
+    zassert_equal(out.period.calendarReference.instance, 5, NULL);
+    zassert_equal(out.priority, 5, NULL);
+    zassert_equal(store.count, 2, NULL);
+    for (i = 0; i < store.count; i++) {
+        zassert_true(
+            bacnet_time_value_same(&tv[i].Time_Value, &store.entries[i]), NULL);
+    }
+    /* the caller owns the list, so decode leaves it empty */
+    zassert_equal(out.timeValues, NULL, NULL);
+
+    /* calendar entry period with an empty list */
+    memset(&store, 0, sizeof(store));
+    store.limit = STORE_MAX;
+    memset(&in, 0, sizeof(in));
+    in.periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY;
+    in.period.calendarEntry.tag = BACNET_CALENDAR_WEEK_N_DAY;
+    in.period.calendarEntry.type.WeekNDay.month = 0xff;
+    in.period.calendarEntry.type.WeekNDay.dayofweek = 1;
+    in.period.calendarEntry.type.WeekNDay.weekofmonth = 0xff;
+    in.priority = 16;
+    len = bacnet_special_event_entry_encode(apdu, &in);
+    null_len = bacnet_special_event_entry_encode(NULL, &in);
+    zassert_true(len > 0, NULL);
+    zassert_equal(len, null_len, NULL);
+    memset(&out, 0, sizeof(out));
+    apdu_len =
+        bacnet_special_event_entry_decode(apdu, len, &out, store_entry, &store);
+    zassert_equal(apdu_len, len, NULL);
+    zassert_equal(store.count, 0, NULL);
+    zassert_true(bacnet_special_event_entry_same(&in, &out), NULL);
+
+    /* context tagged */
+    len = bacnet_special_event_entry_context_encode(apdu, tag_number, &in);
+    null_len = bacnet_special_event_entry_context_encode(NULL, tag_number, &in);
+    zassert_true(len > 0, NULL);
+    zassert_equal(len, null_len, NULL);
+    zassert_equal(
+        bacnet_special_event_entry_context_encode(apdu, tag_number, NULL),
+        BACNET_STATUS_ERROR, NULL);
+    memset(&out, 0, sizeof(out));
+    apdu_len = bacnet_special_event_entry_context_decode(
+        apdu, len, tag_number, &out, store_entry, &store);
+    zassert_equal(apdu_len, len, NULL);
+    zassert_true(bacnet_special_event_entry_same(&in, &out), NULL);
+    apdu_len = bacnet_special_event_entry_context_decode(
+        apdu, len, tag_number, NULL, NULL, NULL);
+    zassert_equal(apdu_len, len, NULL);
+
+    /* negative testing - encode */
+    zassert_equal(
+        bacnet_special_event_entry_encode(apdu, NULL), BACNET_STATUS_ERROR,
+        NULL);
+
+    /* negative testing - context decode */
+    apdu_len = bacnet_special_event_entry_context_decode(
+        apdu, len, tag_number + 1, &out, store_entry, &store);
+    zassert_equal(apdu_len, BACNET_STATUS_ERROR, NULL);
+    apdu_len = bacnet_special_event_entry_context_decode(
+        apdu, len - 1, tag_number, &out, store_entry, &store);
+    zassert_equal(apdu_len, BACNET_STATUS_ERROR, NULL);
+
+    /* negative testing - decode */
+    zassert_equal(
+        bacnet_special_event_entry_decode(NULL, len, &out, store_entry, &store),
+        BACNET_STATUS_ERROR, NULL);
+    zassert_equal(
+        bacnet_special_event_entry_decode(apdu, 0, &out, store_entry, &store),
+        BACNET_STATUS_ERROR, NULL);
+    /* every truncation of a valid encoding is malformed */
+    len = bacnet_special_event_entry_encode(apdu, &in);
+    for (test_len = 1; test_len < len; test_len++) {
+        apdu_len = bacnet_special_event_entry_decode(
+            apdu, test_len, &out, store_entry, &store);
+        zassert_true(apdu_len < 0, "test_len=%d", test_len);
+    }
+    /* a tag that is not a period returns zero */
+    apdu[0] = 0x2C; /* context tag 2, length 4 */
+    zassert_equal(
+        bacnet_special_event_entry_decode(apdu, len, &out, NULL, NULL), 0,
+        NULL);
+    /* priority out of range */
+    in.priority = 0;
+    len = bacnet_special_event_entry_encode(apdu, &in);
+    zassert_equal(
+        bacnet_special_event_entry_decode(apdu, len, &out, NULL, NULL),
+        BACNET_STATUS_ERANGE, NULL);
+    in.priority = BACNET_MAX_PRIORITY + 1;
+    len = bacnet_special_event_entry_encode(apdu, &in);
+    zassert_equal(
+        bacnet_special_event_entry_decode(apdu, len, &out, NULL, NULL),
+        BACNET_STATUS_ERANGE, NULL);
+    /* context decode passes the range error through */
+    len = bacnet_special_event_entry_context_encode(apdu, tag_number, &in);
+    zassert_equal(
+        bacnet_special_event_entry_context_decode(
+            apdu, len, tag_number, &out, NULL, NULL),
+        BACNET_STATUS_ERANGE, NULL);
+    /* store_fn aborts the decode */
+    memset(&in, 0, sizeof(in));
+    in.periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE;
+    in.period.calendarReference.type = OBJECT_CALENDAR;
+    in.timeValues = &tv[0];
+    in.priority = 1;
+    len = bacnet_special_event_entry_encode(apdu, &in);
+    memset(&store, 0, sizeof(store));
+    store.limit = 1;
+    zassert_equal(
+        bacnet_special_event_entry_decode(apdu, len, &out, store_entry, &store),
+        BACNET_STATUS_ERROR, NULL);
+
+    /* same */
+    memset(&other, 0, sizeof(other));
+    zassert_false(bacnet_special_event_entry_same(NULL, &in), NULL);
+    zassert_false(bacnet_special_event_entry_same(&in, NULL), NULL);
+    zassert_true(bacnet_special_event_entry_same(&in, &in), NULL);
+    other = in;
+    other.priority = 2;
+    zassert_false(bacnet_special_event_entry_same(&in, &other), NULL);
+    other = in;
+    other.period.calendarReference.instance++;
+    zassert_false(bacnet_special_event_entry_same(&in, &other), NULL);
+    other = in;
+    other.period.calendarReference.type = OBJECT_SCHEDULE;
+    zassert_false(bacnet_special_event_entry_same(&in, &other), NULL);
+    other = in;
+    other.timeValues = &tv[1];
+    zassert_false(bacnet_special_event_entry_same(&in, &other), NULL);
+    other = in;
+    other.periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY;
+    zassert_false(bacnet_special_event_entry_same(&in, &other), NULL);
+    in.periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY;
+    in.period.calendarEntry.tag = BACNET_CALENDAR_DATE;
+    in.period.calendarEntry.type.Date.year = 2155;
+    in.period.calendarEntry.type.Date.month = 10;
+    in.period.calendarEntry.type.Date.day = 28;
+    in.period.calendarEntry.type.Date.wday = 0xff;
+    other = in;
+    zassert_true(bacnet_special_event_entry_same(&in, &other), NULL);
+    other.period.calendarEntry.type.Date.day = 29;
+    zassert_false(bacnet_special_event_entry_same(&in, &other), NULL);
+}
+
+/**
  * @}
  */
 
@@ -350,7 +633,9 @@ void test_main(void)
         ztest_unit_test(test_BACnetSpecialEvent_Date),
         ztest_unit_test(test_BACnetSpecialEvent_DateRange),
         ztest_unit_test(test_BACnetSpecialEvent_WeekNDate),
-        ztest_unit_test(test_BACnetSpecialEvent_DecodeRealAPDU));
+        ztest_unit_test(test_BACnetSpecialEvent_DecodeRealAPDU),
+        ztest_unit_test(test_BACnetSpecialEvent_ContextSameCopy),
+        ztest_unit_test(test_BACnetSpecialEventEntry));
 
     ztest_run_test_suite(BACnetSpecialEvent_tests);
 }

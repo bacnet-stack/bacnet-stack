@@ -244,5 +244,6 @@ typedef struct BACnet_Object_Id {
 #define BACNET_STATUS_ERROR (-1)
 #define BACNET_STATUS_ABORT (-2)
 #define BACNET_STATUS_REJECT (-3)
+#define BACNET_STATUS_ERANGE (-4)
 
 #endif

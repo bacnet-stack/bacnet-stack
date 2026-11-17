@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief BACnetActionCommand codec used by Command objects
+ * @brief BACnetAuditValue codec used by Audit Log object type
  * @author Steve Karg <skarg@users.sourceforge.net>
  * @date November 2024
  * @copyright SPDX-License-Identifier: GPL-2.0-or-later WITH GCC-exception-2.0
