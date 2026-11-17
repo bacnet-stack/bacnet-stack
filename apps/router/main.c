@@ -61,8 +61,6 @@ uint16_t get_next_free_dnet(void);
 
 int kbhit(void);
 
-bool is_network_msg(const BACMSG *msg);
-
 int main(int argc, char *argv[])
 {
     ROUTER_PORT *port;
@@ -850,19 +848,6 @@ int kbhit(void)
 
     ioctl(STDIN, FIONREAD, &bytesWaiting);
     return bytesWaiting;
-}
-
-bool is_network_msg(const BACMSG *msg)
-{
-    uint8_t control_byte; /* NPDU control byte */
-    const MSG_DATA *data = (const MSG_DATA *)msg->data;
-
-    if (data->pdu_len < 2) {
-        return false;
-    }
-    control_byte = data->pdu[1];
-
-    return control_byte & 0x80; /* check 7th bit */
 }
 
 uint16_t get_next_free_dnet(void)

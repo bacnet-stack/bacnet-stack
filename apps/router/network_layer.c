@@ -236,6 +236,19 @@ process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff)
     return buff_len;
 }
 
+bool is_network_msg(const BACMSG *msg)
+{
+    uint8_t control_byte; /* NPDU control byte */
+    const MSG_DATA *data = (const MSG_DATA *)msg->data;
+
+    if (data->pdu_len < 2) {
+        return false;
+    }
+    control_byte = data->pdu[1];
+
+    return control_byte & 0x80; /* check 7th bit */
+}
+
 uint16_t create_network_message(
     BACNET_NETWORK_MESSAGE_TYPE network_message_type,
     MSG_DATA *data,
