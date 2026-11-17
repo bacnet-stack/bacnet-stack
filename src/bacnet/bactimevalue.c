@@ -228,8 +228,7 @@ int bacnet_primitive_value_application_decode(
             break;
     }
     if ((len == 0) && (tag_data_type != BACNET_APPLICATION_TAG_NULL) &&
-        (tag_data_type != BACNET_APPLICATION_TAG_BOOLEAN) &&
-        (tag_data_type != BACNET_APPLICATION_TAG_OCTET_STRING)) {
+        (tag_data_type != BACNET_APPLICATION_TAG_BOOLEAN)) {
         /* indicate that we were not able to decode the value */
         local_value.tag = MAX_BACNET_APPLICATION_TAG;
     }
@@ -253,21 +252,24 @@ int bacnet_primitive_value_decode(
     int len = 0;
     int apdu_len = 0;
     BACNET_TAG tag = { 0 };
+    BACNET_PRIMITIVE_DATA_VALUE local_value = { 0 };
 
     if (!apdu || (apdu_size == 0)) {
         return BACNET_STATUS_ERROR;
     }
+    if (!value) {
+        /* still validate that the data is a storable primitive value */
+        value = &local_value;
+    }
     len = bacnet_tag_decode(apdu, apdu_size, &tag);
     if ((len > 0) && tag.application) {
-        if (value) {
-            value->tag = tag.number;
-        }
+        value->tag = tag.number;
         apdu_len += len;
         len = bacnet_primitive_value_application_decode(
             &apdu[apdu_len], apdu_size - apdu_len, tag.number,
             tag.len_value_type, value);
         if (len >= 0) {
-            if (value && (value->tag == MAX_BACNET_APPLICATION_TAG)) {
+            if (value->tag == MAX_BACNET_APPLICATION_TAG) {
                 /* not a primitive value we can store */
                 apdu_len = BACNET_STATUS_ERROR;
             } else {
