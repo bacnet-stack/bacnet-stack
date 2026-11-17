@@ -430,6 +430,40 @@ static void test_create_object_writable(void)
     zassert_equal(apdu_len, 0, NULL);
 }
 
+/**
+ * @brief Test that an initial value is bounded by the remaining buffer
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(create_object_tests, test_create_object_initial_value_offset)
+#else
+static void test_create_object_initial_value_offset(void)
+#endif
+{
+    uint8_t apdu[32] = { 0 };
+    uint8_t data[16] = { 0 };
+    BACNET_CREATE_OBJECT_PROPERTY_VALUE value = { 0 };
+    size_t len;
+
+    value.propertyIdentifier = PROP_OBJECT_NAME;
+    value.propertyArrayIndex = BACNET_ARRAY_ALL;
+    value.priority = BACNET_NO_PRIORITY;
+    value.application_data = data;
+    value.application_data_len = (int)sizeof(data);
+    len =
+        create_object_initial_value_data_encode(apdu, sizeof(apdu), 0, &value);
+    zassert_true(len > 0 && len <= sizeof(apdu), NULL);
+    /* fits on its own, but not at the offset */
+    len = create_object_initial_value_data_encode(
+        apdu, sizeof(apdu), (int)sizeof(apdu) - 4, &value);
+    zassert_equal(len, 0, NULL);
+    len = create_object_initial_value_data_encode(
+        apdu, sizeof(apdu), (int)sizeof(apdu) + 1, &value);
+    zassert_equal(len, 0, NULL);
+    len =
+        create_object_initial_value_data_encode(apdu, sizeof(apdu), -1, &value);
+    zassert_equal(len, 0, NULL);
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(create_object_tests, NULL, NULL, NULL, NULL, NULL);
 #else
@@ -439,7 +473,8 @@ void test_main(void)
         create_object_tests, ztest_unit_test(test_CreateObject),
         ztest_unit_test(test_CreateObjectACK),
         ztest_unit_test(test_CreateObjectError),
-        ztest_unit_test(test_create_object_writable));
+        ztest_unit_test(test_create_object_writable),
+        ztest_unit_test(test_create_object_initial_value_offset));
 
     ztest_run_test_suite(create_object_tests);
 }

@@ -119,8 +119,12 @@ size_t create_object_initial_value_data_encode(
 {
     size_t apdu_len = 0; /* total length of the apdu, return value */
 
+    if (!value || (offset < 0) || ((size_t)offset > apdu_size)) {
+        return 0;
+    }
     apdu_len = create_object_encode_initial_value_data(NULL, offset, value);
-    if (apdu_len > apdu_size) {
+    /* the value is written at apdu + offset, so it must fit in what remains */
+    if (apdu_len > (apdu_size - (size_t)offset)) {
         apdu_len = 0;
     } else {
         apdu_len = create_object_encode_initial_value_data(apdu, offset, value);
