@@ -8,6 +8,7 @@
  */
 
 #include <zephyr/ztest.h>
+#include <string.h>
 #include <bacnet/bacstr.h>
 #include <bacnet/bacdcode.h>
 #include <bacnet/basic/object/schedule.h>
@@ -622,6 +623,103 @@ static void testScheduleCalendarPresentValueUpdate(void)
         BACNET_MAX_INSTANCE, &test_date, &test_time);
     Schedule_Calendar_Present_Value_Update(object_instance, NULL, &test_time);
     Schedule_Calendar_Present_Value_Update(object_instance, &test_date, NULL);
+
+    status = Schedule_Delete(object_instance);
+    zassert_true(status, NULL);
+#endif
+}
+
+/**
+ * @brief Test that the Exception_Schedule storage layer rejects a
+ *  CalendarReference period that names a non-Calendar object, and that
+ *  a rejected append or replacement leaves the schedule unchanged
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(schedule_tests, testScheduleExceptionScheduleCalendarReferenceType)
+#else
+static void testScheduleExceptionScheduleCalendarReferenceType(void)
+#endif
+{
+#if BACNET_EXCEPTION_SCHEDULE_SIZE
+    uint32_t object_instance;
+    BACNET_DAILY_SCHEDULE_ENTRY entry = { 0 };
+    BACNET_DAILY_SCHEDULE_ENTRY test_entry = { 0 };
+    BACNET_SPECIAL_EVENT_ENTRY good = { 0 };
+    BACNET_SPECIAL_EVENT_ENTRY bad = { 0 };
+    BACNET_SPECIAL_EVENT_ENTRY test_event = { 0 };
+    size_t test_count = 0;
+    bool status;
+
+    object_instance = Schedule_Create(BACNET_MAX_INSTANCE);
+    zassert_not_equal(object_instance, BACNET_MAX_INSTANCE, NULL);
+    datetime_set_time(&entry.Time_Value.Time, 8, 0, 0, 0);
+    entry.Time_Value.Value.tag = BACNET_APPLICATION_TAG_REAL;
+    entry.Time_Value.Value.type.Real = 10.0f;
+    entry.next = NULL;
+    good.periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE;
+    good.period.calendarReference.type = OBJECT_CALENDAR;
+    good.period.calendarReference.instance = 5;
+    good.priority = 3;
+    good.timeValues = &entry;
+    bad = good;
+    bad.period.calendarReference.type = OBJECT_CHARACTERSTRING_VALUE;
+    bad.period.calendarReference.instance = 9;
+    bad.priority = 7;
+
+    /* append of a non-Calendar reference is rejected */
+    status = Schedule_Exception_Schedule_Add(object_instance, &bad);
+    zassert_false(status, NULL);
+    zassert_equal(Schedule_Exception_Schedule_Count(object_instance), 0, NULL);
+    status = Schedule_Exception_Schedule_Set(object_instance, 0, &bad);
+    zassert_false(status, NULL);
+    zassert_equal(Schedule_Exception_Schedule_Count(object_instance), 0, NULL);
+
+    /* a Calendar reference is accepted */
+    status = Schedule_Exception_Schedule_Add(object_instance, &good);
+    zassert_true(status, NULL);
+    zassert_equal(Schedule_Exception_Schedule_Count(object_instance), 1, NULL);
+
+    /* appending a non-Calendar reference leaves the existing entry */
+    status = Schedule_Exception_Schedule_Add(object_instance, &bad);
+    zassert_false(status, NULL);
+    status = Schedule_Exception_Schedule_Set(object_instance, 1, &bad);
+    zassert_false(status, NULL);
+    zassert_equal(Schedule_Exception_Schedule_Count(object_instance), 1, NULL);
+
+    /* replacing with a non-Calendar reference leaves the stored entry */
+    status = Schedule_Exception_Schedule_Set(object_instance, 0, &bad);
+    zassert_false(status, NULL);
+    zassert_equal(Schedule_Exception_Schedule_Count(object_instance), 1, NULL);
+    status = Schedule_Exception_Schedule(
+        object_instance, 0, &test_event, &test_entry, 1, &test_count);
+    zassert_true(status, NULL);
+    zassert_equal(test_count, 1, NULL);
+    zassert_true(bacnet_special_event_entry_same(&good, &test_event), NULL);
+    zassert_equal(
+        test_event.period.calendarReference.type, OBJECT_CALENDAR, NULL);
+    zassert_equal(test_event.period.calendarReference.instance, 5, NULL);
+    zassert_equal(test_event.priority, 3, NULL);
+    zassert_within(test_entry.Time_Value.Value.type.Real, 10.0f, 0.001f, NULL);
+
+    /* a rejected replacement also preserves an entry that holds a
+       CalendarEntry period */
+    good.periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY;
+    memset(&good.period, 0, sizeof(good.period));
+    good.period.calendarEntry.tag = BACNET_CALENDAR_WEEK_N_DAY;
+    good.period.calendarEntry.type.WeekNDay.month = 0xff;
+    good.period.calendarEntry.type.WeekNDay.dayofweek = 1;
+    good.period.calendarEntry.type.WeekNDay.weekofmonth = 0xff;
+    status = Schedule_Exception_Schedule_Set(object_instance, 0, &good);
+    zassert_true(status, NULL);
+    status = Schedule_Exception_Schedule_Set(object_instance, 0, &bad);
+    zassert_false(status, NULL);
+    status = Schedule_Exception_Schedule(
+        object_instance, 0, &test_event, &test_entry, 1, &test_count);
+    zassert_true(status, NULL);
+    zassert_true(bacnet_special_event_entry_same(&good, &test_event), NULL);
+    zassert_equal(
+        test_event.periodTag, BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY, NULL);
+    zassert_equal(Schedule_Exception_Schedule_Count(object_instance), 1, NULL);
 
     status = Schedule_Delete(object_instance);
     zassert_true(status, NULL);
@@ -1354,6 +1452,7 @@ void test_main(void)
     ztest_test_suite(
         schedule_tests, ztest_unit_test(testSchedule),
         ztest_unit_test(testScheduleCalendarPresentValueUpdate),
+        ztest_unit_test(testScheduleExceptionScheduleCalendarReferenceType),
         ztest_unit_test(testScheduleTimerSkipsWhenClockReadFails),
         ztest_unit_test(testScheduleTimerEffectivePeriod),
         ztest_unit_test(testScheduleWriteMembersOnValueChange),
