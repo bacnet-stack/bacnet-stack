@@ -2353,6 +2353,11 @@ static void test_bacnet_array_encode(void)
         object_instance, apdu_index, bacnet_apdu_property_zero_element_encode,
         array_count, apdu, sizeof(apdu));
     zassert_true(apdu_len == 0, NULL);
+    /* ALL - an element fails to encode */
+    apdu_len = bacnet_array_encode(
+        object_instance, apdu_index, bacnet_apdu_property_element_encode, 2,
+        apdu, sizeof(apdu));
+    zassert_equal(apdu_len, BACNET_STATUS_ERROR, "len=%d", apdu_len);
 }
 
 static unsigned Array_Write_Count;
