@@ -1205,6 +1205,10 @@ static bool Special_Event_Data_Set(
     if (!event || !value || (value->priority > BACNET_MAX_PRIORITY)) {
         return false;
     }
+    if ((value->periodTag == BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE) &&
+        (value->period.calendarReference.type != OBJECT_CALENDAR)) {
+        return false;
+    }
     event->periodTag = value->periodTag;
     memcpy(&event->period, &value->period, sizeof(event->period));
     event->priority = value->priority;
@@ -2528,6 +2532,7 @@ static const BACNET_TIME_VALUE *Schedule_Weekly_Day_Current_Time_Value(
 /* registered by the Device object so a CalendarReference period can be
    resolved without a build dependency on the Calendar object */
 static read_property_function Read_Property_Internal_Callback;
+static uint8_t Read_Property_Buffer[MAX_APDU];
 
 /**
  * @brief Sets callback used to resolve Exception_Schedule CalendarReference
@@ -2549,9 +2554,8 @@ static bool Schedule_Special_Event_In_Effect(
     const struct special_event_data *event, const BACNET_DATE *date)
 {
     BACNET_READ_PROPERTY_DATA rp_data = { 0 };
-    uint8_t apdu[8];
-    int apdu_len;
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    int apdu_len = 0, len = 0;
+    bool boolean_value = false;
 
     if (event->periodTag == BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_ENTRY) {
         return bacapp_date_in_calendar_entry(
@@ -2560,26 +2564,32 @@ static bool Schedule_Special_Event_In_Effect(
     /* CalendarReference: ask the Device dispatcher to read the referenced
        object's Present_Value, since this module has no direct dependency
        on the Calendar object */
-    if (!Read_Property_Internal_Callback) {
+    if (!Read_Property_Internal_Callback ||
+        (event->period.calendarReference.type != OBJECT_CALENDAR)) {
         return false;
     }
     rp_data.object_type = event->period.calendarReference.type;
     rp_data.object_instance = event->period.calendarReference.instance;
     rp_data.object_property = PROP_PRESENT_VALUE;
     rp_data.array_index = BACNET_ARRAY_ALL;
-    rp_data.application_data = apdu;
-    rp_data.application_data_len = sizeof(apdu);
+    rp_data.application_data = Read_Property_Buffer;
+    rp_data.application_data_len = sizeof(Read_Property_Buffer);
     rp_data.error_class = ERROR_CLASS_PROPERTY;
     rp_data.error_code = ERROR_CODE_UNKNOWN_PROPERTY;
     apdu_len = Read_Property_Internal_Callback(&rp_data);
     if (apdu_len <= 0) {
         return false;
     }
-    if (bacapp_decode_application_data(apdu, (uint32_t)apdu_len, &value) <= 0) {
-        return false;
+    if (apdu_len > 0) {
+        /* expecting only an application tagged BOOLEAN value */
+        len = bacnet_boolean_application_decode(
+            Read_Property_Buffer, apdu_len, &boolean_value);
+        if (len > 0) {
+            return boolean_value;
+        }
     }
 
-    return (value.tag == BACNET_APPLICATION_TAG_BOOLEAN) && value.type.Boolean;
+    return false;
 }
 #endif
 
