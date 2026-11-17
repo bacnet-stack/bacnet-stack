@@ -205,10 +205,10 @@ ZTEST(BACnetTimeValue_tests, test_BACnetPrimitiveValueRejects)
 static void test_BACnetPrimitiveValueRejects(void)
 #endif
 {
-    /* zero-length and non-empty OCTET_STRING, zero-length CharacterString */
+    /* zero-length and non-empty OCTET_STRING, empty UTF-8 CharacterString */
     const uint8_t empty_octets[] = { 0x60 };
     const uint8_t octets[] = { 0x62, 0x01, 0x02 };
-    const uint8_t empty_string[] = { 0x70 };
+    const uint8_t empty_string[] = { 0x71, 0x00 };
     BACNET_PRIMITIVE_DATA_VALUE value = { 0 };
 
     zassert_equal(
