@@ -928,7 +928,7 @@ static int Structured_View_Subordinate_Node_Type_Member_Decode(
     if (pObject) {
         len = bacnet_enumerated_application_decode(apdu, apdu_size, &node_type);
         if (len > 0) {
-            if (node_type > BACNET_NODE_TYPE_MAX) {
+            if (node_type >= BACNET_NODE_TYPE_MAX) {
                 len = BACNET_STATUS_ERANGE;
             }
         }
@@ -971,7 +971,7 @@ static BACNET_ERROR_CODE Structured_View_Subordinate_Node_Type_Member_Write(
             len = bacnet_enumerated_application_decode(
                 apdu, apdu_size, &node_type);
             if (len > 0) {
-                if (node_type > BACNET_NODE_TYPE_MAX) {
+                if (node_type >= BACNET_NODE_TYPE_MAX) {
                     error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 } else {
                     element = Subordinate_List_Element(pObject, array_index);
@@ -1742,7 +1742,7 @@ bool Structured_View_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_ENUMERATED);
             if (status) {
-                if (value.type.Enumerated > BACNET_NODE_TYPE_MAX) {
+                if (value.type.Enumerated >= BACNET_NODE_TYPE_MAX) {
                     status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
