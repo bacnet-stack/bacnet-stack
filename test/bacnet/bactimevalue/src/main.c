@@ -195,6 +195,37 @@ static void test_BACnetTimeValues(void)
     zassert_true(status, NULL);
     test_BACnetTimeValue(&time_value);
 }
+
+/**
+ * @brief Test that non-primitive-storable application tags are rejected
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(BACnetTimeValue_tests, test_BACnetPrimitiveValueRejects)
+#else
+static void test_BACnetPrimitiveValueRejects(void)
+#endif
+{
+    /* zero-length and non-empty OCTET_STRING, zero-length CharacterString */
+    const uint8_t empty_octets[] = { 0x60 };
+    const uint8_t octets[] = { 0x62, 0x01, 0x02 };
+    const uint8_t empty_string[] = { 0x70 };
+    BACNET_PRIMITIVE_DATA_VALUE value = { 0 };
+
+    zassert_equal(
+        bacnet_primitive_value_decode(
+            empty_octets, sizeof(empty_octets), &value),
+        BACNET_STATUS_ERROR, NULL);
+    zassert_equal(
+        bacnet_primitive_value_decode(empty_octets, sizeof(empty_octets), NULL),
+        BACNET_STATUS_ERROR, NULL);
+    zassert_equal(
+        bacnet_primitive_value_decode(octets, sizeof(octets), &value),
+        BACNET_STATUS_ERROR, NULL);
+    zassert_equal(
+        bacnet_primitive_value_decode(
+            empty_string, sizeof(empty_string), &value),
+        BACNET_STATUS_ERROR, NULL);
+}
 /**
  * @}
  */
@@ -205,7 +236,8 @@ ZTEST_SUITE(BACnetTimeValue_tests, NULL, NULL, NULL, NULL, NULL);
 void test_main(void)
 {
     ztest_test_suite(
-        BACnetTimeValue_tests, ztest_unit_test(test_BACnetTimeValues));
+        BACnetTimeValue_tests, ztest_unit_test(test_BACnetTimeValues),
+        ztest_unit_test(test_BACnetPrimitiveValueRejects));
 
     ztest_run_test_suite(BACnetTimeValue_tests);
 }
