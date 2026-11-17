@@ -113,21 +113,29 @@ int main(int argc, char *argv[])
             switch (bacmsg->type) {
                 case DATA: {
                     MSGBOX_ID msg_src = bacmsg->origin;
+                    /* bacmsg is msg_storage, which is reused for sending */
+                    MSG_DATA *rx_data = (MSG_DATA *)bacmsg->data;
+                    bool network_msg;
 
                     /* allocate message structure */
                     msg_data = malloc(sizeof(MSG_DATA));
                     if (!msg_data) {
                         PRINT(ERROR, "Error: Could not allocate memory\n");
+                        free_data(rx_data);
                         break;
                     }
 
                     /* print_msg(bacmsg); */
 
-                    if (is_network_msg(bacmsg)) {
+                    /* the received message is freed below, so remember
+                       its type now */
+                    network_msg = is_network_msg(bacmsg);
+                    if (network_msg) {
                         buff_len =
                             process_network_message(bacmsg, msg_data, &buff);
                         if (buff_len == 0) {
-                            free_data(bacmsg->data);
+                            free_data(rx_data);
+                            free(msg_data);
                             break;
                         }
                     } else {
@@ -149,7 +157,7 @@ int main(int argc, char *argv[])
 
                         /* print_msg(bacmsg); */
 
-                        if (is_network_msg(bacmsg)) {
+                        if (network_msg) {
                             msg_data->ref_count = 1;
                             send_to_msgbox(msg_src, &msg_storage);
                         } else if (
@@ -180,8 +188,11 @@ int main(int argc, char *argv[])
                     } else {
                         /* if invalid message send Reject-Message-To-Network */
                         PRINT(ERROR, "Error: Invalid message\n");
-                        free_data(msg_data);
+                        /* the PDU is shared with rx_data and freed with it */
+                        free(msg_data);
                     }
+                    /* the received message is no longer needed */
+                    free_data(rx_data);
                 } break;
                 case SERVICE:
                 default:
@@ -775,6 +786,10 @@ uint16_t process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
 
     apdu_offset = bacnet_npdu_decode(
         data->pdu, data->pdu_len, &data->dest, &addr, &npdu_data);
+    if (apdu_offset <= 0) {
+        /* malformed NPDU: discard */
+        return -2;
+    }
     apdu_len = data->pdu_len - apdu_offset;
 
     srcport = find_snet(msg->origin);
@@ -814,9 +829,6 @@ uint16_t process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
         return -1;
     }
 
-    /* delete received message */
-    free_data((MSG_DATA *)msg->data);
-
     return buff_len;
 }
 
@@ -845,6 +857,9 @@ bool is_network_msg(const BACMSG *msg)
     uint8_t control_byte; /* NPDU control byte */
     const MSG_DATA *data = (const MSG_DATA *)msg->data;
 
+    if (data->pdu_len < 2) {
+        return false;
+    }
     control_byte = data->pdu[1];
 
     return control_byte & 0x80; /* check 7th bit */
