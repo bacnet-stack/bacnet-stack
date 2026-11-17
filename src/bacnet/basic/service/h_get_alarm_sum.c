@@ -47,6 +47,7 @@ void handler_get_alarm_summary(
     int alarm_value = 0;
     unsigned i = 0;
     unsigned j = 0;
+    size_t apdu_size = 0;
     bool error = false;
     BACNET_ADDRESS my_address;
     BACNET_NPDU_DATA npdu_data;
@@ -68,7 +69,24 @@ void handler_get_alarm_summary(
                     "Sending Abort!\n");
         goto GET_ALARM_SUMMARY_ABORT;
     }
+    /* the reply must fit the transmit buffer, our APDU size,
+       and the APDU size accepted by the requester */
+    apdu_size = sizeof(Handler_Transmit_Buffer) - pdu_len;
+    if (apdu_size > MAX_APDU) {
+        apdu_size = MAX_APDU;
+    }
+    if (service_data->max_resp < 0) {
+        apdu_size = 0;
+    } else if (apdu_size > (size_t)service_data->max_resp) {
+        apdu_size = (size_t)service_data->max_resp;
+    }
     /* init header */
+    apdu_len = get_alarm_summary_ack_encode_apdu_init(NULL, 0);
+    if ((size_t)apdu_len > apdu_size) {
+        len = BACNET_STATUS_ABORT;
+        error = true;
+        goto GET_ALARM_SUMMARY_ERROR;
+    }
     apdu_len = get_alarm_summary_ack_encode_apdu_init(
         &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id);
 
@@ -79,7 +97,7 @@ void handler_get_alarm_summary(
                 if (alarm_value > 0) {
                     len = get_alarm_summary_ack_encode_apdu_data(
                         &Handler_Transmit_Buffer[pdu_len + apdu_len],
-                        service_data->max_resp - apdu_len, &getalarm_data);
+                        apdu_size - (size_t)apdu_len, &getalarm_data);
                     if (len <= 0) {
                         error = true;
                         goto GET_ALARM_SUMMARY_ERROR;
