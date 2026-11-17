@@ -549,6 +549,9 @@ int bacnet_npdu_decode(
                         }
                     }
                 }
+            } else {
+                /* DNET and DLEN are missing: truncated message */
+                return -1;
             }
         }
         /* zero out the destination address */
@@ -586,6 +589,9 @@ int bacnet_npdu_decode(
                         }
                     }
                 }
+            } else {
+                /* SNET and SLEN are missing: truncated message */
+                return -1;
             }
         } else if (src) {
             /* Clear the net number, with one exception: if the receive()
@@ -607,7 +613,8 @@ int bacnet_npdu_decode(
             if (pdu_len > len) {
                 npdu_data->hop_count = npdu[len++];
             } else {
-                npdu_data->hop_count = 0;
+                /* Hop Count is missing: truncated message */
+                return -1;
             }
         } else {
             npdu_data->hop_count = 0;
@@ -625,8 +632,14 @@ int bacnet_npdu_decode(
                     if (pdu_len >= (len + 2)) {
                         len += decode_unsigned16(
                             &npdu[len], &npdu_data->vendor_id);
+                    } else {
+                        /* Vendor ID is missing: truncated message */
+                        return -1;
                     }
                 }
+            } else {
+                /* Message Type is missing: truncated message */
+                return -1;
             }
         } else {
             /* Since npdu_data->network_layer_message is false,

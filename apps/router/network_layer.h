@@ -27,6 +27,8 @@
 uint16_t
 process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff);
 
+bool is_network_msg(const BACMSG *msg);
+
 uint16_t create_network_message(
     BACNET_NETWORK_MESSAGE_TYPE network_message_type,
     MSG_DATA *data,

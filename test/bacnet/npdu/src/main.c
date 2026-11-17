@@ -66,12 +66,8 @@ static void test_NPDU_Network(void)
         len--;
         test_len =
             bacnet_npdu_decode(pdu, len, &npdu_dest, &npdu_src, &npdu_data);
-        if (len == 2) {
-            /* special case with no NPDU options */
-            zassert_equal(len, test_len, NULL);
-        } else {
-            zassert_true(test_len <= 0, "len=%d test_len=%d\n", len, test_len);
-        }
+        /* network message type is required, so every short PDU is invalid */
+        zassert_true(test_len <= 0, "len=%d test_len=%d\n", len, test_len);
     }
 }
 
@@ -685,6 +681,52 @@ static void test_NPDU_Init_Routing_Table_Process(void)
     zassert_equal(cb_data.net[0], 300, NULL);
 }
 
+/**
+ * @brief Test that headers missing control-flag-selected fields are rejected
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(npdu_tests, test_NPDU_Decode_Truncated)
+#else
+static void test_NPDU_Decode_Truncated(void)
+#endif
+{
+    /* network message flag, but no message type */
+    const uint8_t no_message_type[] = { 1, 0x80 };
+    /* vendor-specific message type, but no vendor ID */
+    const uint8_t no_vendor_id[] = { 1, 0x80, 0x80 };
+    /* destination and source flags, but no source fields or hop count */
+    const uint8_t no_source[] = { 1, 0x28, 0, 5, 0, 0xFF };
+    /* destination flag, but no hop count */
+    const uint8_t no_hop_count[] = { 1, 0x20, 0, 5, 0 };
+    /* destination flag, but no DLEN */
+    const uint8_t no_dlen[] = { 1, 0x20, 0, 5 };
+    BACNET_ADDRESS dest = { 0 };
+    BACNET_ADDRESS src = { 0 };
+    BACNET_NPDU_DATA npdu_data = { 0 };
+
+    zassert_true(
+        bacnet_npdu_decode(
+            no_message_type, sizeof(no_message_type), &dest, &src,
+            &npdu_data) <= 0,
+        NULL);
+    zassert_true(
+        bacnet_npdu_decode(
+            no_vendor_id, sizeof(no_vendor_id), &dest, &src, &npdu_data) <= 0,
+        NULL);
+    zassert_true(
+        bacnet_npdu_decode(
+            no_source, sizeof(no_source), &dest, &src, &npdu_data) <= 0,
+        NULL);
+    zassert_true(
+        bacnet_npdu_decode(
+            no_hop_count, sizeof(no_hop_count), &dest, &src, &npdu_data) <= 0,
+        NULL);
+    zassert_true(
+        bacnet_npdu_decode(no_dlen, sizeof(no_dlen), &dest, &src, &npdu_data) <=
+            0,
+        NULL);
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(npdu_tests, NULL, NULL, NULL, NULL, NULL);
 #else
@@ -697,7 +739,8 @@ void test_main(void)
         ztest_unit_test(test_NPDU_Segmented_Complex_Ack_Reply),
         ztest_unit_test(test_NPDU_Data_Expecting_Reply),
         ztest_unit_test(test_NPDU_I_Am_Router_To_Network_Process),
-        ztest_unit_test(test_NPDU_Init_Routing_Table_Process));
+        ztest_unit_test(test_NPDU_Init_Routing_Table_Process),
+        ztest_unit_test(test_NPDU_Decode_Truncated));
 
     ztest_run_test_suite(npdu_tests);
 }

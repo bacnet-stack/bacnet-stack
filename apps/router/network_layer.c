@@ -14,6 +14,58 @@
 #include "network_layer.h"
 #include "bacnet/bacint.h"
 
+/**
+ * @brief Verify that an Initialize-Routing-Table(-Ack) payload is complete
+ * @param pdu - payload starting at the number-of-ports octet
+ * @param pdu_len - number of valid octets in the payload
+ * @return true if every port mapping entry lies within the payload
+ */
+static bool routing_table_payload_valid(const uint8_t *pdu, int pdu_len)
+{
+    int offset = 1;
+    int count;
+    int info_len;
+
+    if (pdu_len < 1) {
+        return false;
+    }
+    count = pdu[0];
+    while (count--) {
+        /* DNET (2), port ID (1), port info length (1) */
+        if ((pdu_len - offset) < 4) {
+            return false;
+        }
+        info_len = pdu[offset + 3];
+        if ((pdu_len - offset - 4) < info_len) {
+            return false;
+        }
+        offset += 4 + info_len;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Add the networks of a validated Initialize-Routing-Table(-Ack)
+ *  payload to the routing table
+ * @param srcport - port the message was received on
+ * @param src - source address of the message
+ * @param pdu - payload starting at the number-of-ports octet
+ */
+static void routing_table_payload_apply(
+    ROUTER_PORT *srcport, BACNET_ADDRESS src, const uint8_t *pdu)
+{
+    int offset = 1;
+    int count = pdu[0];
+    uint16_t net;
+
+    while (count--) {
+        decode_unsigned16(&pdu[offset], &net);
+        add_dnet(&srcport->route_info, net, src);
+        offset += 4 + pdu[offset + 3];
+    }
+}
+
 uint16_t
 process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff)
 {
@@ -32,7 +84,15 @@ process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff)
 
     apdu_offset = bacnet_npdu_decode(
         data->pdu, data->pdu_len, &data->dest, NULL, &npdu_data);
+    if (apdu_offset <= 0) {
+        PRINT(ERROR, "Error: Malformed network message\n");
+        return -2;
+    }
     apdu_len = data->pdu_len - apdu_offset;
+    if (apdu_len < 0) {
+        PRINT(ERROR, "Error: Malformed network message\n");
+        return -2;
+    }
 
     srcport = find_snet(msg->origin);
     data->src.net = srcport->route_info.net;
@@ -40,6 +100,10 @@ process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff)
     switch (npdu_data.network_message_type) {
         case NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK:
             PRINT(INFO, "Recieved Who-Is-Router-To-Network message\n");
+            if (apdu_len == 1) {
+                PRINT(ERROR, "Error: Malformed network message\n");
+                return -2;
+            }
             if (apdu_len) {
                 /* if NET specified */
                 decode_unsigned16(&data->pdu[apdu_offset], &net);
@@ -85,6 +149,10 @@ process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff)
             /* first octet of the message contains rejection reason */
             /* next two octets contain NET (can be decoded for additional info
              * on error) */
+            if (apdu_len < 1) {
+                PRINT(ERROR, "Error: Malformed network message\n");
+                return -2;
+            }
             error_code = data->pdu[apdu_offset];
             switch (error_code) {
                 case 0:
@@ -109,23 +177,14 @@ process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff)
         }
         case NETWORK_MESSAGE_INIT_RT_TABLE:
             PRINT(INFO, "Recieved Initialize-Routing-Table message\n");
+            if (!routing_table_payload_valid(
+                    &data->pdu[apdu_offset], apdu_len)) {
+                PRINT(ERROR, "Error: Malformed network message\n");
+                return -2;
+            }
             if (data->pdu[apdu_offset] > 0) {
-                int net_count = data->pdu[apdu_offset];
-                while (net_count--) {
-                    int i = 1;
-                    decode_unsigned16(
-                        &data->pdu[apdu_offset + i],
-                        &net); /* decode received NET values */
-                    add_dnet(
-                        &srcport->route_info, net,
-                        data->src); /* and update routing table */
-                    if (data->pdu[apdu_offset + i + 3] >
-                        0) { /* find next NET value */
-                        i = data->pdu[apdu_offset + i + 3] + 4;
-                    } else {
-                        i = i + 4;
-                    }
-                }
+                routing_table_payload_apply(
+                    srcport, data->src, &data->pdu[apdu_offset]);
                 buff_len = create_network_message(
                     NETWORK_MESSAGE_INIT_RT_TABLE_ACK, data, buff, NULL);
             } else {
@@ -136,24 +195,13 @@ process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff)
 
         case NETWORK_MESSAGE_INIT_RT_TABLE_ACK:
             PRINT(INFO, "Recieved Initialize-Routing-Table-Ack message\n");
-            if (data->pdu[apdu_offset] > 0) {
-                int net_count = data->pdu[apdu_offset];
-                while (net_count--) {
-                    int i = 1;
-                    decode_unsigned16(
-                        &data->pdu[apdu_offset + i],
-                        &net); /* decode received NET values */
-                    add_dnet(
-                        &srcport->route_info, net,
-                        data->src); /* and update routing table */
-                    if (data->pdu[apdu_offset + i + 3] >
-                        0) { /* find next NET value */
-                        i = data->pdu[apdu_offset + i + 3] + 4;
-                    } else {
-                        i = i + 4;
-                    }
-                }
+            if (!routing_table_payload_valid(
+                    &data->pdu[apdu_offset], apdu_len)) {
+                PRINT(ERROR, "Error: Malformed network message\n");
+                return -2;
             }
+            routing_table_payload_apply(
+                srcport, data->src, &data->pdu[apdu_offset]);
             break;
 
         case NETWORK_MESSAGE_INVALID:
@@ -186,6 +234,19 @@ process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff)
     }
 
     return buff_len;
+}
+
+bool is_network_msg(const BACMSG *msg)
+{
+    uint8_t control_byte; /* NPDU control byte */
+    const MSG_DATA *data = (const MSG_DATA *)msg->data;
+
+    if (data->pdu_len < 2) {
+        return false;
+    }
+    control_byte = data->pdu[1];
+
+    return control_byte & 0x80; /* check 7th bit */
 }
 
 uint16_t create_network_message(
