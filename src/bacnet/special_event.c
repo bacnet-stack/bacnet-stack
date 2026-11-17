@@ -414,8 +414,8 @@ int bacnet_special_event_entry_decode(
     BACNET_UNSIGNED_INTEGER priority = 0;
     BACNET_TAG tag = { 0 };
     BACNET_CALENDAR_ENTRY *calendar_entry = NULL;
-    BACNET_OBJECT_TYPE *object_type = NULL;
-    uint32_t *object_instance = NULL;
+    BACNET_OBJECT_TYPE object_type = OBJECT_NONE;
+    uint32_t object_instance = 0;
 
     if (!apdu) {
         return BACNET_STATUS_ERROR;
@@ -442,18 +442,23 @@ int bacnet_special_event_entry_decode(
     } else if (
         tag.context &&
         (tag.number == BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE)) {
-        if (value) {
-            value->periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE;
-            object_type = &value->period.calendarReference.type;
-            object_instance = &value->period.calendarReference.instance;
-        }
         len = bacnet_object_id_context_decode(
             &apdu[apdu_len], apdu_size - apdu_len,
-            BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE, object_type,
-            object_instance);
-        if (len < 0) {
+            BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE, &object_type,
+            &object_instance);
+        if (len <= 0) {
             /* the element is malformed (INVALID_DATA_ENCODING) */
             return BACNET_STATUS_ERROR;
+        }
+        if (object_type != OBJECT_CALENDAR) {
+            /* only a Calendar object can be referenced
+               (INVALID_DATA_ENCODING) */
+            return BACNET_STATUS_ERROR;
+        }
+        if (value) {
+            value->periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE;
+            value->period.calendarReference.type = object_type;
+            value->period.calendarReference.instance = object_instance;
         }
         apdu_len += len;
     } else {

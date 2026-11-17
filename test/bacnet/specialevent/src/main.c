@@ -556,6 +556,18 @@ static void test_BACnetSpecialEventEntry(void)
     zassert_equal(
         bacnet_special_event_entry_decode(apdu, len, &out, NULL, NULL), 0,
         NULL);
+    /* a calendar reference must name a Calendar object */
+    other = in;
+    other.periodTag = BACNET_SPECIAL_EVENT_PERIOD_CALENDAR_REFERENCE;
+    other.period.calendarReference.type = OBJECT_CHARACTERSTRING_VALUE;
+    other.period.calendarReference.instance = 1;
+    len = bacnet_special_event_entry_encode(apdu, &other);
+    memset(&out, 0, sizeof(out));
+    zassert_equal(
+        bacnet_special_event_entry_decode(apdu, len, &out, NULL, NULL),
+        BACNET_STATUS_ERROR, NULL);
+    zassert_equal(out.periodTag, 0, NULL);
+    len = bacnet_special_event_entry_encode(apdu, &in);
     /* priority out of range */
     in.priority = 0;
     len = bacnet_special_event_entry_encode(apdu, &in);
