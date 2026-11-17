@@ -13,10 +13,39 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [unreleased] - 2026-11-04
+## [unreleased] - 2026-11-17
 
 ### Security
 
+* Secured the bacnet_array_encode() function to return an error when an
+  element encoder returns a negative length. The function added the negative
+  length to the total and to the APDU pointer. The next element then wrote
+  before the start of the buffer. The function now also checks each element
+  against the remaining max_apdu. Added a unit test. (#1634)
+* Secured the GetAlarmSummary handler to limit the reply size to the smallest
+  of the free transmit buffer, MAX_APDU, and the maximum APDU size of the
+  requester. The handler sends an Abort when the ACK header does not fit.
+  A reserved max-APDU value gave a max_resp of zero. The subtraction then
+  wrapped and the encoder wrote past the end of the transmit buffer. (#1633)
+* Secured the Schedule object to reject an Exception_Schedule
+  CALENDAR-REFERENCE period that names an object type other than Calendar.
+  The check runs when the special event entry is decoded, when it is stored,
+  and when the period is evaluated. The object reads the Present_Value into
+  a MAX_APDU static buffer instead of an 8-byte stack buffer. A longer value
+  overflowed the stack buffer. Added unit tests. (#1632)
+* Secured create_object_initial_value_data_encode() to include the write
+  offset in the capacity check. The function now rejects a NULL value and
+  an offset that is negative or larger than the buffer. A value that fitted
+  the buffer alone could write past the end at a large offset. Added a unit
+  test. (#1631)
+* Secured the router application (apps/router) against a read past the end
+  of a received network layer message. The router checks the length of each
+  network layer message and discards a message that is too short or
+  malformed. It checks each Initialize-Routing-Table entry and moves to the
+  next entry. It frees the received message on every path of the main loop.
+  Moved is_network_msg() to network_layer.c and added a length check. Added
+  a unit test that places each message at the end of an inaccessible page.
+  (#1630)
 * Secured the GetAlarmSummary-ACK handler to prevent an out-of-bounds read.
   The handler stored the int result of the decoder in a uint16_t. A
   malformed tag gave 65535, and the loop moved far past the end of the APDU.
@@ -30,6 +59,23 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added the Lighting_Output_Blink_Warn_Feature() function to read the off
+  value, interval, and count that the next WARN, WARN_OFF, or
+  WARN_RELINQUISH operation uses. Added a unit test. (#1627)
+* Added support for the Description property in the Notification Class
+  object. Added the Notification_Class_Description(),
+  Notification_Class_Description_Set(), and
+  Notification_Class_Description_Duplicate() functions. ReadProperty and
+  WriteProperty support the property. The Delete and Cleanup functions free
+  it. Added unit tests. (#1611)
+* Added a build of the BSD port for QNX 8.0 with BACnet/IP. Added
+  BACNET_PORT=qnx to apps/Makefile. This option builds from ports/bsd, links
+  libsocket, and defines _QNX_SOURCE. Changed ports/bsd/bacport.h and
+  ports/bsd/bip-init.c for QNX. Added the cross-compile steps to
+  ports/bsd/readme.txt. (#1606)
+* Added the bzll_task_callback_set() and bzll_init_callback_set() functions
+  to the BACnet/Zigbee port. The port task and the port init call the
+  callbacks when they are set. Added a unit test. (#1603)
 * Added per-Device storage of the Vendor_Name, Vendor_Identifier,
   Model_Name, Firmware_Revision, Application_Software_Version, Location,
   and Serial_Number properties for each routed Device in DEVICE_OBJECT_DATA.
@@ -44,6 +90,19 @@ The git repositories are hosted at the following sites:
 
 ### Changed
 
+* Changed the blink-warn of the Lighting Output object to stop after the
+  configured number of blinks and to hold the level until the egress timer
+  expires. The WARN_OFF and WARN_RELINQUISH callback runs only when the
+  egress timer expires. Added Target_Count to the blink-warn data. Count and
+  Interval reset for each blink-warn. Egress_Active is TRUE only for WARN_OFF
+  and WARN_RELINQUISH. WARN keeps the current level. Added unit tests. (#1620)
+* Changed the FIFO and ring buffer arrays in the datalink, port, and object
+  code to use NEXT_POWER_OF_2(). Each FIFO_Init(), Ringbuf_Init(), and
+  Ringbuf_Initialize() call now uses the capacity from sizeof the array.
+  A count that is not a power of 2 is now a minimum capacity. Removed the
+  BSC_NEXT_POWER_OF_TWO macro and the power of 2 #error for
+  ALERT_ENROLLMENT_ALERT_COUNT. NEXT_POWER_OF_2() uses unsigned long
+  arithmetic. Updated the unit tests. (#1615)
 * Changed the configure script to detect the package manager. The script
   supports apt-get, dnf, yum, zypper, pacman, and apk. It maps the Debian
   package names to the Fedora and Arch names. It skips the packages that
@@ -51,6 +110,81 @@ The git repositories are hosted at the following sites:
   to the libwebsockets v4.3 build to prevent a build error with glibc 2.43.
 
 ### Fixed
+
+* Fixed bacnet_primitive_value_application_decode() to reject each tag that
+  the value structure cannot store. The decoder accepted an OCTET_STRING of
+  zero length as a Time_Value that bacnet_time_value_encode() cannot encode.
+  Added unit tests. (#1635)
+* Fixed the full array and full list writes to check each element before
+  the write. Added the BACNET_STATUS_ERANGE status code. An element decode
+  function returns it for a value that is out of range. The functions
+  bacnet_array_write_resizable(), bacnet_array_write(), and
+  bacnet_list_write() return VALUE_OUT_OF_RANGE and write nothing. They
+  check the decode result again in the write pass. A zero length no longer
+  loops forever in bacnet_list_write(). Changed the element length functions
+  of several objects to return BACNET_STATUS_ERANGE. (#1628)
+* Fixed the encoding of the Command object Action property. Each array
+  element is now a BACnetActionList with the [0] opening and closing tags.
+  Before, each element was a flat sequence of BACnetActionCommand. ReadProperty
+  and WriteProperty of the Action property now keep the commands of each
+  element in their own slot. (#1629)
+* Fixed the WARN_OFF and WARN_RELINQUISH egress of the Lighting Output
+  object. WARN_RELINQUISH checks the next priority slot. Egress ends at off.
+  A cancelled egress leaves the priority slot unchanged. Only a command of
+  the same or a higher priority halts egress. Fixed STOP to end a trim fade
+  and a ramp, and to cancel the egress timer. The egress halt and the egress
+  completion run under the lighting-command lock. Added the --blink-warn,
+  --egress, --interval, and --count options to the blinkt demo. Added unit
+  tests. (#1621)
+* Fixed the Notification_Class_Write_Property() function to decode each
+  property with the wp.c helpers. Added write_property_bit_string_decode().
+  The function restores the old values when a write fails. The
+  bacnet_destination_decode() function returns zero for a tag mismatch and
+  BACNET_STATUS_ERROR for malformed data. Malformed elements now give
+  INVALID_DATA_ENCODING or INVALID_DATA_TYPE. Added unit tests. (#1626)
+* Fixed the Analog, Binary, and Multi-state Input, Output, and Value objects
+  to allow WriteProperty of Reliability while Out_Of_Service is TRUE. Added
+  write_property_reliability_decode() to wp.c. Fixed
+  Binary_Input_Write_Property() and Binary_Value_Write_Property() to return
+  false for an unknown instance. Added unit tests. (#1623)
+* Fixed Protocol_Object_Types_Supported to set the bit of a standard object
+  type that has a CreateObject function, even when it has no instances. The
+  fix applies to both Device implementations, the client Device, and the
+  piface application. Added unit tests. (#1619)
+* Fixed Protocol_Object_Types_Supported to set a bit only for an object type
+  that is less than MAX_ASHRAE_OBJECT_TYPE. A proprietary object type no
+  longer sets the bit of a standard type. The fix applies to the Device
+  objects, the piface application, and the at91sam7s, bdk-atxx4-mstp,
+  stm32f10x, stm32f4xx, and xplained ports. Added unit tests. (#1618)
+* Fixed bacnet_basic_task() to keep the elapsed time of the object timer.
+  The task calls Device_Timer() once for each interval that passed and keeps
+  the partial interval. Limited the interval to 1 through UINT16_MAX
+  milliseconds. Added bacnet_basic_task_object_timer_milliseconds(). (#1617)
+* Fixed bacnet_character_cstring_set(), bacnet_character_cstring_strndup(),
+  and bacnet_character_cstring_asprintf() to reject a string longer than
+  CHARACTER_STRING_CAPACITY. ReadProperty returned an empty string for a
+  longer value. Added unit tests. (#1616)
+* Fixed System_Status of the routed Devices. Each routed Device now stores
+  its own System_Status in DEVICE_OBJECT_DATA. A WriteProperty to one Device
+  no longer changes the status of the gateway and of the other Devices.
+  Added unit tests. (#1613)
+* Fixed the Database_Revision to increment after a successful Object_Name
+  write of a child object in both Device implementations. A write of the
+  same name or a rejected write leaves the revision unchanged. Added unit
+  tests. (#1612)
+* Fixed the required and optional property lists for the conformance tests
+  135.1-9.20.1.8 and 135.1-9.20.1.9. Moved Maintenance_Required to the
+  optional list of the Life Safety Zone object. Removed Description and
+  Notification_Class from the optional list of the Notification Class object.
+  Added Current_Command_Priority to the Access Door object. Fixed the Access
+  Door Present_Value, Priority_Array, and unknown-object handling. Added a
+  unit test. (#1605)
+* Fixed the encoding of the Loop Setpoint_Reference property to use
+  BACnetSetpointReference. Added BACNET_APPLICATION_TAG_SETPOINT_REFERENCE.
+  A client can now clear the property with an empty value. Added
+  property_list_empty_write_member() and the write_property_*_decode()
+  helpers for enumerated, boolean, real, and character string values.
+  Added unit tests. (#1604)
 
 ### Removed
 
