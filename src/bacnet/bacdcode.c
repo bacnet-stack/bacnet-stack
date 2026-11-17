@@ -6213,11 +6213,17 @@ BACNET_ERROR_CODE bacnet_array_write_resizable(
         /* array index was specified; write the single array element */
         len = decode_function(object_instance, apdu, apdu_size);
         if (len > 0) {
-            /* note: write function is responsible for handling the array_index
-            bounds checking and return array_index out of range error if
-            the array is not resizable */
-            error_code = write_function(
-                object_instance, array_index, array_size, apdu, (size_t)len);
+            if ((size_t)len != apdu_size) {
+                /* trailing data after the single element */
+                error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            } else {
+                /* note: write function is responsible for handling the
+                array_index bounds checking and return array_index out of
+                range error if the array is not resizable */
+                error_code = write_function(
+                    object_instance, array_index, array_size, apdu,
+                    (size_t)len);
+            }
         } else if (len == 0) {
             error_code = ERROR_CODE_INVALID_DATA_TYPE;
         } else if (len == BACNET_STATUS_ERANGE) {

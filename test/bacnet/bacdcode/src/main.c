@@ -2418,7 +2418,25 @@ static void test_bacnet_array_write_range(void)
         array_write_unsigned_write, 2, apdu, apdu_len);
     zassert_equal(error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
     zassert_equal(Array_Write_Count, 0, NULL);
+    /* indexed write: exact length is written */
+    apdu_len = encode_application_unsigned(apdu, 5);
+    Array_Write_Count = 0;
+    error_code = bacnet_array_write(
+        1, 1, array_write_unsigned_decode, array_write_unsigned_write, 2, apdu,
+        apdu_len);
+    zassert_equal(error_code, ERROR_CODE_SUCCESS, NULL);
+    zassert_equal(Array_Write_Count, 1, NULL);
+    /* indexed write: trailing bytes are rejected without writing */
+    apdu_len += encode_application_unsigned(&apdu[apdu_len], 6);
+    Array_Write_Count = 0;
+    error_code = bacnet_array_write(
+        1, 1, array_write_unsigned_decode, array_write_unsigned_write, 2, apdu,
+        apdu_len);
+    zassert_equal(error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    zassert_equal(Array_Write_Count, 0, NULL);
 }
+
+static unsigned List_Clear_Count;
 
 static BACNET_ERROR_CODE list_write_unsigned_add(
     uint32_t object_instance,
@@ -2429,6 +2447,8 @@ static BACNET_ERROR_CODE list_write_unsigned_add(
     (void)application_data_len;
     if (application_data) {
         Array_Write_Count++;
+    } else {
+        List_Clear_Count++;
     }
 
     return ERROR_CODE_SUCCESS;
@@ -2447,20 +2467,26 @@ static void test_bacnet_list_write_range(void)
     apdu_len += encode_application_unsigned(&apdu[apdu_len], 1);
     apdu_len += encode_application_unsigned(&apdu[apdu_len], 100);
     Array_Write_Count = 0;
+    List_Clear_Count = 0;
     error_code = bacnet_list_write(
         1, BACNET_ARRAY_ALL, array_write_unsigned_decode,
         list_write_unsigned_add, 2, apdu, apdu_len);
     zassert_equal(error_code, ERROR_CODE_SUCCESS, NULL);
+    /* one clear callback followed by two add callbacks */
+    zassert_equal(List_Clear_Count, 1, NULL);
     zassert_equal(Array_Write_Count, 2, NULL);
-    /* second element out of range: pre-flight check adds nothing */
+    zassert_equal(List_Clear_Count + Array_Write_Count, 3, NULL);
+    /* second element out of range: pre-flight check neither clears nor adds */
     apdu_len = 0;
     apdu_len += encode_application_unsigned(&apdu[apdu_len], 1);
     apdu_len += encode_application_unsigned(&apdu[apdu_len], 101);
     Array_Write_Count = 0;
+    List_Clear_Count = 0;
     error_code = bacnet_list_write(
         1, BACNET_ARRAY_ALL, array_write_unsigned_decode,
         list_write_unsigned_add, 2, apdu, apdu_len);
     zassert_equal(error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+    zassert_equal(List_Clear_Count, 0, NULL);
     zassert_equal(Array_Write_Count, 0, NULL);
 }
 

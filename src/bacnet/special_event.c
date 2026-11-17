@@ -476,8 +476,9 @@ int bacnet_special_event_entry_decode(
     /* Priority [3] */
     len = bacnet_unsigned_context_decode(
         &apdu[apdu_len], apdu_size - apdu_len, 3, &priority);
-    if (len < 0) {
-        /* the element is malformed (INVALID_DATA_ENCODING) */
+    if (len <= 0) {
+        /* the element is missing, mistagged, or malformed
+           (INVALID_DATA_ENCODING) */
         return BACNET_STATUS_ERROR;
     }
     if ((priority < BACNET_MIN_PRIORITY) || (priority > BACNET_MAX_PRIORITY)) {
