@@ -2285,6 +2285,27 @@ static int bacnet_apdu_property_zero_element_encode(
     return apdu_len;
 }
 
+static unsigned Array_Encode_Write_Calls[3];
+
+/* measures successfully, but fails the write pass at index 1 */
+static int bacnet_apdu_property_write_fail_encode(
+    uint32_t object_instance, BACNET_ARRAY_INDEX apdu_index, uint8_t *apdu)
+{
+    (void)object_instance;
+    if (apdu == NULL) {
+        return 1;
+    }
+    if (apdu_index < 3) {
+        Array_Encode_Write_Calls[apdu_index]++;
+    }
+    if (apdu_index == 1) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu[0] = 0;
+
+    return 1;
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(bacdcode_tests, test_bacnet_array_encode)
 #else
@@ -2353,6 +2374,20 @@ static void test_bacnet_array_encode(void)
         object_instance, apdu_index, bacnet_apdu_property_zero_element_encode,
         array_count, apdu, sizeof(apdu));
     zassert_true(apdu_len == 0, NULL);
+    /* ALL - an element fails to encode */
+    apdu_len = bacnet_array_encode(
+        object_instance, apdu_index, bacnet_apdu_property_element_encode, 2,
+        apdu, sizeof(apdu));
+    zassert_equal(apdu_len, BACNET_STATUS_ERROR, "len=%d", apdu_len);
+    /* ALL - an element measures successfully but fails during the write */
+    memset(Array_Encode_Write_Calls, 0, sizeof(Array_Encode_Write_Calls));
+    apdu_len = bacnet_array_encode(
+        object_instance, apdu_index, bacnet_apdu_property_write_fail_encode, 3,
+        apdu, sizeof(apdu));
+    zassert_equal(apdu_len, BACNET_STATUS_ERROR, "len=%d", apdu_len);
+    zassert_equal(Array_Encode_Write_Calls[0], 1, NULL);
+    zassert_equal(Array_Encode_Write_Calls[1], 1, NULL);
+    zassert_equal(Array_Encode_Write_Calls[2], 0, NULL);
 }
 
 static unsigned Array_Write_Count;

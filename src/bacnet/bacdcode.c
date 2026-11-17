@@ -6083,19 +6083,27 @@ int bacnet_array_encode(
         /* if no index was specified, then try to encode the entire list */
         /* into one packet. */
         for (index = 0; index < array_size; index++) {
-            len += encoder(object_instance, index, NULL);
-        }
-        if (len > max_apdu) {
-            /* encoded size is larger than APDU size */
-            apdu_len = BACNET_STATUS_ABORT;
-        } else {
-            for (index = 0; index < array_size; index++) {
-                len = encoder(object_instance, index, apdu);
-                if (apdu) {
-                    apdu += len;
-                }
-                apdu_len += len;
+            len = encoder(object_instance, index, NULL);
+            if (len < 0) {
+                /* element could not be encoded */
+                return BACNET_STATUS_ERROR;
             }
+            if (len > max_apdu - apdu_len) {
+                /* encoded size is larger than APDU size */
+                return BACNET_STATUS_ABORT;
+            }
+            apdu_len += len;
+        }
+        apdu_len = 0;
+        for (index = 0; index < array_size; index++) {
+            len = encoder(object_instance, index, apdu);
+            if (len < 0) {
+                return BACNET_STATUS_ERROR;
+            }
+            if (apdu) {
+                apdu += len;
+            }
+            apdu_len += len;
         }
     } else if (array_index <= array_size) {
         /* index was specified; encode a single array element */
