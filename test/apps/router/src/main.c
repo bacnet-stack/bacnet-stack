@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
+#include <unistd.h>
 #include "network_layer.h"
 /* the router PRINT macro conflicts with the one from ztest */
 #undef PRINT
@@ -56,7 +57,8 @@ void add_dnet(RT_ENTRY *route_info, uint16_t net, BACNET_ADDRESS addr)
  */
 static int run(const uint8_t *pdu, size_t len, uint16_t *dest_net)
 {
-    const size_t page = 4096;
+    long page_size = sysconf(_SC_PAGESIZE);
+    size_t page;
     uint8_t *mem;
     MSG_DATA rx = { 0 };
     MSG_DATA work = { 0 };
@@ -64,6 +66,8 @@ static int run(const uint8_t *pdu, size_t len, uint16_t *dest_net)
     uint8_t *buff = NULL;
     int rc;
 
+    zassert_true(page_size > 0, NULL);
+    page = (size_t)page_size;
     mem = mmap(
         NULL, 2 * page, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1,
         0);
