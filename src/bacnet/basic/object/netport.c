@@ -4092,7 +4092,7 @@ uint8_t Network_Port_MSTP_Max_Info_Frames(uint32_t object_instance)
  * Note: depends on Network_Type being set to PORT_TYPE_MSTP for this object
  *
  * @param  object_instance - object-instance number of the object
- * @param  value - MS/TP Max_Info_Frames value 0..255
+ * @param  value - MS/TP Max_Info_Frames value 1..255
  *
  * @return  true if values are within range and property is set.
  */
@@ -4105,11 +4105,13 @@ bool Network_Port_MSTP_Max_Info_Frames_Set(
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_MSTP) {
-            if (Object_List[index].Network.MSTP.Max_Info_Frames != value) {
-                Object_List[index].Changes_Pending = true;
+            if (value >= 1) {
+                if (Object_List[index].Network.MSTP.Max_Info_Frames != value) {
+                    Object_List[index].Changes_Pending = true;
+                }
+                Object_List[index].Network.MSTP.Max_Info_Frames = value;
+                status = true;
             }
-            Object_List[index].Network.MSTP.Max_Info_Frames = value;
-            status = true;
         }
     }
 
@@ -4752,6 +4754,7 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                     }
                 } else {
+                    status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
@@ -4761,15 +4764,16 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
-                if (value.type.Unsigned_Int <= 255) {
+                if ((value.type.Unsigned_Int >= 1) &&
+                    (value.type.Unsigned_Int <= 255)) {
                     status = Network_Port_MSTP_Max_Info_Frames_Set(
                         wp_data->object_instance, value.type.Unsigned_Int);
                     if (!status) {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
                         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                     }
-                    status = true;
                 } else {
+                    status = false;
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
