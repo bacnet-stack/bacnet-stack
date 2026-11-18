@@ -147,17 +147,12 @@ int npdu_send_what_is_network_number(BACNET_ADDRESS *dst)
     BACNET_NPDU_DATA npdu_data = { 0 };
     BACNET_ADDRESS daddr = { 0 };
     uint8_t pdu[MAX_NPDU] = { 0 };
-    uint8_t i = 0;
 
     if (dst && (dst->net != BACNET_BROADCAST_NETWORK)) {
         /* local unicast - an empty MAC address is a local broadcast */
-        daddr.mac_len = dst->mac_len;
-        if (daddr.mac_len > MAX_MAC_LEN) {
-            daddr.mac_len = MAX_MAC_LEN;
-        }
-        for (i = 0; i < daddr.mac_len; i++) {
-            daddr.mac[i] = dst->mac[i];
-        }
+        bacnet_address_copy(&daddr, dst);
+        daddr.net = 0;
+        daddr.len = 0;
     }
     npdu_encode_npdu_network(
         &npdu_data, NETWORK_MESSAGE_WHAT_IS_NETWORK_NUMBER,
