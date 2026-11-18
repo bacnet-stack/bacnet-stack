@@ -1,19 +1,118 @@
 /**
  * @file
- * @brief test the npdu_set_network_number_is_handler API
+ * @brief test the basic NPDU handler API
  * @copyright SPDX-License-Identifier: MIT
  *
  * Exercises the Network-Number-Is handler registered via
  * npdu_set_network_number_is_handler(), by feeding npdu_handler() a
  * Network-Number-Is network layer message and checking that the callback
  * is invoked (or not) as required by the BACnet standard.
+ *
+ * Exercises npdu_send_what_is_network_number() with a datalink that
+ * captures the message, and checks that the message is only sent to the
+ * local network as required by the BACnet standard.
  */
 #include <string.h>
 #include <zephyr/ztest.h>
+#include <bacnet/bacaddr.h>
 #include <bacnet/bacdcode.h>
 #include <bacnet/bacint.h>
 #include <bacnet/npdu.h>
 #include <bacnet/basic/npdu/h_npdu.h>
+#include <bacnet/datalink/datalink.h>
+
+/* the MAC address of a BACnet/IP broadcast, and of a BACnet/IP device */
+static const uint8_t Broadcast_MAC[6] = { 192, 168, 1, 255, 0xBA, 0xC0 };
+static const uint8_t Device_MAC[6] = { 192, 168, 1, 10, 0xBA, 0xC0 };
+
+/* the address that the datalink reports as its own */
+static BACNET_ADDRESS Datalink_My_Address;
+/* captured state from the datalink */
+static unsigned Sent_Count;
+static BACNET_ADDRESS Sent_Dest;
+static uint8_t Sent_PDU[MAX_NPDU + 3];
+static unsigned Sent_PDU_Len;
+
+/**
+ * @brief Datalink that captures the PDU instead of sending it
+ */
+int datalink_send_pdu(
+    BACNET_ADDRESS *dest,
+    BACNET_NPDU_DATA *npdu_data,
+    uint8_t *pdu,
+    unsigned pdu_len)
+{
+    (void)npdu_data;
+    Sent_Count++;
+    bacnet_address_copy(&Sent_Dest, dest);
+    Sent_PDU_Len = pdu_len;
+    if (pdu_len <= sizeof(Sent_PDU)) {
+        memcpy(Sent_PDU, pdu, pdu_len);
+    }
+
+    return (int)pdu_len;
+}
+
+/**
+ * @brief Datalink broadcast address, which is a global broadcast
+ */
+void datalink_get_broadcast_address(BACNET_ADDRESS *dest)
+{
+    memset(dest, 0, sizeof(BACNET_ADDRESS));
+    dest->mac_len = sizeof(Broadcast_MAC);
+    memcpy(dest->mac, Broadcast_MAC, sizeof(Broadcast_MAC));
+    dest->net = BACNET_BROADCAST_NETWORK;
+}
+
+void datalink_get_my_address(BACNET_ADDRESS *my_address)
+{
+    bacnet_address_copy(my_address, &Datalink_My_Address);
+}
+
+/**
+ * @brief Reset the datalink capture
+ */
+static void datalink_capture_init(void)
+{
+    memset(&Datalink_My_Address, 0, sizeof(Datalink_My_Address));
+    Datalink_My_Address.mac_len = sizeof(Device_MAC);
+    memcpy(Datalink_My_Address.mac, Device_MAC, sizeof(Device_MAC));
+    Sent_Count = 0;
+    memset(&Sent_Dest, 0xFF, sizeof(Sent_Dest));
+    memset(Sent_PDU, 0, sizeof(Sent_PDU));
+    Sent_PDU_Len = 0;
+}
+
+/**
+ * @brief Check that the captured PDU is a What-Is-Network-Number message
+ *  that devices shall not ignore: no DNET/DADR and no SNET/SADR.
+ */
+static void verify_sent_what_is_network_number_is_local(void)
+{
+    BACNET_ADDRESS dest = { 0 };
+    BACNET_ADDRESS src = { 0 };
+    BACNET_NPDU_DATA npdu_data = { 0 };
+    int len;
+
+    zassert_equal(Sent_Count, 1, NULL);
+    /* version, control, and message type - nothing else */
+    zassert_equal(Sent_PDU_Len, 3, NULL);
+    len = bacnet_npdu_decode(
+        Sent_PDU, (uint16_t)Sent_PDU_Len, &dest, &src, &npdu_data);
+    zassert_equal(len, 3, NULL);
+    zassert_true(npdu_data.network_layer_message, NULL);
+    zassert_equal(
+        npdu_data.network_message_type, NETWORK_MESSAGE_WHAT_IS_NETWORK_NUMBER,
+        NULL);
+    zassert_false(npdu_data.data_expecting_reply, NULL);
+    zassert_equal(dest.net, 0, NULL);
+    zassert_equal(dest.len, 0, NULL);
+    zassert_equal(src.net, 0, NULL);
+    zassert_equal(src.len, 0, NULL);
+    /* the datalink is not asked to reach another network */
+    zassert_equal(Sent_Dest.net, 0, NULL);
+    zassert_equal(Sent_Dest.len, 0, NULL);
+}
 
 /* captured state from the test callback */
 static bool Callback_Called;
@@ -174,6 +273,121 @@ static void test_Network_Number_Is_Handler_Replaced(void)
     zassert_equal(Callback_Network_Number, 42, NULL);
 }
 
+/**
+ * @brief Test that What-Is-Network-Number without a destination is a
+ *  local broadcast, not the global broadcast of the datalink.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(npdu_handler_tests, test_What_Is_Network_Number_Local_Broadcast)
+#else
+static void test_What_Is_Network_Number_Local_Broadcast(void)
+#endif
+{
+    int bytes_sent;
+
+    datalink_capture_init();
+    bytes_sent = npdu_send_what_is_network_number(NULL);
+
+    zassert_equal(bytes_sent, 3, NULL);
+    verify_sent_what_is_network_number_is_local();
+    zassert_equal(Sent_Dest.mac_len, 0, NULL);
+}
+
+/**
+ * @brief Test that What-Is-Network-Number to a global broadcast address,
+ *  such as the datalink broadcast address, is a local broadcast.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(npdu_handler_tests, test_What_Is_Network_Number_Global_Broadcast)
+#else
+static void test_What_Is_Network_Number_Global_Broadcast(void)
+#endif
+{
+    BACNET_ADDRESS dst = { 0 };
+
+    datalink_capture_init();
+    datalink_get_broadcast_address(&dst);
+    npdu_send_what_is_network_number(&dst);
+
+    verify_sent_what_is_network_number_is_local();
+    zassert_equal(Sent_Dest.mac_len, 0, NULL);
+}
+
+/**
+ * @brief Test that What-Is-Network-Number to the MAC address of a device
+ *  on the local network is a local unicast.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(npdu_handler_tests, test_What_Is_Network_Number_Local_Unicast)
+#else
+static void test_What_Is_Network_Number_Local_Unicast(void)
+#endif
+{
+    BACNET_ADDRESS dst = { 0 };
+
+    datalink_capture_init();
+    dst.mac_len = sizeof(Device_MAC);
+    memcpy(dst.mac, Device_MAC, sizeof(Device_MAC));
+    npdu_send_what_is_network_number(&dst);
+
+    verify_sent_what_is_network_number_is_local();
+    zassert_equal(Sent_Dest.mac_len, sizeof(Device_MAC), NULL);
+    zassert_mem_equal(Sent_Dest.mac, Device_MAC, sizeof(Device_MAC), NULL);
+}
+
+/**
+ * @brief Test that What-Is-Network-Number is never routed: a destination
+ *  on a remote network is sent to the router MAC address without
+ *  DNET/DADR, or as a local broadcast when there is no router MAC address.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(npdu_handler_tests, test_What_Is_Network_Number_Never_Routed)
+#else
+static void test_What_Is_Network_Number_Never_Routed(void)
+#endif
+{
+    BACNET_ADDRESS dst = { 0 };
+
+    datalink_capture_init();
+    dst.mac_len = sizeof(Device_MAC);
+    memcpy(dst.mac, Device_MAC, sizeof(Device_MAC));
+    dst.net = 86;
+    dst.len = 1;
+    dst.adr[0] = 0x12;
+    npdu_send_what_is_network_number(&dst);
+
+    verify_sent_what_is_network_number_is_local();
+    zassert_equal(Sent_Dest.mac_len, sizeof(Device_MAC), NULL);
+    zassert_mem_equal(Sent_Dest.mac, Device_MAC, sizeof(Device_MAC), NULL);
+
+    datalink_capture_init();
+    memset(&dst, 0, sizeof(dst));
+    dst.net = 86;
+    npdu_send_what_is_network_number(&dst);
+
+    verify_sent_what_is_network_number_is_local();
+    zassert_equal(Sent_Dest.mac_len, 0, NULL);
+}
+
+/**
+ * @brief Test that What-Is-Network-Number has no SNET/SADR, even when
+ *  the address of the sender has a network number.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(npdu_handler_tests, test_What_Is_Network_Number_No_Source_Network)
+#else
+static void test_What_Is_Network_Number_No_Source_Network(void)
+#endif
+{
+    datalink_capture_init();
+    Datalink_My_Address.net = 7;
+    Datalink_My_Address.len = 1;
+    Datalink_My_Address.adr[0] = 0x34;
+    npdu_send_what_is_network_number(NULL);
+
+    verify_sent_what_is_network_number_is_local();
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(npdu_handler_tests, NULL, NULL, NULL, NULL, NULL);
 #else
@@ -184,7 +398,12 @@ void test_main(void)
         ztest_unit_test(test_Network_Number_Is_Handler_Called),
         ztest_unit_test(test_Network_Number_Is_Handler_Cleared),
         ztest_unit_test(test_Network_Number_Is_Handler_Ignores_Routed),
-        ztest_unit_test(test_Network_Number_Is_Handler_Replaced));
+        ztest_unit_test(test_Network_Number_Is_Handler_Replaced),
+        ztest_unit_test(test_What_Is_Network_Number_Local_Broadcast),
+        ztest_unit_test(test_What_Is_Network_Number_Global_Broadcast),
+        ztest_unit_test(test_What_Is_Network_Number_Local_Unicast),
+        ztest_unit_test(test_What_Is_Network_Number_Never_Routed),
+        ztest_unit_test(test_What_Is_Network_Number_No_Source_Network));
 
     ztest_run_test_suite(npdu_handler_tests);
 }

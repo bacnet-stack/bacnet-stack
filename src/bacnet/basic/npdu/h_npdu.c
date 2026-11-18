@@ -130,30 +130,39 @@ int npdu_send_network_number_is(
 }
 
 /**
- * @brief send the local network number is message
- * @param dst - the destination address for the message
- * @param net - local network number
+ * @brief send the What-Is-Network-Number message to the local network
+ * @details The message is sent with a local broadcast or a local unicast
+ *  address and is never routed. It is encoded without DNET/DADR and
+ *  without SNET/SADR, because devices shall ignore a What-Is-Network-Number
+ *  message that contains them.
+ * @param dst - the MAC address of a device on the local network for a
+ *  local unicast, or NULL or a broadcast address for a local broadcast.
+ *  Any DNET and DADR in dst are not used.
  * @return number of bytes sent
  */
 int npdu_send_what_is_network_number(BACNET_ADDRESS *dst)
 {
     int pdu_len = 0;
     bool data_expecting_reply = false;
-    BACNET_NPDU_DATA npdu_data;
+    BACNET_NPDU_DATA npdu_data = { 0 };
     BACNET_ADDRESS daddr = { 0 };
-    BACNET_ADDRESS saddr = { 0 };
     uint8_t pdu[MAX_NPDU] = { 0 };
+    uint8_t i = 0;
 
-    if (dst) {
-        bacnet_address_copy(&daddr, dst);
-    } else {
-        datalink_get_broadcast_address(&daddr);
+    if (dst && (dst->net != BACNET_BROADCAST_NETWORK)) {
+        /* local unicast - an empty MAC address is a local broadcast */
+        daddr.mac_len = dst->mac_len;
+        if (daddr.mac_len > MAX_MAC_LEN) {
+            daddr.mac_len = MAX_MAC_LEN;
+        }
+        for (i = 0; i < daddr.mac_len; i++) {
+            daddr.mac[i] = dst->mac[i];
+        }
     }
-    datalink_get_my_address(&saddr);
     npdu_encode_npdu_network(
         &npdu_data, NETWORK_MESSAGE_WHAT_IS_NETWORK_NUMBER,
         data_expecting_reply, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(pdu, &daddr, &saddr, &npdu_data);
+    pdu_len = npdu_encode_pdu(pdu, &daddr, NULL, &npdu_data);
 
     /* Now send the message */
     return datalink_send_pdu(&daddr, &npdu_data, pdu, pdu_len);
