@@ -92,7 +92,7 @@ static void verify_sent_what_is_network_number_is_local(void)
     BACNET_ADDRESS dest = { 0 };
     BACNET_ADDRESS src = { 0 };
     BACNET_NPDU_DATA npdu_data = { 0 };
-    int len;
+    int len = 0;
 
     zassert_equal(Sent_Count, 1, NULL);
     /* version, control, and message type - nothing else */
@@ -283,7 +283,7 @@ ZTEST(npdu_handler_tests, test_What_Is_Network_Number_Local_Broadcast)
 static void test_What_Is_Network_Number_Local_Broadcast(void)
 #endif
 {
-    int bytes_sent;
+    int bytes_sent = 0;
 
     datalink_capture_init();
     bytes_sent = npdu_send_what_is_network_number(NULL);
