@@ -925,10 +925,10 @@ bool utf8_isvalid(const char *str, size_t length)
             return false;
         }
         ab = (size_t)trailingBytesForUTF8[c];
-        if (length < ab) {
+        /* all continuation bytes must lie within the remaining span */
+        if ((size_t)(pend - p - 1) < ab) {
             return false;
         }
-        length -= ab;
 
         p++;
         /* Check top bits in the second byte */
@@ -1416,6 +1416,32 @@ void characterstring_buffer_free(BACNET_CHARACTER_STRING_BUFFER *char_string)
 }
 
 /**
+ * @brief Check if a BACNET_CHARACTER_STRING_BUFFER holds a valid UTF-8 string.
+ * @param value Pointer to BACNET_CHARACTER_STRING_BUFFER structure.
+ * @return true if the encoding is CHARACTER_UTF8, the length fits within the
+ *  buffer size and within the BACNET_CHARACTER_STRING capacity
+ *  (MAX_CHARACTER_STRING_BYTES - 1, one byte is kept for a NUL terminator),
+ *  and the contents are valid UTF-8, false otherwise.
+ */
+bool bacnet_character_string_buffer_utf8_valid(
+    const BACNET_CHARACTER_STRING_BUFFER *value)
+{
+    if (!value || (value->encoding != CHARACTER_UTF8)) {
+        return false;
+    }
+    if (value->buffer_length > value->buffer_size) {
+        return false;
+    }
+    /* a stored value must fit in a BACNET_CHARACTER_STRING,
+       which reserves one byte for a NUL terminator */
+    if (value->buffer_length > CHARACTER_STRING_CAPACITY) {
+        return false;
+    }
+
+    return utf8_isvalid(value->buffer, value->buffer_length);
+}
+
+/**
  * @brief Set a BACnet character string by referencing a C string.
  * @param char_string Pointer to destination structure.
  * @param value Pointer to a source C string, or NULL for empty.
@@ -1769,25 +1795,6 @@ bool bacnet_character_cstring_utf8_valid(
 
     return utf8_isvalid(
         char_string->buffer, bacnet_character_cstring_length(char_string));
-}
-
-/**
- * @brief Check if a BACNET_CHARACTER_STRING_BUFFER holds a valid UTF-8 string.
- * @param value Pointer to BACNET_CHARACTER_STRING_BUFFER structure.
- * @return true if the encoding is CHARACTER_UTF8, the length fits within the
- *  buffer size, and the contents are valid UTF-8, false otherwise.
- */
-bool bacnet_character_string_buffer_utf8_valid(
-    const BACNET_CHARACTER_STRING_BUFFER *value)
-{
-    if (!value || (value->encoding != CHARACTER_UTF8)) {
-        return false;
-    }
-    if (value->buffer_length > value->buffer_size) {
-        return false;
-    }
-
-    return utf8_isvalid(value->buffer, value->buffer_length);
 }
 
 #if BACNET_USE_OCTETSTRING

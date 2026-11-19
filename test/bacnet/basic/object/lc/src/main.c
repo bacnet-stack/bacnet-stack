@@ -1078,6 +1078,8 @@ static void test_Load_Control_Shed_Level_Write(void)
     uint32_t level = 0;
     struct shed_level_data entry = { 0 };
     BACNET_CHARACTER_STRING char_string = { 0 };
+    BACNET_CHARACTER_STRING_BUFFER string_buffer = { 0 };
+    char big_description[MAX_CHARACTER_STRING_BYTES];
     BACNET_SHED_LEVEL shed_level = { 0 };
     BACNET_APPLICATION_DATA_VALUE value = { 0 };
     BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
@@ -1250,7 +1252,24 @@ static void test_Load_Control_Shed_Level_Write(void)
     zassert_true(
         Load_Control_Shed_Level_Array(object_instance, 2, &entry), NULL);
     zassert_true(strcmp(entry.Description, descriptions[1]) == 0, NULL);
-    /* local API */
+    /* an oversized description is rejected before the arrays are resized */
+    memset(big_description, 'A', sizeof(big_description));
+    bacnet_character_string_buffer_init(
+        &string_buffer, CHARACTER_UTF8, big_description,
+        sizeof(big_description));
+    string_buffer.buffer_length = sizeof(big_description);
+    apdu_len = encode_application_character_string_buffer(apdu, &string_buffer);
+    zassert_true(apdu_len > 0, NULL);
+    status = test_shed_level_write(
+        object_instance, PROP_SHED_LEVEL_DESCRIPTIONS, BACNET_ARRAY_ALL, apdu,
+        apdu_len, &error_code);
+    zassert_false(status, NULL);
+    zassert_equal(error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+    zassert_true(Load_Control_Shed_Level(object_instance, 3, &level), NULL);
+    zassert_false(Load_Control_Shed_Level(object_instance, 4, &level), NULL);
+    zassert_true(
+        Load_Control_Shed_Level_Array(object_instance, 3, &entry), NULL);
+    zassert_true(strcmp(entry.Description, descriptions[2]) == 0, NULL);
     zassert_true(Load_Control_Shed_Level_Set(object_instance, 1, 5), NULL);
     zassert_true(Load_Control_Shed_Level(object_instance, 1, &level), NULL);
     zassert_equal(level, 5, NULL);

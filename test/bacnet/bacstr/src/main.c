@@ -541,6 +541,11 @@ static void testUtf8IsValid(void)
     static const char invalid_continuation[] = { (char)0xC2, 'A' };
     static const char invalid_late_continuation[] = { (char)0xE2, (char)0x82,
                                                       'A' };
+    static const char raw_two_byte[] = { (char)0xC3, (char)0x80 };
+    static const char raw_three_byte[] = { (char)0xE2, (char)0x82, (char)0xAC };
+    static const char raw_six_byte[] = { (char)0xFC, (char)0x84, (char)0x80,
+                                         (char)0x80, (char)0x80, (char)0x80 };
+    static const char raw_after_ascii[] = { 'A', 'B', (char)0xC3, (char)0x80 };
     static const char overlong_two_byte[] = { (char)0xC0, (char)0x80 };
     static const char overlong_three_byte[] = { (char)0xE0, (char)0x80,
                                                 (char)0x80 };
@@ -594,6 +599,20 @@ static void testUtf8IsValid(void)
         utf8_isvalid(
             invalid_late_continuation, sizeof(invalid_late_continuation)),
         "Invalid later continuation byte should be rejected");
+    /* the bytes beyond the length are valid continuations, but must be
+       ignored for a truncated, non-NUL-terminated slice */
+    zassert_false(
+        utf8_isvalid(raw_two_byte, 1), "Truncated 2-byte slice rejected");
+    zassert_false(
+        utf8_isvalid(raw_three_byte, 1), "Truncated 3-byte slice rejected");
+    zassert_false(
+        utf8_isvalid(raw_three_byte, 2), "Truncated 3-byte slice rejected");
+    zassert_false(
+        utf8_isvalid(raw_six_byte, 5), "Truncated 6-byte slice rejected");
+    zassert_false(
+        utf8_isvalid(raw_after_ascii, 3), "Truncated trailing sequence");
+    zassert_true(
+        utf8_isvalid(raw_after_ascii, 4), "Complete trailing sequence");
     zassert_false(
         utf8_isvalid(overlong_two_byte, sizeof(overlong_two_byte)),
         "Overlong 2-byte sequence should be rejected");
@@ -701,6 +720,7 @@ static void testCharacterStringBufferUtf8Valid(void)
     BACNET_CHARACTER_STRING_BUFFER value = { 0 };
     char valid[] = "Joshua😍Mary";
     char invalid[] = { 'a', (char)0xC3, 'b' };
+    char big[MAX_CHARACTER_STRING_BYTES];
 
     zassert_false(bacnet_character_string_buffer_utf8_valid(NULL), NULL);
     /* empty UTF-8 string without a buffer */
@@ -723,6 +743,15 @@ static void testCharacterStringBufferUtf8Valid(void)
     value.buffer = invalid;
     value.buffer_size = sizeof(invalid);
     value.buffer_length = sizeof(invalid);
+    zassert_false(bacnet_character_string_buffer_utf8_valid(&value), NULL);
+    /* the longest value that fits a BACNET_CHARACTER_STRING */
+    memset(big, 'A', sizeof(big));
+    value.buffer = big;
+    value.buffer_size = sizeof(big);
+    value.buffer_length = MAX_CHARACTER_STRING_BYTES - 1;
+    zassert_true(bacnet_character_string_buffer_utf8_valid(&value), NULL);
+    /* no room left for the NUL terminator */
+    value.buffer_length = MAX_CHARACTER_STRING_BYTES;
     zassert_false(bacnet_character_string_buffer_utf8_valid(&value), NULL);
 }
 
