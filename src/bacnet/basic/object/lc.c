@@ -1800,7 +1800,7 @@ static int Load_Control_Shed_Level_Descriptions_Element_Length(
     (void)object_instance;
     len = bacnet_character_string_buffer_application_decode(
         apdu, (uint32_t)apdu_size, &value);
-    if ((len > 0) && (value.encoding != CHARACTER_UTF8)) {
+    if ((len > 0) && !bacnet_character_string_buffer_utf8_valid(&value)) {
         len = BACNET_STATUS_ERANGE;
     }
 

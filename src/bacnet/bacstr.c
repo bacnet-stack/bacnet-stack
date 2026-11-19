@@ -1754,6 +1754,42 @@ int bacnet_character_cstring_asprintf(
     return len;
 }
 
+/**
+ * @brief Check if a BACNET_CHARACTER_CSTRING holds a valid UTF-8 string.
+ * @param char_string Pointer to BACNET_CHARACTER_CSTRING structure.
+ * @return true if the string buffer is set and is a valid NUL-terminated
+ *  UTF-8 string, false otherwise.
+ */
+bool bacnet_character_cstring_utf8_valid(
+    const BACNET_CHARACTER_CSTRING *char_string)
+{
+    if (!char_string || !char_string->buffer) {
+        return false;
+    }
+
+    return utf8_isvalid(
+        char_string->buffer, bacnet_character_cstring_length(char_string));
+}
+
+/**
+ * @brief Check if a BACNET_CHARACTER_STRING_BUFFER holds a valid UTF-8 string.
+ * @param value Pointer to BACNET_CHARACTER_STRING_BUFFER structure.
+ * @return true if the encoding is CHARACTER_UTF8, the length fits within the
+ *  buffer size, and the contents are valid UTF-8, false otherwise.
+ */
+bool bacnet_character_string_buffer_utf8_valid(
+    const BACNET_CHARACTER_STRING_BUFFER *value)
+{
+    if (!value || (value->encoding != CHARACTER_UTF8)) {
+        return false;
+    }
+    if (value->buffer_length > value->buffer_size) {
+        return false;
+    }
+
+    return utf8_isvalid(value->buffer, value->buffer_length);
+}
+
 #if BACNET_USE_OCTETSTRING
 /**
  * @brief Initialize an octet string with the given bytes or

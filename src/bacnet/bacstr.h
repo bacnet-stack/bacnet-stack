@@ -251,6 +251,12 @@ bool bacnet_character_cstring_to_characterstring_default(
 BACNET_STACK_EXPORT
 int bacnet_character_cstring_asprintf(
     BACNET_CHARACTER_CSTRING *char_string, const char *format, ...);
+BACNET_STACK_EXPORT
+bool bacnet_character_cstring_utf8_valid(
+    const BACNET_CHARACTER_CSTRING *char_string);
+BACNET_STACK_EXPORT
+bool bacnet_character_string_buffer_utf8_valid(
+    const BACNET_CHARACTER_STRING_BUFFER *value);
 
 /* returns false if the string exceeds capacity
    initialize by using length=0 */
