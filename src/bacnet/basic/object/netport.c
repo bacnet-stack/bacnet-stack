@@ -2170,7 +2170,7 @@ static int BBMD_Broadcast_Distribution_Table_Element_Length(
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
-            len = bvlc_decode_broadcast_distribution_table_entry(
+            len = bvlc_broadcast_distribution_table_entry_decode(
                 apdu, apdu_size, NULL);
         }
     }
@@ -2179,21 +2179,16 @@ static int BBMD_Broadcast_Distribution_Table_Element_Length(
 }
 
 /**
- * @brief Write a value to a BACnetLIST property element value
- *  using a BACnetARRAY write utility function
+ * @brief Add an element to the BACnetLIST property value
+ *  using the BACnetLIST write utility function
  * @param object_instance [in] BACnet network port object instance number
- * @param array_index [in] array index to write:
- *    0=array size, 1 to N for individual array members
- * @param array_size [in] The total number of elements in the array,
- *  if writing array size
- * @param application_data [in] encoded element value
+ * @param application_data [in] encoded element value,
+ *  or NULL to empty the list
  * @param application_data_len [in] The size of the encoded element value
  * @return BACNET_ERROR_CODE value
  */
-static BACNET_ERROR_CODE BBMD_Broadcast_Distribution_Table_Element_Write(
+static BACNET_ERROR_CODE BBMD_Broadcast_Distribution_Table_Element_Add(
     uint32_t object_instance,
-    BACNET_ARRAY_INDEX array_index,
-    BACNET_UNSIGNED_INTEGER array_size,
     uint8_t *application_data,
     size_t application_data_len)
 {
@@ -2201,28 +2196,24 @@ static BACNET_ERROR_CODE BBMD_Broadcast_Distribution_Table_Element_Write(
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_entry = { 0 };
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list;
     int len;
-    bool status = false;
     unsigned index = 0;
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
-            if (array_index == 0) {
-                /* This array is not required to be resizable
-                   through BACnet write services */
-                (void)array_size;
-                error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            bdt_list = Object_List[index].Network.IPv4.BBMD_BD_Table;
+            if (!application_data) {
+                bvlc_broadcast_distribution_table_valid_clear(bdt_list);
+                error_code = ERROR_CODE_SUCCESS;
             } else {
-                len = bvlc_decode_broadcast_distribution_table_entry(
+                len = bvlc_broadcast_distribution_table_entry_decode(
                     application_data, application_data_len, &bdt_entry);
                 if (len > 0) {
-                    bdt_list = Object_List[index].Network.IPv4.BBMD_BD_Table;
-                    status = bvlc_broadcast_distribution_table_entry_insert(
-                        bdt_list, &bdt_entry, array_index);
-                    if (status) {
+                    if (bvlc_broadcast_distribution_table_entry_append(
+                            bdt_list, &bdt_entry)) {
                         error_code = ERROR_CODE_SUCCESS;
                     } else {
-                        error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                        error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
                     }
                 } else {
                     error_code = ERROR_CODE_INVALID_DATA_TYPE;
@@ -2386,7 +2377,7 @@ static int BBMD_Foreign_Device_Table_Element_Length(
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
-            len = bvlc_decode_foreign_device_table_entry(apdu, apdu_size, NULL);
+            len = bvlc_foreign_device_table_entry_decode(apdu, apdu_size, NULL);
         }
     }
 
@@ -2394,21 +2385,16 @@ static int BBMD_Foreign_Device_Table_Element_Length(
 }
 
 /**
- * @brief Write a value to a BACnetLIST property element value
- *  using a BACnetARRAY write utility function
+ * @brief Add an element to the BACnetLIST property value
+ *  using the BACnetLIST write utility function
  * @param object_instance [in] BACnet network port object instance number
- * @param array_index [in] array index to write:
- *    0=array size, 1 to N for individual array members
- * @param array_size [in] The total number of elements in the array,
- *  if writing array size
- * @param application_data [in] encoded element value
+ * @param application_data [in] encoded element value,
+ *  or NULL to empty the list
  * @param application_data_len [in] The size of the encoded element value
  * @return BACNET_ERROR_CODE value
  */
-static BACNET_ERROR_CODE BBMD_Foreign_Device_Table_Element_Write(
+static BACNET_ERROR_CODE BBMD_Foreign_Device_Table_Element_Add(
     uint32_t object_instance,
-    BACNET_ARRAY_INDEX array_index,
-    BACNET_UNSIGNED_INTEGER array_size,
     uint8_t *application_data,
     size_t application_data_len)
 {
@@ -2416,28 +2402,24 @@ static BACNET_ERROR_CODE BBMD_Foreign_Device_Table_Element_Write(
     BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY fdt_entry = { 0 };
     BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list;
     int len;
-    bool status = false;
     unsigned index = 0;
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
-            if (array_index == 0) {
-                /* This array is not required to be resizable
-                   through BACnet write services */
-                (void)array_size;
-                error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+            fdt_list = Object_List[index].Network.IPv4.BBMD_FD_Table;
+            if (!application_data) {
+                bvlc_foreign_device_table_valid_clear(fdt_list);
+                error_code = ERROR_CODE_SUCCESS;
             } else {
-                len = bvlc_decode_foreign_device_table_entry(
+                len = bvlc_foreign_device_table_entry_decode(
                     application_data, application_data_len, &fdt_entry);
                 if (len > 0) {
-                    fdt_list = Object_List[index].Network.IPv4.BBMD_FD_Table;
-                    status = bvlc_foreign_device_table_entry_insert(
-                        fdt_list, &fdt_entry, array_index - 1);
-                    if (status) {
+                    if (bvlc_foreign_device_table_entry_append(
+                            fdt_list, &fdt_entry)) {
                         error_code = ERROR_CODE_SUCCESS;
                     } else {
-                        error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                        error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
                     }
                 } else {
                     error_code = ERROR_CODE_INVALID_DATA_TYPE;
@@ -4827,10 +4809,10 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             /* BACnetLIST */
             capacity = BBMD_Broadcast_Distribution_Table_Capacity(
                 wp_data->object_instance);
-            wp_data->error_code = bacnet_array_write(
+            wp_data->error_code = bacnet_list_write(
                 wp_data->object_instance, wp_data->array_index,
                 BBMD_Broadcast_Distribution_Table_Element_Length,
-                BBMD_Broadcast_Distribution_Table_Element_Write, capacity,
+                BBMD_Broadcast_Distribution_Table_Element_Add, capacity,
                 wp_data->application_data, wp_data->application_data_len);
             if (wp_data->error_code == ERROR_CODE_SUCCESS) {
                 status = true;
@@ -4840,10 +4822,10 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             /* BACnetLIST */
             capacity =
                 BBMD_Foreign_Device_Table_Capacity(wp_data->object_instance);
-            wp_data->error_code = bacnet_array_write(
+            wp_data->error_code = bacnet_list_write(
                 wp_data->object_instance, wp_data->array_index,
                 BBMD_Foreign_Device_Table_Element_Length,
-                BBMD_Foreign_Device_Table_Element_Write, capacity,
+                BBMD_Foreign_Device_Table_Element_Add, capacity,
                 wp_data->application_data, wp_data->application_data_len);
             if (wp_data->error_code == ERROR_CODE_SUCCESS) {
                 status = true;

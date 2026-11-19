@@ -668,6 +668,66 @@ int bvlc_broadcast_distribution_table_encode(
 }
 
 /**
+ * @brief Decode one BACnetBDTEntry of the Broadcast-Distribution-Table
+ *  for Network Port object
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer length
+ * @param bdt_entry - the decoded entry, or NULL for length only.
+ *  The valid flag and next pointer are not changed.
+ * @return length of the APDU buffer decoded, zero if the tag does not match,
+ *  BACNET_STATUS_ERANGE if a value is out-of-range, or BACNET_STATUS_ERROR
+ *  if malformed
+ */
+int bvlc_broadcast_distribution_table_entry_decode(
+    const uint8_t *apdu,
+    uint16_t apdu_size,
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry)
+{
+    int len = 0, apdu_len = 0;
+    BACNET_HOST_N_PORT_MINIMAL host_n_port = { 0 };
+    BACNET_IP_BROADCAST_DISTRIBUTION_MASK broadcast_mask = { 0 };
+    uint32_t address_length = 0;
+
+    if (!apdu) {
+        return 0;
+    }
+    /* bbmd-address [0] BACnetHostNPort */
+    if (!bacnet_is_opening_tag_number(&apdu[apdu_len], apdu_size, 0, &len)) {
+        return 0;
+    }
+    len = host_n_port_minimal_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 0, NULL, &host_n_port);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    if (host_n_port.tag != BACNET_HOST_ADDRESS_TAG_IP_ADDRESS) {
+        return BACNET_STATUS_ERANGE;
+    }
+    /* broadcast-mask [1] OCTET STRING */
+    len = bacnet_octet_string_buffer_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 1, broadcast_mask.address,
+        sizeof(broadcast_mask.address), &address_length);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    if (address_length != sizeof(broadcast_mask.address)) {
+        return BACNET_STATUS_ERANGE;
+    }
+    if (bdt_entry) {
+        memcpy(
+            bdt_entry->dest_address.address,
+            host_n_port.host.ip_address.address, IP_ADDRESS_MAX);
+        bdt_entry->dest_address.port = host_n_port.port;
+        bvlc_broadcast_distribution_mask_copy(
+            &bdt_entry->broadcast_mask, &broadcast_mask);
+    }
+
+    return apdu_len;
+}
+
+/**
  * @brief Decode the Broadcast-Distribution-Table for Network Port object
  * @param apdu - the APDU buffer
  * @param apdu_size - the APDU buffer length
@@ -1258,6 +1318,68 @@ int bvlc_foreign_device_table_encode(
 }
 
 /**
+ * @brief Decode one BACnetFDTEntry of the Foreign-Device-Table
+ *  for Network Port object
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer length
+ * @param fdt_entry - the decoded entry, or NULL for length only.
+ *  The valid flag and next pointer are not changed.
+ * @return length of the APDU buffer decoded, zero if the tag does not match,
+ *  BACNET_STATUS_ERANGE if a value is out-of-range, or BACNET_STATUS_ERROR
+ *  if malformed
+ */
+int bvlc_foreign_device_table_entry_decode(
+    const uint8_t *apdu,
+    uint16_t apdu_size,
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry)
+{
+    int len = 0, apdu_len = 0;
+    BACNET_UNSIGNED_INTEGER ttl_seconds = 0, ttl_seconds_remaining = 0;
+    BACNET_OCTET_STRING octet_string = { 0 };
+    BACNET_IP_ADDRESS dest_address = { 0 };
+
+    if (!apdu) {
+        return 0;
+    }
+    /* bacnetip-address [0] OCTET STRING */
+    len = bacnet_octet_string_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 0, &octet_string);
+    if (len <= 0) {
+        return len;
+    }
+    apdu_len += len;
+    if (bvlc_decode_address(
+            octetstring_value(&octet_string), octetstring_length(&octet_string),
+            &dest_address) != BIP_ADDRESS_MAX) {
+        return BACNET_STATUS_ERANGE;
+    }
+    /* time-to-live [1] Unsigned16 */
+    len = bacnet_unsigned_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 1, &ttl_seconds);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    /* remaining-time-to-live [2] Unsigned16 */
+    len = bacnet_unsigned_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 2, &ttl_seconds_remaining);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    if ((ttl_seconds > UINT16_MAX) || (ttl_seconds_remaining > UINT16_MAX)) {
+        return BACNET_STATUS_ERANGE;
+    }
+    if (fdt_entry) {
+        bvlc_address_copy(&fdt_entry->dest_address, &dest_address);
+        fdt_entry->ttl_seconds = (uint16_t)ttl_seconds;
+        fdt_entry->ttl_seconds_remaining = (uint16_t)ttl_seconds_remaining;
+    }
+
+    return apdu_len;
+}
+
+/**
  * @brief Decode the Foreign_Device-Table for Network Port object
  * @param apdu - the APDU buffer
  * @param apdu_size - the APDU buffer length
@@ -1525,6 +1647,45 @@ bool bvlc_foreign_device_table_entry_add(
             }
             fdt_entry = fdt_entry->next;
         }
+    }
+
+    return status;
+}
+
+/**
+ * @brief Append an entry to the Foreign-Device-Table, keeping the
+ *  entry time-to-live values as given
+ * @param fdt_list - first entry in list of FDT entries
+ * @param fdt_new - new entry to append to list of FDT entries
+ * @return true if the entry was appended or already exists,
+ *  false if there is no empty slot
+ */
+bool bvlc_foreign_device_table_entry_append(
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list,
+    const BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_new)
+{
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry = NULL;
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_empty = NULL;
+    bool status = false;
+
+    fdt_entry = fdt_list;
+    while (fdt_entry) {
+        if (fdt_entry->valid) {
+            if (!bvlc_foreign_device_table_entry_different(
+                    fdt_entry, fdt_new)) {
+                /* same address: update the time-to-live values */
+                status =
+                    bvlc_foreign_device_table_entry_copy(fdt_entry, fdt_new);
+                return status;
+            }
+        } else if (!fdt_empty) {
+            fdt_empty = fdt_entry;
+        }
+        fdt_entry = fdt_entry->next;
+    }
+    if (fdt_empty) {
+        status = bvlc_foreign_device_table_entry_copy(fdt_empty, fdt_new);
+        fdt_empty->valid = status;
     }
 
     return status;
