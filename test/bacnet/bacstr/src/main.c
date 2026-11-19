@@ -518,6 +518,23 @@ static void testCharacterStringAnsiHelpers(void)
 }
 
 /**
+ * @brief Validate a copy of the bytes held in an exactly-sized heap buffer,
+ *  so that any read past the end is detectable by a memory checker
+ */
+static bool utf8_isvalid_exact(const uint8_t *bytes, size_t length)
+{
+    char *buffer = malloc(length);
+    bool status = false;
+
+    zassert_not_null(buffer, NULL);
+    memcpy(buffer, bytes, length);
+    status = utf8_isvalid(buffer, length);
+    free(buffer);
+
+    return status;
+}
+
+/**
  * @brief Test utf8_isvalid function
  */
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -546,6 +563,12 @@ static void testUtf8IsValid(void)
     static const char raw_six_byte[] = { (char)0xFC, (char)0x84, (char)0x80,
                                          (char)0x80, (char)0x80, (char)0x80 };
     static const char raw_after_ascii[] = { 'A', 'B', (char)0xC3, (char)0x80 };
+    static const uint8_t trunc_two[] = { 0xC3 };
+    static const uint8_t trunc_two_a[] = { 'a', 0xC3 };
+    static const uint8_t trunc_three[] = { 'a', 0xE2, 0x82 };
+    static const uint8_t trunc_four[] = { 0xF0, 0x9F, 0x98 };
+    static const uint8_t trunc_six[] = { 0xFC, 0x84, 0x80, 0x80, 0x80 };
+    static const uint8_t complete_a[] = { 'a', 0xC3, 0xA9 };
     static const char overlong_two_byte[] = { (char)0xC0, (char)0x80 };
     static const char overlong_three_byte[] = { (char)0xE0, (char)0x80,
                                                 (char)0x80 };
@@ -613,6 +636,13 @@ static void testUtf8IsValid(void)
         utf8_isvalid(raw_after_ascii, 3), "Truncated trailing sequence");
     zassert_true(
         utf8_isvalid(raw_after_ascii, 4), "Complete trailing sequence");
+    /* exact-size buffers: nothing follows the last byte to read */
+    zassert_false(utf8_isvalid_exact(trunc_two, sizeof(trunc_two)), NULL);
+    zassert_false(utf8_isvalid_exact(trunc_two_a, sizeof(trunc_two_a)), NULL);
+    zassert_false(utf8_isvalid_exact(trunc_three, sizeof(trunc_three)), NULL);
+    zassert_false(utf8_isvalid_exact(trunc_four, sizeof(trunc_four)), NULL);
+    zassert_false(utf8_isvalid_exact(trunc_six, sizeof(trunc_six)), NULL);
+    zassert_true(utf8_isvalid_exact(complete_a, sizeof(complete_a)), NULL);
     zassert_false(
         utf8_isvalid(overlong_two_byte, sizeof(overlong_two_byte)),
         "Overlong 2-byte sequence should be rejected");
