@@ -126,6 +126,15 @@ bool Load_Control_Shed_Level_Array(
     uint32_t object_instance,
     uint32_t array_entry,
     struct shed_level_data *value);
+BACNET_STACK_EXPORT
+bool Load_Control_Shed_Level(
+    uint32_t object_instance, uint32_t array_index, uint32_t *level);
+BACNET_STACK_EXPORT
+bool Load_Control_Shed_Level_Set(
+    uint32_t object_instance, uint32_t array_index, uint32_t level);
+BACNET_STACK_EXPORT
+bool Load_Control_Shed_Level_Description_Duplicate(
+    uint32_t object_instance, uint32_t array_index, const char *description);
 
 BACNET_STACK_EXPORT
 bool Load_Control_Requested_Shed_Level(

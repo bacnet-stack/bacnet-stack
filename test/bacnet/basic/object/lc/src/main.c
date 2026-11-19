@@ -1003,6 +1003,274 @@ static void test_ShedInactive_gets_RcvShedRequests(void)
 }
 
 /**
+ * @brief Write a Load Control property with application data
+ * @param object_instance - object-instance number of the object
+ * @param property - property to write
+ * @param array_index - array index to write
+ * @param apdu - encoded application data
+ * @param apdu_len - length of the encoded application data
+ * @param error_code - error code when the write fails
+ * @return true if the property was written
+ */
+static bool test_shed_level_write(
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID property,
+    BACNET_ARRAY_INDEX array_index,
+    const uint8_t *apdu,
+    int apdu_len,
+    BACNET_ERROR_CODE *error_code)
+{
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    bool status = false;
+
+    wp_data.object_type = OBJECT_LOAD_CONTROL;
+    wp_data.object_instance = object_instance;
+    wp_data.object_property = property;
+    wp_data.array_index = array_index;
+    wp_data.priority = BACNET_NO_PRIORITY;
+    memcpy(wp_data.application_data, apdu, (size_t)apdu_len);
+    wp_data.application_data_len = apdu_len;
+    status = Load_Control_Write_Property(&wp_data);
+    *error_code = wp_data.error_code;
+
+    return status;
+}
+
+/**
+ * @brief Read a Load Control property into a buffer
+ * @param object_instance - object-instance number of the object
+ * @param property - property to read
+ * @param apdu - buffer for the encoded application data
+ * @param apdu_size - size of the buffer
+ * @return length of the encoded application data
+ */
+static int test_shed_level_read(
+    uint32_t object_instance,
+    BACNET_PROPERTY_ID property,
+    uint8_t *apdu,
+    size_t apdu_size)
+{
+    BACNET_READ_PROPERTY_DATA rpdata = { 0 };
+
+    rpdata.object_type = OBJECT_LOAD_CONTROL;
+    rpdata.object_instance = object_instance;
+    rpdata.object_property = property;
+    rpdata.array_index = BACNET_ARRAY_ALL;
+    rpdata.application_data = apdu;
+    rpdata.application_data_len = (int)apdu_size;
+
+    return Load_Control_Read_Property(&rpdata);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lc_tests, test_Load_Control_Shed_Level_Write)
+#else
+static void test_Load_Control_Shed_Level_Write(void)
+#endif
+{
+    uint32_t object_instance = 123;
+    const uint32_t levels[] = { 10, 20, 30, 40 };
+    const char *descriptions[] = { "low", "medium", "high" };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    uint8_t backup[MAX_APDU] = { 0 };
+    int apdu_len = 0, len = 0, backup_len = 0;
+    unsigned i = 0;
+    uint32_t level = 0;
+    struct shed_level_data entry = { 0 };
+    BACNET_CHARACTER_STRING char_string = { 0 };
+    BACNET_SHED_LEVEL shed_level = { 0 };
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
+    bool status = false;
+
+    test_setup(object_instance);
+    /* Shed_Levels: whole array of Unsigned */
+    for (i = 0; i < 3; i++) {
+        apdu_len += encode_application_unsigned(&apdu[apdu_len], levels[i]);
+    }
+    status = test_shed_level_write(
+        object_instance, PROP_SHED_LEVELS, BACNET_ARRAY_ALL, apdu, apdu_len,
+        &error_code);
+    zassert_true(status, "error_code=%d", error_code);
+    for (i = 0; i < 3; i++) {
+        zassert_true(
+            Load_Control_Shed_Level(object_instance, 1 + i, &level), NULL);
+        zassert_equal(level, levels[i], NULL);
+    }
+    len = test_shed_level_read(
+        object_instance, PROP_SHED_LEVELS, backup, sizeof(backup));
+    zassert_equal(len, apdu_len, NULL);
+    zassert_mem_equal(backup, apdu, (size_t)apdu_len, NULL);
+    backup_len = len;
+    /* Shed_Levels: single element */
+    len = encode_application_unsigned(apdu, 25);
+    status = test_shed_level_write(
+        object_instance, PROP_SHED_LEVELS, 2, apdu, len, &error_code);
+    zassert_true(status, NULL);
+    zassert_true(Load_Control_Shed_Level(object_instance, 2, &level), NULL);
+    zassert_equal(level, 25, NULL);
+    /* writing past the end is an error, and does not grow the arrays */
+    status = test_shed_level_write(
+        object_instance, PROP_SHED_LEVELS, 4, apdu, len, &error_code);
+    zassert_false(status, NULL);
+    zassert_equal(error_code, ERROR_CODE_INVALID_ARRAY_INDEX, NULL);
+    zassert_false(Load_Control_Shed_Level(object_instance, 4, &level), NULL);
+    /* writing the array size grows both arrays */
+    len = encode_application_unsigned(apdu, 4);
+    status = test_shed_level_write(
+        object_instance, PROP_SHED_LEVELS, 0, apdu, len, &error_code);
+    zassert_true(status, NULL);
+    zassert_true(Load_Control_Shed_Level(object_instance, 4, &level), NULL);
+    zassert_equal(level, 4, NULL);
+    zassert_true(
+        Load_Control_Shed_Level_Array(object_instance, 4, &entry), NULL);
+    zassert_true(strcmp(entry.Description, "") == 0, NULL);
+    len = encode_application_unsigned(apdu, 3);
+    status = test_shed_level_write(
+        object_instance, PROP_SHED_LEVELS, 0, apdu, len, &error_code);
+    zassert_true(status, NULL);
+    zassert_false(Load_Control_Shed_Level(object_instance, 4, &level), NULL);
+    len = encode_application_unsigned(apdu, 256);
+    status = test_shed_level_write(
+        object_instance, PROP_SHED_LEVELS, 0, apdu, len, &error_code);
+    zassert_false(status, NULL);
+    zassert_equal(error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+    len = encode_application_unsigned(
+        apdu, (BACNET_UNSIGNED_INTEGER)UINT32_MAX + 1);
+    status = test_shed_level_write(
+        object_instance, PROP_SHED_LEVELS, 1, apdu, len, &error_code);
+    zassert_false(status, NULL);
+    zassert_equal(error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+    len = encode_application_real(apdu, 1.0f);
+    status = test_shed_level_write(
+        object_instance, PROP_SHED_LEVELS, 1, apdu, len, &error_code);
+    zassert_false(status, NULL);
+    zassert_equal(error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    /* restore Shed_Levels from the backup into an empty array */
+    len = encode_application_unsigned(apdu, 0);
+    status = test_shed_level_write(
+        object_instance, PROP_SHED_LEVELS, 0, apdu, len, &error_code);
+    zassert_true(status, NULL);
+    len = test_shed_level_read(
+        object_instance, PROP_SHED_LEVELS, apdu, sizeof(apdu));
+    zassert_equal(len, 0, NULL);
+    /* writing the entire array resizes it to the number of elements */
+    status = test_shed_level_write(
+        object_instance, PROP_SHED_LEVELS, BACNET_ARRAY_ALL, backup, backup_len,
+        &error_code);
+    zassert_true(status, NULL);
+    zassert_true(Load_Control_Shed_Level(object_instance, 2, &level), NULL);
+    zassert_equal(level, levels[1], NULL);
+    /* Requested_Shed_Level is limited by the largest Shed_Levels value */
+    value.tag = BACNET_APPLICATION_TAG_SHED_LEVEL;
+    bacnet_shed_level_init(
+        &value.type.Shed_Level, BACNET_SHED_TYPE_LEVEL, levels[2]);
+    len = bacapp_encode_application_data(apdu, &value);
+    status = test_shed_level_write(
+        object_instance, PROP_REQUESTED_SHED_LEVEL, BACNET_ARRAY_ALL, apdu, len,
+        &error_code);
+    zassert_true(status, NULL);
+    bacnet_shed_level_init(
+        &value.type.Shed_Level, BACNET_SHED_TYPE_LEVEL, levels[2] + 1);
+    len = bacapp_encode_application_data(apdu, &value);
+    status = test_shed_level_write(
+        object_instance, PROP_REQUESTED_SHED_LEVEL, BACNET_ARRAY_ALL, apdu, len,
+        &error_code);
+    zassert_false(status, NULL);
+    zassert_equal(error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+    zassert_true(
+        Load_Control_Requested_Shed_Level(object_instance, &shed_level), NULL);
+    zassert_equal(shed_level.value.level, levels[2], NULL);
+    /* direct decoding rejects the wrong datatype */
+    len = encode_application_real(apdu, 1.0f);
+    status = test_shed_level_write(
+        object_instance, PROP_REQUESTED_SHED_LEVEL, BACNET_ARRAY_ALL, apdu, len,
+        &error_code);
+    zassert_false(status, NULL);
+    zassert_equal(error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    status = test_shed_level_write(
+        object_instance, PROP_START_TIME, BACNET_ARRAY_ALL, apdu, len,
+        &error_code);
+    zassert_false(status, NULL);
+    zassert_equal(error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    status = test_shed_level_write(
+        object_instance, PROP_ENABLE, BACNET_ARRAY_ALL, apdu, len, &error_code);
+    zassert_false(status, NULL);
+    zassert_equal(error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    /* Shed_Level_Descriptions: whole array of CharacterString */
+    apdu_len = 0;
+    for (i = 0; i < 3; i++) {
+        characterstring_init_ansi(&char_string, descriptions[i]);
+        apdu_len +=
+            encode_application_character_string(&apdu[apdu_len], &char_string);
+    }
+    status = test_shed_level_write(
+        object_instance, PROP_SHED_LEVEL_DESCRIPTIONS, BACNET_ARRAY_ALL, apdu,
+        apdu_len, &error_code);
+    zassert_true(status, "error_code=%d", error_code);
+    backup_len = test_shed_level_read(
+        object_instance, PROP_SHED_LEVEL_DESCRIPTIONS, backup, sizeof(backup));
+    zassert_equal(backup_len, apdu_len, NULL);
+    zassert_mem_equal(backup, apdu, (size_t)apdu_len, NULL);
+    for (i = 0; i < 3; i++) {
+        zassert_true(
+            Load_Control_Shed_Level_Array(object_instance, 1 + i, &entry),
+            NULL);
+        zassert_true(strcmp(entry.Description, descriptions[i]) == 0, NULL);
+    }
+    /* Shed_Level_Descriptions: single element, then restore */
+    characterstring_init_ansi(&char_string, "changed");
+    len = encode_application_character_string(apdu, &char_string);
+    status = test_shed_level_write(
+        object_instance, PROP_SHED_LEVEL_DESCRIPTIONS, 2, apdu, len,
+        &error_code);
+    zassert_true(status, NULL);
+    zassert_true(
+        Load_Control_Shed_Level_Array(object_instance, 2, &entry), NULL);
+    zassert_true(strcmp(entry.Description, "changed") == 0, NULL);
+    len = encode_application_unsigned(apdu, 1);
+    status = test_shed_level_write(
+        object_instance, PROP_SHED_LEVEL_DESCRIPTIONS, 1, apdu, len,
+        &error_code);
+    zassert_false(status, NULL);
+    zassert_equal(error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    /* both arrays share one size: restore descriptions into empty arrays */
+    len = encode_application_unsigned(apdu, 0);
+    status = test_shed_level_write(
+        object_instance, PROP_SHED_LEVEL_DESCRIPTIONS, 0, apdu, len,
+        &error_code);
+    zassert_true(status, NULL);
+    zassert_false(Load_Control_Shed_Level(object_instance, 1, &level), NULL);
+    status = test_shed_level_write(
+        object_instance, PROP_SHED_LEVEL_DESCRIPTIONS, BACNET_ARRAY_ALL, backup,
+        backup_len, &error_code);
+    zassert_true(status, NULL);
+    zassert_true(Load_Control_Shed_Level(object_instance, 3, &level), NULL);
+    zassert_false(Load_Control_Shed_Level(object_instance, 4, &level), NULL);
+    zassert_true(
+        Load_Control_Shed_Level_Array(object_instance, 2, &entry), NULL);
+    zassert_true(strcmp(entry.Description, descriptions[1]) == 0, NULL);
+    /* local API */
+    zassert_true(Load_Control_Shed_Level_Set(object_instance, 1, 5), NULL);
+    zassert_true(Load_Control_Shed_Level(object_instance, 1, &level), NULL);
+    zassert_equal(level, 5, NULL);
+    zassert_false(Load_Control_Shed_Level_Set(object_instance, 4, 5), NULL);
+    zassert_true(
+        Load_Control_Shed_Level_Description_Duplicate(
+            object_instance, 1, "duplicate"),
+        NULL);
+    zassert_true(
+        Load_Control_Shed_Level_Array(object_instance, 1, &entry), NULL);
+    zassert_true(strcmp(entry.Description, "duplicate") == 0, NULL);
+    zassert_false(
+        Load_Control_Shed_Level_Description_Duplicate(
+            object_instance, 4, "duplicate"),
+        NULL);
+
+    test_teardown(object_instance);
+}
+
+/**
  * @}
  */
 
@@ -1014,7 +1282,8 @@ void test_main(void)
     ztest_test_suite(
         lc_tests, ztest_unit_test(test_Load_Control_Read_Write_Property),
         ztest_unit_test(testLoadControlStateMachine),
-        ztest_unit_test(test_ShedInactive_gets_RcvShedRequests));
+        ztest_unit_test(test_ShedInactive_gets_RcvShedRequests),
+        ztest_unit_test(test_Load_Control_Shed_Level_Write));
 
     ztest_run_test_suite(lc_tests);
 }

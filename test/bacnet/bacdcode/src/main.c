@@ -2407,6 +2407,8 @@ static int array_write_unsigned_decode(
     return len;
 }
 
+static BACNET_UNSIGNED_INTEGER Array_Write_Resize;
+
 static BACNET_ERROR_CODE array_write_unsigned_write(
     uint32_t object_instance,
     BACNET_ARRAY_INDEX array_index,
@@ -2415,11 +2417,13 @@ static BACNET_ERROR_CODE array_write_unsigned_write(
     size_t application_data_len)
 {
     (void)object_instance;
-    (void)array_index;
-    (void)array_size;
     (void)application_data;
     (void)application_data_len;
-    Array_Write_Count++;
+    if (array_index == 0) {
+        Array_Write_Resize = array_size;
+    } else {
+        Array_Write_Count++;
+    }
 
     return ERROR_CODE_SUCCESS;
 }
@@ -2468,6 +2472,47 @@ static void test_bacnet_array_write_range(void)
         1, 1, array_write_unsigned_decode, array_write_unsigned_write, 2, apdu,
         apdu_len);
     zassert_equal(error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    zassert_equal(Array_Write_Count, 0, NULL);
+    /* indexed write beyond the array size is an error */
+    apdu_len = encode_application_unsigned(apdu, 5);
+    Array_Write_Count = 0;
+    error_code = bacnet_array_write_resizable(
+        1, 3, array_write_unsigned_decode, array_write_unsigned_write, 2, apdu,
+        apdu_len);
+    zassert_equal(error_code, ERROR_CODE_INVALID_ARRAY_INDEX, NULL);
+    zassert_equal(Array_Write_Count, 0, NULL);
+    /* fixed size: ALL with more or fewer elements writes nothing */
+    apdu_len = 0;
+    apdu_len += encode_application_unsigned(&apdu[apdu_len], 1);
+    apdu_len += encode_application_unsigned(&apdu[apdu_len], 2);
+    apdu_len += encode_application_unsigned(&apdu[apdu_len], 3);
+    Array_Write_Count = 0;
+    Array_Write_Resize = 0;
+    error_code = bacnet_array_write(
+        1, BACNET_ARRAY_ALL, array_write_unsigned_decode,
+        array_write_unsigned_write, 2, apdu, apdu_len);
+    zassert_equal(error_code, ERROR_CODE_INVALID_ARRAY_SIZE, NULL);
+    zassert_equal(Array_Write_Count, 0, NULL);
+    error_code = bacnet_array_write(
+        1, BACNET_ARRAY_ALL, array_write_unsigned_decode,
+        array_write_unsigned_write, 4, apdu, apdu_len);
+    zassert_equal(error_code, ERROR_CODE_INVALID_ARRAY_SIZE, NULL);
+    zassert_equal(Array_Write_Count, 0, NULL);
+    zassert_equal(Array_Write_Resize, 0, NULL);
+    /* resizable: ALL with a different number of elements resizes first */
+    error_code = bacnet_array_write_resizable(
+        1, BACNET_ARRAY_ALL, array_write_unsigned_decode,
+        array_write_unsigned_write, 2, apdu, apdu_len);
+    zassert_equal(error_code, ERROR_CODE_SUCCESS, NULL);
+    zassert_equal(Array_Write_Resize, 3, NULL);
+    zassert_equal(Array_Write_Count, 3, NULL);
+    Array_Write_Count = 0;
+    Array_Write_Resize = 99;
+    error_code = bacnet_array_write_resizable(
+        1, BACNET_ARRAY_ALL, array_write_unsigned_decode,
+        array_write_unsigned_write, 5, apdu, 0);
+    zassert_equal(error_code, ERROR_CODE_SUCCESS, NULL);
+    zassert_equal(Array_Write_Resize, 0, NULL);
     zassert_equal(Array_Write_Count, 0, NULL);
 }
 
