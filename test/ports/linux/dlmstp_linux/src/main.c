@@ -9,6 +9,8 @@
  *    so dlmstp_cleanup() blocked forever in pthread_join().
  *  - B5: a packet already queued before dlmstp_receive() was called
  *    was only returned after the full timeout elapsed.
+ *  - dlmstp_send_pdu_queue_empty() and dlmstp_send_pdu_queue_full()
+ *    were declared in dlmstp.h but not defined.
  */
 #include <zephyr/ztest.h>
 #include <string.h>
@@ -16,6 +18,7 @@
 #include <pthread.h>
 #include <bacnet/bacdef.h>
 #include <bacnet/bacaddr.h>
+#include <bacnet/npdu.h>
 #include <bacnet/datalink/mstp.h>
 #include <bacnet/datalink/dlmstp.h>
 
@@ -153,11 +156,60 @@ static void test_dlmstp_high_mac_cleanup_does_not_hang(void)
     zassert_true(arg.done, NULL);
 }
 
+/**
+ * @brief dlmstp_send_pdu_queue_empty() and dlmstp_send_pdu_queue_full()
+ *  must report the PDUs that dlmstp_send_pdu() has queued and that
+ *  the MS/TP thread has not sent yet.
+ * @note a master MAC address above DEFAULT_MAX_MASTER keeps the MS/TP
+ *  thread from running the master node state machine, so the thread
+ *  does not take a PDU out of the queue during the test.
+ */
+static void test_dlmstp_send_pdu_queue_status(void)
+{
+    BACNET_ADDRESS dest = { 0 };
+    BACNET_NPDU_DATA npdu_data = { 0 };
+    uint8_t pdu[4] = { 1, 2, 3, 4 };
+    unsigned queued = 0;
+
+    dlmstp_set_mac_address(200); /* > DEFAULT_MAX_MASTER (127) */
+    zassert_true(dlmstp_init(NULL), NULL);
+    dest.mac_len = 1;
+    dest.mac[0] = 5;
+
+    zassert_true(dlmstp_send_pdu_queue_empty(), NULL);
+    zassert_false(dlmstp_send_pdu_queue_full(), NULL);
+
+    zassert_equal(
+        dlmstp_send_pdu(&dest, &npdu_data, pdu, sizeof(pdu)), sizeof(pdu),
+        NULL);
+    zassert_false(dlmstp_send_pdu_queue_empty(), NULL);
+    zassert_false(dlmstp_send_pdu_queue_full(), NULL);
+
+    while ((queued < 4096) &&
+           (dlmstp_send_pdu(&dest, &npdu_data, pdu, sizeof(pdu)) > 0)) {
+        queued++;
+    }
+    zassert_true(queued > 0, NULL);
+    zassert_true(queued < 4096, "the PDU queue never refused a PDU");
+    zassert_false(dlmstp_send_pdu_queue_empty(), NULL);
+    zassert_true(dlmstp_send_pdu_queue_full(), NULL);
+
+    dlmstp_cleanup();
+    zassert_true(dlmstp_init(NULL), NULL);
+    zassert_true(
+        dlmstp_send_pdu_queue_empty(),
+        "dlmstp_init() must start with an empty PDU queue");
+    zassert_false(dlmstp_send_pdu_queue_full(), NULL);
+
+    dlmstp_cleanup();
+}
+
 void test_main(void)
 {
     ztest_test_suite(
         dlmstp_test, ztest_unit_test(test_dlmstp_receive_respects_max_pdu),
         ztest_unit_test(test_dlmstp_receive_no_wait_when_already_queued),
-        ztest_unit_test(test_dlmstp_high_mac_cleanup_does_not_hang));
+        ztest_unit_test(test_dlmstp_high_mac_cleanup_does_not_hang),
+        ztest_unit_test(test_dlmstp_send_pdu_queue_status));
     ztest_run_test_suite(dlmstp_test);
 }
