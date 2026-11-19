@@ -2339,101 +2339,6 @@ static int BBMD_Foreign_Device_Table_Encode(
 }
 
 /**
- * @brief Get the BACnetLIST capacity
- * @param object_instance [in] BACnet network port object instance number
- * @return capacity of the BACnetList (number of possible entries) or
- *  zero on error
- */
-static size_t BBMD_Foreign_Device_Table_Capacity(uint32_t object_instance)
-{
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list;
-    size_t capacity = 0;
-    unsigned index = 0;
-
-    index = Network_Port_Instance_To_Index(object_instance);
-    if (index < BACNET_NETWORK_PORTS_MAX) {
-        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
-            fdt_list = Object_List[index].Network.IPv4.BBMD_FD_Table;
-            capacity = bvlc_foreign_device_table_count(fdt_list);
-        }
-    }
-
-    return capacity;
-}
-
-/**
- * @brief Decode a BACnetLIST property element to determine the element length
- * @param object_instance [in] BACnet network port object instance number
- * @param apdu [in] Buffer in which the APDU contents are extracted
- * @param apdu_size [in] The size of the APDU buffer
- * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
- */
-static int BBMD_Foreign_Device_Table_Element_Length(
-    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
-{
-    int len = 0;
-    unsigned index = 0;
-
-    index = Network_Port_Instance_To_Index(object_instance);
-    if (index < BACNET_NETWORK_PORTS_MAX) {
-        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
-            len = bvlc_foreign_device_table_entry_decode(apdu, apdu_size, NULL);
-        }
-    }
-
-    return len;
-}
-
-/**
- * @brief Add an element to the BACnetLIST property value
- *  using the BACnetLIST write utility function
- * @param object_instance [in] BACnet network port object instance number
- * @param application_data [in] encoded element value,
- *  or NULL to empty the list
- * @param application_data_len [in] The size of the encoded element value
- * @return BACNET_ERROR_CODE value
- */
-static BACNET_ERROR_CODE BBMD_Foreign_Device_Table_Element_Add(
-    uint32_t object_instance,
-    uint8_t *application_data,
-    size_t application_data_len)
-{
-    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY fdt_entry = { 0 };
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list;
-    int len;
-    unsigned index = 0;
-
-    index = Network_Port_Instance_To_Index(object_instance);
-    if (index < BACNET_NETWORK_PORTS_MAX) {
-        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
-            fdt_list = Object_List[index].Network.IPv4.BBMD_FD_Table;
-            if (!application_data) {
-                bvlc_foreign_device_table_valid_clear(fdt_list);
-                error_code = ERROR_CODE_SUCCESS;
-            } else {
-                len = bvlc_foreign_device_table_entry_decode(
-                    application_data, application_data_len, &fdt_entry);
-                if (len > 0) {
-                    if (bvlc_foreign_device_table_entry_append(
-                            fdt_list, &fdt_entry)) {
-                        error_code = ERROR_CODE_SUCCESS;
-                    } else {
-                        error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
-                    }
-                } else {
-                    error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                }
-            }
-        } else {
-            error_code = ERROR_CODE_ABORT_OTHER;
-        }
-    }
-
-    return error_code;
-}
-
-/**
  * @brief For a given object instance-number, gets the HostNPort
  * @note depends on Network_Type being set for this object
  * @param object_instance - object-instance number of the object
@@ -4819,17 +4724,11 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_BBMD_FOREIGN_DEVICE_TABLE:
-            /* BACnetLIST */
-            capacity =
-                BBMD_Foreign_Device_Table_Capacity(wp_data->object_instance);
-            wp_data->error_code = bacnet_list_write(
-                wp_data->object_instance, wp_data->array_index,
-                BBMD_Foreign_Device_Table_Element_Length,
-                BBMD_Foreign_Device_Table_Element_Add, capacity,
-                wp_data->application_data, wp_data->application_data_len);
-            if (wp_data->error_code == ERROR_CODE_SUCCESS) {
-                status = true;
-            }
+            /* read-only BACnetLIST: the BBMD maintains the table from
+               Register-Foreign-Device and Delete-Foreign-Device-Table-Entry
+               BVLL messages (135-2024 12.56.40) */
+            wp_data->error_class = ERROR_CLASS_PROPERTY;
+            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
         default:
             if (Property_List_Member(

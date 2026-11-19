@@ -428,11 +428,6 @@ bool bvlc_foreign_device_table_entry_add(
     uint16_t ttl_seconds);
 
 BACNET_STACK_EXPORT
-bool bvlc_foreign_device_table_entry_append(
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list,
-    const BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_new);
-
-BACNET_STACK_EXPORT
 bool bvlc_foreign_device_table_entry_insert(
     BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list,
     const BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry,
@@ -448,12 +443,6 @@ BACNET_STACK_EXPORT
 int bvlc_decode_foreign_device_table_entry(
     const uint8_t *pdu,
     uint16_t pdu_len,
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry);
-
-BACNET_STACK_EXPORT
-int bvlc_foreign_device_table_entry_decode(
-    const uint8_t *apdu,
-    uint16_t apdu_size,
     BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_entry);
 
 BACNET_STACK_EXPORT

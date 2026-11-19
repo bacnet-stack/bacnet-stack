@@ -1031,7 +1031,7 @@ static void test_BVLC_BBMD_Address(void)
 }
 
 /**
- * @brief Test decoding one BDT and one FDT entry of a Network Port property
+ * @brief Test decoding one BDT entry of a Network Port property
  */
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(bvlc_tests, test_BVLC_Network_Port_Table_Entry_Decode)
@@ -1043,8 +1043,6 @@ static void test_BVLC_Network_Port_Table_Entry_Decode(void)
     int apdu_len, len, i;
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_entry = { 0 };
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_test = { 0 };
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY fdt_entry = { .valid = true };
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY fdt_test = { 0 };
 
     bvlc_address_set(&bdt_entry.dest_address, 192, 168, 1, 2);
     bdt_entry.dest_address.port = 47808;
@@ -1063,23 +1061,6 @@ static void test_BVLC_Network_Port_Table_Entry_Decode(void)
     for (i = 0; i < apdu_len; i++) {
         len =
             bvlc_broadcast_distribution_table_entry_decode(apdu, i, &bdt_test);
-        zassert_true(len <= 0, "i=%d len=%d", i, len);
-    }
-
-    bvlc_address_set(&fdt_entry.dest_address, 10, 1, 2, 3);
-    fdt_entry.dest_address.port = 47809;
-    fdt_entry.ttl_seconds = 60;
-    fdt_entry.ttl_seconds_remaining = 90;
-    apdu_len = bvlc_foreign_device_table_entry_encode(apdu, &fdt_entry);
-    zassert_true(apdu_len > 0, NULL);
-    len = bvlc_foreign_device_table_entry_decode(apdu, apdu_len, &fdt_test);
-    zassert_equal(len, apdu_len, NULL);
-    zassert_false(
-        bvlc_foreign_device_table_entry_different(&fdt_entry, &fdt_test), NULL);
-    zassert_equal(fdt_test.ttl_seconds, 60, NULL);
-    zassert_equal(fdt_test.ttl_seconds_remaining, 90, NULL);
-    for (i = 0; i < apdu_len; i++) {
-        len = bvlc_foreign_device_table_entry_decode(apdu, i, &fdt_test);
         zassert_true(len <= 0, "i=%d len=%d", i, len);
     }
 }

@@ -1223,7 +1223,7 @@ static void test_network_port_sc_status_encode_decode(void)
 }
 
 /**
- * @brief Test WriteProperty of the BBMD BDT and FDT BACnetLIST properties
+ * @brief Test WriteProperty of the BBMD BDT, and the read-only BBMD FDT
  */
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(netport_tests, test_network_port_bbmd_tables_write)
@@ -1235,8 +1235,10 @@ static void test_network_port_bbmd_tables_write(void)
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt[3] = { 0 };
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_entry = { 0 };
     BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY fdt[3] = { 0 };
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY fdt_entry = { .valid = true };
+    BACNET_IP_ADDRESS fdt_address = { 0 };
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    BACNET_READ_PROPERTY_DATA rp_data = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
     bool status = false;
     int len = 0;
     uint8_t i;
@@ -1315,47 +1317,25 @@ static void test_network_port_bbmd_tables_write(void)
         wp_data.error_code, ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY, NULL);
     wp_data.array_index = BACNET_ARRAY_ALL;
 
-    /* FDT: filling every slot must work, including the first and last */
+    /* FDT: read-only property, written by the BBMD on registration */
+    bvlc_address_set(&fdt_address, 192, 168, 2, 1);
+    status = bvlc_foreign_device_table_entry_add(fdt, &fdt_address, 60);
+    zassert_true(status, NULL);
     wp_data.object_property = PROP_BBMD_FOREIGN_DEVICE_TABLE;
     wp_data.application_data_len = 0;
-    for (i = 1; i <= ARRAY_SIZE(fdt); i++) {
-        bvlc_address_set(&fdt_entry.dest_address, 192, 168, 2, i);
-        fdt_entry.ttl_seconds = 60;
-        fdt_entry.ttl_seconds_remaining = 90;
-        len = bvlc_foreign_device_table_entry_encode(
-            &wp_data.application_data[wp_data.application_data_len],
-            &fdt_entry);
-        wp_data.application_data_len += len;
-    }
-    status = Network_Port_Write_Property(&wp_data);
-    zassert_true(status, "error_code=%d", wp_data.error_code);
-    zassert_equal(
-        bvlc_foreign_device_table_valid_count(fdt), ARRAY_SIZE(fdt), NULL);
-    zassert_equal(fdt[0].dest_address.address[3], 1, NULL);
-    zassert_equal(fdt[2].dest_address.address[3], 3, NULL);
-
-    /* FDT: a shorter list replaces the whole list */
-    bvlc_address_set(&fdt_entry.dest_address, 10, 0, 0, 9);
-    wp_data.application_data_len = bvlc_foreign_device_table_entry_encode(
-        wp_data.application_data, &fdt_entry);
-    status = Network_Port_Write_Property(&wp_data);
-    zassert_true(status, "error_code=%d", wp_data.error_code);
-    zassert_equal(bvlc_foreign_device_table_valid_count(fdt), 1, NULL);
-    zassert_equal(fdt[0].dest_address.address[0], 10, NULL);
-
-    /* FDT: more entries than the capacity is rejected */
-    wp_data.application_data_len = 0;
-    for (i = 1; i <= ARRAY_SIZE(fdt) + 1; i++) {
-        bvlc_address_set(&fdt_entry.dest_address, 192, 168, 2, i);
-        len = bvlc_foreign_device_table_entry_encode(
-            &wp_data.application_data[wp_data.application_data_len],
-            &fdt_entry);
-        wp_data.application_data_len += len;
-    }
     status = Network_Port_Write_Property(&wp_data);
     zassert_false(status, NULL);
-    zassert_equal(
-        wp_data.error_code, ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_WRITE_ACCESS_DENIED, NULL);
+    zassert_equal(bvlc_foreign_device_table_valid_count(fdt), 1, NULL);
+    rp_data.object_type = OBJECT_NETWORK_PORT;
+    rp_data.object_instance = object_instance;
+    rp_data.object_property = PROP_BBMD_FOREIGN_DEVICE_TABLE;
+    rp_data.array_index = BACNET_ARRAY_ALL;
+    rp_data.application_data = apdu;
+    rp_data.application_data_len = sizeof(apdu);
+    len = Network_Port_Read_Property(&rp_data);
+    zassert_equal(len, bvlc_foreign_device_table_list_encode(NULL, fdt), NULL);
+    zassert_true(len > 0, NULL);
 
     Network_Port_Cleanup();
 }
