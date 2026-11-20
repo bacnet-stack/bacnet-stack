@@ -6124,9 +6124,135 @@ int bacnet_array_encode(
 }
 
 /**
+ * @brief Convert a BACnetARRAY element decode length into an error code
+ * @param len [in] length returned by the element decode function
+ * @return BACNET_ERROR_CODE value
+ */
+static BACNET_ERROR_CODE bacnet_array_element_decode_error(int len)
+{
+    BACNET_ERROR_CODE error_code;
+
+    if (len > 0) {
+        error_code = ERROR_CODE_SUCCESS;
+    } else if (len == 0) {
+        error_code = ERROR_CODE_INVALID_DATA_TYPE;
+    } else if (len == BACNET_STATUS_ERANGE) {
+        error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+    } else {
+        error_code = ERROR_CODE_INVALID_DATA_ENCODING;
+    }
+
+    return error_code;
+}
+
+/**
+ * @brief Decode a BACnetARRAY property value and call a function for each
+ *  element. See bacnet_array_write() for the parameters.
+ * @param resizable [in] true if writing the entire array with a different
+ *  number of elements shall change the array size
+ * @return BACNET_ERROR_CODE value
+ */
+static BACNET_ERROR_CODE bacnet_array_write_common(
+    uint32_t object_instance,
+    BACNET_ARRAY_INDEX array_index,
+    bacnet_array_property_element_decode_function decode_function,
+    bacnet_array_property_element_write_function write_function,
+    BACNET_UNSIGNED_INTEGER array_size,
+    uint8_t *apdu,
+    size_t apdu_size,
+    bool resizable)
+{
+    int len = 0;
+    BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
+    size_t apdu_len;
+    BACNET_ARRAY_INDEX index;
+    BACNET_UNSIGNED_INTEGER unsigned_value;
+    BACNET_UNSIGNED_INTEGER element_count = 0;
+
+    if (array_index == 0) {
+        /* Array element zero is the number of elements in the array */
+        len = bacnet_unsigned_application_decode(
+            apdu, apdu_size, &unsigned_value);
+        if (len > 0) {
+            /* resize the array, or deny if the array is not resizable */
+            error_code = write_function(
+                object_instance, array_index, unsigned_value, apdu, apdu_size);
+        } else if (len == 0) {
+            error_code = ERROR_CODE_INVALID_DATA_TYPE;
+        } else {
+            error_code = ERROR_CODE_INVALID_DATA_ENCODING;
+        }
+    } else if (array_index == BACNET_ARRAY_ALL) {
+        /* verify decoding of all elements, and count them */
+        apdu_len = 0;
+        while (apdu_len < apdu_size) {
+            len = decode_function(
+                object_instance, &apdu[apdu_len], apdu_size - apdu_len);
+            error_code = bacnet_array_element_decode_error(len);
+            if (error_code != ERROR_CODE_SUCCESS) {
+                break;
+            }
+            apdu_len += len;
+            element_count++;
+        }
+        if ((error_code == ERROR_CODE_SUCCESS) &&
+            (element_count != array_size)) {
+            if (resizable) {
+                /* Writing the entire array with a different number of
+                   elements than the existing array changes the size */
+                error_code = write_function(
+                    object_instance, 0, element_count, apdu, apdu_size);
+            } else {
+                error_code = ERROR_CODE_INVALID_ARRAY_SIZE;
+            }
+        }
+        if (error_code == ERROR_CODE_SUCCESS) {
+            /* write each element */
+            apdu_len = 0;
+            for (index = 1; index <= element_count; index++) {
+                len = decode_function(
+                    object_instance, &apdu[apdu_len], apdu_size - apdu_len);
+                error_code = bacnet_array_element_decode_error(len);
+                if (error_code == ERROR_CODE_SUCCESS) {
+                    error_code = write_function(
+                        object_instance, index, element_count, &apdu[apdu_len],
+                        len);
+                }
+                if (error_code != ERROR_CODE_SUCCESS) {
+                    break;
+                }
+                apdu_len += len;
+            }
+        }
+    } else if (array_index > array_size) {
+        /* writing an element beyond the array size is an error,
+           and does not cause the array to grow */
+        error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
+    } else {
+        /* array index was specified; write the single array element */
+        len = decode_function(object_instance, apdu, apdu_size);
+        error_code = bacnet_array_element_decode_error(len);
+        if (error_code == ERROR_CODE_SUCCESS) {
+            if ((size_t)len != apdu_size) {
+                /* trailing data after the single element */
+                error_code = ERROR_CODE_INVALID_DATA_TYPE;
+            } else {
+                error_code = write_function(
+                    object_instance, array_index, array_size, apdu,
+                    (size_t)len);
+            }
+        }
+    }
+
+    return error_code;
+}
+
+/**
  * @brief Decode a resizable BACnetARRAY property value and call a function
- *  for each element
- * @param object_instance [in] BACnet network port object instance number
+ *  for each element. Writing the entire array with a different number
+ *  of elements changes the array size by first calling the write function
+ *  with array index 0 and the new size.
+ * @param object_instance [in] BACnet object instance number
  * @param array_index [in] array index to be decoded
  *    0 for the array size
  *    1 to n for individual array members
@@ -6138,7 +6264,8 @@ int bacnet_array_encode(
  *    or negative if the element is malformed (INVALID_DATA_ENCODING)
  * @param write_function [in] function to write one property array element with
  * the encoded value. For array index 1..n, the encoded value is limited to
- * the length of one element, as returned by decode_function.
+ * the length of one element, as returned by decode_function. For array
+ * index 0, the array_size parameter is the new size of the array.
  * @param array_size [in] number of elements in the array
  * @param apdu [out] Buffer in which the APDU contents are built.
  * @param max_apdu [in] Max length of the APDU buffer.
@@ -6153,101 +6280,16 @@ BACNET_ERROR_CODE bacnet_array_write_resizable(
     uint8_t *apdu,
     size_t apdu_size)
 {
-    int len = 0;
-    BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
-    size_t apdu_len;
-    BACNET_ARRAY_INDEX index;
-    BACNET_UNSIGNED_INTEGER unsigned_value;
-
-    if (array_index == 0) {
-        /* Array element zero is the number of elements in the list */
-        len = bacnet_unsigned_application_decode(
-            apdu, apdu_size, &unsigned_value);
-        if (len > 0) {
-            /* resize the array */
-            error_code = write_function(
-                object_instance, array_index, unsigned_value, apdu, apdu_size);
-        } else if (len == 0) {
-            error_code = ERROR_CODE_INVALID_DATA_TYPE;
-        } else {
-            error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-        }
-    } else if (array_index == BACNET_ARRAY_ALL) {
-        /* verify decoding of all elements */
-        apdu_len = 0;
-        for (index = 1; index <= array_size; index++) {
-            len = decode_function(
-                object_instance, &apdu[apdu_len], apdu_size - apdu_len);
-            if (len > 0) {
-                apdu_len += len;
-            } else if (len == 0) {
-                error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                break;
-            } else if (len == BACNET_STATUS_ERANGE) {
-                error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                break;
-            } else {
-                error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                break;
-            }
-        }
-        if (error_code == ERROR_CODE_SUCCESS) {
-            /* write each element */
-            apdu_len = 0;
-            for (index = 1; index <= array_size; index++) {
-                len = decode_function(
-                    object_instance, &apdu[apdu_len], apdu_size - apdu_len);
-                if (len > 0) {
-                    error_code = write_function(
-                        object_instance, index, array_size, &apdu[apdu_len],
-                        len);
-                    if (error_code != ERROR_CODE_SUCCESS) {
-                        break;
-                    }
-                    apdu_len += len;
-                } else if (len == 0) {
-                    error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                    break;
-                } else if (len == BACNET_STATUS_ERANGE) {
-                    error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                    break;
-                } else {
-                    error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-                    break;
-                }
-            }
-        }
-    } else {
-        /* array index was specified; write the single array element */
-        len = decode_function(object_instance, apdu, apdu_size);
-        if (len > 0) {
-            if ((size_t)len != apdu_size) {
-                /* trailing data after the single element */
-                error_code = ERROR_CODE_INVALID_DATA_TYPE;
-            } else {
-                /* note: write function is responsible for handling the
-                array_index bounds checking and return array_index out of
-                range error if the array is not resizable */
-                error_code = write_function(
-                    object_instance, array_index, array_size, apdu,
-                    (size_t)len);
-            }
-        } else if (len == 0) {
-            error_code = ERROR_CODE_INVALID_DATA_TYPE;
-        } else if (len == BACNET_STATUS_ERANGE) {
-            error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        } else {
-            error_code = ERROR_CODE_INVALID_DATA_ENCODING;
-        }
-    }
-
-    return error_code;
+    return bacnet_array_write_common(
+        object_instance, array_index, decode_function, write_function,
+        array_size, apdu, apdu_size, true);
 }
 
 /**
- * @brief Decode a BACnetARRAY property value and call a function for each
- * element
- * @param object_instance [in] BACnet network port object instance number
+ * @brief Decode a fixed size BACnetARRAY property value and call a function
+ *  for each element. Writing the entire array with a different number
+ *  of elements returns INVALID_ARRAY_SIZE.
+ * @param object_instance [in] BACnet object instance number
  * @param array_index [in] array index to be decoded
  *    0 for the array size
  *    1 to n for individual array members
@@ -6274,18 +6316,9 @@ BACNET_ERROR_CODE bacnet_array_write(
     uint8_t *apdu,
     size_t apdu_size)
 {
-    BACNET_ERROR_CODE error_code;
-
-    if ((array_index != BACNET_ARRAY_ALL) && (array_index > array_size)) {
-        /* array_index was specified out of range */
-        error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-    } else {
-        error_code = bacnet_array_write_resizable(
-            object_instance, array_index, decode_function, write_function,
-            array_size, apdu, apdu_size);
-    }
-
-    return error_code;
+    return bacnet_array_write_common(
+        object_instance, array_index, decode_function, write_function,
+        array_size, apdu, apdu_size, false);
 }
 
 /**

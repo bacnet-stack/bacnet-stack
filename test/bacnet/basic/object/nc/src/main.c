@@ -458,14 +458,14 @@ static void test_Notification_Class_Write_Property_Length(void)
     zassert_equal(priorities[0], 10, NULL);
     zassert_equal(priorities[1], 20, NULL);
     zassert_equal(priorities[2], 30, NULL);
-    /* Priority - third value is beyond the received length */
+    /* Priority - only two values for a fixed size array of three */
     encode_application_unsigned(&wpdata.application_data[0], 40);
     encode_application_unsigned(&wpdata.application_data[len_one], 50);
     wpdata.application_data_len = len_two;
     wpdata.error_code = ERROR_CODE_SUCCESS;
     status = Notification_Class_Write_Property(&wpdata);
     zassert_false(status, NULL);
-    zassert_equal(wpdata.error_code, ERROR_CODE_INVALID_DATA_TYPE, NULL);
+    zassert_equal(wpdata.error_code, ERROR_CODE_INVALID_ARRAY_SIZE, NULL);
     Notification_Class_Get_Priorities(instance, priorities);
     zassert_equal(priorities[0], 10, NULL);
     zassert_equal(priorities[1], 20, NULL);

@@ -1781,7 +1781,7 @@ bool Structured_View_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_SUBORDINATE_LIST:
             array_size = Structured_View_Subordinate_List_Count(
                 wp_data->object_instance);
-            wp_data->error_code = bacnet_array_write(
+            wp_data->error_code = bacnet_array_write_resizable(
                 wp_data->object_instance, wp_data->array_index,
                 Structured_View_Subordinate_List_Member_Decode,
                 Structured_View_Subordinate_List_Member_Write, array_size,
@@ -1793,7 +1793,7 @@ bool Structured_View_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_SUBORDINATE_ANNOTATIONS:
             array_size = Structured_View_Subordinate_List_Count(
                 wp_data->object_instance);
-            wp_data->error_code = bacnet_array_write(
+            wp_data->error_code = bacnet_array_write_resizable(
                 wp_data->object_instance, wp_data->array_index,
                 Structured_View_Subordinate_Annotation_Member_Decode,
                 Structured_View_Subordinate_Annotation_Member_Write, array_size,
@@ -1805,7 +1805,7 @@ bool Structured_View_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_SUBORDINATE_NODE_TYPES:
             array_size = Structured_View_Subordinate_List_Count(
                 wp_data->object_instance);
-            wp_data->error_code = bacnet_array_write(
+            wp_data->error_code = bacnet_array_write_resizable(
                 wp_data->object_instance, wp_data->array_index,
                 Structured_View_Subordinate_Node_Type_Member_Decode,
                 Structured_View_Subordinate_Node_Type_Member_Write, array_size,
@@ -1817,7 +1817,7 @@ bool Structured_View_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         case PROP_SUBORDINATE_RELATIONSHIPS:
             array_size = Structured_View_Subordinate_List_Count(
                 wp_data->object_instance);
-            wp_data->error_code = bacnet_array_write(
+            wp_data->error_code = bacnet_array_write_resizable(
                 wp_data->object_instance, wp_data->array_index,
                 Structured_View_Subordinate_Relationship_Member_Decode,
                 Structured_View_Subordinate_Relationship_Member_Write,

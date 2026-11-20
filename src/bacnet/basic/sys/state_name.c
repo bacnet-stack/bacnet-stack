@@ -322,28 +322,16 @@ BACNET_ERROR_CODE state_name_list_write_resizable(
         if (len > 0) {
             if (value.encoding != CHARACTER_UTF8) {
                 error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-            } else if (array_index > BACNET_STATE_NAME_LIST_MAX) {
+            } else if (
+                (array_index > array_size) ||
+                (array_index > BACNET_STATE_NAME_LIST_MAX)) {
+                /* writing an element beyond the array size is an error,
+                   and does not cause the array to grow */
                 error_code = ERROR_CODE_INVALID_ARRAY_INDEX;
-            } else {
-                if (array_index > array_size) {
-                    /* For resizable arrays, the array is expanded
-                    automatically to accommodate the array_index.
-                    Intermediate elements (if any) are initialized empty.
-                    The new value is set at the requested array_index. */
-                    while (Keylist_Count(list) < array_index) {
-                        if (!state_name_list_append_empty(list)) {
-                            error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
-                            break;
-                        }
-                    }
-                }
-                if (error_code == ERROR_CODE_SUCCESS) {
-                    if (!state_name_list_set(
-                            list, value.buffer, value.buffer_length,
-                            array_index)) {
-                        error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
-                    }
-                }
+            } else if (!state_name_list_set(
+                           list, value.buffer, value.buffer_length,
+                           array_index)) {
+                error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
             }
         } else {
             error_code = ERROR_CODE_INVALID_DATA_TYPE;
