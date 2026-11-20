@@ -384,6 +384,11 @@ char *bacnet_strndup(const char *s, size_t n);
 BACNET_STACK_EXPORT
 char *bacnet_strdup(const char *s);
 
+BACNET_STACK_EXPORT
+int bacnet_splite(const char *str, char separator, int *indexes, int max_count);
+BACNET_STACK_EXPORT
+bool bacnet_subsstr(char *str, int length, int index, const char *substr);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

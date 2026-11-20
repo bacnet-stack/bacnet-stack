@@ -16,6 +16,7 @@
 #include <bacnet/bacdef.h>
 #include <bacnet/bacapp.h>
 #include <bacnet/bacint.h>
+#include <bacnet/bacstr.h>
 #include <bacnet/bacdcode.h>
 #include <bacnet/npdu.h>
 #include <bacnet/apdu.h>
@@ -37,11 +38,6 @@
 
 #define SC_WAIT_CONNECT_MIN 5
 #define SC_WAIT_CONNECT_MAX 300
-
-static int
-string_splite(const char *str, char separator, int *indexes, int length);
-static bool
-string_subsstr(char *str, int length, int index, const char *substr);
 
 static void sc_binding_parse(char *str, uint16_t *port, char **ifname)
 {
@@ -977,8 +973,9 @@ bool Network_Port_SC_Hub_Function_Accept_URI(
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
 
     if (params && (index < BACNET_SC_DIRECT_ACCEPT_URI_MAX)) {
-        len = string_splite(
-            params->SC_Hub_Function_Accept_URIs, ' ', idx, sizeof(idx));
+        len = bacnet_splite(
+            params->SC_Hub_Function_Accept_URIs, ' ', idx,
+            BACNET_SC_DIRECT_ACCEPT_URI_MAX);
         if (index < len) {
             status = characterstring_init_ansi_safe(
                 str, params->SC_Hub_Function_Accept_URIs + idx[index],
@@ -999,11 +996,9 @@ bool Network_Port_SC_Hub_Function_Accept_URI_Set(
         return false;
     }
 
-    string_subsstr(
+    return bacnet_subsstr(
         params->SC_Hub_Function_Accept_URIs,
         sizeof(params->SC_Hub_Function_Accept_URIs), index, str);
-
-    return true;
 }
 
 /**
@@ -1042,11 +1037,9 @@ bool Network_Port_SC_Hub_Function_Accept_URI_Dirty_Set(
         return false;
     }
 
-    string_subsstr(
+    return bacnet_subsstr(
         params->SC_Hub_Function_Accept_URIs_dirty,
         sizeof(params->SC_Hub_Function_Accept_URIs_dirty), index, str);
-
-    return true;
 }
 
 const char *
@@ -1376,63 +1369,6 @@ bool Network_Port_SC_Direct_Connect_Accept_Enable_Dirty_Set(
     return true;
 }
 
-/* return number of urls, */
-/* indexes are fill first position of urls plus position of end string */
-static int
-string_splite(const char *str, char separator, int *indexes, int length)
-{
-    int i;
-    int k = 0;
-    indexes[0] = 0;
-    for (i = 0; str[i] != 0 && k < length; i++) {
-        if (str[i] == separator) {
-            k++;
-            indexes[k] = i + 1;
-        }
-    }
-
-    if (k < length) {
-        k++;
-        indexes[k] = i + 1;
-    }
-
-    return k;
-}
-
-static bool string_subsstr(char *str, int length, int index, const char *substr)
-{
-    int idx[BACNET_SC_DIRECT_ACCEPT_URI_MAX + 1] = { 0 };
-    int len;
-    char *head;
-    char *tail_old;
-    char *tail_new;
-
-    len = string_splite(str, ' ', idx, sizeof(idx));
-    if (index < len) {
-        head = str + idx[index];
-        tail_old = str + idx[index + 1] - 1;
-        tail_new = head + strlen(substr);
-        if (tail_new + strlen(tail_old) + 1 - str >= length) {
-            return false;
-        }
-
-        memmove(tail_new, tail_old, strlen(tail_old) + 1);
-        memcpy(head, substr, strlen(substr));
-    } else {
-        head = str + strlen(str);
-        if (head != str) {
-            *head = ' ';
-            head++;
-        }
-        if (head + strlen(substr) + 1 - str >= length) {
-            return false;
-        }
-        memcpy(head, substr, strlen(substr) + 1);
-    }
-
-    return true;
-}
-
 bool Network_Port_SC_Direct_Connect_Accept_URI(
     uint32_t object_instance, uint8_t index, BACNET_CHARACTER_STRING *str)
 {
@@ -1443,8 +1379,9 @@ bool Network_Port_SC_Direct_Connect_Accept_URI(
     BACNET_SC_PARAMS *params = Network_Port_SC_Params(object_instance);
 
     if (params && (index < BACNET_SC_DIRECT_ACCEPT_URI_MAX)) {
-        len = string_splite(
-            params->SC_Direct_Connect_Accept_URIs, ' ', idx, sizeof(idx));
+        len = bacnet_splite(
+            params->SC_Direct_Connect_Accept_URIs, ' ', idx,
+            BACNET_SC_DIRECT_ACCEPT_URI_MAX);
         if (index < len) {
             status = characterstring_init_ansi_safe(
                 str, params->SC_Direct_Connect_Accept_URIs + idx[index],
@@ -1465,11 +1402,9 @@ bool Network_Port_SC_Direct_Connect_Accept_URI_Set(
         return false;
     }
 
-    string_subsstr(
+    return bacnet_subsstr(
         params->SC_Direct_Connect_Accept_URIs,
         sizeof(params->SC_Direct_Connect_Accept_URIs), index, str);
-
-    return true;
 }
 
 /**
@@ -1508,11 +1443,9 @@ bool Network_Port_SC_Direct_Connect_Accept_URI_Dirty_Set(
         return false;
     }
 
-    string_subsstr(
+    return bacnet_subsstr(
         params->SC_Direct_Connect_Accept_URIs_dirty,
         sizeof(params->SC_Direct_Connect_Accept_URIs_dirty), index, str);
-
-    return true;
 }
 
 char *Network_Port_SC_Direct_Connect_Accept_URIs_char(uint32_t object_instance)
