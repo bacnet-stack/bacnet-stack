@@ -265,7 +265,6 @@ static const int32_t BIP_Port_Writable_Properties[] = {
     PROP_FD_SUBSCRIPTION_LIFETIME,
     PROP_BBMD_ACCEPT_FD_REGISTRATIONS,
     PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
-    PROP_BBMD_FOREIGN_DEVICE_TABLE,
     PROP_OBJECT_NAME,
     PROP_DESCRIPTION,
     -1
@@ -4554,12 +4553,71 @@ static bool Network_Port_Description_Write(
     return status;
 }
 
+/**
+ * @brief Set the error response for a failed decode of a written value
+ * @param wp_data [in,out] write property data
+ * @param len [in] result of the decode function: 0 for a different data type,
+ *  negative for malformed encoding
+ */
+static void
+Network_Port_Write_Decode_Error(BACNET_WRITE_PROPERTY_DATA *wp_data, int len)
+{
+    wp_data->error_class = ERROR_CLASS_PROPERTY;
+    if (len < 0) {
+        wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
+    } else {
+        wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+    }
+}
+
+/**
+ * @brief Write the MAC_Address property of an MS/TP network port
+ * @param wp_data [in,out] write property data, including the encoded value
+ *  and space for the error response
+ * @return true if the value was written
+ */
+static bool Network_Port_MAC_Address_Write(BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    bool status = false;
+    int len = 0;
+    uint32_t mac_len = 0;
+    uint8_t mac_address[6] = { 0 };
+
+    if (Network_Port_Type(wp_data->object_instance) != PORT_TYPE_MSTP) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        return false;
+    }
+    len = bacnet_octet_string_buffer_application_decode(
+        wp_data->application_data, wp_data->application_data_len, mac_address,
+        sizeof(mac_address), &mac_len);
+    if (len <= 0) {
+        Network_Port_Write_Decode_Error(wp_data, len);
+        return false;
+    }
+    if (mac_len <= sizeof(mac_address)) {
+        status = Network_Port_MAC_Address_Set(
+            wp_data->object_instance, mac_address, (uint8_t)mac_len);
+    }
+    if (!status) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+    }
+
+    return status;
+}
+
 bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
     uint32_t capacity;
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    bool boolean_value = false;
+    float real_value = 0.0f;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    BACNET_CHARACTER_STRING char_string = { 0 };
+    BACNET_HOST_N_PORT host_n_port = { 0 };
+    BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
 
     /* Valid data? */
     if (wp_data == NULL) {
@@ -4576,106 +4634,81 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
         return false;
     }
-    /* decode the some of the request */
-#if defined(BACAPP_COMPLEX_TYPES)
-    len = bacapp_decode_known_property(
-        wp_data->application_data, wp_data->application_data_len, &value,
-        wp_data->object_type, wp_data->object_property);
-#else
-    len = bacapp_decode_application_data(
-        wp_data->application_data, wp_data->application_data_len, &value);
-#endif
-    if (len < 0) {
-        /* error while decoding - a value larger than we can handle */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
-    /* FIXME: len < application_data_len: more data? */
     switch (wp_data->object_property) {
         case PROP_OBJECT_NAME:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
-            if (status) {
-                status = Network_Port_Object_Name_Write(
-                    wp_data, &value.type.Character_String);
+            len = bacnet_character_string_application_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &char_string);
+            if (len <= 0) {
+                Network_Port_Write_Decode_Error(wp_data, len);
+                return false;
             }
+            status = Network_Port_Object_Name_Write(wp_data, &char_string);
             break;
         case PROP_DESCRIPTION:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
-            if (status) {
-                status = Network_Port_Description_Write(
-                    wp_data, &value.type.Character_String);
+            len = bacnet_character_string_application_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &char_string);
+            if (len <= 0) {
+                Network_Port_Write_Decode_Error(wp_data, len);
+                return false;
             }
+            status = Network_Port_Description_Write(wp_data, &char_string);
             break;
         case PROP_MAC_ADDRESS:
-            if (Network_Port_Type(wp_data->object_instance) == PORT_TYPE_MSTP) {
-                status = write_property_type_valid(
-                    wp_data, &value, BACNET_APPLICATION_TAG_OCTET_STRING);
-                if (status) {
-                    status = Network_Port_MAC_Address_Set(
-                        wp_data->object_instance, value.type.Octet_String.value,
-                        value.type.Octet_String.length);
-                    if (!status) {
-                        wp_data->error_class = ERROR_CLASS_PROPERTY;
-                        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                    }
-                }
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            }
+            status = Network_Port_MAC_Address_Write(wp_data);
             break;
         case PROP_MAX_MASTER:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
-            if (status) {
-                if (value.type.Unsigned_Int <= 255) {
-                    status = Network_Port_MSTP_Max_Master_Set(
-                        wp_data->object_instance, value.type.Unsigned_Int);
-                    if (!status) {
-                        wp_data->error_class = ERROR_CLASS_PROPERTY;
-                        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                    }
-                } else {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                }
+            len = bacnet_unsigned_application_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &unsigned_value);
+            if (len <= 0) {
+                Network_Port_Write_Decode_Error(wp_data, len);
+                return false;
+            }
+            if (unsigned_value <= UINT8_MAX) {
+                status = Network_Port_MSTP_Max_Master_Set(
+                    wp_data->object_instance, (uint8_t)unsigned_value);
+            }
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
             break;
         case PROP_MAX_INFO_FRAMES:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
-            if (status) {
-                if (value.type.Unsigned_Int <= 255) {
-                    status = Network_Port_MSTP_Max_Info_Frames_Set(
-                        wp_data->object_instance, value.type.Unsigned_Int);
-                    if (!status) {
-                        wp_data->error_class = ERROR_CLASS_PROPERTY;
-                        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                    }
-                    status = true;
-                } else {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                }
+            len = bacnet_unsigned_application_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &unsigned_value);
+            if (len <= 0) {
+                Network_Port_Write_Decode_Error(wp_data, len);
+                return false;
+            }
+            if (unsigned_value <= UINT8_MAX) {
+                status = Network_Port_MSTP_Max_Info_Frames_Set(
+                    wp_data->object_instance, (uint8_t)unsigned_value);
+            }
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
             break;
         case PROP_LINK_SPEED:
             if (Network_Port_Type(wp_data->object_instance) == PORT_TYPE_MSTP) {
-                status = write_property_type_valid(
-                    wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+                len = bacnet_real_application_decode(
+                    wp_data->application_data, wp_data->application_data_len,
+                    &real_value);
+                if (len <= 0) {
+                    Network_Port_Write_Decode_Error(wp_data, len);
+                    return false;
+                }
+                status = Network_Port_Link_Speed_Valid(real_value);
                 if (status) {
-                    status = Network_Port_Link_Speed_Valid(value.type.Real);
-                    if (status) {
-                        status = Network_Port_Link_Speed_Set(
-                            wp_data->object_instance, value.type.Real);
-                    }
-                    if (!status) {
-                        wp_data->error_class = ERROR_CLASS_PROPERTY;
-                        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                    }
+                    status = Network_Port_Link_Speed_Set(
+                        wp_data->object_instance, real_value);
+                }
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -4683,31 +4716,42 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_FD_BBMD_ADDRESS:
-            if (write_property_type_valid(
-                    wp_data, &value, BACNET_APPLICATION_TAG_HOST_N_PORT)) {
-                status = Network_Port_FD_BBMD_Address_Write(
-                    wp_data->object_instance, &value.type.Host_Address,
-                    &wp_data->error_class, &wp_data->error_code);
+            len = host_n_port_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &error_code, &host_n_port);
+            if (len <= 0) {
+                Network_Port_Write_Decode_Error(wp_data, len);
+                return false;
             }
+            status = Network_Port_FD_BBMD_Address_Write(
+                wp_data->object_instance, &host_n_port, &wp_data->error_class,
+                &wp_data->error_code);
             break;
         case PROP_FD_SUBSCRIPTION_LIFETIME:
-            if (write_property_type_valid(
-                    wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
-                status = Network_Port_FD_Subscription_Lifetime_Write(
-                    wp_data->object_instance, value.type.Unsigned_Int,
-                    &wp_data->error_class, &wp_data->error_code);
+            len = bacnet_unsigned_application_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &unsigned_value);
+            if (len <= 0) {
+                Network_Port_Write_Decode_Error(wp_data, len);
+                return false;
             }
+            status = Network_Port_FD_Subscription_Lifetime_Write(
+                wp_data->object_instance, unsigned_value, &wp_data->error_class,
+                &wp_data->error_code);
             break;
         case PROP_BBMD_ACCEPT_FD_REGISTRATIONS:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
-            if (status) {
-                status = Network_Port_BBMD_Accept_FD_Registrations_Set(
-                    wp_data->object_instance, value.type.Boolean);
-                if (!status) {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                }
+            len = bacnet_boolean_application_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &boolean_value);
+            if (len <= 0) {
+                Network_Port_Write_Decode_Error(wp_data, len);
+                return false;
+            }
+            status = Network_Port_BBMD_Accept_FD_Registrations_Set(
+                wp_data->object_instance, boolean_value);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
             break;
         case PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE:
@@ -4722,13 +4766,6 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             if (wp_data->error_code == ERROR_CODE_SUCCESS) {
                 status = true;
             }
-            break;
-        case PROP_BBMD_FOREIGN_DEVICE_TABLE:
-            /* read-only BACnetLIST: the BBMD maintains the table from
-               Register-Foreign-Device and Delete-Foreign-Device-Table-Entry
-               BVLL messages (135-2024 12.56.40) */
-            wp_data->error_class = ERROR_CLASS_PROPERTY;
-            wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
             break;
         default:
             if (Property_List_Member(
