@@ -588,10 +588,15 @@ static float Requested_Shed_Level_Value(struct object_data *pObject)
             break;
         case BACNET_SHED_TYPE_AMOUNT:
             /* (current baseline) - Requested_Shed_Level */
-            requested_level = pObject->Full_Duty_Baseline -
-                pObject->Requested_Shed_Level.value.amount;
-            requested_level /= pObject->Full_Duty_Baseline;
-            requested_level *= 100.0f;
+            if (pObject->Full_Duty_Baseline > 0.0f) {
+                requested_level = pObject->Full_Duty_Baseline -
+                    pObject->Requested_Shed_Level.value.amount;
+                requested_level /= pObject->Full_Duty_Baseline;
+                requested_level *= 100.0f;
+            } else {
+                /* no valid baseline to shed from, so use no shed */
+                requested_level = 100.0f;
+            }
             break;
         case BACNET_SHED_TYPE_LEVEL:
         default:

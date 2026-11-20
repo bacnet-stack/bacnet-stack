@@ -1341,6 +1341,47 @@ static void test_Load_Control_Shed_Level_Below_Minimum(void)
 }
 
 /**
+ * @brief An AMOUNT request with a zero Full_Duty_Baseline maps to no shed
+ *  instead of dividing by zero
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lc_tests, test_Load_Control_Shed_Amount_Zero_Baseline)
+#else
+static void test_Load_Control_Shed_Amount_Zero_Baseline(void)
+#endif
+{
+    uint32_t object_instance = 123;
+    BACNET_DATE_TIME bdatetime = { 0 };
+
+    test_setup(object_instance);
+    zassert_true(Load_Control_Update_Interval_Set(object_instance, 0), NULL);
+    zassert_true(
+        Load_Control_Full_Duty_Baseline_Set(object_instance, 0.0f), NULL);
+    Load_Control_WriteProperty_Enable(object_instance, true);
+    Load_Control_WriteProperty_Request_Shed_Level(
+        object_instance, BACNET_SHED_TYPE_AMOUNT, 10.0f);
+    Load_Control_WriteProperty_Shed_Duration(object_instance, 120);
+    Load_Control_WriteProperty_Start_Time(
+        object_instance, 2007, 2, 27, 15, 0, 0, 0);
+    datetime_set_values(&bdatetime, 2007, 2, 27, 5, 0, 0, 0);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
+    Load_Control_Timer(object_instance, 1);
+    zassert_equal(
+        Load_Control_Present_Value(object_instance),
+        BACNET_SHED_REQUEST_PENDING, NULL);
+    Test_Present_Value_Priority_Set(60.0f, 16);
+    datetime_set_values(&bdatetime, 2007, 2, 27, 16, 0, 0, 0);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
+    zassert_equal(
+        Load_Control_Present_Value(object_instance), BACNET_SHED_COMPLIANT,
+        NULL);
+    zassert_true(is_float_equal(Test_Present_Value(), 60.0f), NULL);
+    test_teardown(object_instance);
+}
+
+/**
  * @brief The array setter only appends the next element, so the
  *  array keys stay contiguous from 1 to N
  */
@@ -1381,6 +1422,7 @@ void test_main(void)
         ztest_unit_test(test_ShedInactive_gets_RcvShedRequests),
         ztest_unit_test(test_Load_Control_Shed_Level_Write),
         ztest_unit_test(test_Load_Control_Shed_Level_Below_Minimum),
+        ztest_unit_test(test_Load_Control_Shed_Amount_Zero_Baseline),
         ztest_unit_test(test_Load_Control_Shed_Level_Array_Set_Contiguous));
 
     ztest_run_test_suite(lc_tests);
