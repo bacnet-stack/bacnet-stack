@@ -1066,6 +1066,38 @@ static void test_BVLC_Network_Port_Table_Entry_Decode(void)
 }
 
 /**
+ * @brief Test that a BDT entry with an IP address length other than
+ *  four octets is rejected rather than truncated or zero-padded
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_tests, test_BVLC_Network_Port_Table_Entry_Decode_Address_Length)
+#else
+static void test_BVLC_Network_Port_Table_Entry_Decode_Address_Length(void)
+#endif
+{
+    /* bbmd-address [0] { host [0] { ip-address [1] 3 octets }, port [1] },
+       broadcast-mask [1] */
+    const uint8_t short_address[] = { 0x0E, 0x0E, 0x1B, 192,  168,  1,
+                                      0x0F, 0x1A, 0xBA, 0xC0, 0x0F, 0x1C,
+                                      255,  255,  255,  0 };
+    /* same with a 16 octet (IPv6) address */
+    const uint8_t long_address[] = { 0x0E, 0x0E, 0x1D, 16,   0,    0,
+                                     0,    0,    0,    0,    0,    0,
+                                     0,    0,    0,    0,    0,    0,
+                                     1,    0x0F, 0x1A, 0xBA, 0xC0, 0x0F,
+                                     0x1C, 255,  255,  255,  0 };
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_test = { 0 };
+    int len;
+
+    len = bvlc_broadcast_distribution_table_entry_decode(
+        short_address, sizeof(short_address), &bdt_test);
+    zassert_true(len <= 0, "len=%d", len);
+    len = bvlc_broadcast_distribution_table_entry_decode(
+        long_address, sizeof(long_address), &bdt_test);
+    zassert_true(len <= 0, "len=%d", len);
+}
+
+/**
  * @}
  */
 
@@ -1092,7 +1124,9 @@ void test_main(void)
         ztest_unit_test(test_BVLC_Address_Get_Set),
         ztest_unit_test(test_BVLC_BBMD_Address),
         ztest_unit_test(test_BVLC_Network_Port_Foreign_Device),
-        ztest_unit_test(test_BVLC_Network_Port_Table_Entry_Decode));
+        ztest_unit_test(test_BVLC_Network_Port_Table_Entry_Decode),
+        ztest_unit_test(
+            test_BVLC_Network_Port_Table_Entry_Decode_Address_Length));
 
     ztest_run_test_suite(bvlc_tests);
 }

@@ -701,7 +701,9 @@ int bvlc_broadcast_distribution_table_entry_decode(
         return BACNET_STATUS_ERROR;
     }
     apdu_len += len;
-    if (host_n_port.tag != BACNET_HOST_ADDRESS_TAG_IP_ADDRESS) {
+    /* only a B/IP address fits this entry: reject none, name, and IPv6 */
+    if ((host_n_port.tag != BACNET_HOST_ADDRESS_TAG_IP_ADDRESS) ||
+        (host_n_port.host.ip_address.length != IP_ADDRESS_MAX)) {
         return BACNET_STATUS_ERANGE;
     }
     /* broadcast-mask [1] OCTET STRING */
@@ -744,6 +746,7 @@ int bvlc_broadcast_distribution_table_decode(
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry = NULL;
     BACNET_HOST_N_PORT_MINIMAL host_n_port = { 0 };
     uint32_t address_length = 0;
+    bool address_valid = false;
 
     /* default reject code */
     if (error_code) {
@@ -760,7 +763,9 @@ int bvlc_broadcast_distribution_table_decode(
         if (len > 0) {
             apdu_len += len;
             bdt_entry->dest_address.port = host_n_port.port;
-            if (host_n_port.tag == BACNET_HOST_ADDRESS_TAG_IP_ADDRESS) {
+            if ((host_n_port.tag == BACNET_HOST_ADDRESS_TAG_IP_ADDRESS) &&
+                (host_n_port.host.ip_address.length == IP_ADDRESS_MAX)) {
+                address_valid = true;
                 bdt_entry->dest_address.address[0] =
                     host_n_port.host.ip_address.address[0];
                 bdt_entry->dest_address.address[1] =
@@ -770,6 +775,7 @@ int bvlc_broadcast_distribution_table_decode(
                 bdt_entry->dest_address.address[3] =
                     host_n_port.host.ip_address.address[3];
             } else {
+                address_valid = false;
                 bdt_entry->valid = false;
             }
         } else {
@@ -781,7 +787,8 @@ int bvlc_broadcast_distribution_table_decode(
             bdt_entry->broadcast_mask.address,
             sizeof(bdt_entry->broadcast_mask.address), &address_length);
         if (len > 0) {
-            if (address_length == sizeof(bdt_entry->broadcast_mask.address)) {
+            if (address_valid &&
+                (address_length == sizeof(bdt_entry->broadcast_mask.address))) {
                 bdt_entry->valid = true;
             } else {
                 bdt_entry->valid = false;
