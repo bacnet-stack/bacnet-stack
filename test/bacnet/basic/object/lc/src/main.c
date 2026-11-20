@@ -1341,6 +1341,134 @@ static void test_Load_Control_Shed_Level_Below_Minimum(void)
 }
 
 /**
+ * @brief Put the output into the SHED_NON_COMPLIANT state with the
+ *  object writing to the manipulated property at its Priority_For_Writing
+ * @param object_instance - object-instance number of the object
+ */
+static void test_non_compliant_shed_start(uint32_t object_instance)
+{
+    BACNET_DATE_TIME bdatetime = { 0 };
+
+    test_setup(object_instance);
+    zassert_true(Load_Control_Update_Interval_Set(object_instance, 0), NULL);
+    Load_Control_WriteProperty_Enable(object_instance, true);
+    Load_Control_WriteProperty_Request_Shed_Level(
+        object_instance, BACNET_SHED_TYPE_LEVEL, 1.0f);
+    Load_Control_WriteProperty_Shed_Duration(object_instance, 120);
+    Load_Control_WriteProperty_Start_Time(
+        object_instance, 2007, 2, 27, 15, 0, 0, 0);
+    datetime_set_values(&bdatetime, 2007, 2, 27, 5, 0, 0, 0);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
+    Load_Control_Timer(object_instance, 1);
+    /* load cannot meet the shed level immediately */
+    Test_Present_Value_Priority_Set(100.0f, 16);
+    datetime_set_values(&bdatetime, 2007, 2, 27, 16, 0, 0, 0);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
+    Load_Control_Timer(object_instance, 1);
+    zassert_equal(
+        Load_Control_Present_Value(object_instance), BACNET_SHED_NON_COMPLIANT,
+        NULL);
+    zassert_equal(
+        Test_Present_Value_Priority(),
+        Load_Control_Priority_For_Writing(object_instance), NULL);
+}
+
+/**
+ * @brief Every transition to SHED_INACTIVE stops shedding by relinquishing
+ *  the manipulated object property at the Priority_For_Writing
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lc_tests, test_Load_Control_Shed_Stop_Relinquishes)
+#else
+static void test_Load_Control_Shed_Stop_Relinquishes(void)
+#endif
+{
+    uint32_t object_instance = 123;
+    BACNET_DATE_TIME bdatetime = { 0 };
+    uint8_t priority = 0;
+
+    /* CancelShed - Requested_Shed_Level equal to default value */
+    test_setup(object_instance);
+    priority = Load_Control_Priority_For_Writing(object_instance);
+    zassert_true(Load_Control_Update_Interval_Set(object_instance, 0), NULL);
+    Test_Present_Value_Priority_Set(50.0f, priority);
+    Load_Control_WriteProperty_Request_Shed_Level(
+        object_instance, BACNET_SHED_TYPE_LEVEL, 0.0f);
+    Load_Control_WriteProperty_Start_Time(
+        object_instance, 2007, 2, 27, 15, 0, 0, 0);
+    Load_Control_WriteProperty_Shed_Duration(object_instance, 5);
+    datetime_set_values(&bdatetime, 2007, 2, 27, 15, 0, 0, 0);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
+    Load_Control_Timer(object_instance, 1);
+    zassert_equal(
+        Load_Control_Present_Value(object_instance), BACNET_SHED_INACTIVE,
+        NULL);
+    zassert_equal(Test_Present_Value_Priority(), 16, NULL);
+    test_teardown(object_instance);
+
+    /* CancelShed - Start_Time contains wildcards */
+    test_setup(object_instance);
+    priority = Load_Control_Priority_For_Writing(object_instance);
+    zassert_true(Load_Control_Update_Interval_Set(object_instance, 0), NULL);
+    Test_Present_Value_Priority_Set(50.0f, priority);
+    Load_Control_WriteProperty_Enable(object_instance, true);
+    Load_Control_WriteProperty_Shed_Duration(object_instance, 60);
+    Load_Control_WriteProperty_Start_Time_Wildcards(object_instance);
+    Load_Control_Timer(object_instance, 1);
+    Load_Control_Timer(object_instance, 1);
+    zassert_equal(
+        Load_Control_Present_Value(object_instance), BACNET_SHED_INACTIVE,
+        NULL);
+    zassert_equal(Test_Present_Value_Priority(), 16, NULL);
+    test_teardown(object_instance);
+
+    /* CancelShed - current time is after Start_Time plus Shed_Duration */
+    test_setup(object_instance);
+    priority = Load_Control_Priority_For_Writing(object_instance);
+    zassert_true(Load_Control_Update_Interval_Set(object_instance, 0), NULL);
+    Test_Present_Value_Priority_Set(50.0f, priority);
+    Load_Control_WriteProperty_Enable(object_instance, true);
+    Load_Control_WriteProperty_Request_Shed_Level(
+        object_instance, BACNET_SHED_TYPE_LEVEL, 1.0f);
+    Load_Control_WriteProperty_Shed_Duration(object_instance, 5);
+    Load_Control_WriteProperty_Start_Time(
+        object_instance, 2007, 2, 27, 15, 0, 0, 0);
+    datetime_set_values(&bdatetime, 2007, 2, 28, 15, 0, 0, 0);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
+    Load_Control_Timer(object_instance, 1);
+    zassert_equal(
+        Load_Control_Present_Value(object_instance), BACNET_SHED_INACTIVE,
+        NULL);
+    zassert_equal(Test_Present_Value_Priority(), 16, NULL);
+    test_teardown(object_instance);
+
+    /* FinishedUnsuccessfulShed */
+    test_non_compliant_shed_start(object_instance);
+    datetime_set_values(&bdatetime, 2007, 2, 27, 23, 0, 0, 0);
+    datetime_timesync(&bdatetime.date, &bdatetime.time, false);
+    Load_Control_Timer(object_instance, 1);
+    zassert_equal(
+        Load_Control_Present_Value(object_instance), BACNET_SHED_INACTIVE,
+        NULL);
+    zassert_equal(Test_Present_Value_Priority(), 16, NULL);
+    test_teardown(object_instance);
+
+    /* Enable=FALSE while shedding */
+    test_non_compliant_shed_start(object_instance);
+    Load_Control_WriteProperty_Enable(object_instance, false);
+    Load_Control_Timer(object_instance, 1);
+    zassert_equal(
+        Load_Control_Present_Value(object_instance), BACNET_SHED_INACTIVE,
+        NULL);
+    zassert_equal(Test_Present_Value_Priority(), 16, NULL);
+    test_teardown(object_instance);
+}
+
+/**
  * @brief An AMOUNT request with a zero Full_Duty_Baseline maps to no shed
  *  instead of dividing by zero
  */
@@ -1423,6 +1551,7 @@ void test_main(void)
         ztest_unit_test(test_Load_Control_Shed_Level_Write),
         ztest_unit_test(test_Load_Control_Shed_Level_Below_Minimum),
         ztest_unit_test(test_Load_Control_Shed_Amount_Zero_Baseline),
+        ztest_unit_test(test_Load_Control_Shed_Stop_Relinquishes),
         ztest_unit_test(test_Load_Control_Shed_Level_Array_Set_Contiguous));
 
     ztest_run_test_suite(lc_tests);

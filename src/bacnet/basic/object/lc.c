@@ -739,6 +739,23 @@ static bool Can_Now_Comply_With_Shed(struct object_data *pObject)
 }
 
 /**
+ * @brief Stop shedding by relinquishing the manipulated object property
+ *  at the Priority_For_Writing, and enter the SHED_INACTIVE state
+ * @param pObject - object instance to get
+ */
+static void Load_Control_Shed_Stop(struct object_data *pObject)
+{
+    if (pObject->Manipulated_Object_Relinquish) {
+        pObject->Manipulated_Object_Relinquish(
+            pObject->Manipulated_Object_Type,
+            pObject->Manipulated_Object_Instance,
+            pObject->Manipulated_Object_Property,
+            pObject->Priority_For_Writing);
+    }
+    pObject->Present_Value = BACNET_SHED_INACTIVE;
+}
+
+/**
  * @brief Load Control State Machine
  * @param object_index - object index in the list
  * @param bdatetime - current date and time
@@ -758,7 +775,9 @@ void Load_Control_State_Machine(
     }
     /* is the state machine enabled? */
     if (!pObject->Load_Control_Enable) {
-        pObject->Present_Value = BACNET_SHED_INACTIVE;
+        if (pObject->Present_Value != BACNET_SHED_INACTIVE) {
+            Load_Control_Shed_Stop(pObject);
+        }
         return;
     }
 
@@ -789,6 +808,7 @@ void Load_Control_State_Machine(
                         break;
                 }
                 if (pObject->Present_Value == BACNET_SHED_INACTIVE) {
+                    Load_Control_Shed_Stop(pObject);
                     debug_log_fprintf(
                         DEBUG_LOG_DEBUG, stderr,
                         "Load Control[%d]:Requested Shed Level=Default\n",
@@ -801,7 +821,7 @@ void Load_Control_State_Machine(
                 pObject->Start_Time_Property_Written = false;
                 /* request to cancel using wildcards in start time? */
                 if (datetime_wildcard(&pObject->Start_Time)) {
-                    pObject->Present_Value = BACNET_SHED_INACTIVE;
+                    Load_Control_Shed_Stop(pObject);
                     debug_log_fprintf(
                         DEBUG_LOG_DEBUG, stderr,
                         "Load Control[%d]:Start Time=Wildcard\n", object_index);
@@ -814,13 +834,12 @@ void Load_Control_State_Machine(
             diff = datetime_compare(&pObject->End_Time, bdatetime);
             if (diff < 0) {
                 /* CancelShed */
-                /* FIXME: stop shedding! i.e. relinquish */
                 debug_log_fprintf(
                     DEBUG_LOG_DEBUG, stderr,
                     "Load Control[%d]:Current Time"
                     " is after Start Time + Duration\n",
                     object_index);
-                pObject->Present_Value = BACNET_SHED_INACTIVE;
+                Load_Control_Shed_Stop(pObject);
                 break;
             }
             diff = datetime_compare(bdatetime, &pObject->Start_Time);
@@ -886,7 +905,7 @@ void Load_Control_State_Machine(
                     "Load Control[%d]:Current Time is after Start Time + "
                     "Duration\n",
                     object_index);
-                pObject->Present_Value = BACNET_SHED_INACTIVE;
+                Load_Control_Shed_Stop(pObject);
                 break;
             }
             if (pObject->Load_Control_Request_Written ||
@@ -927,14 +946,7 @@ void Load_Control_State_Machine(
                     "Duration\n",
                     object_index);
                 datetime_wildcard_set(&pObject->Start_Time);
-                if (pObject->Manipulated_Object_Relinquish) {
-                    pObject->Manipulated_Object_Relinquish(
-                        pObject->Manipulated_Object_Type,
-                        pObject->Manipulated_Object_Instance,
-                        pObject->Manipulated_Object_Property,
-                        pObject->Priority_For_Writing);
-                }
-                pObject->Present_Value = BACNET_SHED_INACTIVE;
+                Load_Control_Shed_Stop(pObject);
                 break;
             }
             if (pObject->Load_Control_Request_Written ||
