@@ -148,16 +148,17 @@ int npdu_send_what_is_network_number(BACNET_ADDRESS *dst)
     BACNET_ADDRESS daddr = { 0 };
     uint8_t pdu[MAX_NPDU] = { 0 };
 
-    if (dst && (dst->net != BACNET_BROADCAST_NETWORK)) {
-        /* local unicast - an empty MAC address is a local broadcast */
+    if (dst && (dst->net != BACNET_BROADCAST_NETWORK) && (dst->mac_len > 0)) {
         bacnet_address_copy(&daddr, dst);
         daddr.net = 0;
         daddr.len = 0;
+    } else {
+        datalink_get_broadcast_address(&daddr);
     }
     npdu_encode_npdu_network(
         &npdu_data, NETWORK_MESSAGE_WHAT_IS_NETWORK_NUMBER,
         data_expecting_reply, MESSAGE_PRIORITY_NORMAL);
-    pdu_len = npdu_encode_pdu(pdu, &daddr, NULL, &npdu_data);
+    pdu_len = npdu_encode_pdu(pdu, NULL, NULL, &npdu_data);
 
     /* Now send the message */
     return datalink_send_pdu(&daddr, &npdu_data, pdu, pdu_len);

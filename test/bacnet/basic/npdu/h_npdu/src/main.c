@@ -109,7 +109,28 @@ static void verify_sent_what_is_network_number_is_local(void)
     zassert_equal(dest.len, 0, NULL);
     zassert_equal(src.net, 0, NULL);
     zassert_equal(src.len, 0, NULL);
-    /* the datalink is not asked to reach another network */
+}
+
+/**
+ * @brief Check that the datalink was given its own broadcast address, so
+ *  that a datalink that needs a broadcast MAC address can send the message.
+ */
+static void verify_sent_to_datalink_broadcast_address(void)
+{
+    BACNET_ADDRESS broadcast = { 0 };
+
+    datalink_get_broadcast_address(&broadcast);
+    zassert_true(bacnet_address_same(&Sent_Dest, &broadcast), NULL);
+}
+
+/**
+ * @brief Check that the datalink was given the MAC address of the device,
+ *  and was not asked to reach another network.
+ */
+static void verify_sent_to_device_mac_address(void)
+{
+    zassert_equal(Sent_Dest.mac_len, sizeof(Device_MAC), NULL);
+    zassert_mem_equal(Sent_Dest.mac, Device_MAC, sizeof(Device_MAC), NULL);
     zassert_equal(Sent_Dest.net, 0, NULL);
     zassert_equal(Sent_Dest.len, 0, NULL);
 }
@@ -290,7 +311,7 @@ static void test_What_Is_Network_Number_Local_Broadcast(void)
 
     zassert_equal(bytes_sent, 3, NULL);
     verify_sent_what_is_network_number_is_local();
-    zassert_equal(Sent_Dest.mac_len, 0, NULL);
+    verify_sent_to_datalink_broadcast_address();
 }
 
 /**
@@ -310,7 +331,7 @@ static void test_What_Is_Network_Number_Global_Broadcast(void)
     npdu_send_what_is_network_number(&dst);
 
     verify_sent_what_is_network_number_is_local();
-    zassert_equal(Sent_Dest.mac_len, 0, NULL);
+    verify_sent_to_datalink_broadcast_address();
 }
 
 /**
@@ -331,8 +352,7 @@ static void test_What_Is_Network_Number_Local_Unicast(void)
     npdu_send_what_is_network_number(&dst);
 
     verify_sent_what_is_network_number_is_local();
-    zassert_equal(Sent_Dest.mac_len, sizeof(Device_MAC), NULL);
-    zassert_mem_equal(Sent_Dest.mac, Device_MAC, sizeof(Device_MAC), NULL);
+    verify_sent_to_device_mac_address();
 }
 
 /**
@@ -357,8 +377,7 @@ static void test_What_Is_Network_Number_Never_Routed(void)
     npdu_send_what_is_network_number(&dst);
 
     verify_sent_what_is_network_number_is_local();
-    zassert_equal(Sent_Dest.mac_len, sizeof(Device_MAC), NULL);
-    zassert_mem_equal(Sent_Dest.mac, Device_MAC, sizeof(Device_MAC), NULL);
+    verify_sent_to_device_mac_address();
 
     datalink_capture_init();
     memset(&dst, 0, sizeof(dst));
@@ -366,7 +385,7 @@ static void test_What_Is_Network_Number_Never_Routed(void)
     npdu_send_what_is_network_number(&dst);
 
     verify_sent_what_is_network_number_is_local();
-    zassert_equal(Sent_Dest.mac_len, 0, NULL);
+    verify_sent_to_datalink_broadcast_address();
 }
 
 /**
