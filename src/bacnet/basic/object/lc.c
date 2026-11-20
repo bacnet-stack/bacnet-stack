@@ -599,20 +599,19 @@ static float Requested_Shed_Level_Value(struct object_data *pObject)
                 that is not in the Shed_Levels array, it shall go to the
                 Shed_Level whose entry in the Shed_Levels array has the
                 nearest numerically lower value.*/
-            shed_level = Load_Control_Shed_Level_Entry_Find(
-                pObject->Shed_Level_List,
-                pObject->Requested_Shed_Level.value.level);
+            /* Level 0 is SHED_INACTIVE and is not in the array. */
+            shed_level = NULL;
+            if (pObject->Requested_Shed_Level.value.level > 0) {
+                shed_level = Load_Control_Shed_Level_Entry_Find(
+                    pObject->Shed_Level_List,
+                    pObject->Requested_Shed_Level.value.level);
+            }
             if (shed_level) {
                 requested_level = shed_level->Value;
             } else {
-                /* no lower level, so use the first array element */
-                shed_level = Keylist_Data_Index(pObject->Shed_Level_List, 0);
-                if (shed_level) {
-                    requested_level = shed_level->Value;
-                } else {
-                    /* no level found so use 100% of baseline (no shed) */
-                    requested_level = 100.0f;
-                }
+                /* no lower level, so the nearest lower level is 0:
+                   use 100% of baseline (no shed) */
+                requested_level = 100.0f;
             }
             break;
     }
@@ -2185,6 +2184,11 @@ bool Load_Control_Shed_Level_Array_Set(
     }
     entry = Keylist_Data(pObject->Shed_Level_List, array_index);
     if (!entry) {
+        /* keys must stay contiguous 1..N: only append the next element */
+        if (array_index !=
+            (uint32_t)Keylist_Count(pObject->Shed_Level_List) + 1) {
+            return false;
+        }
         entry = Load_Control_Shed_Level_List_Add(
             pObject->Shed_Level_List, array_index, array_index, value);
         return entry != NULL;
