@@ -2278,6 +2278,132 @@ static void test_bacnet_strncpy(void)
 }
 
 /**
+ * @brief Test bacnet_splite and bacnet_subsstr list helpers
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bacstr_tests, test_bacnet_splite_subsstr)
+#else
+static void test_bacnet_splite_subsstr(void)
+#endif
+{
+    /* guard elements placed after the index array detect overruns */
+    struct {
+        int idx[3];
+        int guard[8];
+    } s;
+    char buf[16];
+    int count;
+    int i;
+
+    for (i = 0; i < 8; i++) {
+        s.guard[i] = 0x5A5A5A5A;
+    }
+    /* many separators, but only max_count entries are reported */
+    count = bacnet_splite("a b c d e f g h", ' ', s.idx, 2);
+    zassert_equal(count, 2, "count=%d", count);
+    zassert_equal(s.idx[0], 0, NULL);
+    zassert_equal(s.idx[1], 2, NULL);
+    zassert_equal(s.idx[2], 4, NULL);
+    for (i = 0; i < 8; i++) {
+        zassert_equal(s.guard[i], 0x5A5A5A5A, "guard %d overwritten", i);
+    }
+    /* fewer entries than max_count */
+    count = bacnet_splite("ab cd", ' ', s.idx, 2);
+    zassert_equal(count, 2, NULL);
+    zassert_equal(s.idx[1], 3, NULL);
+    zassert_equal(s.idx[2], 6, NULL);
+    count = bacnet_splite("ab", ' ', s.idx, 2);
+    zassert_equal(count, 1, NULL);
+    zassert_equal(s.idx[1], 3, NULL);
+    count = bacnet_splite("", ' ', s.idx, 2);
+    zassert_equal(count, 1, NULL);
+    for (i = 0; i < 8; i++) {
+        zassert_equal(s.guard[i], 0x5A5A5A5A, "guard %d overwritten", i);
+    }
+
+    /* append, replace, grow and shrink entries */
+    buf[0] = 0;
+    zassert_true(bacnet_subsstr(buf, sizeof(buf), 0, "one"), NULL);
+    zassert_equal(strcmp(buf, "one"), 0, "%s", buf);
+    zassert_true(bacnet_subsstr(buf, sizeof(buf), 1, "two"), NULL);
+    zassert_equal(strcmp(buf, "one two"), 0, "%s", buf);
+    zassert_true(bacnet_subsstr(buf, sizeof(buf), 0, "1"), NULL);
+    zassert_equal(strcmp(buf, "1 two"), 0, "%s", buf);
+    zassert_true(bacnet_subsstr(buf, sizeof(buf), 1, "three"), NULL);
+    zassert_equal(strcmp(buf, "1 three"), 0, "%s", buf);
+    zassert_true(bacnet_subsstr(buf, sizeof(buf), 0, "uno"), NULL);
+    zassert_equal(strcmp(buf, "uno three"), 0, "%s", buf);
+
+    /* too large to fit leaves the string unchanged and terminated */
+    zassert_false(
+        bacnet_subsstr(buf, sizeof(buf), 1, "0123456789ABCDEF"), NULL);
+    zassert_equal(strcmp(buf, "uno three"), 0, "%s", buf);
+    zassert_false(bacnet_subsstr(buf, sizeof(buf), 2, "0123456789"), NULL);
+    zassert_equal(strcmp(buf, "uno three"), 0, "%s", buf);
+    /* exact fit: 15 characters plus NUL */
+    zassert_true(bacnet_subsstr(buf, sizeof(buf), 1, "01234567890"), NULL);
+    zassert_equal(strcmp(buf, "uno 01234567890"), 0, "%s", buf);
+
+    /* invalid arguments */
+    zassert_false(bacnet_subsstr(NULL, sizeof(buf), 0, "x"), NULL);
+    zassert_false(bacnet_subsstr(buf, sizeof(buf), 0, NULL), NULL);
+    zassert_false(bacnet_subsstr(buf, sizeof(buf), -1, "x"), NULL);
+    zassert_false(bacnet_subsstr(buf, 0, 0, "x"), NULL);
+    zassert_equal(strcmp(buf, "uno 01234567890"), 0, "%s", buf);
+    zassert_equal(bacnet_splite(NULL, ' ', s.idx, 2), 0, NULL);
+    zassert_equal(bacnet_splite("a b", ' ', NULL, 2), 0, NULL);
+    s.idx[0] = 0x5A5A5A5A;
+    zassert_equal(bacnet_splite("a b", ' ', s.idx, 0), 0, NULL);
+    zassert_equal(bacnet_splite("a b", ' ', s.idx, -1), 0, NULL);
+    zassert_equal(s.idx[0], 0x5A5A5A5A, "idx written for max_count <= 0");
+
+    /* substr containing the separator would add entries: reject */
+    zassert_false(bacnet_subsstr(buf, sizeof(buf), 0, "a b"), NULL);
+    zassert_false(bacnet_subsstr(buf, sizeof(buf), 2, " "), NULL);
+    zassert_equal(strcmp(buf, "uno 01234567890"), 0, "%s", buf);
+
+    /* substr pointing into the str buffer: reject */
+    zassert_false(bacnet_subsstr(buf, sizeof(buf), 0, buf + 4), NULL);
+    zassert_false(bacnet_subsstr(buf, sizeof(buf), 0, buf), NULL);
+    zassert_false(
+        bacnet_subsstr(buf, sizeof(buf), 0, buf + sizeof(buf) - 1), NULL);
+    zassert_equal(strcmp(buf, "uno 01234567890"), 0, "%s", buf);
+    {
+        /* source starts before the list buffer but reaches into it */
+        char backing[32] = "abcdef";
+        char before[32];
+
+        memcpy(before, backing, sizeof(backing));
+        zassert_false(bacnet_subsstr(backing + 2, 30, 0, backing), NULL);
+        zassert_equal(memcmp(backing, before, sizeof(backing)), 0, NULL);
+        /* source ends exactly at the NUL just before the list buffer */
+        backing[0] = 'x';
+        backing[1] = 0;
+        memcpy(before, backing, sizeof(backing));
+        zassert_false(bacnet_subsstr(backing + 1, 31, 0, backing), NULL);
+        zassert_equal(memcmp(backing, before, sizeof(backing)), 0, NULL);
+        /* source ends just before the list buffer: no overlap, accepted */
+        backing[2] = 0;
+        backing[3] = 0;
+        zassert_true(bacnet_subsstr(backing + 2, 30, 0, backing), NULL);
+        zassert_equal(strcmp(backing + 2, "x"), 0, NULL);
+    }
+
+    /* str not NUL-terminated within length: reject without over-read */
+    memset(buf, 'Z', sizeof(buf));
+    zassert_false(bacnet_subsstr(buf, sizeof(buf), 0, "x"), NULL);
+    zassert_false(bacnet_subsstr(buf, sizeof(buf), 5, "x"), NULL);
+    for (i = 0; i < (int)sizeof(buf); i++) {
+        zassert_equal(buf[i], 'Z', "buf[%d] modified", i);
+    }
+    /* NUL in the last byte is valid; only appending is out of room */
+    buf[sizeof(buf) - 1] = 0;
+    zassert_false(bacnet_subsstr(buf, sizeof(buf), 1, "x"), NULL);
+    zassert_true(bacnet_subsstr(buf, sizeof(buf), 0, "x"), NULL);
+    zassert_equal(strcmp(buf, "x"), 0, "%s", buf);
+}
+
+/**
  * @}
  */
 
@@ -2311,7 +2437,8 @@ void test_main(void)
         ztest_unit_test(test_bacnet_stptok),
         ztest_unit_test(test_bacnet_snprintf),
         ztest_unit_test(test_bacnet_strdup),
-        ztest_unit_test(test_bacnet_strncpy));
+        ztest_unit_test(test_bacnet_strncpy),
+        ztest_unit_test(test_bacnet_splite_subsstr));
     ztest_run_test_suite(bacstr_tests);
 }
 #endif

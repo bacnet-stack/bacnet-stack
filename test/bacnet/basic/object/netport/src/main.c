@@ -886,6 +886,8 @@ static void test_network_port_sc_direct_connect_accept_uri(void)
     char urls2[] = URL1 " " URL_BIG " " URL3;
     char urls3[] = URL1 " " URL_BIG " " URL3 " " URL_SMALL;
     char urls4[] = URL1 " " URL_BIG " " URL3 " " URL_SMALL " " URL_BIG;
+    /* larger than the whole Accept-URIs storage */
+    char big_url[BACNET_SC_DIRECT_ACCEPT_URI_MAX * (BACNET_URI_LENGTH + 1) + 1];
 
     unsigned count = 0;
     uint32_t object_instance = 0;
@@ -896,6 +898,8 @@ static void test_network_port_sc_direct_connect_accept_uri(void)
     object_instance = 1234;
     status = Network_Port_Object_Instance_Number_Set(0, object_instance);
     zassert_true(status, NULL);
+    memset(big_url, 'u', sizeof(big_url) - 1);
+    big_url[sizeof(big_url) - 1] = 0;
     count = Network_Port_Count();
     zassert_true(count > 0, NULL);
 
@@ -948,6 +952,21 @@ static void test_network_port_sc_direct_connect_accept_uri(void)
     zassert_true(
         Network_Port_SC_Direct_Connect_Accept_URI_Set(
             object_instance, 1, URL_BIG),
+        NULL);
+    zassert_true(
+        strcmp(
+            Network_Port_SC_Direct_Connect_Accept_URIs_char(object_instance),
+            urls2) == 0,
+        NULL);
+
+    // reject a URI containing the separator, or one that does not fit
+    zassert_false(
+        Network_Port_SC_Direct_Connect_Accept_URI_Set(
+            object_instance, 1, URL_SMALL " " URL_SMALL),
+        NULL);
+    zassert_false(
+        Network_Port_SC_Direct_Connect_Accept_URI_Set(
+            object_instance, 1, big_url),
         NULL);
     zassert_true(
         strcmp(
