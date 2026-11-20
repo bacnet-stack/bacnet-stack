@@ -140,6 +140,36 @@ int dlmstp_send_pdu(
 }
 
 /**
+ * @brief Determine if the send PDU queue is empty
+ * @return true if the send PDU queue is empty
+ */
+bool dlmstp_send_pdu_queue_empty(void)
+{
+    bool status;
+
+    pthread_mutex_lock(&Ring_Buffer_Mutex);
+    status = Ringbuf_Empty(&PDU_Queue);
+    pthread_mutex_unlock(&Ring_Buffer_Mutex);
+
+    return status;
+}
+
+/**
+ * @brief Determine if the send PDU queue is full
+ * @return true if the send PDU queue is full
+ */
+bool dlmstp_send_pdu_queue_full(void)
+{
+    bool status;
+
+    pthread_mutex_lock(&Ring_Buffer_Mutex);
+    status = Ringbuf_Full(&PDU_Queue);
+    pthread_mutex_unlock(&Ring_Buffer_Mutex);
+
+    return status;
+}
+
+/**
  * @brief The MS/TP state machine uses this function for getting data to send
  * @param mstp_port - specific MSTP port that is used for this datalink
  * @param timeout - number of milliseconds to wait for the data

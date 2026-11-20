@@ -1037,6 +1037,55 @@ static void test_subordinate_list_resize(void)
 }
 
 /**
+ * @brief Test writing an entire subordinate array with a different
+ *  number of elements than the existing array
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(tests_object_structured_view, test_subordinate_array_write_resize)
+#else
+static void test_subordinate_array_write_resize(void)
+#endif
+{
+    const uint32_t instance = 1112;
+    bool status = false;
+    int len = 0;
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    BACNET_SUBORDINATE_DATA *element;
+
+    Structured_View_Init();
+    Structured_View_Create(instance);
+
+    wp_data.object_type = OBJECT_STRUCTURED_VIEW;
+    wp_data.object_instance = instance;
+    wp_data.priority = BACNET_NO_PRIORITY;
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    wp_data.object_property = PROP_SUBORDINATE_NODE_TYPES;
+
+    /* grow from 0 to 2 elements with a whole-array write */
+    len = encode_application_enumerated(
+        &wp_data.application_data[0], BACNET_NODE_MEMBER);
+    len += encode_application_enumerated(
+        &wp_data.application_data[len], BACNET_NODE_ROOM);
+    wp_data.application_data_len = len;
+    status = Structured_View_Write_Property(&wp_data);
+    zassert_true(status, "error_code=%d", wp_data.error_code);
+    zassert_equal(Structured_View_Subordinate_List_Count(instance), 2, NULL);
+    element = Structured_View_Subordinate_List_Member(instance, 1);
+    zassert_not_null(element, NULL);
+    zassert_equal(element->Node_Type, BACNET_NODE_ROOM, NULL);
+
+    /* shrink from 2 to 1 element */
+    wp_data.application_data_len = encode_application_enumerated(
+        &wp_data.application_data[0], BACNET_NODE_MEMBER);
+    status = Structured_View_Write_Property(&wp_data);
+    zassert_true(status, "error_code=%d", wp_data.error_code);
+    zassert_equal(Structured_View_Subordinate_List_Count(instance), 1, NULL);
+
+    Structured_View_Delete(instance);
+    Structured_View_Cleanup();
+}
+
+/**
  * @}
  */
 
@@ -1060,7 +1109,8 @@ void test_main(void)
         ztest_unit_test(test_sequential_add_remove_cycles),
         ztest_unit_test(test_invalid_instance_validation),
         ztest_unit_test(test_state_consistency_after_purge),
-        ztest_unit_test(test_subordinate_list_resize));
+        ztest_unit_test(test_subordinate_list_resize),
+        ztest_unit_test(test_subordinate_array_write_resize));
 
     ztest_run_test_suite(tests_object_structured_view);
 }

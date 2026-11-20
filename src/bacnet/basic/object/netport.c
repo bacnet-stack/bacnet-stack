@@ -3988,7 +3988,7 @@ uint8_t Network_Port_MSTP_Max_Info_Frames(uint32_t object_instance)
  * Note: depends on Network_Type being set to PORT_TYPE_MSTP for this object
  *
  * @param  object_instance - object-instance number of the object
- * @param  value - MS/TP Max_Info_Frames value 0..255
+ * @param  value - MS/TP Max_Info_Frames value 1..255
  *
  * @return  true if values are within range and property is set.
  */
@@ -4001,11 +4001,13 @@ bool Network_Port_MSTP_Max_Info_Frames_Set(
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_MSTP) {
-            if (Object_List[index].Network.MSTP.Max_Info_Frames != value) {
-                Object_List[index].Changes_Pending = true;
+            if (value >= 1) {
+                if (Object_List[index].Network.MSTP.Max_Info_Frames != value) {
+                    Object_List[index].Changes_Pending = true;
+                }
+                Object_List[index].Network.MSTP.Max_Info_Frames = value;
+                status = true;
             }
-            Object_List[index].Network.MSTP.Max_Info_Frames = value;
-            status = true;
         }
     }
 

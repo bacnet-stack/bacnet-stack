@@ -43,7 +43,6 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/bactext.c
     ${SRC_DIR}/bacnet/basic/sys/bigend.c
     ${SRC_DIR}/bacnet/basic/sys/debug.c
-    ${SRC_DIR}/bacnet/datalink/datalink.c
     ${SRC_DIR}/bacnet/indtext.c
     ${SRC_DIR}/bacnet/npdu.c
     # Test and test library files

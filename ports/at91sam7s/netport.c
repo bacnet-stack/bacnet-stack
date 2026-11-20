@@ -500,7 +500,7 @@ uint8_t Network_Port_MSTP_Max_Info_Frames(uint32_t object_instance)
  * For a given object instance-number, sets the MS/TP Max_Info_Frames value
  *
  * @param  object_instance - object-instance number of the object
- * @param  value - MS/TP Max_Info_Frames value 0..255
+ * @param  value - MS/TP Max_Info_Frames value 1..255
  *
  * @return  true if values are within range and property is set.
  */
@@ -510,7 +510,7 @@ bool Network_Port_MSTP_Max_Info_Frames_Set(
     bool status = false;
 
     (void)object_instance;
-    if (value <= dlmstp_max_info_frames_limit()) {
+    if ((value >= 1) && (value <= dlmstp_max_info_frames_limit())) {
         Object_List[0].Max_Info_Frames = value;
         Object_List[0].Changes_Pending = true;
         status = true;
@@ -704,14 +704,14 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
         case PROP_MAX_INFO_FRAMES:
             if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-                if (value.type.Unsigned_Int <= 255) {
+                if ((value.type.Unsigned_Int >= 1) &&
+                    (value.type.Unsigned_Int <= 255)) {
                     status = Network_Port_MSTP_Max_Info_Frames_Set(
                         wp_data->object_instance, value.type.Unsigned_Int);
                     if (!status) {
                         wp_data->error_class = ERROR_CLASS_PROPERTY;
                         wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                     }
-                    status = true;
                 } else {
                     wp_data->error_class = ERROR_CLASS_PROPERTY;
                     wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;

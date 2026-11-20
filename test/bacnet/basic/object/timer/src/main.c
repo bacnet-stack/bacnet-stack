@@ -438,7 +438,8 @@ static void test_Timer_Read_Write(void)
     zassert_false(status, NULL);
     zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
     zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_ARRAY_INDEX, NULL);
-    /* write to all elements, but only include one element */
+    /* write to all elements of a fixed size array, but only include
+       one element */
     wp_data.array_index = BACNET_ARRAY_ALL;
     wp_data.application_data_len =
         bacapp_encode_application_data(wp_data.application_data, &value);
@@ -446,7 +447,7 @@ static void test_Timer_Read_Write(void)
     zassert_false(status, NULL);
     zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
     zassert_equal(
-        wp_data.error_code, ERROR_CODE_INVALID_DATA_ENCODING, "%s",
+        wp_data.error_code, ERROR_CODE_INVALID_ARRAY_SIZE, "%s",
         bactext_error_code_name(wp_data.error_code));
     /* state-change-values - wrong datatype */
     wp_data.array_index = 1;

@@ -11,6 +11,9 @@
 #include <bacnet/basic/object/device.h>
 #include <bacnet/basic/object/av.h>
 #include <bacnet/basic/service/h_apdu.h>
+#if defined(BACDL_MSTP)
+#include <bacnet/datalink/dlmstp.h>
+#endif
 #include <bacnet/bactext.h>
 #include <datetime_local.h>
 #include <property_test.h>
@@ -904,6 +907,57 @@ static void test_Device_Object_Functions_APIs(void)
     zassert_is_null(Device_Object_Functions_Find(skipped_type), NULL);
 }
 
+#if defined(BACDL_MSTP)
+/**
+ * @brief Test that WriteProperty of the MS/TP Max_Info_Frames property
+ *  accepts 1 to 255, and rejects the other values without passing them
+ *  to the datalink.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(device_tests, test_Device_Write_Property_Max_Info_Frames_Range)
+#else
+static void test_Device_Write_Property_Max_Info_Frames_Range(void)
+#endif
+{
+    BACNET_WRITE_PROPERTY_DATA wpdata = { 0 };
+    const BACNET_UNSIGNED_INTEGER max_info_frames_good[] = { 1, 2, 255 };
+    const BACNET_UNSIGNED_INTEGER max_info_frames_bad[] = { 0, 256, 65536 };
+    unsigned i = 0;
+    bool status = false;
+
+    Device_Init(NULL);
+    wpdata.object_type = OBJECT_DEVICE;
+    wpdata.object_instance = Device_Object_Instance_Number();
+    wpdata.array_index = BACNET_ARRAY_ALL;
+    wpdata.priority = BACNET_NO_PRIORITY;
+    wpdata.object_property = PROP_MAX_INFO_FRAMES;
+
+    for (i = 0; i < ARRAY_SIZE(max_info_frames_good); i++) {
+        wpdata.application_data_len = encode_application_unsigned(
+            wpdata.application_data, max_info_frames_good[i]);
+        status = Device_Write_Property(&wpdata);
+        zassert_true(
+            status, "Max_Info_Frames=%lu",
+            (unsigned long)max_info_frames_good[i]);
+        zassert_equal(dlmstp_max_info_frames(), max_info_frames_good[i], NULL);
+    }
+    dlmstp_set_max_info_frames(5);
+    for (i = 0; i < ARRAY_SIZE(max_info_frames_bad); i++) {
+        wpdata.error_class = ERROR_CLASS_DEVICE;
+        wpdata.error_code = ERROR_CODE_SUCCESS;
+        wpdata.application_data_len = encode_application_unsigned(
+            wpdata.application_data, max_info_frames_bad[i]);
+        status = Device_Write_Property(&wpdata);
+        zassert_false(
+            status, "Max_Info_Frames=%lu",
+            (unsigned long)max_info_frames_bad[i]);
+        zassert_equal(wpdata.error_class, ERROR_CLASS_PROPERTY, NULL);
+        zassert_equal(wpdata.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+        zassert_equal(dlmstp_max_info_frames(), 5, NULL);
+    }
+}
+#endif
+
 /**
  * @brief Test Device_Write_Property with empty application payload
  */
@@ -1053,6 +1107,18 @@ void test_main(void)
         ztest_unit_test(test_Device_Object_Functions_APIs),
         ztest_unit_test(test_Device_Backup_Failure_Timeout_Internal_Access),
         ztest_unit_test(test_Device_Backup_Failure_Timeout_Configuration_File),
+        ztest_unit_test(test_Device_Write_Property_Empty_Payload));
+#elif defined(BACDL_MSTP)
+    ztest_test_suite(
+        device_tests, ztest_unit_test(testDevice),
+        ztest_unit_test(test_Device_Protocol_Object_Types_Supported),
+        ztest_unit_test(test_Device_Data_Sharing),
+        ztest_unit_test(test_Device_Write_Property_Range),
+        ztest_unit_test(test_Device_Write_Property_Max_Info_Frames_Range),
+        ztest_unit_test(test_Device_Object_Name_Database_Revision),
+        ztest_unit_test(test_Device_CharacterString_Property_Values),
+        ztest_unit_test(test_Device_Last_Restart_Reason),
+        ztest_unit_test(test_Device_Object_Functions_APIs),
         ztest_unit_test(test_Device_Write_Property_Empty_Payload));
 #else
     ztest_test_suite(

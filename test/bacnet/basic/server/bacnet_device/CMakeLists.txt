@@ -151,3 +151,21 @@ set_tests_properties(test_${basename}_backup_restore PROPERTIES
     FIXTURES_REQUIRED fixture_${basename}_backup_restore)
 set_tests_properties(build_${basename}_backup_restore PROPERTIES
     FIXTURES_SETUP fixture_${basename}_backup_restore)
+
+# MS/TP datalink test binary.
+add_executable(${PROJECT_NAME}_mstp
+    ${TEST_BACNET_DEVICE_SOURCES}
+    ${TST_DIR}/bacnet/basic/object/test/dlmstp_mock.c
+    )
+target_compile_definitions(${PROJECT_NAME}_mstp PRIVATE
+    BACDL_MSTP
+    )
+add_test(NAME build_${basename}_mstp
+    COMMAND ${CMAKE_COMMAND} --build "${CMAKE_BINARY_DIR}" --config $<CONFIG>
+            --target ${PROJECT_NAME}_mstp)
+add_test(NAME test_${basename}_mstp
+    COMMAND $<TARGET_FILE:${PROJECT_NAME}_mstp>)
+set_tests_properties(test_${basename}_mstp PROPERTIES
+    FIXTURES_REQUIRED fixture_${basename}_mstp)
+set_tests_properties(build_${basename}_mstp PROPERTIES
+    FIXTURES_SETUP fixture_${basename}_mstp)

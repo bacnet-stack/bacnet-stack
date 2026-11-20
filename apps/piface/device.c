@@ -1625,7 +1625,8 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             status = write_property_type_valid(
                 wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
             if (status) {
-                if (value.type.Unsigned_Int <= 255) {
+                if ((value.type.Unsigned_Int >= 1) &&
+                    (value.type.Unsigned_Int <= 255)) {
                     dlmstp_set_max_info_frames(
                         (uint8_t)value.type.Unsigned_Int);
                 } else {

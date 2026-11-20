@@ -925,10 +925,10 @@ bool utf8_isvalid(const char *str, size_t length)
             return false;
         }
         ab = (size_t)trailingBytesForUTF8[c];
-        if (length < ab) {
+        /* all continuation bytes must lie within the remaining span */
+        if ((size_t)(pend - p - 1) < ab) {
             return false;
         }
-        length -= ab;
 
         p++;
         /* Check top bits in the second byte */
@@ -1416,6 +1416,32 @@ void characterstring_buffer_free(BACNET_CHARACTER_STRING_BUFFER *char_string)
 }
 
 /**
+ * @brief Check if a BACNET_CHARACTER_STRING_BUFFER holds a valid UTF-8 string.
+ * @param value Pointer to BACNET_CHARACTER_STRING_BUFFER structure.
+ * @return true if the encoding is CHARACTER_UTF8, the length fits within the
+ *  buffer size and within the BACNET_CHARACTER_STRING capacity
+ *  (MAX_CHARACTER_STRING_BYTES - 1, one byte is kept for a NUL terminator),
+ *  and the contents are valid UTF-8, false otherwise.
+ */
+bool bacnet_character_string_buffer_utf8_valid(
+    const BACNET_CHARACTER_STRING_BUFFER *value)
+{
+    if (!value || (value->encoding != CHARACTER_UTF8)) {
+        return false;
+    }
+    if (value->buffer_length > value->buffer_size) {
+        return false;
+    }
+    /* a stored value must fit in a BACNET_CHARACTER_STRING,
+       which reserves one byte for a NUL terminator */
+    if (value->buffer_length > CHARACTER_STRING_CAPACITY) {
+        return false;
+    }
+
+    return utf8_isvalid(value->buffer, value->buffer_length);
+}
+
+/**
  * @brief Set a BACnet character string by referencing a C string.
  * @param char_string Pointer to destination structure.
  * @param value Pointer to a source C string, or NULL for empty.
@@ -1752,6 +1778,23 @@ int bacnet_character_cstring_asprintf(
     char_string->buffer_allocated = true;
 
     return len;
+}
+
+/**
+ * @brief Check if a BACNET_CHARACTER_CSTRING holds a valid UTF-8 string.
+ * @param char_string Pointer to BACNET_CHARACTER_CSTRING structure.
+ * @return true if the string buffer is set and is a valid NUL-terminated
+ *  UTF-8 string, false otherwise.
+ */
+bool bacnet_character_cstring_utf8_valid(
+    const BACNET_CHARACTER_CSTRING *char_string)
+{
+    if (!char_string || !char_string->buffer) {
+        return false;
+    }
+
+    return utf8_isvalid(
+        char_string->buffer, bacnet_character_cstring_length(char_string));
 }
 
 #if BACNET_USE_OCTETSTRING
@@ -3104,4 +3147,122 @@ char *bacnet_strdup(const char *s)
     }
 
     return p;
+}
+
+/**
+ * @brief Split a string into entries delimited by a separator
+ * @param str - NUL-terminated string to split
+ * @param separator - character that separates the entries
+ * @param indexes - array filled with the start offset of each entry,
+ *  followed by the offset just past the end of the last entry counted,
+ *  so entry n has length indexes[n + 1] - indexes[n] - 1.
+ *  Must hold at least max_count + 1 elements.
+ * @param max_count - maximum number of entries to find (an element count,
+ *  not a byte size). Any entries beyond max_count are ignored.
+ * @return number of entries found, no more than max_count,
+ *  or 0 if an argument is invalid
+ */
+int bacnet_splite(const char *str, char separator, int *indexes, int max_count)
+{
+    int i;
+    int k = 0;
+
+    if (!str || !indexes || (max_count <= 0)) {
+        return 0;
+    }
+    indexes[0] = 0;
+    for (i = 0; str[i] != 0 && k < max_count; i++) {
+        if (str[i] == separator) {
+            k++;
+            indexes[k] = i + 1;
+        }
+    }
+    if (k < max_count) {
+        k++;
+        indexes[k] = i + 1;
+    }
+
+    return k;
+}
+
+/**
+ * @brief Replace or append an entry in a space-separated list of strings
+ * @param str - NUL-terminated list to modify in place
+ * @param length - size in bytes of the buffer that holds str
+ * @param index - zero-based entry to replace; if the entry does not exist
+ *  yet, substr is appended as the next entry
+ * @param substr - NUL-terminated new entry value; must not contain a space,
+ *  and its bytes (including the NUL) must not overlap the str buffer
+ * @return true if the list was modified, false if an argument is invalid
+ *  or the result would not fit. The list is unchanged when false.
+ */
+bool bacnet_subsstr(char *str, int length, int index, const char *substr)
+{
+    int count = 0;
+    size_t substr_len;
+    size_t str_len;
+    size_t tail_len;
+    uintptr_t buf_start;
+    uintptr_t buf_end;
+    uintptr_t sub_start;
+    uintptr_t sub_end;
+    char *head = str;
+    char *sep;
+
+    if (!str || !substr || (index < 0) || (length <= 0)) {
+        return false;
+    }
+    substr_len = strlen(substr);
+    /* reject any overlap of the source (with its NUL) and the list buffer */
+    buf_start = (uintptr_t)str;
+    buf_end = buf_start + (uintptr_t)length;
+    sub_start = (uintptr_t)substr;
+    sub_end = sub_start + (uintptr_t)substr_len + 1;
+    if ((sub_start < buf_end) && (sub_end > buf_start)) {
+        return false;
+    }
+    str_len = bacnet_strnlen(str, (size_t)length);
+    if (str_len >= (size_t)length) {
+        /* not NUL-terminated within the buffer */
+        return false;
+    }
+    if (strchr(substr, ' ')) {
+        return false;
+    }
+    /* find the start of the requested entry */
+    while (count < index) {
+        sep = strchr(head, ' ');
+        if (!sep) {
+            break;
+        }
+        head = sep + 1;
+        count++;
+    }
+    if (count == index) {
+        /* replace the existing entry */
+        sep = strchr(head, ' ');
+        if (!sep) {
+            sep = str + str_len;
+        }
+        tail_len = strlen(sep);
+        if ((size_t)(head - str) + substr_len + tail_len + 1 > (size_t)length) {
+            return false;
+        }
+        memmove(head + substr_len, sep, tail_len + 1);
+        memcpy(head, substr, substr_len);
+    } else {
+        /* append as the next entry */
+        tail_len = (str_len > 0) ? 1 : 0;
+        if (str_len + tail_len + substr_len + 1 > (size_t)length) {
+            return false;
+        }
+        head = str + str_len;
+        if (tail_len) {
+            *head = ' ';
+            head++;
+        }
+        memcpy(head, substr, substr_len + 1);
+    }
+
+    return true;
 }
