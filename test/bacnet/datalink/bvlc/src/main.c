@@ -1098,6 +1098,27 @@ static void test_BVLC_Network_Port_Table_Entry_Decode_Address_Length(void)
 }
 
 /**
+ * @brief Test that a well-formed BDT entry with a port above UINT16_MAX
+ *  is reported as out-of-range rather than malformed
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_tests, test_BVLC_Network_Port_Table_Entry_Decode_Port_Range)
+#else
+static void test_BVLC_Network_Port_Table_Entry_Decode_Port_Range(void)
+#endif
+{
+    /* port [1] = 65536 */
+    const uint8_t apdu[] = { 0x0E, 0x0E, 0x1C, 192,  168,  1,   2,   0x0F, 0x1B,
+                             0x01, 0x00, 0x00, 0x0F, 0x1C, 255, 255, 255,  0 };
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_test = { 0 };
+    int len;
+
+    len = bvlc_broadcast_distribution_table_entry_decode(
+        apdu, sizeof(apdu), &bdt_test);
+    zassert_equal(len, BACNET_STATUS_ERANGE, "len=%d", len);
+}
+
+/**
  * @}
  */
 
@@ -1126,7 +1147,8 @@ void test_main(void)
         ztest_unit_test(test_BVLC_Network_Port_Foreign_Device),
         ztest_unit_test(test_BVLC_Network_Port_Table_Entry_Decode),
         ztest_unit_test(
-            test_BVLC_Network_Port_Table_Entry_Decode_Address_Length));
+            test_BVLC_Network_Port_Table_Entry_Decode_Address_Length),
+        ztest_unit_test(test_BVLC_Network_Port_Table_Entry_Decode_Port_Range));
 
     ztest_run_test_suite(bvlc_tests);
 }

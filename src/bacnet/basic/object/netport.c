@@ -4574,7 +4574,9 @@ static void
 Network_Port_Write_Decode_Error(BACNET_WRITE_PROPERTY_DATA *wp_data, int len)
 {
     wp_data->error_class = ERROR_CLASS_PROPERTY;
-    if (len < 0) {
+    if (len == BACNET_STATUS_ERANGE) {
+        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+    } else if (len < 0) {
         wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
     } else {
         wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
@@ -4731,6 +4733,9 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->application_data, wp_data->application_data_len,
                 &error_code, &host_n_port);
             if (len <= 0) {
+                if (error_code == ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE) {
+                    len = BACNET_STATUS_ERANGE;
+                }
                 Network_Port_Write_Decode_Error(wp_data, len);
                 return false;
             }

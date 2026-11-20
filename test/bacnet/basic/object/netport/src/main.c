@@ -281,6 +281,44 @@ static void test_network_port_fd_bbmd_address_write_none(void)
 }
 
 /**
+ * @brief Test WriteProperty of FD_BBMD_ADDRESS with a port above UINT16_MAX.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(netport_tests, test_network_port_fd_bbmd_address_write_port_range)
+#else
+static void test_network_port_fd_bbmd_address_write_port_range(void)
+#endif
+{
+    uint32_t object_instance = 1234;
+    bool status = false;
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    /* host [0] none, port [1] = 70000 */
+    const uint8_t apdu[] = { 0x0E, 0x08, 0x0F, 0x1B, 0x01, 0x11, 0x70 };
+
+    Network_Port_Init();
+    status = Network_Port_Object_Instance_Number_Set(0, object_instance);
+    zassert_true(status, NULL);
+    status = Network_Port_Type_Set(object_instance, PORT_TYPE_BIP);
+    zassert_true(status, NULL);
+    status = Network_Port_BIP_Mode_Set(object_instance, BACNET_IP_MODE_FOREIGN);
+    zassert_true(status, NULL);
+
+    wp_data.object_type = OBJECT_NETWORK_PORT;
+    wp_data.object_instance = object_instance;
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    wp_data.priority = BACNET_NO_PRIORITY;
+    wp_data.object_property = PROP_FD_BBMD_ADDRESS;
+    memcpy(wp_data.application_data, apdu, sizeof(apdu));
+    wp_data.application_data_len = sizeof(apdu);
+    status = Network_Port_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+
+    Network_Port_Cleanup();
+}
+
+/**
  * @brief Test
  */
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -1519,6 +1557,7 @@ void test_main(void)
         ztest_unit_test(test_network_port_name_description_write),
         ztest_unit_test(test_network_port_mstp_write_range),
         ztest_unit_test(test_network_port_fd_bbmd_address_write_none),
+        ztest_unit_test(test_network_port_fd_bbmd_address_write_port_range),
         ztest_unit_test(test_network_port_bbmd_tables_write),
         ztest_unit_test(test_network_port_bip6_bdt_clear));
 

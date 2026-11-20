@@ -686,6 +686,7 @@ int bvlc_broadcast_distribution_table_entry_decode(
     int len = 0, apdu_len = 0;
     BACNET_HOST_N_PORT_MINIMAL host_n_port = { 0 };
     BACNET_IP_BROADCAST_DISTRIBUTION_MASK broadcast_mask = { 0 };
+    BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
     uint32_t address_length = 0;
 
     if (!apdu) {
@@ -696,8 +697,11 @@ int bvlc_broadcast_distribution_table_entry_decode(
         return 0;
     }
     len = host_n_port_minimal_context_decode(
-        &apdu[apdu_len], apdu_size - apdu_len, 0, NULL, &host_n_port);
+        &apdu[apdu_len], apdu_size - apdu_len, 0, &error_code, &host_n_port);
     if (len <= 0) {
+        if (error_code == ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE) {
+            return BACNET_STATUS_ERANGE;
+        }
         return BACNET_STATUS_ERROR;
     }
     apdu_len += len;
