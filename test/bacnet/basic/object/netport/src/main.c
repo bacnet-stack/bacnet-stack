@@ -106,6 +106,104 @@ static void test_network_port_name_description_write(void)
 }
 
 /**
+ * @brief Write an unsigned value to a property of a Network Port object
+ * @param wp_data - WriteProperty data with the object identified
+ * @param property - property to write
+ * @param value - value to write
+ * @return true if the write is accepted
+ */
+static bool network_port_write_unsigned(
+    BACNET_WRITE_PROPERTY_DATA *wp_data,
+    BACNET_PROPERTY_ID property,
+    BACNET_UNSIGNED_INTEGER value)
+{
+    wp_data->object_property = property;
+    wp_data->error_class = ERROR_CLASS_DEVICE;
+    wp_data->error_code = ERROR_CODE_SUCCESS;
+    wp_data->application_data_len =
+        encode_application_unsigned(wp_data->application_data, value);
+
+    return Network_Port_Write_Property(wp_data);
+}
+
+/**
+ * @brief Test that WriteProperty of the MS/TP Max_Info_Frames and
+ *  Max_Master properties accepts the valid range of values and rejects
+ *  the other values with an error.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(netport_tests, test_network_port_mstp_write_range)
+#else
+static void test_network_port_mstp_write_range(void)
+#endif
+{
+    uint32_t object_instance = 123;
+    bool status = false;
+    unsigned i = 0;
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    const BACNET_UNSIGNED_INTEGER max_info_frames_good[] = { 1, 2, 255 };
+    const BACNET_UNSIGNED_INTEGER max_info_frames_bad[] = { 0, 256, 65536 };
+    const BACNET_UNSIGNED_INTEGER max_master_good[] = { 0, 1, 127 };
+    const BACNET_UNSIGNED_INTEGER max_master_bad[] = { 128, 255, 256, 65536 };
+
+    Network_Port_Init();
+    status = Network_Port_Object_Instance_Number_Set(0, object_instance);
+    zassert_true(status, NULL);
+    status = Network_Port_Type_Set(object_instance, PORT_TYPE_MSTP);
+    zassert_true(status, NULL);
+    wp_data.object_type = OBJECT_NETWORK_PORT;
+    wp_data.object_instance = object_instance;
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    wp_data.priority = BACNET_NO_PRIORITY;
+
+    /* Max_Info_Frames: 1..255 */
+    for (i = 0; i < ARRAY_SIZE(max_info_frames_good); i++) {
+        status = network_port_write_unsigned(
+            &wp_data, PROP_MAX_INFO_FRAMES, max_info_frames_good[i]);
+        zassert_true(status, NULL);
+        zassert_equal(
+            Network_Port_MSTP_Max_Info_Frames(object_instance),
+            max_info_frames_good[i], NULL);
+    }
+    status = Network_Port_MSTP_Max_Info_Frames_Set(object_instance, 5);
+    zassert_true(status, NULL);
+    for (i = 0; i < ARRAY_SIZE(max_info_frames_bad); i++) {
+        status = network_port_write_unsigned(
+            &wp_data, PROP_MAX_INFO_FRAMES, max_info_frames_bad[i]);
+        zassert_false(status, NULL);
+        zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+        zassert_equal(wp_data.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+        zassert_equal(
+            Network_Port_MSTP_Max_Info_Frames(object_instance), 5, NULL);
+    }
+    status = Network_Port_MSTP_Max_Info_Frames_Set(object_instance, 0);
+    zassert_false(status, NULL);
+    zassert_equal(Network_Port_MSTP_Max_Info_Frames(object_instance), 5, NULL);
+
+    /* Max_Master: 0..127 */
+    for (i = 0; i < ARRAY_SIZE(max_master_good); i++) {
+        status = network_port_write_unsigned(
+            &wp_data, PROP_MAX_MASTER, max_master_good[i]);
+        zassert_true(status, NULL);
+        zassert_equal(
+            Network_Port_MSTP_Max_Master(object_instance), max_master_good[i],
+            NULL);
+    }
+    status = Network_Port_MSTP_Max_Master_Set(object_instance, 63);
+    zassert_true(status, NULL);
+    for (i = 0; i < ARRAY_SIZE(max_master_bad); i++) {
+        status = network_port_write_unsigned(
+            &wp_data, PROP_MAX_MASTER, max_master_bad[i]);
+        zassert_false(status, NULL);
+        zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+        zassert_equal(wp_data.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+        zassert_equal(Network_Port_MSTP_Max_Master(object_instance), 63, NULL);
+    }
+
+    Network_Port_Cleanup();
+}
+
+/**
  * @brief Test WriteProperty of FD_BBMD_ADDRESS using the host choice NONE.
  */
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -1234,6 +1332,7 @@ void test_main(void)
         ztest_unit_test(test_network_port_sc_certificates),
         ztest_unit_test(test_network_port_sc_status_encode_decode),
         ztest_unit_test(test_network_port_name_description_write),
+        ztest_unit_test(test_network_port_mstp_write_range),
         ztest_unit_test(test_network_port_fd_bbmd_address_write_none));
 
     ztest_run_test_suite(netport_tests);

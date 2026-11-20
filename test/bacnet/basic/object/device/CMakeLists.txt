@@ -199,9 +199,24 @@ configure_device_test_target(
   ON
   ON)
 
+# MS/TP datalink test binary.
+add_executable(${PROJECT_NAME}_mstp
+    ${TEST_DEVICE_SOURCES}
+    ${TST_DIR}/bacnet/basic/object/test/dlmstp_mock.c
+    )
+configure_device_test_target(
+  ${PROJECT_NAME}_mstp
+  OFF
+  OFF)
+target_compile_definitions(${PROJECT_NAME}_mstp PRIVATE
+    BACDL_MSTP
+    )
+
 # CTest pair for the Backup/Restore-only binary.
 add_device_ctest(${PROJECT_NAME}_backup_restore ${basename}_backup_restore)
 # CTest pair for the BAC_ROUTING-only binary.
 add_device_ctest(${PROJECT_NAME}_bac_routing ${basename}_bac_routing)
 # CTest pair for the BAC_ROUTING with Backup/Restore binary.
 add_device_ctest(${PROJECT_NAME}_bac_routing_backup_restore ${basename}_bac_routing_backup_restore)
+# CTest pair for the MS/TP datalink binary.
+add_device_ctest(${PROJECT_NAME}_mstp ${basename}_mstp)

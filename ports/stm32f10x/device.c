@@ -878,7 +878,8 @@ bool Device_Write_Property_Local(BACNET_WRITE_PROPERTY_DATA *wp_data)
             break;
         case PROP_MAX_INFO_FRAMES:
             if (value.tag == BACNET_APPLICATION_TAG_UNSIGNED_INT) {
-                if (value.type.Unsigned_Int <= 255) {
+                if ((value.type.Unsigned_Int >= 1) &&
+                    (value.type.Unsigned_Int <= 255)) {
                     dlmstp_set_max_info_frames(value.type.Unsigned_Int);
                     status = true;
                 } else {
