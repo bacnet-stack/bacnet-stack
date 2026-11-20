@@ -2194,12 +2194,22 @@ static BACNET_ERROR_CODE BBMD_Broadcast_Distribution_Table_Element_Add(
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_entry = { 0 };
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list;
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt6_entry;
     int len;
     unsigned index = 0;
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
+        if ((Object_List[index].Network_Type == PORT_TYPE_BIP6) &&
+            !application_data) {
+            /* empty the list */
+            bdt6_entry = Object_List[index].Network.IPv6.BBMD_BD_Table;
+            while (bdt6_entry) {
+                bdt6_entry->valid = false;
+                bdt6_entry = bdt6_entry->next;
+            }
+            error_code = ERROR_CODE_SUCCESS;
+        } else if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
             bdt_list = Object_List[index].Network.IPv4.BBMD_BD_Table;
             if (!application_data) {
                 bvlc_broadcast_distribution_table_valid_clear(bdt_list);
@@ -4765,6 +4775,11 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 wp_data->application_data, wp_data->application_data_len);
             if (wp_data->error_code == ERROR_CODE_SUCCESS) {
                 status = true;
+            } else if (
+                wp_data->error_code == ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY) {
+                wp_data->error_class = ERROR_CLASS_RESOURCES;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
             }
             break;
         default:

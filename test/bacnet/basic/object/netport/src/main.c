@@ -1308,6 +1308,15 @@ static void test_network_port_bbmd_tables_write(void)
     zassert_false(status, NULL);
     zassert_equal(
         wp_data.error_code, ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_RESOURCES, NULL);
+
+    /* BDT: a truncated element is malformed */
+    wp_data.error_class = ERROR_CLASS_DEVICE;
+    wp_data.application_data_len = 3;
+    status = Network_Port_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_DATA_ENCODING, NULL);
 
     /* BDT: a BACnetLIST cannot be written by array index */
     wp_data.array_index = 1;
@@ -1340,6 +1349,45 @@ static void test_network_port_bbmd_tables_write(void)
     Network_Port_Cleanup();
 }
 
+/**
+ * @brief Test that an empty BDT write clears the table of an IPv6 port
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(netport_tests, test_network_port_bip6_bdt_clear)
+#else
+static void test_network_port_bip6_bdt_clear(void)
+#endif
+{
+    const uint32_t object_instance = 1236;
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt[2] = { 0 };
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    bool status = false;
+
+    Network_Port_Init();
+    status = Network_Port_Object_Instance_Number_Set(0, object_instance);
+    zassert_true(status, NULL);
+    status = Network_Port_Type_Set(object_instance, PORT_TYPE_BIP6);
+    zassert_true(status, NULL);
+    bdt[0].valid = true;
+    bdt[0].next = &bdt[1];
+    bdt[1].valid = true;
+    status = Network_Port_BBMD_IP6_BD_Table_Set(object_instance, bdt);
+    zassert_true(status, NULL);
+
+    wp_data.object_type = OBJECT_NETWORK_PORT;
+    wp_data.object_instance = object_instance;
+    wp_data.object_property = PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE;
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    wp_data.priority = BACNET_NO_PRIORITY;
+    wp_data.application_data_len = 0;
+    status = Network_Port_Write_Property(&wp_data);
+    zassert_true(status, "error_code=%d", wp_data.error_code);
+    zassert_false(bdt[0].valid, NULL);
+    zassert_false(bdt[1].valid, NULL);
+
+    Network_Port_Cleanup();
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(netport_tests, NULL, NULL, NULL, NULL, NULL);
 #else
@@ -1353,7 +1401,8 @@ void test_main(void)
         ztest_unit_test(test_network_port_sc_status_encode_decode),
         ztest_unit_test(test_network_port_name_description_write),
         ztest_unit_test(test_network_port_fd_bbmd_address_write_none),
-        ztest_unit_test(test_network_port_bbmd_tables_write));
+        ztest_unit_test(test_network_port_bbmd_tables_write),
+        ztest_unit_test(test_network_port_bip6_bdt_clear));
 
     ztest_run_test_suite(netport_tests);
 }
