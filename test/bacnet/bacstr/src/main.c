@@ -2250,6 +2250,26 @@ static void test_bacnet_splite_subsstr(void)
     zassert_false(
         bacnet_subsstr(buf, sizeof(buf), 0, buf + sizeof(buf) - 1), NULL);
     zassert_equal(strcmp(buf, "uno 01234567890"), 0, "%s", buf);
+    {
+        /* source starts before the list buffer but reaches into it */
+        char backing[32] = "abcdef";
+        char before[32];
+
+        memcpy(before, backing, sizeof(backing));
+        zassert_false(bacnet_subsstr(backing + 2, 30, 0, backing), NULL);
+        zassert_equal(memcmp(backing, before, sizeof(backing)), 0, NULL);
+        /* source ends exactly at the NUL just before the list buffer */
+        backing[0] = 'x';
+        backing[1] = 0;
+        memcpy(before, backing, sizeof(backing));
+        zassert_false(bacnet_subsstr(backing + 1, 31, 0, backing), NULL);
+        zassert_equal(memcmp(backing, before, sizeof(backing)), 0, NULL);
+        /* source ends just before the list buffer: no overlap, accepted */
+        backing[2] = 0;
+        backing[3] = 0;
+        zassert_true(bacnet_subsstr(backing + 2, 30, 0, backing), NULL);
+        zassert_equal(strcmp(backing + 2, "x"), 0, NULL);
+    }
 
     /* str not NUL-terminated within length: reject without over-read */
     memset(buf, 'Z', sizeof(buf));

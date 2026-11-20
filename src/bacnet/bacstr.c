@@ -3148,8 +3148,8 @@ int bacnet_splite(const char *str, char separator, int *indexes, int max_count)
  * @param length - size in bytes of the buffer that holds str
  * @param index - zero-based entry to replace; if the entry does not exist
  *  yet, substr is appended as the next entry
- * @param substr - new entry value; must not contain a space and must not
- *  point into the str buffer
+ * @param substr - NUL-terminated new entry value; must not contain a space,
+ *  and its bytes (including the NUL) must not overlap the str buffer
  * @return true if the list was modified, false if an argument is invalid
  *  or the result would not fit. The list is unchanged when false.
  */
@@ -3161,17 +3161,21 @@ bool bacnet_subsstr(char *str, int length, int index, const char *substr)
     size_t tail_len;
     uintptr_t buf_start;
     uintptr_t buf_end;
-    uintptr_t sub_addr;
+    uintptr_t sub_start;
+    uintptr_t sub_end;
     char *head = str;
     char *sep;
 
     if (!str || !substr || (index < 0) || (length <= 0)) {
         return false;
     }
+    substr_len = strlen(substr);
+    /* reject any overlap of the source (with its NUL) and the list buffer */
     buf_start = (uintptr_t)str;
     buf_end = buf_start + (uintptr_t)length;
-    sub_addr = (uintptr_t)substr;
-    if ((sub_addr >= buf_start) && (sub_addr < buf_end)) {
+    sub_start = (uintptr_t)substr;
+    sub_end = sub_start + (uintptr_t)substr_len + 1;
+    if ((sub_start < buf_end) && (sub_end > buf_start)) {
         return false;
     }
     str_len = bacnet_strnlen(str, (size_t)length);
@@ -3182,7 +3186,6 @@ bool bacnet_subsstr(char *str, int length, int index, const char *substr)
     if (strchr(substr, ' ')) {
         return false;
     }
-    substr_len = strlen(substr);
     /* find the start of the requested entry */
     while (count < index) {
         sep = strchr(head, ' ');
