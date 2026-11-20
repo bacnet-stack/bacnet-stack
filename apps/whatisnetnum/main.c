@@ -256,18 +256,30 @@ int main(int argc, char *argv[])
 
     if ((argc > 1) && (strcmp(argv[1], "--help") == 0)) {
         printf(
-            "Send BACnet What-Is-Network-Number message to a network.\r\n"
+            "Send BACnet What-Is-Network-Number message to the local "
+            "network.\r\n"
+            "The message is never routed. It is sent as a local broadcast,\r\n"
+            "or as a local unicast when a MAC address is given.\r\n"
             "\r\n"
+            "Usage: %s [DNET [MAC]]\r\n"
+            "\r\n"
+            "DNET:\r\n"
+            "Not used. The message has no destination network. Use -1.\r\n"
             "MAC:\r\n"
-            "Optional MAC address of router for unicast message\r\n"
-            "Format: xx[:xx:xx:xx:xx:xx] [dnet xx[:xx:xx:xx:xx:xx]]\r\n"
-            "Use hexidecimal MAC addresses.\r\n"
-            "\r\n"
-            "To send a What-Is-Network-Number request to DNET 86:\r\n"
-            "%s 86\r\n"
-            "To send a What-Is-Network-Number request to all devices:\r\n"
-            "%s -1\r\n",
-            filename_remove_path(argv[0]), filename_remove_path(argv[0]));
+            "Optional MAC address of a device on the local network,\r\n"
+            "such as a router, for a local unicast message\r\n"
+            "Format: xx[:xx:xx:xx:xx:xx]\r\n"
+            "Use hexadecimal MAC addresses.\r\n"
+            "\r\n",
+            filename);
+        printf(
+            "To send a What-Is-Network-Number request to all devices\r\n"
+            "on the local network:\r\n"
+            "%s\r\n"
+            "To send a What-Is-Network-Number request to the device\r\n"
+            "at the BACnet/IP address 192.168.1.10:47808:\r\n"
+            "%s -1 c0:a8:01:0a:ba:c0\r\n",
+            filename, filename);
         return 0;
     }
     if (argc > 1) {
