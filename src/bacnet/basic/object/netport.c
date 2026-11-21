@@ -34,6 +34,10 @@
 #ifndef BBMD_ENABLED
 #define BBMD_ENABLED 1
 #endif
+#if defined(BACDL_BIP) && BBMD_ENABLED && defined(BBMD_BACKUP_FILE)
+#define NETPORT_BDT_BACKUP 1
+#include "bacnet/basic/bbmd/h_bbmd.h"
+#endif
 
 #define IPV4_ADDR_SIZE 4
 #define BIP_DNS_MAX 3
@@ -2253,6 +2257,26 @@ static BACNET_ERROR_CODE BBMD_Broadcast_Distribution_Table_Element_Add(
 
     return error_code;
 }
+
+#if defined(NETPORT_BDT_BACKUP)
+/**
+ * @brief Save the BBMD BDT to the backup file after a list write.
+ *  A write empties the list and then refills it, so the table can
+ *  differ from the saved copy even when a later element failed.
+ * @param object_instance [in] BACnet network port object instance number
+ */
+static void BBMD_Broadcast_Distribution_Table_Backup(uint32_t object_instance)
+{
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if ((index < BACNET_NETWORK_PORTS_MAX) &&
+        (Object_List[index].Network_Type == PORT_TYPE_BIP) &&
+        (Object_List[index].Network.IPv4.BBMD_BD_Table == bvlc_bdt_list())) {
+        bvlc_bdt_backup_local();
+    }
+}
+#endif
 
 /**
  * For a given object instance-number, sets the BBMD-BD-Table head
@@ -4798,6 +4822,9 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
                 BBMD_Broadcast_Distribution_Table_Element_Length,
                 BBMD_Broadcast_Distribution_Table_Element_Add, capacity,
                 wp_data->application_data, wp_data->application_data_len);
+#if defined(NETPORT_BDT_BACKUP)
+            BBMD_Broadcast_Distribution_Table_Backup(wp_data->object_instance);
+#endif
             if (wp_data->error_code == ERROR_CODE_SUCCESS) {
                 status = true;
             } else if (
