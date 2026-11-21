@@ -174,11 +174,16 @@ static void debug_print_string(const char *str)
 #if defined(BBMD_BACKUP_FILE)
 #define tostr(a) str(a)
 #define str(a) #a
+/* same directory as the backup so rename() can replace it */
+#define BBMD_BACKUP_FILE_NAME tostr(BBMD_BACKUP_FILE)
+#define BBMD_BACKUP_TEMP_NAME tostr(BBMD_BACKUP_FILE) ".tmp"
+#define BBMD_BACKUP_PREV_NAME tostr(BBMD_BACKUP_FILE) ".prev"
 
 /**
  * @brief Save the entire BDT to the backup file, replacing its contents.
- *  The file is opened and closed on each call so that the stored
- *  table always matches the current table, including when it was emptied.
+ *  Writes a temporary file first, then replaces the backup only after
+ *  the complete write and close succeed, so a failed update keeps the
+ *  previous backup. Uses only stdio rename/remove for portability.
  */
 void bvlc_bdt_backup_local(void)
 {
@@ -187,8 +192,8 @@ void bvlc_bdt_backup_local(void)
     size_t i;
     bool ok = true;
 
-    /* if error opening file for writing -> silently abort */
-    bdt_file_ptr = fopen(tostr(BBMD_BACKUP_FILE), "wb");
+    /* if error opening temp file for writing -> silently abort */
+    bdt_file_ptr = fopen(BBMD_BACKUP_TEMP_NAME, "wb");
     if (!bdt_file_ptr) {
         return;
     }
@@ -205,15 +210,28 @@ void bvlc_bdt_backup_local(void)
         ok = false;
     }
     if (!ok) {
-        /* do not leave a truncated file that looks like a valid backup */
-        (void)remove(tostr(BBMD_BACKUP_FILE));
+        /* leave the previous backup untouched */
+        (void)remove(BBMD_BACKUP_TEMP_NAME);
+        return;
     }
+    /* move the current backup aside so rename() can replace on all hosts */
+    (void)remove(BBMD_BACKUP_PREV_NAME);
+    (void)rename(BBMD_BACKUP_FILE_NAME, BBMD_BACKUP_PREV_NAME);
+    if (rename(BBMD_BACKUP_TEMP_NAME, BBMD_BACKUP_FILE_NAME) != 0) {
+        /* restore the previous backup if the replace failed */
+        (void)rename(BBMD_BACKUP_PREV_NAME, BBMD_BACKUP_FILE_NAME);
+        (void)remove(BBMD_BACKUP_TEMP_NAME);
+        return;
+    }
+    (void)remove(BBMD_BACKUP_PREV_NAME);
 }
 
 /**
  * @brief Load the BDT from the backup file.
  *  The table is replaced only when the file holds a complete table.
  *  The table links of the running process are preserved.
+ *  If the primary backup is missing, the previous-backup file left
+ *  during a replace is tried so a crash mid-rename can still recover.
  */
 void bvlc_bdt_restore_local(void)
 {
@@ -222,9 +240,12 @@ void bvlc_bdt_restore_local(void)
     size_t i;
 
     /* if error opening file for reading -> silently abort */
-    bdt_file_ptr = fopen(tostr(BBMD_BACKUP_FILE), "rb");
+    bdt_file_ptr = fopen(BBMD_BACKUP_FILE_NAME, "rb");
     if (!bdt_file_ptr) {
-        return;
+        bdt_file_ptr = fopen(BBMD_BACKUP_PREV_NAME, "rb");
+        if (!bdt_file_ptr) {
+            return;
+        }
     }
     if (fread(saved, sizeof(saved[0]), MAX_BBMD_ENTRIES, bdt_file_ptr) ==
         MAX_BBMD_ENTRIES) {
