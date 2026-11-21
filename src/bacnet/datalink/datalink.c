@@ -7,6 +7,7 @@
  * @defgroup DataLink DataLink Network Layer
  * @ingroup DataLink
  */
+#include <string.h>
 #include "bacnet/bacdef.h"
 #include "bacnet/datalink/datalink.h"
 #include "bacnet/bacstr.h"
@@ -507,12 +508,17 @@ void datalink_cleanup(void)
 
 void datalink_get_broadcast_address(BACNET_ADDRESS *dest)
 {
-    (void)dest;
+    if (dest) {
+        memset(dest, 0, sizeof(BACNET_ADDRESS));
+        dest->net = BACNET_BROADCAST_NETWORK;
+    }
 }
 
 void datalink_get_my_address(BACNET_ADDRESS *my_address)
 {
-    (void)my_address;
+    if (my_address) {
+        memset(my_address, 0, sizeof(BACNET_ADDRESS));
+    }
 }
 
 void datalink_set_interface(const char *ifname)
