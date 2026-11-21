@@ -88,6 +88,11 @@ bool bacnet_port_ipv6_init(void)
     bip6_get_broadcast_addr(&addr6);
     Network_Port_IPv6_Multicast_Address_Set(instance, &addr6.address[0]);
     Network_Port_IPv6_Subnet_Prefix_Set(instance, prefix);
+#if BBMD6_ENABLED
+    /* the property and the BBMD forwarding table share the same list */
+    Network_Port_BBMD_IP6_BD_Table_Set(instance, bvlc6_bdt_list());
+    Network_Port_BBMD_IP6_FD_Table_Set(instance, bvlc6_fdt_list());
+#endif
 
     Network_Port_Reliability_Set(instance, RELIABILITY_NO_FAULT_DETECTED);
     Network_Port_Link_Speed_Set(instance, 0.0);

@@ -1100,6 +1100,37 @@ void bvlc6_init(void)
         &Remote_BBMD, 0, 0, 0, 0, 0, 0, 0, BIP6_MULTICAST_GROUP_ID);
 #if defined(BACDL_BIP6) && BBMD6_ENABLED
     memset(&BBMD_Table, 0, sizeof(BBMD_Table));
+    bvlc6_broadcast_distribution_table_link_array(
+        &BBMD_Table[0], MAX_BBMD6_ENTRIES);
     memset(&FD_Table, 0, sizeof(FD_Table));
+    bvlc6_foreign_device_table_link_array(&FD_Table[0], MAX_FD6_ENTRIES);
+#endif
+}
+
+/**
+ * @brief Get handle to the foreign device table (FDT).
+ * @return pointer to the first entry of the linked FDT, or NULL
+ *  if the BBMD is not enabled
+ */
+BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY *bvlc6_fdt_list(void)
+{
+#if defined(BACDL_BIP6) && BBMD6_ENABLED
+    return &FD_Table[0];
+#else
+    return NULL;
+#endif
+}
+
+/**
+ * @brief Get handle to the broadcast distribution table (BDT).
+ * @return pointer to the first entry of the linked BDT, or NULL
+ *  if the BBMD is not enabled
+ */
+BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bvlc6_bdt_list(void)
+{
+#if defined(BACDL_BIP6) && BBMD6_ENABLED
+    return &BBMD_Table[0];
+#else
+    return NULL;
 #endif
 }

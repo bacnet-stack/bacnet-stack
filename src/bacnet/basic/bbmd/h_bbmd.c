@@ -175,59 +175,67 @@ static void debug_print_string(const char *str)
 #define tostr(a) str(a)
 #define str(a) #a
 
+/**
+ * @brief Save the entire BDT to the backup file, replacing its contents.
+ *  The file is opened and closed on each call so that the stored
+ *  table always matches the current table, including when it was emptied.
+ */
 void bvlc_bdt_backup_local(void)
 {
-    static FILE *bdt_file_ptr = NULL;
-
-    /* only try opening the file if not already opened previously */
-    if (!bdt_file_ptr) {
-        bdt_file_ptr = fopen(tostr(BBMD_BACKUP_FILE), "wb");
-    }
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY entry;
+    FILE *bdt_file_ptr;
+    size_t i;
+    bool ok = true;
 
     /* if error opening file for writing -> silently abort */
+    bdt_file_ptr = fopen(tostr(BBMD_BACKUP_FILE), "wb");
     if (!bdt_file_ptr) {
         return;
     }
-
-    fseek(bdt_file_ptr, 0, SEEK_SET);
-    fwrite(
-        BBMD_Table, sizeof(BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY),
-        MAX_BBMD_ENTRIES, bdt_file_ptr);
-    fflush(bdt_file_ptr);
-}
-
-void bvlc_bdt_restore_local(void)
-{
-    static FILE *bdt_file_ptr = NULL;
-
-    /* only try opening the file if not already opened previously */
-    if (!bdt_file_ptr) {
-        bdt_file_ptr = fopen(tostr(BBMD_BACKUP_FILE), "rb");
-    }
-
-    /* if error opening file for reading -> silently abort */
-    if (!bdt_file_ptr) {
-        return;
-    }
-
-    fseek(bdt_file_ptr, 0, SEEK_SET);
-    {
-        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY
-        BBMD_Table_tmp[MAX_BBMD_ENTRIES];
-        size_t entries = 0;
-
-        entries = fread(
-            BBMD_Table_tmp,
-            sizeof(BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY),
-            MAX_BBMD_ENTRIES, bdt_file_ptr);
-        if (entries == MAX_BBMD_ENTRIES) {
-            /* success reading the BDT table. */
-            memcpy(
-                BBMD_Table, BBMD_Table_tmp,
-                sizeof(BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY) *
-                    MAX_BBMD_ENTRIES);
+    for (i = 0; i < MAX_BBMD_ENTRIES; i++) {
+        entry = BBMD_Table[i];
+        /* the link pointer is only meaningful inside this process */
+        entry.next = NULL;
+        if (fwrite(&entry, sizeof(entry), 1, bdt_file_ptr) != 1) {
+            ok = false;
+            break;
         }
     }
+    if (fclose(bdt_file_ptr) != 0) {
+        ok = false;
+    }
+    if (!ok) {
+        /* do not leave a truncated file that looks like a valid backup */
+        (void)remove(tostr(BBMD_BACKUP_FILE));
+    }
+}
+
+/**
+ * @brief Load the BDT from the backup file.
+ *  The table is replaced only when the file holds a complete table.
+ *  The table links of the running process are preserved.
+ */
+void bvlc_bdt_restore_local(void)
+{
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY saved[MAX_BBMD_ENTRIES];
+    FILE *bdt_file_ptr;
+    size_t i;
+
+    /* if error opening file for reading -> silently abort */
+    bdt_file_ptr = fopen(tostr(BBMD_BACKUP_FILE), "rb");
+    if (!bdt_file_ptr) {
+        return;
+    }
+    if (fread(saved, sizeof(saved[0]), MAX_BBMD_ENTRIES, bdt_file_ptr) ==
+        MAX_BBMD_ENTRIES) {
+        /* success reading the BDT table. */
+        for (i = 0; i < MAX_BBMD_ENTRIES; i++) {
+            /* keep this process's link, not the saved pointer */
+            saved[i].next = BBMD_Table[i].next;
+            BBMD_Table[i] = saved[i];
+        }
+    }
+    (void)fclose(bdt_file_ptr);
 }
 #else
 void bvlc_bdt_backup_local(void)

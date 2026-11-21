@@ -576,6 +576,36 @@ static void test_BVLC_Broadcast_Distribution_Table_Encode(void)
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_tests, test_BVLC_Broadcast_Distribution_Table_Append_Sparse)
+#else
+static void test_BVLC_Broadcast_Distribution_Table_Append_Sparse(void)
+#endif
+{
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_list[3] = { 0 };
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_entry = { 0 };
+    BACNET_IP_ADDRESS dest_address = { 0 };
+    BACNET_IP_BROADCAST_DISTRIBUTION_MASK broadcast_mask = { 0 };
+    bool status;
+
+    bvlc_broadcast_distribution_table_link_array(&bdt_list[0], 3);
+    status =
+        bvlc_address_port_from_ascii(&dest_address, "192.168.0.255", "0xBAC0");
+    zassert_true(status, NULL);
+    status = bvlc_broadcast_distribution_table_entry_set(
+        &bdt_entry, &dest_address, &broadcast_mask);
+    zassert_true(status, NULL);
+    /* the first slot is free, the second slot holds the entry */
+    bdt_list[1] = bdt_entry;
+    bdt_list[1].valid = true;
+    bdt_list[1].next = &bdt_list[2];
+    status = bvlc_broadcast_distribution_table_entry_append(
+        &bdt_list[0], &bdt_entry);
+    zassert_true(status, NULL);
+    zassert_false(bdt_list[0].valid, NULL);
+    zassert_false(bdt_list[2].valid, NULL);
+}
+
 static void test_BVLC_Write_Broadcast_Distribution_Table_Message(
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list)
 {
@@ -1031,6 +1061,94 @@ static void test_BVLC_BBMD_Address(void)
 }
 
 /**
+ * @brief Test decoding one BDT entry of a Network Port property
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_tests, test_BVLC_Network_Port_Table_Entry_Decode)
+#else
+static void test_BVLC_Network_Port_Table_Entry_Decode(void)
+#endif
+{
+    uint8_t apdu[MAX_APDU] = { 0 };
+    int apdu_len, len, i;
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_entry = { 0 };
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_test = { 0 };
+
+    bvlc_address_set(&bdt_entry.dest_address, 192, 168, 1, 2);
+    bdt_entry.dest_address.port = 47808;
+    bvlc_broadcast_distribution_mask_set(
+        &bdt_entry.broadcast_mask, 255, 255, 255, 0);
+    apdu_len = bvlc_broadcast_distribution_table_entry_encode(apdu, &bdt_entry);
+    zassert_true(apdu_len > 0, NULL);
+    len = bvlc_broadcast_distribution_table_entry_decode(
+        apdu, apdu_len, &bdt_test);
+    zassert_equal(len, apdu_len, NULL);
+    zassert_false(
+        bvlc_broadcast_distribution_table_entry_different(
+            &bdt_entry, &bdt_test),
+        NULL);
+    /* every truncation is rejected */
+    for (i = 0; i < apdu_len; i++) {
+        len =
+            bvlc_broadcast_distribution_table_entry_decode(apdu, i, &bdt_test);
+        zassert_true(len <= 0, "i=%d len=%d", i, len);
+    }
+}
+
+/**
+ * @brief Test that a BDT entry with an IP address length other than
+ *  four octets is rejected rather than truncated or zero-padded
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_tests, test_BVLC_Network_Port_Table_Entry_Decode_Address_Length)
+#else
+static void test_BVLC_Network_Port_Table_Entry_Decode_Address_Length(void)
+#endif
+{
+    /* bbmd-address [0] { host [0] { ip-address [1] 3 octets }, port [1] },
+       broadcast-mask [1] */
+    const uint8_t short_address[] = { 0x0E, 0x0E, 0x1B, 192,  168,  1,
+                                      0x0F, 0x1A, 0xBA, 0xC0, 0x0F, 0x1C,
+                                      255,  255,  255,  0 };
+    /* same with a 16 octet (IPv6) address */
+    const uint8_t long_address[] = { 0x0E, 0x0E, 0x1D, 16,   0,    0,
+                                     0,    0,    0,    0,    0,    0,
+                                     0,    0,    0,    0,    0,    0,
+                                     1,    0x0F, 0x1A, 0xBA, 0xC0, 0x0F,
+                                     0x1C, 255,  255,  255,  0 };
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_test = { 0 };
+    int len;
+
+    len = bvlc_broadcast_distribution_table_entry_decode(
+        short_address, sizeof(short_address), &bdt_test);
+    zassert_true(len <= 0, "len=%d", len);
+    len = bvlc_broadcast_distribution_table_entry_decode(
+        long_address, sizeof(long_address), &bdt_test);
+    zassert_true(len <= 0, "len=%d", len);
+}
+
+/**
+ * @brief Test that a well-formed BDT entry with a port above UINT16_MAX
+ *  is reported as out-of-range rather than malformed
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_tests, test_BVLC_Network_Port_Table_Entry_Decode_Port_Range)
+#else
+static void test_BVLC_Network_Port_Table_Entry_Decode_Port_Range(void)
+#endif
+{
+    /* port [1] = 65536 */
+    const uint8_t apdu[] = { 0x0E, 0x0E, 0x1C, 192,  168,  1,   2,   0x0F, 0x1B,
+                             0x01, 0x00, 0x00, 0x0F, 0x1C, 255, 255, 255,  0 };
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_test = { 0 };
+    int len;
+
+    len = bvlc_broadcast_distribution_table_entry_decode(
+        apdu, sizeof(apdu), &bdt_test);
+    zassert_equal(len, BACNET_STATUS_ERANGE, "len=%d", len);
+}
+
+/**
  * @}
  */
 
@@ -1050,13 +1168,18 @@ void test_main(void)
         ztest_unit_test(test_BVLC_Delete_Foreign_Device),
         ztest_unit_test(test_BVLC_Distribute_Broadcast_To_Network),
         ztest_unit_test(test_BVLC_Broadcast_Distribution_Table_Encode),
+        ztest_unit_test(test_BVLC_Broadcast_Distribution_Table_Append_Sparse),
         ztest_unit_test(test_BVLC_Original_Unicast_NPDU),
         ztest_unit_test(test_BVLC_Original_Broadcast_NPDU),
         ztest_unit_test(test_BVLC_Secure_BVLL),
         ztest_unit_test(test_BVLC_Address_Copy),
         ztest_unit_test(test_BVLC_Address_Get_Set),
         ztest_unit_test(test_BVLC_BBMD_Address),
-        ztest_unit_test(test_BVLC_Network_Port_Foreign_Device));
+        ztest_unit_test(test_BVLC_Network_Port_Foreign_Device),
+        ztest_unit_test(test_BVLC_Network_Port_Table_Entry_Decode),
+        ztest_unit_test(
+            test_BVLC_Network_Port_Table_Entry_Decode_Address_Length),
+        ztest_unit_test(test_BVLC_Network_Port_Table_Entry_Decode_Port_Range));
 
     ztest_run_test_suite(bvlc_tests);
 }

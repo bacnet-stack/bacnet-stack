@@ -332,28 +332,29 @@ bool bvlc_broadcast_distribution_table_entry_append(
     const BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_new)
 {
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry = NULL;
-    bool status = false;
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_free = NULL;
 
+    /* valid entries are not required to be contiguous,
+       so scan the whole table for an existing entry */
     bdt_entry = bdt_list;
     while (bdt_entry) {
         if (bdt_entry->valid) {
             if (!bvlc_broadcast_distribution_table_entry_different(
                     bdt_entry, bdt_new)) {
-                status = true;
-                break;
+                return true;
             }
-        } else {
-            /* first empty slot! Assume the remaining are empty. */
-            status = true;
-            /* Copy new entry to the empty slot */
-            bvlc_broadcast_distribution_table_entry_copy(bdt_entry, bdt_new);
-            bdt_entry->valid = true;
-            break;
+        } else if (!bdt_free) {
+            bdt_free = bdt_entry;
         }
         bdt_entry = bdt_entry->next;
     }
+    if (!bdt_free) {
+        return false;
+    }
+    bvlc_broadcast_distribution_table_entry_copy(bdt_free, bdt_new);
+    bdt_free->valid = true;
 
-    return status;
+    return true;
 }
 
 /**
@@ -668,6 +669,72 @@ int bvlc_broadcast_distribution_table_encode(
 }
 
 /**
+ * @brief Decode one BACnetBDTEntry of the Broadcast-Distribution-Table
+ *  for Network Port object
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer length
+ * @param bdt_entry - the decoded entry, or NULL for length only.
+ *  The valid flag and next pointer are not changed.
+ * @return length of the APDU buffer decoded, zero if the tag does not match,
+ *  BACNET_STATUS_ERANGE if a value is out-of-range, or BACNET_STATUS_ERROR
+ *  if malformed
+ */
+int bvlc_broadcast_distribution_table_entry_decode(
+    const uint8_t *apdu,
+    uint16_t apdu_size,
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry)
+{
+    int len = 0, apdu_len = 0;
+    BACNET_HOST_N_PORT_MINIMAL host_n_port = { 0 };
+    BACNET_IP_BROADCAST_DISTRIBUTION_MASK broadcast_mask = { 0 };
+    BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
+    uint32_t address_length = 0;
+
+    if (!apdu) {
+        return 0;
+    }
+    /* bbmd-address [0] BACnetHostNPort */
+    if (!bacnet_is_opening_tag_number(&apdu[apdu_len], apdu_size, 0, &len)) {
+        return 0;
+    }
+    len = host_n_port_minimal_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 0, &error_code, &host_n_port);
+    if (len <= 0) {
+        if (error_code == ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE) {
+            return BACNET_STATUS_ERANGE;
+        }
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    /* only a B/IP address fits this entry: reject none, name, and IPv6 */
+    if ((host_n_port.tag != BACNET_HOST_ADDRESS_TAG_IP_ADDRESS) ||
+        (host_n_port.host.ip_address.length != IP_ADDRESS_MAX)) {
+        return BACNET_STATUS_ERANGE;
+    }
+    /* broadcast-mask [1] OCTET STRING */
+    len = bacnet_octet_string_buffer_context_decode(
+        &apdu[apdu_len], apdu_size - apdu_len, 1, broadcast_mask.address,
+        sizeof(broadcast_mask.address), &address_length);
+    if (len <= 0) {
+        return BACNET_STATUS_ERROR;
+    }
+    apdu_len += len;
+    if (address_length != sizeof(broadcast_mask.address)) {
+        return BACNET_STATUS_ERANGE;
+    }
+    if (bdt_entry) {
+        memcpy(
+            bdt_entry->dest_address.address,
+            host_n_port.host.ip_address.address, IP_ADDRESS_MAX);
+        bdt_entry->dest_address.port = host_n_port.port;
+        bvlc_broadcast_distribution_mask_copy(
+            &bdt_entry->broadcast_mask, &broadcast_mask);
+    }
+
+    return apdu_len;
+}
+
+/**
  * @brief Decode the Broadcast-Distribution-Table for Network Port object
  * @param apdu - the APDU buffer
  * @param apdu_size - the APDU buffer length
@@ -684,6 +751,7 @@ int bvlc_broadcast_distribution_table_decode(
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry = NULL;
     BACNET_HOST_N_PORT_MINIMAL host_n_port = { 0 };
     uint32_t address_length = 0;
+    bool address_valid = false;
 
     /* default reject code */
     if (error_code) {
@@ -700,7 +768,9 @@ int bvlc_broadcast_distribution_table_decode(
         if (len > 0) {
             apdu_len += len;
             bdt_entry->dest_address.port = host_n_port.port;
-            if (host_n_port.tag == BACNET_HOST_ADDRESS_TAG_IP_ADDRESS) {
+            if ((host_n_port.tag == BACNET_HOST_ADDRESS_TAG_IP_ADDRESS) &&
+                (host_n_port.host.ip_address.length == IP_ADDRESS_MAX)) {
+                address_valid = true;
                 bdt_entry->dest_address.address[0] =
                     host_n_port.host.ip_address.address[0];
                 bdt_entry->dest_address.address[1] =
@@ -710,6 +780,7 @@ int bvlc_broadcast_distribution_table_decode(
                 bdt_entry->dest_address.address[3] =
                     host_n_port.host.ip_address.address[3];
             } else {
+                address_valid = false;
                 bdt_entry->valid = false;
             }
         } else {
@@ -721,7 +792,8 @@ int bvlc_broadcast_distribution_table_decode(
             bdt_entry->broadcast_mask.address,
             sizeof(bdt_entry->broadcast_mask.address), &address_length);
         if (len > 0) {
-            if (address_length == sizeof(bdt_entry->broadcast_mask.address)) {
+            if (address_valid &&
+                (address_length == sizeof(bdt_entry->broadcast_mask.address))) {
                 bdt_entry->valid = true;
             } else {
                 bdt_entry->valid = false;

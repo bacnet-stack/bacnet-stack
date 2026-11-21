@@ -281,6 +281,44 @@ static void test_network_port_fd_bbmd_address_write_none(void)
 }
 
 /**
+ * @brief Test WriteProperty of FD_BBMD_ADDRESS with a port above UINT16_MAX.
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(netport_tests, test_network_port_fd_bbmd_address_write_port_range)
+#else
+static void test_network_port_fd_bbmd_address_write_port_range(void)
+#endif
+{
+    uint32_t object_instance = 1234;
+    bool status = false;
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    /* host [0] none, port [1] = 70000 */
+    const uint8_t apdu[] = { 0x0E, 0x08, 0x0F, 0x1B, 0x01, 0x11, 0x70 };
+
+    Network_Port_Init();
+    status = Network_Port_Object_Instance_Number_Set(0, object_instance);
+    zassert_true(status, NULL);
+    status = Network_Port_Type_Set(object_instance, PORT_TYPE_BIP);
+    zassert_true(status, NULL);
+    status = Network_Port_BIP_Mode_Set(object_instance, BACNET_IP_MODE_FOREIGN);
+    zassert_true(status, NULL);
+
+    wp_data.object_type = OBJECT_NETWORK_PORT;
+    wp_data.object_instance = object_instance;
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    wp_data.priority = BACNET_NO_PRIORITY;
+    wp_data.object_property = PROP_FD_BBMD_ADDRESS;
+    memcpy(wp_data.application_data, apdu, sizeof(apdu));
+    wp_data.application_data_len = sizeof(apdu);
+    status = Network_Port_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+
+    Network_Port_Cleanup();
+}
+
+/**
  * @brief Test
  */
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -1339,6 +1377,331 @@ static void test_network_port_sc_status_encode_decode(void)
     return;
 }
 
+/**
+ * @brief Test WriteProperty of the BBMD BDT, and the read-only BBMD FDT
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(netport_tests, test_network_port_bbmd_tables_write)
+#else
+static void test_network_port_bbmd_tables_write(void)
+#endif
+{
+    const uint32_t object_instance = 1235;
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt[3] = { 0 };
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_entry = { 0 };
+    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY fdt[3] = { 0 };
+    BACNET_IP_ADDRESS fdt_address = { 0 };
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    BACNET_READ_PROPERTY_DATA rp_data = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    bool status = false;
+    int len = 0;
+    uint8_t i;
+
+    Network_Port_Init();
+    status = Network_Port_Object_Instance_Number_Set(0, object_instance);
+    zassert_true(status, NULL);
+    status = Network_Port_Type_Set(object_instance, PORT_TYPE_BIP);
+    zassert_true(status, NULL);
+    bvlc_broadcast_distribution_table_link_array(bdt, ARRAY_SIZE(bdt));
+    status = Network_Port_BBMD_BD_Table_Set(object_instance, bdt);
+    zassert_true(status, NULL);
+    bvlc_foreign_device_table_link_array(fdt, ARRAY_SIZE(fdt));
+    status = Network_Port_BBMD_FD_Table_Set(object_instance, fdt);
+    zassert_true(status, NULL);
+
+    wp_data.object_type = OBJECT_NETWORK_PORT;
+    wp_data.object_instance = object_instance;
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    wp_data.priority = BACNET_NO_PRIORITY;
+
+    /* BDT: filling every slot must work, including the first and last */
+    wp_data.object_property = PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE;
+    wp_data.application_data_len = 0;
+    for (i = 1; i <= ARRAY_SIZE(bdt); i++) {
+        bvlc_address_set(&bdt_entry.dest_address, 192, 168, 1, i);
+        bvlc_broadcast_distribution_mask_set(
+            &bdt_entry.broadcast_mask, 255, 255, 255, 255);
+        len = bvlc_broadcast_distribution_table_entry_encode(
+            &wp_data.application_data[wp_data.application_data_len],
+            &bdt_entry);
+        wp_data.application_data_len += len;
+    }
+    status = Network_Port_Write_Property(&wp_data);
+    zassert_true(status, "error_code=%d", wp_data.error_code);
+    zassert_equal(
+        bvlc_broadcast_distribution_table_valid_count(bdt), ARRAY_SIZE(bdt),
+        NULL);
+    zassert_equal(bdt[0].dest_address.address[3], 1, NULL);
+    zassert_equal(bdt[2].dest_address.address[3], 3, NULL);
+
+    /* BDT: a shorter list replaces the whole list */
+    bvlc_address_set(&bdt_entry.dest_address, 10, 0, 0, 9);
+    wp_data.application_data_len =
+        bvlc_broadcast_distribution_table_entry_encode(
+            wp_data.application_data, &bdt_entry);
+    status = Network_Port_Write_Property(&wp_data);
+    zassert_true(status, "error_code=%d", wp_data.error_code);
+    zassert_equal(bvlc_broadcast_distribution_table_valid_count(bdt), 1, NULL);
+    zassert_equal(bdt[0].dest_address.address[0], 10, NULL);
+
+    /* BDT: an empty list clears the table */
+    wp_data.application_data_len = 0;
+    status = Network_Port_Write_Property(&wp_data);
+    zassert_true(status, "error_code=%d", wp_data.error_code);
+    zassert_equal(bvlc_broadcast_distribution_table_valid_count(bdt), 0, NULL);
+
+    /* BDT: more entries than the capacity is rejected */
+    for (i = 1; i <= ARRAY_SIZE(bdt) + 1; i++) {
+        bvlc_address_set(&bdt_entry.dest_address, 192, 168, 1, i);
+        len = bvlc_broadcast_distribution_table_entry_encode(
+            &wp_data.application_data[wp_data.application_data_len],
+            &bdt_entry);
+        wp_data.application_data_len += len;
+    }
+    status = Network_Port_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(
+        wp_data.error_code, ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_RESOURCES, NULL);
+
+    /* BDT: a truncated element is malformed */
+    wp_data.error_class = ERROR_CLASS_DEVICE;
+    wp_data.application_data_len = 3;
+    status = Network_Port_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_PROPERTY, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_INVALID_DATA_ENCODING, NULL);
+
+    /* BDT: a BACnetLIST cannot be written by array index */
+    wp_data.array_index = 1;
+    status = Network_Port_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(
+        wp_data.error_code, ERROR_CODE_PROPERTY_IS_NOT_AN_ARRAY, NULL);
+    wp_data.array_index = BACNET_ARRAY_ALL;
+
+    /* FDT: read-only property, written by the BBMD on registration */
+    bvlc_address_set(&fdt_address, 192, 168, 2, 1);
+    status = bvlc_foreign_device_table_entry_add(fdt, &fdt_address, 60);
+    zassert_true(status, NULL);
+    wp_data.object_property = PROP_BBMD_FOREIGN_DEVICE_TABLE;
+    wp_data.application_data_len = 0;
+    status = Network_Port_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_WRITE_ACCESS_DENIED, NULL);
+    zassert_equal(bvlc_foreign_device_table_valid_count(fdt), 1, NULL);
+    rp_data.object_type = OBJECT_NETWORK_PORT;
+    rp_data.object_instance = object_instance;
+    rp_data.object_property = PROP_BBMD_FOREIGN_DEVICE_TABLE;
+    rp_data.array_index = BACNET_ARRAY_ALL;
+    rp_data.application_data = apdu;
+    rp_data.application_data_len = sizeof(apdu);
+    len = Network_Port_Read_Property(&rp_data);
+    zassert_equal(len, bvlc_foreign_device_table_list_encode(NULL, fdt), NULL);
+    zassert_true(len > 0, NULL);
+
+    Network_Port_Cleanup();
+}
+
+/**
+ * @brief Test that an empty BDT write clears the table of an IPv6 port
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(netport_tests, test_network_port_bip6_bdt_clear)
+#else
+static void test_network_port_bip6_bdt_clear(void)
+#endif
+{
+    const uint32_t object_instance = 1236;
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt[2] = { 0 };
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    bool status = false;
+
+    Network_Port_Init();
+    status = Network_Port_Object_Instance_Number_Set(0, object_instance);
+    zassert_true(status, NULL);
+    status = Network_Port_Type_Set(object_instance, PORT_TYPE_BIP6);
+    zassert_true(status, NULL);
+    bdt[0].valid = true;
+    bdt[0].next = &bdt[1];
+    bdt[1].valid = true;
+    status = Network_Port_BBMD_IP6_BD_Table_Set(object_instance, bdt);
+    zassert_true(status, NULL);
+
+    wp_data.object_type = OBJECT_NETWORK_PORT;
+    wp_data.object_instance = object_instance;
+    wp_data.object_property = PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE;
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    wp_data.priority = BACNET_NO_PRIORITY;
+    wp_data.application_data_len = 0;
+    status = Network_Port_Write_Property(&wp_data);
+    zassert_true(status, "error_code=%d", wp_data.error_code);
+    zassert_false(bdt[0].valid, NULL);
+    zassert_false(bdt[1].valid, NULL);
+
+    Network_Port_Cleanup();
+}
+
+/**
+ * @brief Test that the IPv6 FDT property reads every valid linked entry
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(netport_tests, test_network_port_bip6_fdt_read)
+#else
+static void test_network_port_bip6_fdt_read(void)
+#endif
+{
+    const uint32_t object_instance = 1238;
+    BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY fdt[3] = { 0 };
+    BACNET_READ_PROPERTY_DATA rp_data = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    bool status = false;
+    int len = 0;
+
+    Network_Port_Init();
+    status = Network_Port_Object_Instance_Number_Set(0, object_instance);
+    zassert_true(status, NULL);
+    status = Network_Port_Type_Set(object_instance, PORT_TYPE_BIP6);
+    zassert_true(status, NULL);
+    bvlc6_foreign_device_table_link_array(&fdt[0], 3);
+    fdt[0].valid = true;
+    fdt[0].bip6_address.address[15] = 1;
+    fdt[2].valid = true;
+    fdt[2].bip6_address.address[15] = 2;
+    status = Network_Port_BBMD_IP6_FD_Table_Set(object_instance, fdt);
+    zassert_true(status, NULL);
+
+    rp_data.object_type = OBJECT_NETWORK_PORT;
+    rp_data.object_instance = object_instance;
+    rp_data.object_property = PROP_BBMD_FOREIGN_DEVICE_TABLE;
+    rp_data.array_index = BACNET_ARRAY_ALL;
+    rp_data.application_data = apdu;
+    rp_data.application_data_len = sizeof(apdu);
+    len = Network_Port_Read_Property(&rp_data);
+    zassert_true(len > 0, NULL);
+    zassert_equal(
+        len,
+        bvlc6_foreign_device_table_entry_encode(NULL, &fdt[0]) +
+            bvlc6_foreign_device_table_entry_encode(NULL, &fdt[2]),
+        NULL);
+
+    Network_Port_Cleanup();
+}
+
+/**
+ * @brief Test that a nonempty IPv6 BDT read from the property can be written
+ *  back to the property
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(netport_tests, test_network_port_bip6_bdt_round_trip)
+#else
+static void test_network_port_bip6_bdt_round_trip(void)
+#endif
+{
+    const uint32_t object_instance = 1237;
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt[3] = { 0 };
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_entry = { 0 };
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt4_entry = { 0 };
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    BACNET_READ_PROPERTY_DATA rp_data = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    bool status = false;
+    int apdu_len = 0;
+    int len = 0;
+    uint8_t i;
+
+    Network_Port_Init();
+    status = Network_Port_Object_Instance_Number_Set(0, object_instance);
+    zassert_true(status, NULL);
+    status = Network_Port_Type_Set(object_instance, PORT_TYPE_BIP6);
+    zassert_true(status, NULL);
+    bvlc6_broadcast_distribution_table_link_array(&bdt[0], 3);
+    zassert_equal(bvlc6_broadcast_distribution_table_count(&bdt[0]), 3, NULL);
+    status = Network_Port_BBMD_IP6_BD_Table_Set(object_instance, bdt);
+    zassert_true(status, NULL);
+
+    wp_data.object_type = OBJECT_NETWORK_PORT;
+    wp_data.object_instance = object_instance;
+    wp_data.object_property = PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE;
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    wp_data.priority = BACNET_NO_PRIORITY;
+
+    /* write two entries, with the 16-octet address and no broadcast mask */
+    for (i = 1; i <= 2; i++) {
+        memset(&bdt_entry, 0, sizeof(bdt_entry));
+        bdt_entry.bip6_address.address[0] = 0xFF;
+        bdt_entry.bip6_address.address[15] = i;
+        bdt_entry.bip6_address.port = 47808 + i;
+        len = bvlc6_broadcast_distribution_table_entry_encode(
+            &wp_data.application_data[wp_data.application_data_len],
+            &bdt_entry);
+        wp_data.application_data_len += len;
+    }
+    status = Network_Port_Write_Property(&wp_data);
+    zassert_true(status, "error_code=%d", wp_data.error_code);
+    zassert_true(bdt[0].valid, NULL);
+    zassert_true(bdt[1].valid, NULL);
+    zassert_false(bdt[2].valid, NULL);
+    zassert_equal(bdt[0].bip6_address.address[15], 1, NULL);
+    zassert_equal(bdt[1].bip6_address.address[15], 2, NULL);
+    zassert_equal(bdt[1].bip6_address.port, 47810, NULL);
+
+    /* read the property, clear the table, and write the same value back */
+    rp_data.object_type = OBJECT_NETWORK_PORT;
+    rp_data.object_instance = object_instance;
+    rp_data.object_property = PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE;
+    rp_data.array_index = BACNET_ARRAY_ALL;
+    rp_data.application_data = apdu;
+    rp_data.application_data_len = sizeof(apdu);
+    apdu_len = Network_Port_Read_Property(&rp_data);
+    zassert_equal(apdu_len, wp_data.application_data_len, NULL);
+    wp_data.application_data_len = 0;
+    status = Network_Port_Write_Property(&wp_data);
+    zassert_true(status, "error_code=%d", wp_data.error_code);
+    zassert_false(bdt[0].valid, NULL);
+    memcpy(wp_data.application_data, apdu, apdu_len);
+    wp_data.application_data_len = apdu_len;
+    status = Network_Port_Write_Property(&wp_data);
+    zassert_true(status, "error_code=%d", wp_data.error_code);
+    zassert_true(bdt[0].valid, NULL);
+    zassert_true(bdt[1].valid, NULL);
+    zassert_false(bdt[2].valid, NULL);
+    zassert_equal(bdt[0].bip6_address.address[0], 0xFF, NULL);
+    zassert_equal(bdt[1].bip6_address.address[15], 2, NULL);
+    zassert_equal(bdt[1].bip6_address.port, 47810, NULL);
+    rp_data.application_data_len = sizeof(apdu);
+    len = Network_Port_Read_Property(&rp_data);
+    zassert_equal(len, apdu_len, NULL);
+
+    /* more entries than the capacity is rejected */
+    wp_data.application_data_len = 0;
+    for (i = 1; i <= ARRAY_SIZE(bdt) + 1; i++) {
+        bdt_entry.bip6_address.address[15] = i;
+        len = bvlc6_broadcast_distribution_table_entry_encode(
+            &wp_data.application_data[wp_data.application_data_len],
+            &bdt_entry);
+        wp_data.application_data_len += len;
+    }
+    status = Network_Port_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(
+        wp_data.error_code, ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY, NULL);
+
+    /* a B/IP entry with a 4-octet address and mask is not a B/IPv6 entry */
+    bvlc_address_set(&bdt4_entry.dest_address, 192, 168, 1, 1);
+    bvlc_broadcast_distribution_mask_set(
+        &bdt4_entry.broadcast_mask, 255, 255, 255, 255);
+    wp_data.application_data_len =
+        bvlc_broadcast_distribution_table_entry_encode(
+            wp_data.application_data, &bdt4_entry);
+    status = Network_Port_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_VALUE_OUT_OF_RANGE, NULL);
+
+    Network_Port_Cleanup();
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(netport_tests, NULL, NULL, NULL, NULL, NULL);
 #else
@@ -1352,7 +1715,12 @@ void test_main(void)
         ztest_unit_test(test_network_port_sc_status_encode_decode),
         ztest_unit_test(test_network_port_name_description_write),
         ztest_unit_test(test_network_port_mstp_write_range),
-        ztest_unit_test(test_network_port_fd_bbmd_address_write_none));
+        ztest_unit_test(test_network_port_fd_bbmd_address_write_none),
+        ztest_unit_test(test_network_port_fd_bbmd_address_write_port_range),
+        ztest_unit_test(test_network_port_bbmd_tables_write),
+        ztest_unit_test(test_network_port_bip6_bdt_clear),
+        ztest_unit_test(test_network_port_bip6_fdt_read),
+        ztest_unit_test(test_network_port_bip6_bdt_round_trip));
 
     ztest_run_test_suite(netport_tests);
 }

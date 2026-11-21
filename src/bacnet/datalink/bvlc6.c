@@ -1763,6 +1763,172 @@ int bvlc6_broadcast_distribution_table_encode(
 }
 
 /**
+ * @brief Decode one BACnetBDTEntry of the Broadcast-Distribution-Table
+ *  for Network Port object of a B/IPv6 port
+ *
+ *    BACnetBDTEntry ::= SEQUENCE {
+ *       bbmd-address [0] BACnetHostNPort,
+ *       broadcast-mask [1] OCTET STRING -- absent for BACnet/IPv6
+ *    }
+ *
+ * @param apdu - the APDU buffer
+ * @param apdu_size - the APDU buffer length
+ * @param bdt_entry - the decoded entry, or NULL for length only.
+ *  The valid flag and next pointer are not changed.
+ * @return length of the APDU buffer decoded, zero if the tag does not match,
+ *  BACNET_STATUS_ERANGE if a value is out-of-range, or BACNET_STATUS_ERROR
+ *  if malformed
+ */
+int bvlc6_broadcast_distribution_table_entry_decode(
+    const uint8_t *apdu,
+    uint16_t apdu_size,
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry)
+{
+    int len = 0;
+    BACNET_HOST_N_PORT_MINIMAL host_n_port = { 0 };
+    BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
+
+    if (!apdu) {
+        return 0;
+    }
+    /* bbmd-address [0] BACnetHostNPort */
+    if (!bacnet_is_opening_tag_number(apdu, apdu_size, 0, &len)) {
+        return 0;
+    }
+    len = host_n_port_minimal_context_decode(
+        apdu, apdu_size, 0, &error_code, &host_n_port);
+    if (len <= 0) {
+        if (error_code == ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE) {
+            return BACNET_STATUS_ERANGE;
+        }
+        return BACNET_STATUS_ERROR;
+    }
+    /* only a B/IPv6 address fits this entry: reject none, name, and IPv4 */
+    if ((host_n_port.tag != BACNET_HOST_ADDRESS_TAG_IP_ADDRESS) ||
+        (host_n_port.host.ip_address.length != IP6_ADDRESS_MAX)) {
+        return BACNET_STATUS_ERANGE;
+    }
+    if (bdt_entry) {
+        memcpy(
+            bdt_entry->bip6_address.address,
+            host_n_port.host.ip_address.address, IP6_ADDRESS_MAX);
+        bdt_entry->bip6_address.port = host_n_port.port;
+    }
+
+    return len;
+}
+
+/**
+ * @brief Count the number of entries, valid or not, in the
+ *  Broadcast-Distribution-Table
+ * @param bdt_head - head of the BDT linked list
+ * @return number of entries in the list
+ */
+uint16_t bvlc6_broadcast_distribution_table_count(
+    const BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head)
+{
+    uint16_t count = 0;
+
+    while (bdt_head) {
+        count++;
+        bdt_head = bdt_head->next;
+    }
+
+    return count;
+}
+
+/**
+ * @brief Link an array of Broadcast-Distribution-Table entries into a list
+ * @param bdt_head - first element in array of BDT entries
+ * @param bdt_array_size - number of array elements of BDT entries
+ */
+void bvlc6_broadcast_distribution_table_link_array(
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head,
+    const size_t bdt_array_size)
+{
+    size_t i;
+
+    for (i = 0; i < bdt_array_size; i++) {
+        if (i > 0) {
+            bdt_head[i - 1].next = &bdt_head[i];
+        }
+        bdt_head[i].next = NULL;
+    }
+}
+
+/**
+ * @brief Mark every entry of the Broadcast-Distribution-Table as unused
+ * @param bdt_head - head of the BDT linked list
+ */
+void bvlc6_broadcast_distribution_table_valid_clear(
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head)
+{
+    while (bdt_head) {
+        bdt_head->valid = false;
+        bdt_head = bdt_head->next;
+    }
+}
+
+/**
+ * @brief Append an entry to the Broadcast-Distribution-Table
+ * @param bdt_head - head of the BDT linked list
+ * @param bdt_new - new entry to append
+ * @return true if the entry was appended or is already in the table,
+ *  false if there is no free entry
+ */
+bool bvlc6_broadcast_distribution_table_entry_append(
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head,
+    const BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_new)
+{
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry;
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_free = NULL;
+
+    if (!bdt_new) {
+        return false;
+    }
+    /* valid entries are not required to be contiguous,
+       so scan the whole table for an existing entry */
+    bdt_entry = bdt_head;
+    while (bdt_entry) {
+        if (bdt_entry->valid) {
+            if (!bvlc6_address_different(
+                    &bdt_entry->bip6_address, &bdt_new->bip6_address)) {
+                return true;
+            }
+        } else if (!bdt_free) {
+            bdt_free = bdt_entry;
+        }
+        bdt_entry = bdt_entry->next;
+    }
+    if (!bdt_free) {
+        return false;
+    }
+    bvlc6_address_copy(&bdt_free->bip6_address, &bdt_new->bip6_address);
+    bdt_free->valid = true;
+
+    return true;
+}
+
+/**
+ * @brief Link an array of Foreign-Device-Table entries into a list
+ * @param fdt_head - first element in array of FDT entries
+ * @param fdt_array_size - number of array elements of FDT entries
+ */
+void bvlc6_foreign_device_table_link_array(
+    BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY *fdt_head,
+    const size_t fdt_array_size)
+{
+    size_t i;
+
+    for (i = 0; i < fdt_array_size; i++) {
+        if (i > 0) {
+            fdt_head[i - 1].next = &fdt_head[i];
+        }
+        fdt_head[i].next = NULL;
+    }
+}
+
+/**
  * @brief Encode the Foreign_Device-Table for Network Port object
  *
  *    BACnetFDTEntry ::= SEQUENCE {
