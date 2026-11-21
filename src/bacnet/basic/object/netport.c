@@ -34,6 +34,10 @@
 #ifndef BBMD_ENABLED
 #define BBMD_ENABLED 1
 #endif
+#if defined(BACDL_BIP) && BBMD_ENABLED && defined(BBMD_BACKUP_FILE)
+#define NETPORT_BDT_BACKUP 1
+#include "bacnet/basic/bbmd/h_bbmd.h"
+#endif
 
 #define IPV4_ADDR_SIZE 4
 #define BIP_DNS_MAX 3
@@ -265,7 +269,6 @@ static const int32_t BIP_Port_Writable_Properties[] = {
     PROP_FD_SUBSCRIPTION_LIFETIME,
     PROP_BBMD_ACCEPT_FD_REGISTRATIONS,
     PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
-    PROP_BBMD_FOREIGN_DEVICE_TABLE,
     PROP_OBJECT_NAME,
     PROP_DESCRIPTION,
     -1
@@ -315,7 +318,6 @@ static const int32_t BIP6_Port_Writable_Properties[] = {
     PROP_FD_SUBSCRIPTION_LIFETIME,
     PROP_BBMD_ACCEPT_FD_REGISTRATIONS,
     PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE,
-    PROP_BBMD_FOREIGN_DEVICE_TABLE,
     PROP_OBJECT_NAME,
     PROP_DESCRIPTION,
     -1
@@ -2140,6 +2142,7 @@ static size_t
 BBMD_Broadcast_Distribution_Table_Capacity(uint32_t object_instance)
 {
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list;
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt6_list;
     size_t capacity = 0;
     unsigned index = 0;
 
@@ -2148,6 +2151,9 @@ BBMD_Broadcast_Distribution_Table_Capacity(uint32_t object_instance)
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
             bdt_list = Object_List[index].Network.IPv4.BBMD_BD_Table;
             capacity = bvlc_broadcast_distribution_table_count(bdt_list);
+        } else if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            bdt6_list = Object_List[index].Network.IPv6.BBMD_BD_Table;
+            capacity = bvlc6_broadcast_distribution_table_count(bdt6_list);
         }
     }
 
@@ -2170,7 +2176,10 @@ static int BBMD_Broadcast_Distribution_Table_Element_Length(
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
-            len = bvlc_decode_broadcast_distribution_table_entry(
+            len = bvlc_broadcast_distribution_table_entry_decode(
+                apdu, apdu_size, NULL);
+        } else if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            len = bvlc6_broadcast_distribution_table_entry_decode(
                 apdu, apdu_size, NULL);
         }
     }
@@ -2179,50 +2188,63 @@ static int BBMD_Broadcast_Distribution_Table_Element_Length(
 }
 
 /**
- * @brief Write a value to a BACnetLIST property element value
- *  using a BACnetARRAY write utility function
+ * @brief Add an element to the BACnetLIST property value
+ *  using the BACnetLIST write utility function
  * @param object_instance [in] BACnet network port object instance number
- * @param array_index [in] array index to write:
- *    0=array size, 1 to N for individual array members
- * @param array_size [in] The total number of elements in the array,
- *  if writing array size
- * @param application_data [in] encoded element value
+ * @param application_data [in] encoded element value,
+ *  or NULL to empty the list
  * @param application_data_len [in] The size of the encoded element value
  * @return BACNET_ERROR_CODE value
  */
-static BACNET_ERROR_CODE BBMD_Broadcast_Distribution_Table_Element_Write(
+static BACNET_ERROR_CODE BBMD_Broadcast_Distribution_Table_Element_Add(
     uint32_t object_instance,
-    BACNET_ARRAY_INDEX array_index,
-    BACNET_UNSIGNED_INTEGER array_size,
     uint8_t *application_data,
     size_t application_data_len)
 {
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_entry = { 0 };
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list;
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt6_entry = { 0 };
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt6_list;
     int len;
-    bool status = false;
     unsigned index = 0;
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
-            if (array_index == 0) {
-                /* This array is not required to be resizable
-                   through BACnet write services */
-                (void)array_size;
-                error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            bdt6_list = Object_List[index].Network.IPv6.BBMD_BD_Table;
+            if (!application_data) {
+                /* empty the list */
+                bvlc6_broadcast_distribution_table_valid_clear(bdt6_list);
+                error_code = ERROR_CODE_SUCCESS;
             } else {
-                len = bvlc_decode_broadcast_distribution_table_entry(
-                    application_data, application_data_len, &bdt_entry);
+                len = bvlc6_broadcast_distribution_table_entry_decode(
+                    application_data, application_data_len, &bdt6_entry);
                 if (len > 0) {
-                    bdt_list = Object_List[index].Network.IPv4.BBMD_BD_Table;
-                    status = bvlc_broadcast_distribution_table_entry_insert(
-                        bdt_list, &bdt_entry, array_index);
-                    if (status) {
+                    if (bvlc6_broadcast_distribution_table_entry_append(
+                            bdt6_list, &bdt6_entry)) {
                         error_code = ERROR_CODE_SUCCESS;
                     } else {
-                        error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                        error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                    }
+                } else {
+                    error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                }
+            }
+        } else if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
+            bdt_list = Object_List[index].Network.IPv4.BBMD_BD_Table;
+            if (!application_data) {
+                bvlc_broadcast_distribution_table_valid_clear(bdt_list);
+                error_code = ERROR_CODE_SUCCESS;
+            } else {
+                len = bvlc_broadcast_distribution_table_entry_decode(
+                    application_data, application_data_len, &bdt_entry);
+                if (len > 0) {
+                    if (bvlc_broadcast_distribution_table_entry_append(
+                            bdt_list, &bdt_entry)) {
+                        error_code = ERROR_CODE_SUCCESS;
+                    } else {
+                        error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
                     }
                 } else {
                     error_code = ERROR_CODE_INVALID_DATA_TYPE;
@@ -2235,6 +2257,26 @@ static BACNET_ERROR_CODE BBMD_Broadcast_Distribution_Table_Element_Write(
 
     return error_code;
 }
+
+#if defined(NETPORT_BDT_BACKUP)
+/**
+ * @brief Save the BBMD BDT to the backup file after a list write.
+ *  A write empties the list and then refills it, so the table can
+ *  differ from the saved copy even when a later element failed.
+ * @param object_instance [in] BACnet network port object instance number
+ */
+static void BBMD_Broadcast_Distribution_Table_Backup(uint32_t object_instance)
+{
+    unsigned index = 0;
+
+    index = Network_Port_Instance_To_Index(object_instance);
+    if ((index < BACNET_NETWORK_PORTS_MAX) &&
+        (Object_List[index].Network_Type == PORT_TYPE_BIP) &&
+        (Object_List[index].Network.IPv4.BBMD_BD_Table == bvlc_bdt_list())) {
+        bvlc_bdt_backup_local();
+    }
+}
+#endif
 
 /**
  * For a given object instance-number, sets the BBMD-BD-Table head
@@ -2345,110 +2387,6 @@ static int BBMD_Foreign_Device_Table_Encode(
     }
 
     return apdu_len;
-}
-
-/**
- * @brief Get the BACnetLIST capacity
- * @param object_instance [in] BACnet network port object instance number
- * @return capacity of the BACnetList (number of possible entries) or
- *  zero on error
- */
-static size_t BBMD_Foreign_Device_Table_Capacity(uint32_t object_instance)
-{
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list;
-    size_t capacity = 0;
-    unsigned index = 0;
-
-    index = Network_Port_Instance_To_Index(object_instance);
-    if (index < BACNET_NETWORK_PORTS_MAX) {
-        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
-            fdt_list = Object_List[index].Network.IPv4.BBMD_FD_Table;
-            capacity = bvlc_foreign_device_table_count(fdt_list);
-        }
-    }
-
-    return capacity;
-}
-
-/**
- * @brief Decode a BACnetLIST property element to determine the element length
- * @param object_instance [in] BACnet network port object instance number
- * @param apdu [in] Buffer in which the APDU contents are extracted
- * @param apdu_size [in] The size of the APDU buffer
- * @return The length of the decoded apdu, or BACNET_STATUS_ERROR on error
- */
-static int BBMD_Foreign_Device_Table_Element_Length(
-    uint32_t object_instance, uint8_t *apdu, size_t apdu_size)
-{
-    int len = 0;
-    unsigned index = 0;
-
-    index = Network_Port_Instance_To_Index(object_instance);
-    if (index < BACNET_NETWORK_PORTS_MAX) {
-        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
-            len = bvlc_decode_foreign_device_table_entry(apdu, apdu_size, NULL);
-        }
-    }
-
-    return len;
-}
-
-/**
- * @brief Write a value to a BACnetLIST property element value
- *  using a BACnetARRAY write utility function
- * @param object_instance [in] BACnet network port object instance number
- * @param array_index [in] array index to write:
- *    0=array size, 1 to N for individual array members
- * @param array_size [in] The total number of elements in the array,
- *  if writing array size
- * @param application_data [in] encoded element value
- * @param application_data_len [in] The size of the encoded element value
- * @return BACNET_ERROR_CODE value
- */
-static BACNET_ERROR_CODE BBMD_Foreign_Device_Table_Element_Write(
-    uint32_t object_instance,
-    BACNET_ARRAY_INDEX array_index,
-    BACNET_UNSIGNED_INTEGER array_size,
-    uint8_t *application_data,
-    size_t application_data_len)
-{
-    BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY fdt_entry = { 0 };
-    BACNET_IP_FOREIGN_DEVICE_TABLE_ENTRY *fdt_list;
-    int len;
-    bool status = false;
-    unsigned index = 0;
-
-    index = Network_Port_Instance_To_Index(object_instance);
-    if (index < BACNET_NETWORK_PORTS_MAX) {
-        if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
-            if (array_index == 0) {
-                /* This array is not required to be resizable
-                   through BACnet write services */
-                (void)array_size;
-                error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            } else {
-                len = bvlc_decode_foreign_device_table_entry(
-                    application_data, application_data_len, &fdt_entry);
-                if (len > 0) {
-                    fdt_list = Object_List[index].Network.IPv4.BBMD_FD_Table;
-                    status = bvlc_foreign_device_table_entry_insert(
-                        fdt_list, &fdt_entry, array_index - 1);
-                    if (status) {
-                        error_code = ERROR_CODE_SUCCESS;
-                    } else {
-                        error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                    }
-                } else {
-                    error_code = ERROR_CODE_INVALID_DATA_TYPE;
-                }
-            }
-        } else {
-            error_code = ERROR_CODE_ABORT_OTHER;
-        }
-    }
-
-    return error_code;
 }
 
 /**
@@ -4669,12 +4607,73 @@ static bool Network_Port_Description_Write(
     return status;
 }
 
+/**
+ * @brief Set the error response for a failed decode of a written value
+ * @param wp_data [in,out] write property data
+ * @param len [in] result of the decode function: 0 for a different data type,
+ *  negative for malformed encoding
+ */
+static void
+Network_Port_Write_Decode_Error(BACNET_WRITE_PROPERTY_DATA *wp_data, int len)
+{
+    wp_data->error_class = ERROR_CLASS_PROPERTY;
+    if (len == BACNET_STATUS_ERANGE) {
+        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+    } else if (len < 0) {
+        wp_data->error_code = ERROR_CODE_INVALID_DATA_ENCODING;
+    } else {
+        wp_data->error_code = ERROR_CODE_INVALID_DATA_TYPE;
+    }
+}
+
+/**
+ * @brief Write the MAC_Address property of an MS/TP network port
+ * @param wp_data [in,out] write property data, including the encoded value
+ *  and space for the error response
+ * @return true if the value was written
+ */
+static bool Network_Port_MAC_Address_Write(BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    bool status = false;
+    int len = 0;
+    uint32_t mac_len = 0;
+    uint8_t mac_address[6] = { 0 };
+
+    if (Network_Port_Type(wp_data->object_instance) != PORT_TYPE_MSTP) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
+        return false;
+    }
+    len = bacnet_octet_string_buffer_application_decode(
+        wp_data->application_data, wp_data->application_data_len, mac_address,
+        sizeof(mac_address), &mac_len);
+    if (len <= 0) {
+        Network_Port_Write_Decode_Error(wp_data, len);
+        return false;
+    }
+    if (mac_len <= sizeof(mac_address)) {
+        status = Network_Port_MAC_Address_Set(
+            wp_data->object_instance, mac_address, (uint8_t)mac_len);
+    }
+    if (!status) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+    }
+
+    return status;
+}
+
 bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
 {
     bool status = false; /* return value */
     int len = 0;
     uint32_t capacity;
-    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    bool boolean_value = false;
+    float real_value = 0.0f;
+    BACNET_UNSIGNED_INTEGER unsigned_value = 0;
+    BACNET_CHARACTER_STRING char_string = { 0 };
+    BACNET_HOST_N_PORT host_n_port = { 0 };
+    BACNET_ERROR_CODE error_code = ERROR_CODE_SUCCESS;
 
     /* Valid data? */
     if (wp_data == NULL) {
@@ -4691,108 +4690,81 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
         wp_data->error_code = ERROR_CODE_UNKNOWN_PROPERTY;
         return false;
     }
-    /* decode the some of the request */
-#if defined(BACAPP_COMPLEX_TYPES)
-    len = bacapp_decode_known_property(
-        wp_data->application_data, wp_data->application_data_len, &value,
-        wp_data->object_type, wp_data->object_property);
-#else
-    len = bacapp_decode_application_data(
-        wp_data->application_data, wp_data->application_data_len, &value);
-#endif
-    if (len < 0) {
-        /* error while decoding - a value larger than we can handle */
-        wp_data->error_class = ERROR_CLASS_PROPERTY;
-        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-        return false;
-    }
-    /* FIXME: len < application_data_len: more data? */
     switch (wp_data->object_property) {
         case PROP_OBJECT_NAME:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
-            if (status) {
-                status = Network_Port_Object_Name_Write(
-                    wp_data, &value.type.Character_String);
+            len = bacnet_character_string_application_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &char_string);
+            if (len <= 0) {
+                Network_Port_Write_Decode_Error(wp_data, len);
+                return false;
             }
+            status = Network_Port_Object_Name_Write(wp_data, &char_string);
             break;
         case PROP_DESCRIPTION:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_CHARACTER_STRING);
-            if (status) {
-                status = Network_Port_Description_Write(
-                    wp_data, &value.type.Character_String);
+            len = bacnet_character_string_application_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &char_string);
+            if (len <= 0) {
+                Network_Port_Write_Decode_Error(wp_data, len);
+                return false;
             }
+            status = Network_Port_Description_Write(wp_data, &char_string);
             break;
         case PROP_MAC_ADDRESS:
-            if (Network_Port_Type(wp_data->object_instance) == PORT_TYPE_MSTP) {
-                status = write_property_type_valid(
-                    wp_data, &value, BACNET_APPLICATION_TAG_OCTET_STRING);
-                if (status) {
-                    status = Network_Port_MAC_Address_Set(
-                        wp_data->object_instance, value.type.Octet_String.value,
-                        value.type.Octet_String.length);
-                    if (!status) {
-                        wp_data->error_class = ERROR_CLASS_PROPERTY;
-                        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                    }
-                }
-            } else {
-                wp_data->error_class = ERROR_CLASS_PROPERTY;
-                wp_data->error_code = ERROR_CODE_WRITE_ACCESS_DENIED;
-            }
+            status = Network_Port_MAC_Address_Write(wp_data);
             break;
         case PROP_MAX_MASTER:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
-            if (status) {
-                if (value.type.Unsigned_Int <= 255) {
-                    status = Network_Port_MSTP_Max_Master_Set(
-                        wp_data->object_instance, value.type.Unsigned_Int);
-                    if (!status) {
-                        wp_data->error_class = ERROR_CLASS_PROPERTY;
-                        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                    }
-                } else {
-                    status = false;
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                }
+            len = bacnet_unsigned_application_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &unsigned_value);
+            if (len <= 0) {
+                Network_Port_Write_Decode_Error(wp_data, len);
+                return false;
+            }
+            if (unsigned_value <= UINT8_MAX) {
+                status = Network_Port_MSTP_Max_Master_Set(
+                    wp_data->object_instance, (uint8_t)unsigned_value);
+            }
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
             break;
         case PROP_MAX_INFO_FRAMES:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT);
-            if (status) {
-                if ((value.type.Unsigned_Int >= 1) &&
-                    (value.type.Unsigned_Int <= 255)) {
-                    status = Network_Port_MSTP_Max_Info_Frames_Set(
-                        wp_data->object_instance, value.type.Unsigned_Int);
-                    if (!status) {
-                        wp_data->error_class = ERROR_CLASS_PROPERTY;
-                        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                    }
-                } else {
-                    status = false;
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                }
+            len = bacnet_unsigned_application_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &unsigned_value);
+            if (len <= 0) {
+                Network_Port_Write_Decode_Error(wp_data, len);
+                return false;
+            }
+            if (unsigned_value <= UINT8_MAX) {
+                status = Network_Port_MSTP_Max_Info_Frames_Set(
+                    wp_data->object_instance, (uint8_t)unsigned_value);
+            }
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
             break;
         case PROP_LINK_SPEED:
             if (Network_Port_Type(wp_data->object_instance) == PORT_TYPE_MSTP) {
-                status = write_property_type_valid(
-                    wp_data, &value, BACNET_APPLICATION_TAG_REAL);
+                len = bacnet_real_application_decode(
+                    wp_data->application_data, wp_data->application_data_len,
+                    &real_value);
+                if (len <= 0) {
+                    Network_Port_Write_Decode_Error(wp_data, len);
+                    return false;
+                }
+                status = Network_Port_Link_Speed_Valid(real_value);
                 if (status) {
-                    status = Network_Port_Link_Speed_Valid(value.type.Real);
-                    if (status) {
-                        status = Network_Port_Link_Speed_Set(
-                            wp_data->object_instance, value.type.Real);
-                    }
-                    if (!status) {
-                        wp_data->error_class = ERROR_CLASS_PROPERTY;
-                        wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                    }
+                    status = Network_Port_Link_Speed_Set(
+                        wp_data->object_instance, real_value);
+                }
+                if (!status) {
+                    wp_data->error_class = ERROR_CLASS_PROPERTY;
+                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                 }
             } else {
                 wp_data->error_class = ERROR_CLASS_PROPERTY;
@@ -4800,57 +4772,66 @@ bool Network_Port_Write_Property(BACNET_WRITE_PROPERTY_DATA *wp_data)
             }
             break;
         case PROP_FD_BBMD_ADDRESS:
-            if (write_property_type_valid(
-                    wp_data, &value, BACNET_APPLICATION_TAG_HOST_N_PORT)) {
-                status = Network_Port_FD_BBMD_Address_Write(
-                    wp_data->object_instance, &value.type.Host_Address,
-                    &wp_data->error_class, &wp_data->error_code);
+            len = host_n_port_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &error_code, &host_n_port);
+            if (len <= 0) {
+                if (error_code == ERROR_CODE_REJECT_PARAMETER_OUT_OF_RANGE) {
+                    len = BACNET_STATUS_ERANGE;
+                }
+                Network_Port_Write_Decode_Error(wp_data, len);
+                return false;
             }
+            status = Network_Port_FD_BBMD_Address_Write(
+                wp_data->object_instance, &host_n_port, &wp_data->error_class,
+                &wp_data->error_code);
             break;
         case PROP_FD_SUBSCRIPTION_LIFETIME:
-            if (write_property_type_valid(
-                    wp_data, &value, BACNET_APPLICATION_TAG_UNSIGNED_INT)) {
-                status = Network_Port_FD_Subscription_Lifetime_Write(
-                    wp_data->object_instance, value.type.Unsigned_Int,
-                    &wp_data->error_class, &wp_data->error_code);
+            len = bacnet_unsigned_application_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &unsigned_value);
+            if (len <= 0) {
+                Network_Port_Write_Decode_Error(wp_data, len);
+                return false;
             }
+            status = Network_Port_FD_Subscription_Lifetime_Write(
+                wp_data->object_instance, unsigned_value, &wp_data->error_class,
+                &wp_data->error_code);
             break;
         case PROP_BBMD_ACCEPT_FD_REGISTRATIONS:
-            status = write_property_type_valid(
-                wp_data, &value, BACNET_APPLICATION_TAG_BOOLEAN);
-            if (status) {
-                status = Network_Port_BBMD_Accept_FD_Registrations_Set(
-                    wp_data->object_instance, value.type.Boolean);
-                if (!status) {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
-                }
+            len = bacnet_boolean_application_decode(
+                wp_data->application_data, wp_data->application_data_len,
+                &boolean_value);
+            if (len <= 0) {
+                Network_Port_Write_Decode_Error(wp_data, len);
+                return false;
+            }
+            status = Network_Port_BBMD_Accept_FD_Registrations_Set(
+                wp_data->object_instance, boolean_value);
+            if (!status) {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
+                wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
             }
             break;
         case PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE:
             /* BACnetLIST */
             capacity = BBMD_Broadcast_Distribution_Table_Capacity(
                 wp_data->object_instance);
-            wp_data->error_code = bacnet_array_write(
+            wp_data->error_code = bacnet_list_write(
                 wp_data->object_instance, wp_data->array_index,
                 BBMD_Broadcast_Distribution_Table_Element_Length,
-                BBMD_Broadcast_Distribution_Table_Element_Write, capacity,
+                BBMD_Broadcast_Distribution_Table_Element_Add, capacity,
                 wp_data->application_data, wp_data->application_data_len);
+#if defined(NETPORT_BDT_BACKUP)
+            BBMD_Broadcast_Distribution_Table_Backup(wp_data->object_instance);
+#endif
             if (wp_data->error_code == ERROR_CODE_SUCCESS) {
                 status = true;
-            }
-            break;
-        case PROP_BBMD_FOREIGN_DEVICE_TABLE:
-            /* BACnetLIST */
-            capacity =
-                BBMD_Foreign_Device_Table_Capacity(wp_data->object_instance);
-            wp_data->error_code = bacnet_array_write(
-                wp_data->object_instance, wp_data->array_index,
-                BBMD_Foreign_Device_Table_Element_Length,
-                BBMD_Foreign_Device_Table_Element_Write, capacity,
-                wp_data->application_data, wp_data->application_data_len);
-            if (wp_data->error_code == ERROR_CODE_SUCCESS) {
-                status = true;
+            } else if (
+                wp_data->error_code == ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY) {
+                wp_data->error_class = ERROR_CLASS_RESOURCES;
+            } else {
+                wp_data->error_class = ERROR_CLASS_PROPERTY;
             }
             break;
         default:

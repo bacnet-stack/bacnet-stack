@@ -601,6 +601,7 @@ bool bip6_init(const char *ifname)
         WSACleanup();
         exit(1);
     }
+    bvlc6_init();
 
     return true;
 }

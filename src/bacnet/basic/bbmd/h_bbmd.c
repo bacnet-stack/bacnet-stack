@@ -174,60 +174,106 @@ static void debug_print_string(const char *str)
 #if defined(BBMD_BACKUP_FILE)
 #define tostr(a) str(a)
 #define str(a) #a
+/* same directory as the backup so rename() can replace it */
+#define BBMD_BACKUP_FILE_NAME tostr(BBMD_BACKUP_FILE)
+#define BBMD_BACKUP_TEMP_NAME tostr(BBMD_BACKUP_FILE) ".tmp"
+#define BBMD_BACKUP_PREV_NAME tostr(BBMD_BACKUP_FILE) ".prev"
 
+/**
+ * @brief Save the entire BDT to the backup file, replacing its contents.
+ *  Writes a temporary file first, then replaces the backup only after
+ *  the complete write and close succeed, so a failed update keeps the
+ *  previous backup. Uses only stdio rename/remove for portability.
+ */
 void bvlc_bdt_backup_local(void)
 {
-    static FILE *bdt_file_ptr = NULL;
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY entry;
+    FILE *bdt_file_ptr;
+    size_t i;
+    bool ok = true;
 
-    /* only try opening the file if not already opened previously */
-    if (!bdt_file_ptr) {
-        bdt_file_ptr = fopen(tostr(BBMD_BACKUP_FILE), "wb");
-    }
-
-    /* if error opening file for writing -> silently abort */
-    if (!bdt_file_ptr) {
-        return;
-    }
-
-    fseek(bdt_file_ptr, 0, SEEK_SET);
-    fwrite(
-        BBMD_Table, sizeof(BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY),
-        MAX_BBMD_ENTRIES, bdt_file_ptr);
-    fflush(bdt_file_ptr);
-}
-
-void bvlc_bdt_restore_local(void)
-{
-    static FILE *bdt_file_ptr = NULL;
-
-    /* only try opening the file if not already opened previously */
-    if (!bdt_file_ptr) {
-        bdt_file_ptr = fopen(tostr(BBMD_BACKUP_FILE), "rb");
-    }
-
-    /* if error opening file for reading -> silently abort */
+    /* if error opening temp file for writing -> silently abort */
+    bdt_file_ptr = fopen(BBMD_BACKUP_TEMP_NAME, "wb");
     if (!bdt_file_ptr) {
         return;
     }
-
-    fseek(bdt_file_ptr, 0, SEEK_SET);
-    {
-        BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY
-        BBMD_Table_tmp[MAX_BBMD_ENTRIES];
-        size_t entries = 0;
-
-        entries = fread(
-            BBMD_Table_tmp,
-            sizeof(BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY),
-            MAX_BBMD_ENTRIES, bdt_file_ptr);
-        if (entries == MAX_BBMD_ENTRIES) {
-            /* success reading the BDT table. */
-            memcpy(
-                BBMD_Table, BBMD_Table_tmp,
-                sizeof(BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY) *
-                    MAX_BBMD_ENTRIES);
+    for (i = 0; i < MAX_BBMD_ENTRIES; i++) {
+        entry = BBMD_Table[i];
+        /* the link pointer is only meaningful inside this process */
+        entry.next = NULL;
+        if (fwrite(&entry, sizeof(entry), 1, bdt_file_ptr) != 1) {
+            ok = false;
+            break;
         }
     }
+    if (fclose(bdt_file_ptr) != 0) {
+        ok = false;
+    }
+    if (!ok) {
+        /* leave the previous backup untouched */
+        (void)remove(BBMD_BACKUP_TEMP_NAME);
+        return;
+    }
+    /* Preserve the recovery copy if the primary cannot be opened. */
+    bdt_file_ptr = fopen(BBMD_BACKUP_FILE_NAME, "rb");
+    if (!bdt_file_ptr) {
+        if (rename(BBMD_BACKUP_TEMP_NAME, BBMD_BACKUP_FILE_NAME) == 0) {
+            (void)remove(BBMD_BACKUP_PREV_NAME);
+        } else {
+            (void)remove(BBMD_BACKUP_TEMP_NAME);
+        }
+        return;
+    }
+    if (fclose(bdt_file_ptr) != 0) {
+        (void)remove(BBMD_BACKUP_TEMP_NAME);
+        return;
+    }
+    /* Move the current backup aside so rename() can replace on all hosts. */
+    (void)remove(BBMD_BACKUP_PREV_NAME);
+    if (rename(BBMD_BACKUP_FILE_NAME, BBMD_BACKUP_PREV_NAME) != 0) {
+        (void)remove(BBMD_BACKUP_TEMP_NAME);
+        return;
+    }
+    if (rename(BBMD_BACKUP_TEMP_NAME, BBMD_BACKUP_FILE_NAME) != 0) {
+        /* restore the previous backup if the replace failed */
+        (void)rename(BBMD_BACKUP_PREV_NAME, BBMD_BACKUP_FILE_NAME);
+        (void)remove(BBMD_BACKUP_TEMP_NAME);
+        return;
+    }
+    (void)remove(BBMD_BACKUP_PREV_NAME);
+}
+
+/**
+ * @brief Load the BDT from the backup file.
+ *  The table is replaced only when the file holds a complete table.
+ *  The table links of the running process are preserved.
+ *  If the primary backup is missing, the previous-backup file left
+ *  during a replace is tried so a crash mid-rename can still recover.
+ */
+void bvlc_bdt_restore_local(void)
+{
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY saved[MAX_BBMD_ENTRIES];
+    FILE *bdt_file_ptr;
+    size_t i;
+
+    /* if error opening file for reading -> silently abort */
+    bdt_file_ptr = fopen(BBMD_BACKUP_FILE_NAME, "rb");
+    if (!bdt_file_ptr) {
+        bdt_file_ptr = fopen(BBMD_BACKUP_PREV_NAME, "rb");
+        if (!bdt_file_ptr) {
+            return;
+        }
+    }
+    if (fread(saved, sizeof(saved[0]), MAX_BBMD_ENTRIES, bdt_file_ptr) ==
+        MAX_BBMD_ENTRIES) {
+        /* success reading the BDT table. */
+        for (i = 0; i < MAX_BBMD_ENTRIES; i++) {
+            /* keep this process's link, not the saved pointer */
+            saved[i].next = BBMD_Table[i].next;
+            BBMD_Table[i] = saved[i];
+        }
+    }
+    (void)fclose(bdt_file_ptr);
 }
 #else
 void bvlc_bdt_backup_local(void)
