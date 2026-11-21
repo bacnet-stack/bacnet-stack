@@ -214,9 +214,26 @@ void bvlc_bdt_backup_local(void)
         (void)remove(BBMD_BACKUP_TEMP_NAME);
         return;
     }
-    /* move the current backup aside so rename() can replace on all hosts */
+    /* Preserve the recovery copy if the primary cannot be opened. */
+    bdt_file_ptr = fopen(BBMD_BACKUP_FILE_NAME, "rb");
+    if (!bdt_file_ptr) {
+        if (rename(BBMD_BACKUP_TEMP_NAME, BBMD_BACKUP_FILE_NAME) == 0) {
+            (void)remove(BBMD_BACKUP_PREV_NAME);
+        } else {
+            (void)remove(BBMD_BACKUP_TEMP_NAME);
+        }
+        return;
+    }
+    if (fclose(bdt_file_ptr) != 0) {
+        (void)remove(BBMD_BACKUP_TEMP_NAME);
+        return;
+    }
+    /* Move the current backup aside so rename() can replace on all hosts. */
     (void)remove(BBMD_BACKUP_PREV_NAME);
-    (void)rename(BBMD_BACKUP_FILE_NAME, BBMD_BACKUP_PREV_NAME);
+    if (rename(BBMD_BACKUP_FILE_NAME, BBMD_BACKUP_PREV_NAME) != 0) {
+        (void)remove(BBMD_BACKUP_TEMP_NAME);
+        return;
+    }
     if (rename(BBMD_BACKUP_TEMP_NAME, BBMD_BACKUP_FILE_NAME) != 0) {
         /* restore the previous backup if the replace failed */
         (void)rename(BBMD_BACKUP_PREV_NAME, BBMD_BACKUP_FILE_NAME);
