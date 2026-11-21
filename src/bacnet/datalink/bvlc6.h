@@ -402,6 +402,21 @@ int bvlc6_broadcast_distribution_table_encode(
     uint8_t *apdu,
     uint16_t apdu_size,
     BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head);
+BACNET_STACK_EXPORT
+int bvlc6_broadcast_distribution_table_entry_decode(
+    const uint8_t *apdu,
+    uint16_t apdu_size,
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry);
+BACNET_STACK_EXPORT
+uint16_t bvlc6_broadcast_distribution_table_count(
+    const BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head);
+BACNET_STACK_EXPORT
+void bvlc6_broadcast_distribution_table_valid_clear(
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head);
+BACNET_STACK_EXPORT
+bool bvlc6_broadcast_distribution_table_entry_append(
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head,
+    const BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_new);
 
 BACNET_STACK_EXPORT
 int bvlc6_foreign_device_table_entry_encode(

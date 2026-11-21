@@ -2138,6 +2138,7 @@ static size_t
 BBMD_Broadcast_Distribution_Table_Capacity(uint32_t object_instance)
 {
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list;
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt6_list;
     size_t capacity = 0;
     unsigned index = 0;
 
@@ -2146,6 +2147,9 @@ BBMD_Broadcast_Distribution_Table_Capacity(uint32_t object_instance)
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
             bdt_list = Object_List[index].Network.IPv4.BBMD_BD_Table;
             capacity = bvlc_broadcast_distribution_table_count(bdt_list);
+        } else if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            bdt6_list = Object_List[index].Network.IPv6.BBMD_BD_Table;
+            capacity = bvlc6_broadcast_distribution_table_count(bdt6_list);
         }
     }
 
@@ -2170,6 +2174,9 @@ static int BBMD_Broadcast_Distribution_Table_Element_Length(
         if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
             len = bvlc_broadcast_distribution_table_entry_decode(
                 apdu, apdu_size, NULL);
+        } else if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            len = bvlc6_broadcast_distribution_table_entry_decode(
+                apdu, apdu_size, NULL);
         }
     }
 
@@ -2193,21 +2200,33 @@ static BACNET_ERROR_CODE BBMD_Broadcast_Distribution_Table_Element_Add(
     BACNET_ERROR_CODE error_code = ERROR_CODE_UNKNOWN_OBJECT;
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_entry = { 0 };
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list;
-    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt6_entry;
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt6_entry = { 0 };
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt6_list;
     int len;
     unsigned index = 0;
 
     index = Network_Port_Instance_To_Index(object_instance);
     if (index < BACNET_NETWORK_PORTS_MAX) {
-        if ((Object_List[index].Network_Type == PORT_TYPE_BIP6) &&
-            !application_data) {
-            /* empty the list */
-            bdt6_entry = Object_List[index].Network.IPv6.BBMD_BD_Table;
-            while (bdt6_entry) {
-                bdt6_entry->valid = false;
-                bdt6_entry = bdt6_entry->next;
+        if (Object_List[index].Network_Type == PORT_TYPE_BIP6) {
+            bdt6_list = Object_List[index].Network.IPv6.BBMD_BD_Table;
+            if (!application_data) {
+                /* empty the list */
+                bvlc6_broadcast_distribution_table_valid_clear(bdt6_list);
+                error_code = ERROR_CODE_SUCCESS;
+            } else {
+                len = bvlc6_broadcast_distribution_table_entry_decode(
+                    application_data, application_data_len, &bdt6_entry);
+                if (len > 0) {
+                    if (bvlc6_broadcast_distribution_table_entry_append(
+                            bdt6_list, &bdt6_entry)) {
+                        error_code = ERROR_CODE_SUCCESS;
+                    } else {
+                        error_code = ERROR_CODE_NO_SPACE_TO_WRITE_PROPERTY;
+                    }
+                } else {
+                    error_code = ERROR_CODE_INVALID_DATA_TYPE;
+                }
             }
-            error_code = ERROR_CODE_SUCCESS;
         } else if (Object_List[index].Network_Type == PORT_TYPE_BIP) {
             bdt_list = Object_List[index].Network.IPv4.BBMD_BD_Table;
             if (!application_data) {
