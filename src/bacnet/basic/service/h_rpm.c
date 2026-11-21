@@ -36,47 +36,84 @@
 static uint8_t Temp_Buf[MAX_APDU] = { 0 };
 
 /**
- * @brief Fetches the lists of properties (array of BACNET_PROPERTY_ID's) for
- * this object type and the special properties ALL or REQUIRED or OPTIONAL.
- * @param pPropertyList reference for the list of ALL, REQUIRED, and OPTIONAL
- * properties.
- * @param special_property The special property ALL, REQUIRED, or OPTIONAL
- * to fetch.
- * @param index The index of the property to fetch.
- * @return The property ID or -1 if not found.
+ * @brief Count the properties in a list, not counting Property_List,
+ * which shall not appear in the List of Results for special properties.
+ * @param list The list of properties
+ * @return The number of properties, excluding Property_List
  */
-static BACNET_PROPERTY_ID RPM_Object_Property(
-    struct special_property_list_t *pPropertyList,
-    BACNET_PROPERTY_ID special_property,
-    unsigned index)
+static unsigned RPM_List_Count(const struct property_list_t *list)
 {
-    int property = -1; /* return value */
-    unsigned required, optional, proprietary;
+    unsigned count = 0;
+    uint32_t i;
 
-    required = pPropertyList->Required.count;
-    optional = pPropertyList->Optional.count;
-    proprietary = pPropertyList->Proprietary.count;
-    if (special_property == PROP_ALL) {
-        if (index < required) {
-            property = pPropertyList->Required.pList[index];
-        } else if (index < (required + optional)) {
-            index -= required;
-            property = pPropertyList->Optional.pList[index];
-        } else if (index < (required + optional + proprietary)) {
-            index -= (required + optional);
-            property = pPropertyList->Proprietary.pList[index];
-        }
-    } else if (special_property == PROP_REQUIRED) {
-        if (index < required) {
-            property = pPropertyList->Required.pList[index];
-        }
-    } else if (special_property == PROP_OPTIONAL) {
-        if (index < optional) {
-            property = pPropertyList->Optional.pList[index];
+    for (i = 0; i < list->count; i++) {
+        if (list->pList[i] != PROP_PROPERTY_LIST) {
+            count++;
         }
     }
 
-    return (BACNET_PROPERTY_ID)property;
+    return count;
+}
+
+/* Walks the lists selected by a special property, in order. */
+struct rpm_property_cursor {
+    const struct property_list_t *lists[3];
+    unsigned list_count;
+    unsigned list; /* index of the current list */
+    uint32_t item; /* index of the next item in the current list */
+};
+
+/**
+ * @brief Prepare a cursor for the lists of the special properties
+ * ALL or REQUIRED or OPTIONAL.
+ * @param cursor The cursor to initialize
+ * @param pPropertyList reference for the list of ALL, REQUIRED, and OPTIONAL
+ * properties.
+ * @param special_property The special property ALL, REQUIRED, or OPTIONAL
+ */
+static void RPM_Cursor_Init(
+    struct rpm_property_cursor *cursor,
+    const struct special_property_list_t *pPropertyList,
+    BACNET_PROPERTY_ID special_property)
+{
+    cursor->list_count = 0;
+    cursor->list = 0;
+    cursor->item = 0;
+    if (special_property == PROP_ALL) {
+        cursor->lists[cursor->list_count++] = &pPropertyList->Required;
+        cursor->lists[cursor->list_count++] = &pPropertyList->Optional;
+        cursor->lists[cursor->list_count++] = &pPropertyList->Proprietary;
+    } else if (special_property == PROP_REQUIRED) {
+        cursor->lists[cursor->list_count++] = &pPropertyList->Required;
+    } else if (special_property == PROP_OPTIONAL) {
+        cursor->lists[cursor->list_count++] = &pPropertyList->Optional;
+    }
+}
+
+/**
+ * @brief Fetch the next property from the cursor, skipping Property_List,
+ * which shall not appear in the List of Results for special properties.
+ * @param cursor The cursor, advanced past the returned property
+ * @return The property ID or -1 if there are no more properties.
+ */
+static int RPM_Cursor_Next(struct rpm_property_cursor *cursor)
+{
+    const struct property_list_t *list;
+    uint32_t property;
+
+    while (cursor->list < cursor->list_count) {
+        list = cursor->lists[cursor->list];
+        while (cursor->item < list->count) {
+            property = list->pList[cursor->item++];
+            if (property != PROP_PROPERTY_LIST) {
+                return (int)property;
+            }
+        }
+        cursor->list++;
+        cursor->item = 0;
+    }
+
+    return -1;
 }
 
 /**
@@ -96,12 +133,13 @@ static unsigned RPM_Object_Property_Count(
     unsigned count = 0; /* return value */
 
     if (special_property == PROP_ALL) {
-        count = pPropertyList->Required.count + pPropertyList->Optional.count +
-            pPropertyList->Proprietary.count;
+        count = RPM_List_Count(&pPropertyList->Required) +
+            RPM_List_Count(&pPropertyList->Optional) +
+            RPM_List_Count(&pPropertyList->Proprietary);
     } else if (special_property == PROP_REQUIRED) {
-        count = pPropertyList->Required.count;
+        count = RPM_List_Count(&pPropertyList->Required);
     } else if (special_property == PROP_OPTIONAL) {
-        count = pPropertyList->Optional.count;
+        count = RPM_List_Count(&pPropertyList->Optional);
     }
 
     return count;
@@ -314,6 +352,7 @@ void handler_read_property_multiple(
                         (rpmdata.object_property == PROP_REQUIRED) ||
                         (rpmdata.object_property == PROP_OPTIONAL)) {
                         struct special_property_list_t property_list;
+                        struct rpm_property_cursor cursor;
                         unsigned property_count = 0;
                         unsigned index = 0;
                         BACNET_PROPERTY_ID special_object_property;
@@ -411,12 +450,14 @@ void handler_read_property_multiple(
                                     }
                                 }
                             } else {
+                                RPM_Cursor_Init(
+                                    &cursor, &property_list,
+                                    special_object_property);
                                 for (index = 0; index < property_count;
                                      index++) {
                                     rpmdata.object_property =
-                                        RPM_Object_Property(
-                                            &property_list,
-                                            special_object_property, index);
+                                        (BACNET_PROPERTY_ID)RPM_Cursor_Next(
+                                            &cursor);
                                     len = RPM_Encode_Property(
                                         &Handler_Transmit_Buffer[npdu_len],
                                         (uint16_t)apdu_len, MAX_APDU, &rpmdata);
