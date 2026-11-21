@@ -36,6 +36,51 @@
 static uint8_t Temp_Buf[MAX_APDU] = { 0 };
 
 /**
+ * @brief Count the properties in a list, not counting Property_List,
+ * which shall not appear in the List of Results for special properties.
+ * @param list The list of properties
+ * @return The number of properties, excluding Property_List
+ */
+static unsigned RPM_List_Count(const struct property_list_t *list)
+{
+    unsigned count = 0;
+    uint32_t i;
+
+    for (i = 0; i < list->count; i++) {
+        if (list->pList[i] != PROP_PROPERTY_LIST) {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+/**
+ * @brief Fetch a property from a list, skipping Property_List,
+ * which shall not appear in the List of Results for special properties.
+ * @param list The list of properties
+ * @param index The index of the property, which does not count
+ * the skipped Property_List property.
+ * @return The property ID or -1 if not found.
+ */
+static int RPM_List_Property(const struct property_list_t *list, unsigned index)
+{
+    uint32_t i;
+
+    for (i = 0; i < list->count; i++) {
+        if (list->pList[i] == PROP_PROPERTY_LIST) {
+            continue;
+        }
+        if (index == 0) {
+            return list->pList[i];
+        }
+        index--;
+    }
+
+    return -1;
+}
+
+/**
  * @brief Fetches the lists of properties (array of BACNET_PROPERTY_ID's) for
  * this object type and the special properties ALL or REQUIRED or OPTIONAL.
  * @param pPropertyList reference for the list of ALL, REQUIRED, and OPTIONAL
@@ -53,26 +98,26 @@ static BACNET_PROPERTY_ID RPM_Object_Property(
     int property = -1; /* return value */
     unsigned required, optional, proprietary;
 
-    required = pPropertyList->Required.count;
-    optional = pPropertyList->Optional.count;
-    proprietary = pPropertyList->Proprietary.count;
+    required = RPM_List_Count(&pPropertyList->Required);
+    optional = RPM_List_Count(&pPropertyList->Optional);
+    proprietary = RPM_List_Count(&pPropertyList->Proprietary);
     if (special_property == PROP_ALL) {
         if (index < required) {
-            property = pPropertyList->Required.pList[index];
+            property = RPM_List_Property(&pPropertyList->Required, index);
         } else if (index < (required + optional)) {
             index -= required;
-            property = pPropertyList->Optional.pList[index];
+            property = RPM_List_Property(&pPropertyList->Optional, index);
         } else if (index < (required + optional + proprietary)) {
             index -= (required + optional);
-            property = pPropertyList->Proprietary.pList[index];
+            property = RPM_List_Property(&pPropertyList->Proprietary, index);
         }
     } else if (special_property == PROP_REQUIRED) {
         if (index < required) {
-            property = pPropertyList->Required.pList[index];
+            property = RPM_List_Property(&pPropertyList->Required, index);
         }
     } else if (special_property == PROP_OPTIONAL) {
         if (index < optional) {
-            property = pPropertyList->Optional.pList[index];
+            property = RPM_List_Property(&pPropertyList->Optional, index);
         }
     }
 
@@ -96,12 +141,13 @@ static unsigned RPM_Object_Property_Count(
     unsigned count = 0; /* return value */
 
     if (special_property == PROP_ALL) {
-        count = pPropertyList->Required.count + pPropertyList->Optional.count +
-            pPropertyList->Proprietary.count;
+        count = RPM_List_Count(&pPropertyList->Required) +
+            RPM_List_Count(&pPropertyList->Optional) +
+            RPM_List_Count(&pPropertyList->Proprietary);
     } else if (special_property == PROP_REQUIRED) {
-        count = pPropertyList->Required.count;
+        count = RPM_List_Count(&pPropertyList->Required);
     } else if (special_property == PROP_OPTIONAL) {
-        count = pPropertyList->Optional.count;
+        count = RPM_List_Count(&pPropertyList->Optional);
     }
 
     return count;
