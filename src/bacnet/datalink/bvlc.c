@@ -332,28 +332,29 @@ bool bvlc_broadcast_distribution_table_entry_append(
     const BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_new)
 {
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry = NULL;
-    bool status = false;
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_free = NULL;
 
+    /* valid entries are not required to be contiguous,
+       so scan the whole table for an existing entry */
     bdt_entry = bdt_list;
     while (bdt_entry) {
         if (bdt_entry->valid) {
             if (!bvlc_broadcast_distribution_table_entry_different(
                     bdt_entry, bdt_new)) {
-                status = true;
-                break;
+                return true;
             }
-        } else {
-            /* first empty slot! Assume the remaining are empty. */
-            status = true;
-            /* Copy new entry to the empty slot */
-            bvlc_broadcast_distribution_table_entry_copy(bdt_entry, bdt_new);
-            bdt_entry->valid = true;
-            break;
+        } else if (!bdt_free) {
+            bdt_free = bdt_entry;
         }
         bdt_entry = bdt_entry->next;
     }
+    if (!bdt_free) {
+        return false;
+    }
+    bvlc_broadcast_distribution_table_entry_copy(bdt_free, bdt_new);
+    bdt_free->valid = true;
 
-    return status;
+    return true;
 }
 
 /**

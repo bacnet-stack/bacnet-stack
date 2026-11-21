@@ -576,6 +576,36 @@ static void test_BVLC_Broadcast_Distribution_Table_Encode(void)
     }
 }
 
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_tests, test_BVLC_Broadcast_Distribution_Table_Append_Sparse)
+#else
+static void test_BVLC_Broadcast_Distribution_Table_Append_Sparse(void)
+#endif
+{
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_list[3] = { 0 };
+    BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY bdt_entry = { 0 };
+    BACNET_IP_ADDRESS dest_address = { 0 };
+    BACNET_IP_BROADCAST_DISTRIBUTION_MASK broadcast_mask = { 0 };
+    bool status;
+
+    bvlc_broadcast_distribution_table_link_array(&bdt_list[0], 3);
+    status =
+        bvlc_address_port_from_ascii(&dest_address, "192.168.0.255", "0xBAC0");
+    zassert_true(status, NULL);
+    status = bvlc_broadcast_distribution_table_entry_set(
+        &bdt_entry, &dest_address, &broadcast_mask);
+    zassert_true(status, NULL);
+    /* the first slot is free, the second slot holds the entry */
+    bdt_list[1] = bdt_entry;
+    bdt_list[1].valid = true;
+    bdt_list[1].next = &bdt_list[2];
+    status = bvlc_broadcast_distribution_table_entry_append(
+        &bdt_list[0], &bdt_entry);
+    zassert_true(status, NULL);
+    zassert_false(bdt_list[0].valid, NULL);
+    zassert_false(bdt_list[2].valid, NULL);
+}
+
 static void test_BVLC_Write_Broadcast_Distribution_Table_Message(
     BACNET_IP_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_list)
 {
@@ -1138,6 +1168,7 @@ void test_main(void)
         ztest_unit_test(test_BVLC_Delete_Foreign_Device),
         ztest_unit_test(test_BVLC_Distribute_Broadcast_To_Network),
         ztest_unit_test(test_BVLC_Broadcast_Distribution_Table_Encode),
+        ztest_unit_test(test_BVLC_Broadcast_Distribution_Table_Append_Sparse),
         ztest_unit_test(test_BVLC_Original_Unicast_NPDU),
         ztest_unit_test(test_BVLC_Original_Broadcast_NPDU),
         ztest_unit_test(test_BVLC_Secure_BVLL),

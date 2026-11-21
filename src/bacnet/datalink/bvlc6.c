@@ -1862,31 +1862,32 @@ bool bvlc6_broadcast_distribution_table_entry_append(
     const BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_new)
 {
     BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_entry;
-    bool status = false;
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_free = NULL;
 
     if (!bdt_new) {
         return false;
     }
+    /* valid entries are not required to be contiguous,
+       so scan the whole table for an existing entry */
     bdt_entry = bdt_head;
     while (bdt_entry) {
         if (bdt_entry->valid) {
             if (!bvlc6_address_different(
                     &bdt_entry->bip6_address, &bdt_new->bip6_address)) {
-                status = true;
-                break;
+                return true;
             }
-        } else {
-            /* first empty slot! Assume the remaining are empty. */
-            bvlc6_address_copy(
-                &bdt_entry->bip6_address, &bdt_new->bip6_address);
-            bdt_entry->valid = true;
-            status = true;
-            break;
+        } else if (!bdt_free) {
+            bdt_free = bdt_entry;
         }
         bdt_entry = bdt_entry->next;
     }
+    if (!bdt_free) {
+        return false;
+    }
+    bvlc6_address_copy(&bdt_free->bip6_address, &bdt_new->bip6_address);
+    bdt_free->valid = true;
 
-    return status;
+    return true;
 }
 
 /**
