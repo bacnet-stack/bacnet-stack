@@ -68,6 +68,13 @@ The git repositories are hosted at the following sites:
   Notification_Class_Description_Duplicate() functions. ReadProperty and
   WriteProperty support the property. The Delete and Cleanup functions free
   it. Added unit tests. (#1611)
+* Added a QNX 8.0 port (ports/qnx) with BACnet MS/TP over RS-485 using the
+  devc-ser* drivers: termios with numeric speeds, readcond(), absolute-time
+  Tturnaround, optional RTS transmitter-enable via devctl(DCMD_CHR_SERCTL),
+  and a SCHED_FIFO MS/TP thread at a non-root priority. BACnet/IP reuses the
+  BSD code. Added the QNX branch to CMakeLists.txt, switched BACNET_PORT=qnx
+  in apps/Makefile to ports/qnx, and allowed the Modbus gateway serial code
+  on QNX.
 * Added a build of the BSD port for QNX 8.0 with BACnet/IP. Added
   BACNET_PORT=qnx to apps/Makefile. This option builds from ports/bsd, links
   libsocket, and defines _QNX_SOURCE. Changed ports/bsd/bacport.h and
