@@ -1544,6 +1544,52 @@ static void test_network_port_bip6_bdt_clear(void)
 }
 
 /**
+ * @brief Test that the IPv6 FDT property reads every valid linked entry
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(netport_tests, test_network_port_bip6_fdt_read)
+#else
+static void test_network_port_bip6_fdt_read(void)
+#endif
+{
+    const uint32_t object_instance = 1238;
+    BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY fdt[3] = { 0 };
+    BACNET_READ_PROPERTY_DATA rp_data = { 0 };
+    uint8_t apdu[MAX_APDU] = { 0 };
+    bool status = false;
+    int len = 0;
+
+    Network_Port_Init();
+    status = Network_Port_Object_Instance_Number_Set(0, object_instance);
+    zassert_true(status, NULL);
+    status = Network_Port_Type_Set(object_instance, PORT_TYPE_BIP6);
+    zassert_true(status, NULL);
+    bvlc6_foreign_device_table_link_array(&fdt[0], 3);
+    fdt[0].valid = true;
+    fdt[0].bip6_address.address[15] = 1;
+    fdt[2].valid = true;
+    fdt[2].bip6_address.address[15] = 2;
+    status = Network_Port_BBMD_IP6_FD_Table_Set(object_instance, fdt);
+    zassert_true(status, NULL);
+
+    rp_data.object_type = OBJECT_NETWORK_PORT;
+    rp_data.object_instance = object_instance;
+    rp_data.object_property = PROP_BBMD_FOREIGN_DEVICE_TABLE;
+    rp_data.array_index = BACNET_ARRAY_ALL;
+    rp_data.application_data = apdu;
+    rp_data.application_data_len = sizeof(apdu);
+    len = Network_Port_Read_Property(&rp_data);
+    zassert_true(len > 0, NULL);
+    zassert_equal(
+        len,
+        bvlc6_foreign_device_table_entry_encode(NULL, &fdt[0]) +
+            bvlc6_foreign_device_table_entry_encode(NULL, &fdt[2]),
+        NULL);
+
+    Network_Port_Cleanup();
+}
+
+/**
  * @brief Test that a nonempty IPv6 BDT read from the property can be written
  *  back to the property
  */
@@ -1570,8 +1616,8 @@ static void test_network_port_bip6_bdt_round_trip(void)
     zassert_true(status, NULL);
     status = Network_Port_Type_Set(object_instance, PORT_TYPE_BIP6);
     zassert_true(status, NULL);
-    bdt[0].next = &bdt[1];
-    bdt[1].next = &bdt[2];
+    bvlc6_broadcast_distribution_table_link_array(&bdt[0], 3);
+    zassert_equal(bvlc6_broadcast_distribution_table_count(&bdt[0]), 3, NULL);
     status = Network_Port_BBMD_IP6_BD_Table_Set(object_instance, bdt);
     zassert_true(status, NULL);
 
@@ -1673,6 +1719,7 @@ void test_main(void)
         ztest_unit_test(test_network_port_fd_bbmd_address_write_port_range),
         ztest_unit_test(test_network_port_bbmd_tables_write),
         ztest_unit_test(test_network_port_bip6_bdt_clear),
+        ztest_unit_test(test_network_port_bip6_fdt_read),
         ztest_unit_test(test_network_port_bip6_bdt_round_trip));
 
     ztest_run_test_suite(netport_tests);

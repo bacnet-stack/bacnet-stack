@@ -1838,6 +1838,25 @@ uint16_t bvlc6_broadcast_distribution_table_count(
 }
 
 /**
+ * @brief Link an array of Broadcast-Distribution-Table entries into a list
+ * @param bdt_head - first element in array of BDT entries
+ * @param bdt_array_size - number of array elements of BDT entries
+ */
+void bvlc6_broadcast_distribution_table_link_array(
+    BACNET_IP6_BROADCAST_DISTRIBUTION_TABLE_ENTRY *bdt_head,
+    const size_t bdt_array_size)
+{
+    size_t i;
+
+    for (i = 0; i < bdt_array_size; i++) {
+        if (i > 0) {
+            bdt_head[i - 1].next = &bdt_head[i];
+        }
+        bdt_head[i].next = NULL;
+    }
+}
+
+/**
  * @brief Mark every entry of the Broadcast-Distribution-Table as unused
  * @param bdt_head - head of the BDT linked list
  */
@@ -1888,6 +1907,25 @@ bool bvlc6_broadcast_distribution_table_entry_append(
     bdt_free->valid = true;
 
     return true;
+}
+
+/**
+ * @brief Link an array of Foreign-Device-Table entries into a list
+ * @param fdt_head - first element in array of FDT entries
+ * @param fdt_array_size - number of array elements of FDT entries
+ */
+void bvlc6_foreign_device_table_link_array(
+    BACNET_IP6_FOREIGN_DEVICE_TABLE_ENTRY *fdt_head,
+    const size_t fdt_array_size)
+{
+    size_t i;
+
+    for (i = 0; i < fdt_array_size; i++) {
+        if (i > 0) {
+            fdt_head[i - 1].next = &fdt_head[i];
+        }
+        fdt_head[i].next = NULL;
+    }
 }
 
 /**
