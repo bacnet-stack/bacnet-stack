@@ -55,73 +55,65 @@ static unsigned RPM_List_Count(const struct property_list_t *list)
     return count;
 }
 
-/**
- * @brief Fetch a property from a list, skipping Property_List,
- * which shall not appear in the List of Results for special properties.
- * @param list The list of properties
- * @param index The index of the property, which does not count
- * the skipped Property_List property.
- * @return The property ID or -1 if not found.
- */
-static int RPM_List_Property(const struct property_list_t *list, unsigned index)
-{
-    uint32_t i;
-
-    for (i = 0; i < list->count; i++) {
-        if (list->pList[i] == PROP_PROPERTY_LIST) {
-            continue;
-        }
-        if (index == 0) {
-            return list->pList[i];
-        }
-        index--;
-    }
-
-    return -1;
-}
+/* Walks the lists selected by a special property, in order. */
+struct rpm_property_cursor {
+    const struct property_list_t *lists[3];
+    unsigned list_count;
+    unsigned list; /* index of the current list */
+    uint32_t item; /* index of the next item in the current list */
+};
 
 /**
- * @brief Fetches the lists of properties (array of BACNET_PROPERTY_ID's) for
- * this object type and the special properties ALL or REQUIRED or OPTIONAL.
+ * @brief Prepare a cursor for the lists of the special properties
+ * ALL or REQUIRED or OPTIONAL.
+ * @param cursor The cursor to initialize
  * @param pPropertyList reference for the list of ALL, REQUIRED, and OPTIONAL
  * properties.
  * @param special_property The special property ALL, REQUIRED, or OPTIONAL
- * to fetch.
- * @param index The index of the property to fetch.
- * @return The property ID or -1 if not found.
  */
-static BACNET_PROPERTY_ID RPM_Object_Property(
-    struct special_property_list_t *pPropertyList,
-    BACNET_PROPERTY_ID special_property,
-    unsigned index)
+static void RPM_Cursor_Init(
+    struct rpm_property_cursor *cursor,
+    const struct special_property_list_t *pPropertyList,
+    BACNET_PROPERTY_ID special_property)
 {
-    int property = -1; /* return value */
-    unsigned required, optional, proprietary;
-
-    required = RPM_List_Count(&pPropertyList->Required);
-    optional = RPM_List_Count(&pPropertyList->Optional);
-    proprietary = RPM_List_Count(&pPropertyList->Proprietary);
+    cursor->list_count = 0;
+    cursor->list = 0;
+    cursor->item = 0;
     if (special_property == PROP_ALL) {
-        if (index < required) {
-            property = RPM_List_Property(&pPropertyList->Required, index);
-        } else if (index < (required + optional)) {
-            index -= required;
-            property = RPM_List_Property(&pPropertyList->Optional, index);
-        } else if (index < (required + optional + proprietary)) {
-            index -= (required + optional);
-            property = RPM_List_Property(&pPropertyList->Proprietary, index);
-        }
+        cursor->lists[cursor->list_count++] = &pPropertyList->Required;
+        cursor->lists[cursor->list_count++] = &pPropertyList->Optional;
+        cursor->lists[cursor->list_count++] = &pPropertyList->Proprietary;
     } else if (special_property == PROP_REQUIRED) {
-        if (index < required) {
-            property = RPM_List_Property(&pPropertyList->Required, index);
-        }
+        cursor->lists[cursor->list_count++] = &pPropertyList->Required;
     } else if (special_property == PROP_OPTIONAL) {
-        if (index < optional) {
-            property = RPM_List_Property(&pPropertyList->Optional, index);
+        cursor->lists[cursor->list_count++] = &pPropertyList->Optional;
+    }
+}
+
+/**
+ * @brief Fetch the next property from the cursor, skipping Property_List,
+ * which shall not appear in the List of Results for special properties.
+ * @param cursor The cursor, advanced past the returned property
+ * @return The property ID or -1 if there are no more properties.
+ */
+static int RPM_Cursor_Next(struct rpm_property_cursor *cursor)
+{
+    const struct property_list_t *list;
+    uint32_t property;
+
+    while (cursor->list < cursor->list_count) {
+        list = cursor->lists[cursor->list];
+        while (cursor->item < list->count) {
+            property = list->pList[cursor->item++];
+            if (property != PROP_PROPERTY_LIST) {
+                return (int)property;
+            }
         }
+        cursor->list++;
+        cursor->item = 0;
     }
 
-    return (BACNET_PROPERTY_ID)property;
+    return -1;
 }
 
 /**
@@ -360,6 +352,7 @@ void handler_read_property_multiple(
                         (rpmdata.object_property == PROP_REQUIRED) ||
                         (rpmdata.object_property == PROP_OPTIONAL)) {
                         struct special_property_list_t property_list;
+                        struct rpm_property_cursor cursor;
                         unsigned property_count = 0;
                         unsigned index = 0;
                         BACNET_PROPERTY_ID special_object_property;
@@ -457,12 +450,14 @@ void handler_read_property_multiple(
                                     }
                                 }
                             } else {
+                                RPM_Cursor_Init(
+                                    &cursor, &property_list,
+                                    special_object_property);
                                 for (index = 0; index < property_count;
                                      index++) {
                                     rpmdata.object_property =
-                                        RPM_Object_Property(
-                                            &property_list,
-                                            special_object_property, index);
+                                        (BACNET_PROPERTY_ID)RPM_Cursor_Next(
+                                            &cursor);
                                     len = RPM_Encode_Property(
                                         &Handler_Transmit_Buffer[npdu_len],
                                         (uint16_t)apdu_len, MAX_APDU, &rpmdata);
