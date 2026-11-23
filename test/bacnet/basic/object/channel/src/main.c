@@ -39,7 +39,7 @@ static bool Write_Property_Recursive(BACNET_WRITE_PROPERTY_DATA *wp_data)
     if (wp_data->object_type == OBJECT_CHANNEL) {
         return Channel_Write_Property(wp_data);
     }
-    if (Write_Property_Reject_Non_Channel) {
+    if (Write_Property_Reject_Non_Channel && (wp_data->object_instance == 1)) {
         wp_data->error_class = ERROR_CLASS_PROPERTY;
         wp_data->error_code = ERROR_CODE_OTHER;
         return false;
