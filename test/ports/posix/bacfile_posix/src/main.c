@@ -57,36 +57,34 @@ static void test_stream_read_write_append(void)
     remove_test_file();
 }
 
-static void test_file_size_set_grow_and_shrink(void)
+static void test_file_size_set_no_resize(void)
 {
     const uint8_t data[] = { 1U, 2U, 3U, 4U };
-    uint8_t zeros[6] = { 0 };
+    uint8_t out[8] = { 0 };
     size_t len = 0;
-    size_t i = 0;
 
     remove_test_file();
 
     len = bacfile_posix_write_stream_data(test_file, 0, data, sizeof(data));
     zassert_equal(len, sizeof(data), NULL);
+
+    /* growing or shrinking to an arbitrary size is rejected unchanged */
+    zassert_false(bacfile_posix_file_size_set(test_file, 10U), NULL);
     zassert_equal(bacfile_posix_file_size(test_file), sizeof(data), NULL);
+    zassert_false(
+        bacfile_posix_file_size_set(test_file, (size_t)1 << 40), NULL);
+    zassert_equal(bacfile_posix_file_size(test_file), sizeof(data), NULL);
+    zassert_false(bacfile_posix_file_size_set(test_file, 2U), NULL);
+    zassert_equal(bacfile_posix_file_size(test_file), sizeof(data), NULL);
+    len = bacfile_posix_read_stream_data(test_file, 0, out, sizeof(out));
+    zassert_equal(len, sizeof(data), NULL);
+    zassert_equal(memcmp(out, data, sizeof(data)), 0, NULL);
 
-    zassert_true(bacfile_posix_file_size_set(test_file, 10U), NULL);
-    zassert_equal(bacfile_posix_file_size(test_file), 10U, NULL);
-
-    len = bacfile_posix_read_stream_data(test_file, 4, zeros, sizeof(zeros));
-    zassert_equal(len, sizeof(zeros), NULL);
-    for (i = 0; i < sizeof(zeros); i++) {
-        zassert_equal(zeros[i], 0U, NULL);
-    }
-
-    zassert_true(bacfile_posix_file_size_set(test_file, 2U), NULL);
-    zassert_equal(bacfile_posix_file_size(test_file), 2U, NULL);
-
-    memset(zeros, 0, sizeof(zeros));
-    len = bacfile_posix_read_stream_data(test_file, 0, zeros, sizeof(zeros));
-    zassert_equal(len, 2U, NULL);
-    zassert_equal(zeros[0], 1U, NULL);
-    zassert_equal(zeros[1], 2U, NULL);
+    /* same size is a no-op, and zero truncates */
+    zassert_true(bacfile_posix_file_size_set(test_file, sizeof(data)), NULL);
+    zassert_equal(bacfile_posix_file_size(test_file), sizeof(data), NULL);
+    zassert_true(bacfile_posix_file_size_set(test_file, 0U), NULL);
+    zassert_equal(bacfile_posix_file_size(test_file), 0U, NULL);
 
     remove_test_file();
 }
@@ -355,7 +353,7 @@ void test_main(void)
 {
     ztest_test_suite(
         bacfile_posix_tests, ztest_unit_test(test_stream_read_write_append),
-        ztest_unit_test(test_file_size_set_grow_and_shrink),
+        ztest_unit_test(test_file_size_set_no_resize),
         ztest_unit_test(test_invalid_parameters),
         ztest_unit_test(test_record_read_write),
         ztest_unit_test(test_record_write_multiple_at_start),
