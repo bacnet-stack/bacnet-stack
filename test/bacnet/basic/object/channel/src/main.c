@@ -26,6 +26,28 @@ static bool Write_Property_Internal(BACNET_WRITE_PROPERTY_DATA *wp_data)
     return true;
 }
 
+static unsigned Write_Property_Recursive_Count;
+static bool Write_Property_Reject_Non_Channel;
+static bool Write_Property_Recursive(BACNET_WRITE_PROPERTY_DATA *wp_data)
+{
+    Write_Property_Recursive_Count++;
+    if (Write_Property_Recursive_Count > 8) {
+        wp_data->error_class = ERROR_CLASS_OBJECT;
+        wp_data->error_code = ERROR_CODE_BUSY;
+        return false;
+    }
+    if (wp_data->object_type == OBJECT_CHANNEL) {
+        return Channel_Write_Property(wp_data);
+    }
+    if (Write_Property_Reject_Non_Channel) {
+        wp_data->error_class = ERROR_CLASS_PROPERTY;
+        wp_data->error_code = ERROR_CODE_OTHER;
+        return false;
+    }
+
+    return true;
+}
+
 static struct channel_write_property_notification Write_Property_Notification;
 static BACNET_WRITE_PROPERTY_DATA Write_Property_Notification_Data;
 static uint32_t Write_Property_Notification_Instance;
@@ -465,6 +487,95 @@ static void test_Channel_Property_Read_Write(void)
     zassert_true(status, NULL);
     Channel_Cleanup();
 }
+
+/**
+ * @brief Test recursive cross-channel writes and recovery
+ */
+static void test_Channel_Recursive_Write(void)
+{
+    const uint32_t channel_a = 123;
+    const uint32_t channel_b = 124;
+    BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE member = { 0 };
+    BACNET_APPLICATION_DATA_VALUE value = { 0 };
+    BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
+    unsigned index = 0;
+    bool status = false;
+
+    Channel_Init();
+    zassert_equal(Channel_Create(channel_a), channel_a, NULL);
+    zassert_equal(Channel_Create(channel_b), channel_b, NULL);
+    Write_Property_Recursive_Count = 0;
+    Write_Property_Reject_Non_Channel = true;
+    Channel_Write_Property_Internal_Callback_Set(Write_Property_Recursive);
+
+    member.deviceIdentifier.type = OBJECT_DEVICE;
+    member.deviceIdentifier.instance = 0;
+    member.objectIdentifier.type = OBJECT_ANALOG_OUTPUT;
+    member.objectIdentifier.instance = 1;
+    member.propertyIdentifier = PROP_PRESENT_VALUE;
+    member.arrayIndex = BACNET_ARRAY_ALL;
+    index = Channel_Reference_List_Member_Element_Add(channel_a, &member);
+    zassert_equal(index, 1, NULL);
+    index = Channel_Reference_List_Member_Element_Add(channel_b, &member);
+    zassert_equal(index, 1, NULL);
+
+    member.objectIdentifier.type = OBJECT_CHANNEL;
+    member.objectIdentifier.instance = channel_b;
+    index = Channel_Reference_List_Member_Element_Add(channel_a, &member);
+    zassert_equal(index, 2, NULL);
+    member.objectIdentifier.instance = channel_a;
+    index = Channel_Reference_List_Member_Element_Add(channel_b, &member);
+    zassert_equal(index, 2, NULL);
+
+    wp_data.object_type = OBJECT_CHANNEL;
+    wp_data.object_instance = channel_a;
+    wp_data.object_property = PROP_PRESENT_VALUE;
+    wp_data.array_index = BACNET_ARRAY_ALL;
+    wp_data.priority = BACNET_MAX_PRIORITY;
+    value.tag = BACNET_APPLICATION_TAG_CHANNEL_VALUE;
+    value.type.Channel_Value.tag = BACNET_APPLICATION_TAG_REAL;
+    value.type.Channel_Value.type.Real = 42.0f;
+    wp_data.application_data_len =
+        bacapp_encode_application_data(wp_data.application_data, &value);
+    status = Channel_Write_Property(&wp_data);
+    zassert_false(status, NULL);
+    zassert_equal(wp_data.error_class, ERROR_CLASS_OBJECT, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_BUSY, NULL);
+    zassert_equal(Write_Property_Recursive_Count, 4, NULL);
+    zassert_equal(
+        Channel_Write_Status(channel_a), BACNET_WRITE_STATUS_FAILED, NULL);
+    zassert_equal(
+        Channel_Write_Status(channel_b), BACNET_WRITE_STATUS_FAILED, NULL);
+
+    zassert_true(Channel_Delete(channel_a), NULL);
+    zassert_true(Channel_Delete(channel_b), NULL);
+    zassert_equal(Channel_Create(channel_a), channel_a, NULL);
+    zassert_equal(Channel_Create(channel_b), channel_b, NULL);
+    Write_Property_Recursive_Count = 0;
+    Write_Property_Reject_Non_Channel = false;
+
+    member.objectIdentifier.type = OBJECT_CHANNEL;
+    member.objectIdentifier.instance = channel_b;
+    index = Channel_Reference_List_Member_Element_Add(channel_a, &member);
+    zassert_equal(index, 1, NULL);
+    member.objectIdentifier.type = OBJECT_ANALOG_OUTPUT;
+    member.objectIdentifier.instance = 1;
+    index = Channel_Reference_List_Member_Element_Add(channel_b, &member);
+    zassert_equal(index, 1, NULL);
+
+    status = Channel_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_equal(Write_Property_Recursive_Count, 2, NULL);
+    zassert_equal(
+        Channel_Write_Status(channel_a), BACNET_WRITE_STATUS_SUCCESSFUL, NULL);
+    zassert_equal(
+        Channel_Write_Status(channel_b), BACNET_WRITE_STATUS_SUCCESSFUL, NULL);
+
+    Channel_Write_Property_Internal_Callback_Set(NULL);
+    zassert_true(Channel_Delete(channel_a), NULL);
+    zassert_true(Channel_Delete(channel_b), NULL);
+    Channel_Cleanup();
+}
 /**
  * @}
  */
@@ -472,7 +583,8 @@ static void test_Channel_Property_Read_Write(void)
 void test_main(void)
 {
     ztest_test_suite(
-        channel_tests, ztest_unit_test(test_Channel_Property_Read_Write));
+        channel_tests, ztest_unit_test(test_Channel_Property_Read_Write),
+        ztest_unit_test(test_Channel_Recursive_Write));
 
     ztest_run_test_suite(channel_tests);
 }

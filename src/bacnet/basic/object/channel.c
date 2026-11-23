@@ -45,6 +45,7 @@
 
 struct object_data {
     bool Out_Of_Service : 1;
+    bool Writeback_Active : 1;
     BACNET_CHANNEL_VALUE Present_Value;
     unsigned Last_Priority;
     BACNET_WRITE_STATUS Write_Status;
@@ -839,6 +840,7 @@ bool Channel_Write_Member_Value(
  * @param pObject - object instance data
  * @param value - application value
  * @param priority - BACnet priority 0=none,1..16
+ * @param busy - set to true when a re-entry error is encountered
  *
  * @return  true if values are within range and present-value is sent.
  */
@@ -846,7 +848,8 @@ static bool Channel_Write_Members(
     struct object_data *pObject,
     uint32_t object_instance,
     const BACNET_CHANNEL_VALUE *value,
-    uint8_t priority)
+    uint8_t priority,
+    bool *busy)
 {
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
     bool status = false;
@@ -859,9 +862,13 @@ static bool Channel_Write_Members(
     if (!value) {
         return false;
     }
-    if (pObject->Write_Status == BACNET_WRITE_STATUS_IN_PROGRESS) {
+    if (pObject->Writeback_Active) {
+        if (busy) {
+            *busy = true;
+        }
         return false;
     }
+    pObject->Writeback_Active = true;
     pObject->Write_Status = BACNET_WRITE_STATUS_IN_PROGRESS;
     debug_log_fprintf(
         DEBUG_LOG_DEBUG, stderr, "channel[%lu].Channel_Write_Members\n",
@@ -898,6 +905,11 @@ static bool Channel_Write_Members(
                         if (status) {
                             wp_data.error_code = ERROR_CODE_SUCCESS;
                         }
+                    }
+                    if (!status &&
+                        (wp_data.error_class == ERROR_CLASS_OBJECT) &&
+                        (wp_data.error_code == ERROR_CODE_BUSY) && busy) {
+                        *busy = true;
                     }
                     debug_log_fprintf(
                         DEBUG_LOG_DEBUG, stderr,
@@ -969,6 +981,7 @@ static bool Channel_Write_Members(
            rejects, or aborts. */
         pObject->Write_Status = BACNET_WRITE_STATUS_SUCCESSFUL;
     }
+    pObject->Writeback_Active = false;
 
     return status;
 }
@@ -992,11 +1005,13 @@ bool Channel_Present_Value_Set(
     pObject = Object_Data(object_instance);
     if (pObject) {
         if ((priority > 0) && (priority <= BACNET_MAX_PRIORITY)) {
-            bacnet_channel_value_copy(&pObject->Present_Value, value);
-            status = Channel_Write_Members(
-                pObject, object_instance, value, priority);
-            if (status) {
-                pObject->Last_Priority = priority;
+            if (!pObject->Writeback_Active) {
+                bacnet_channel_value_copy(&pObject->Present_Value, value);
+                status = Channel_Write_Members(
+                    pObject, object_instance, value, priority, NULL);
+                if (status) {
+                    pObject->Last_Priority = priority;
+                }
             }
         }
     }
@@ -1016,6 +1031,7 @@ static bool Channel_Present_Value_Write(
     BACNET_WRITE_PROPERTY_DATA *wp_data, const BACNET_CHANNEL_VALUE *value)
 {
     bool status = false;
+    bool busy = false;
     struct object_data *pObject;
 
     pObject = Object_Data(wp_data->object_instance);
@@ -1023,19 +1039,30 @@ static bool Channel_Present_Value_Write(
         if ((wp_data->priority > 0) &&
             (wp_data->priority <= BACNET_MAX_PRIORITY)) {
             if (wp_data->priority != 6 /* reserved */) {
-                bacnet_channel_value_copy(&pObject->Present_Value, value);
-                status = Channel_Write_Members(
-                    pObject, wp_data->object_instance, value,
-                    wp_data->priority);
-                if (status) {
-                    pObject->Last_Priority = wp_data->priority;
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_SUCCESS;
+                if (pObject->Writeback_Active) {
+                    wp_data->error_class = ERROR_CLASS_OBJECT;
+                    wp_data->error_code = ERROR_CODE_BUSY;
+                    status = false;
                 } else {
-                    wp_data->error_class = ERROR_CLASS_PROPERTY;
-                    wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                    bacnet_channel_value_copy(&pObject->Present_Value, value);
+                    status = Channel_Write_Members(
+                        pObject, wp_data->object_instance, value,
+                        wp_data->priority, &busy);
+                    if (busy) {
+                        wp_data->error_class = ERROR_CLASS_OBJECT;
+                        wp_data->error_code = ERROR_CODE_BUSY;
+                    } else {
+                        if (status) {
+                            pObject->Last_Priority = wp_data->priority;
+                            wp_data->error_class = ERROR_CLASS_PROPERTY;
+                            wp_data->error_code = ERROR_CODE_SUCCESS;
+                        } else {
+                            wp_data->error_class = ERROR_CLASS_PROPERTY;
+                            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
+                        }
+                        status = true;
+                    }
                 }
-                status = true;
             } else {
                 /* Command priority 6 is reserved for use by Minimum On/Off
                    algorithm and may not be used for other purposes in any
@@ -1805,7 +1832,7 @@ void Channel_Write_Group(
                    implementation does not support the execution-delay
                    property */
                 status = Channel_Write_Members(
-                    pObject, instance, &change_list->value, priority);
+                    pObject, instance, &change_list->value, priority, NULL);
                 if (status) {
                     pObject->Last_Priority = priority;
                 }
@@ -1962,6 +1989,7 @@ uint32_t Channel_Create(uint32_t object_instance)
             pObject->Out_Of_Service = false;
             pObject->Last_Priority = BACNET_NO_PRIORITY;
             pObject->Write_Status = BACNET_WRITE_STATUS_IDLE;
+            pObject->Writeback_Active = false;
             pObject->Channel_Number = 0;
             /* add to list */
             index = Keylist_Data_Add(Object_List, object_instance, pObject);
