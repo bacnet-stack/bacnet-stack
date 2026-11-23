@@ -115,32 +115,25 @@ size_t bacfile_ramfs_file_size(const char *pathname)
 }
 
 /**
- * @brief Sets the file size property value
+ * @brief Sets the file size property value.
+ *  Arbitrary resizing is not supported, because a remote peer could
+ *  otherwise force an unbounded allocation and zero-fill that exhausts
+ *  the memory. Only truncation to zero bytes, or a size equal to the
+ *  current size, succeeds.
  * @param pathname - name of the file to set the size for
- * @param file_size - value of the file size property
- * @return true if file size is writable
+ * @param new_size - value of the file size property
+ * @return true if the file now has the requested size
  */
 bool bacfile_ramfs_file_size_set(const char *pathname, size_t new_size)
 {
     struct file_data *pFile;
-    char *new_data;
-
     bool status = false;
 
     pFile = bacfile_ramfs_open(pathname);
     if (pFile) {
-        if (new_size > 0) {
-            new_data = realloc(pFile->data, new_size);
-            if (new_data) {
-                /* zero the new memory to avoid leaking sensitive data */
-                if (new_size > pFile->size) {
-                    memset(new_data + pFile->size, 0, new_size - pFile->size);
-                }
-                pFile->data = new_data;
-                pFile->size = new_size;
-                status = true;
-            }
-        } else {
+        if (new_size == pFile->size) {
+            status = true;
+        } else if (new_size == 0) {
             /* free the data */
             free(pFile->data);
             pFile->data = NULL;

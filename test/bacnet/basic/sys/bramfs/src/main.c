@@ -45,20 +45,18 @@ static void test_BRAMFS_stream(void)
 
     file_size = bacfile_ramfs_file_size(pathname);
     zassert_equal(file_size, 0, "File size should be 0 after initialization");
-    zassert_true(
+    /* arbitrary resizing is rejected, and the file stays empty */
+    zassert_false(
         bacfile_ramfs_file_size_set(pathname, sizeof(null_file_data)),
-        "Failed to set file size");
-    file_size = bacfile_ramfs_file_size(pathname);
-    zassert_equal(
-        file_size, sizeof(null_file_data),
-        "File size should be 256 after setting");
-    file_size = bacfile_ramfs_read_stream_data(
-        pathname, 0, test_file_data, sizeof(test_file_data));
-    zassert_equal(
-        file_size, sizeof(test_file_data), "file_size=%zu", file_size);
+        "Growing the file size should fail");
+    zassert_false(
+        bacfile_ramfs_file_size_set(pathname, (size_t)1 << 40),
+        "Growing the file size should fail");
     zassert_true(
-        memcmp(test_file_data, null_file_data, sizeof(test_file_data)) == 0,
-        "File data should be zeroed out initially");
+        bacfile_ramfs_file_size_set(pathname, 0),
+        "Setting the same file size should succeed");
+    file_size = bacfile_ramfs_file_size(pathname);
+    zassert_equal(file_size, 0, "File size should be 0 after failed resize");
     file_size = bacfile_ramfs_write_stream_data(
         pathname, 0, file_data, sizeof(file_data));
     zassert_equal(file_size, sizeof(file_data), "file_size=%zu", file_size);
