@@ -503,6 +503,7 @@ static void testBACDCodeEnumerated(void)
 #endif
 {
     uint8_t apdu[MAX_APDU] = { 0 };
+    uint8_t oversized_enumerated[] = { 0x01, 0x00, 0x00, 0x00, 0x00 };
     uint32_t value = 0;
     uint32_t decoded_value = 0;
     int i = 0, apdu_len = 0;
@@ -557,6 +558,12 @@ static void testBACDCodeEnumerated(void)
         len = bacnet_enumerated_application_encode(apdu, apdu_len, value);
         zassert_equal(len, 0, NULL);
     }
+    decoded_value = UINT32_MAX;
+    len = bacnet_enumerated_decode(
+        oversized_enumerated, sizeof(oversized_enumerated),
+        sizeof(oversized_enumerated), &decoded_value);
+    zassert_equal(len, 0, NULL);
+    zassert_equal(decoded_value, UINT32_MAX, NULL);
 
     return;
 }

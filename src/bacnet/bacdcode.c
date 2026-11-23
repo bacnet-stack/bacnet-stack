@@ -4205,8 +4205,12 @@ int bacnet_enumerated_decode(
 
     len = bacnet_unsigned_decode(apdu, apdu_size, len_value, &unsigned_value);
     if (len > 0) {
-        if (value) {
-            *value = unsigned_value;
+        if (unsigned_value > UINT32_MAX) {
+            len = 0; /* error, value too large for uint32_t */
+        } else {
+            if (value) {
+                *value = unsigned_value;
+            }
         }
     }
 
