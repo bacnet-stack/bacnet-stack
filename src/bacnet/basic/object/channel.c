@@ -1051,6 +1051,7 @@ static bool Channel_Present_Value_Write(
                     if (busy) {
                         wp_data->error_class = ERROR_CLASS_OBJECT;
                         wp_data->error_code = ERROR_CODE_BUSY;
+                        status = false;
                     } else {
                         if (status) {
                             pObject->Last_Priority = wp_data->priority;
