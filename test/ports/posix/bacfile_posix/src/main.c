@@ -349,11 +349,51 @@ static void test_record_count(void)
     remove_test_file();
 }
 
+static void test_stream_write_past_end(void)
+{
+    const uint8_t data[] = { 'A', 'B', 'C', 'D' };
+    uint8_t buffer[BACNET_FILE_POSIX_MAX_PAD_BYTES] = { 0xFF };
+    size_t len = 0;
+    size_t i;
+
+    remove_test_file();
+
+    len = bacfile_posix_write_stream_data(test_file, 0, data, sizeof(data));
+    zassert_equal(len, sizeof(data), NULL);
+    /* a gap larger than the limit is rejected and the file is unchanged */
+    len = bacfile_posix_write_stream_data(
+        test_file, INT32_MAX, data, sizeof(data));
+    zassert_equal(len, 0U, NULL);
+    len = bacfile_posix_write_stream_data(
+        test_file,
+        (int32_t)(sizeof(data) + BACNET_FILE_POSIX_MAX_PAD_BYTES + 1), data,
+        sizeof(data));
+    zassert_equal(len, 0U, NULL);
+    zassert_equal(bacfile_posix_file_size(test_file), sizeof(data), NULL);
+    /* the largest allowed gap is zero filled */
+    len = bacfile_posix_write_stream_data(
+        test_file, (int32_t)(sizeof(data) + BACNET_FILE_POSIX_MAX_PAD_BYTES),
+        data, sizeof(data));
+    zassert_equal(len, sizeof(data), NULL);
+    zassert_equal(
+        bacfile_posix_file_size(test_file),
+        2 * sizeof(data) + BACNET_FILE_POSIX_MAX_PAD_BYTES, NULL);
+    len = bacfile_posix_read_stream_data(
+        test_file, (int32_t)sizeof(data), buffer, sizeof(buffer));
+    zassert_equal(len, sizeof(buffer), NULL);
+    for (i = 0; i < sizeof(buffer); i++) {
+        zassert_equal(buffer[i], 0U, NULL);
+    }
+
+    remove_test_file();
+}
+
 void test_main(void)
 {
     ztest_test_suite(
         bacfile_posix_tests, ztest_unit_test(test_stream_read_write_append),
         ztest_unit_test(test_file_size_set_no_resize),
+        ztest_unit_test(test_stream_write_past_end),
         ztest_unit_test(test_invalid_parameters),
         ztest_unit_test(test_record_read_write),
         ztest_unit_test(test_record_write_multiple_at_start),

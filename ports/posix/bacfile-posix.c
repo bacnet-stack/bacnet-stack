@@ -236,6 +236,8 @@ size_t bacfile_posix_read_stream_data(
  * @param fileData - data buffer to write from
  * @param fileDataLen - size of the data buffer
  * @return number of bytes written, or 0 if not successful
+ * @note A write that starts more than BACNET_FILE_POSIX_MAX_PAD_BYTES past
+ *  the end of the file fails.
  */
 size_t bacfile_posix_write_stream_data(
     const char *pathname,
@@ -245,6 +247,7 @@ size_t bacfile_posix_write_stream_data(
 {
     size_t bytes_written = 0;
     FILE *pFile = NULL;
+    long size = 0;
 
     if (filename_path_valid(pathname)) {
         if (fileStartPosition == 0) {
@@ -258,6 +261,17 @@ size_t bacfile_posix_write_stream_data(
         } else if (fileStartPosition > 0) {
             /* open for update */
             pFile = fopen(pathname, "rb+");
+            if (pFile) {
+                /* limit the gap, which would be filled with zero bytes */
+                size = (fseek(pFile, 0L, SEEK_END) == 0) ? ftell(pFile) : -1L;
+                if ((size < 0) ||
+                    ((fileStartPosition > size) &&
+                     ((fileStartPosition - size) >
+                      BACNET_FILE_POSIX_MAX_PAD_BYTES))) {
+                    fclose(pFile);
+                    return 0;
+                }
+            }
         }
         if (pFile) {
             if (fileStartPosition != -1) {
