@@ -71,8 +71,7 @@ static void test_file_size_set_no_resize(void)
     /* growing or shrinking to an arbitrary size is rejected unchanged */
     zassert_false(bacfile_posix_file_size_set(test_file, 10U), NULL);
     zassert_equal(bacfile_posix_file_size(test_file), sizeof(data), NULL);
-    zassert_false(
-        bacfile_posix_file_size_set(test_file, (size_t)1 << 40), NULL);
+    zassert_false(bacfile_posix_file_size_set(test_file, SIZE_MAX), NULL);
     zassert_equal(bacfile_posix_file_size(test_file), sizeof(data), NULL);
     zassert_false(bacfile_posix_file_size_set(test_file, 2U), NULL);
     zassert_equal(bacfile_posix_file_size(test_file), sizeof(data), NULL);

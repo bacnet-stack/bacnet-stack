@@ -5,6 +5,7 @@
  * @copyright SPDX-License-Identifier: MIT
  */
 #include <limits.h>
+#include <stdint.h>
 #include <string.h>
 #include <zephyr/ztest.h>
 #include <bacnet/bacstr.h>
@@ -50,7 +51,7 @@ static void test_BRAMFS_stream(void)
         bacfile_ramfs_file_size_set(pathname, sizeof(null_file_data)),
         "Growing the file size should fail");
     zassert_false(
-        bacfile_ramfs_file_size_set(pathname, (size_t)1 << 40),
+        bacfile_ramfs_file_size_set(pathname, SIZE_MAX),
         "Growing the file size should fail");
     zassert_true(
         bacfile_ramfs_file_size_set(pathname, 0),
