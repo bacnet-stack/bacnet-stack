@@ -11,6 +11,7 @@
 #include <string.h>
 #include <zephyr/ztest.h>
 #include <bacnet/bacdef.h>
+#include <bacnet/bacdcode.h>
 #include <bacnet/bactext.h>
 #include <bacnet/basic/sys/platform.h>
 #include <bacnet/lighting.h>
@@ -327,6 +328,35 @@ static void testBACnetLightingCommandBoundsCheck(void)
     }
 }
 
+/**
+ * @brief Test BACnetLightingOperation range validation
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(lighting_tests, testBACnetLightingCommandOperationRange)
+#else
+static void testBACnetLightingCommandOperationRange(void)
+#endif
+{
+    uint8_t apdu[MAX_APDU] = { 0 };
+    BACNET_LIGHTING_COMMAND decoded = { 0 };
+    uint32_t operation;
+    int apdu_len;
+    int decode_len;
+
+    operation = BACNET_LIGHTS_PROPRIETARY_MAX;
+    apdu_len = encode_context_enumerated(apdu, 0, operation);
+    decode_len = lighting_command_decode(apdu, (unsigned)apdu_len, &decoded);
+    zassert_equal(decode_len, apdu_len, NULL);
+    zassert_equal((uint32_t)decoded.operation, operation, NULL);
+
+    decoded.operation = BACNET_LIGHTS_RAMP_TO;
+    operation = BACNET_LIGHTS_PROPRIETARY_MAX + 1;
+    apdu_len = encode_context_enumerated(apdu, 0, operation);
+    decode_len = lighting_command_decode(apdu, (unsigned)apdu_len, &decoded);
+    zassert_equal(decode_len, BACNET_STATUS_ERROR, NULL);
+    zassert_equal(decoded.operation, BACNET_LIGHTS_RAMP_TO, NULL);
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST_SUITE(lighting_tests, NULL, NULL, NULL, NULL, NULL);
 #else
@@ -336,7 +366,8 @@ void test_main(void)
         lighting_tests, ztest_unit_test(testBACnetLightingCommandAll),
         ztest_unit_test(testBACnetColorCommandAll),
         ztest_unit_test(testBACnetXYColor),
-        ztest_unit_test(testBACnetLightingCommandBoundsCheck));
+        ztest_unit_test(testBACnetLightingCommandBoundsCheck),
+        ztest_unit_test(testBACnetLightingCommandOperationRange));
 
     ztest_run_test_suite(lighting_tests);
 }
