@@ -526,6 +526,11 @@ static void test_Channel_Recursive_Write(void)
     member.objectIdentifier.instance = channel_a;
     index = Channel_Reference_List_Member_Element_Add(channel_b, &member);
     zassert_equal(index, 2, NULL);
+    /* a successful member after the BUSY member must not hide the error */
+    member.objectIdentifier.type = OBJECT_ANALOG_OUTPUT;
+    member.objectIdentifier.instance = 2;
+    index = Channel_Reference_List_Member_Element_Add(channel_a, &member);
+    zassert_equal(index, 3, NULL);
 
     wp_data.object_type = OBJECT_CHANNEL;
     wp_data.object_instance = channel_a;
@@ -541,7 +546,7 @@ static void test_Channel_Recursive_Write(void)
     zassert_false(status, NULL);
     zassert_equal(wp_data.error_class, ERROR_CLASS_OBJECT, NULL);
     zassert_equal(wp_data.error_code, ERROR_CODE_BUSY, NULL);
-    zassert_equal(Write_Property_Recursive_Count, 4, NULL);
+    zassert_equal(Write_Property_Recursive_Count, 5, NULL);
     zassert_equal(
         Channel_Write_Status(channel_a), BACNET_WRITE_STATUS_FAILED, NULL);
     zassert_equal(
@@ -570,6 +575,24 @@ static void test_Channel_Recursive_Write(void)
         Channel_Write_Status(channel_a), BACNET_WRITE_STATUS_SUCCESSFUL, NULL);
     zassert_equal(
         Channel_Write_Status(channel_b), BACNET_WRITE_STATUS_SUCCESSFUL, NULL);
+
+    /* a failed member write is reported by Write_Status, not as an error */
+    Write_Property_Recursive_Count = 0;
+    Write_Property_Reject_Non_Channel = true;
+    member.objectIdentifier.type = OBJECT_ANALOG_OUTPUT;
+    member.objectIdentifier.instance = 1;
+    zassert_true(Channel_Delete(channel_b), NULL);
+    zassert_equal(Channel_Create(channel_b), channel_b, NULL);
+    index = Channel_Reference_List_Member_Element_Add(channel_b, &member);
+    zassert_equal(index, 1, NULL);
+    wp_data.object_instance = channel_b;
+    wp_data.error_class = ERROR_CLASS_PROPERTY;
+    wp_data.error_code = ERROR_CODE_OTHER;
+    status = Channel_Write_Property(&wp_data);
+    zassert_true(status, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_SUCCESS, NULL);
+    zassert_equal(
+        Channel_Write_Status(channel_b), BACNET_WRITE_STATUS_FAILED, NULL);
 
     Channel_Write_Property_Internal_Callback_Set(NULL);
     zassert_true(Channel_Delete(channel_a), NULL);

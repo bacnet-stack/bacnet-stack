@@ -853,6 +853,7 @@ static bool Channel_Write_Members(
 {
     BACNET_WRITE_PROPERTY_DATA wp_data = { 0 };
     bool status = false;
+    bool member_busy = false;
     unsigned m = 0;
     const BACNET_DEVICE_OBJECT_PROPERTY_REFERENCE *pMember = NULL;
 
@@ -908,8 +909,8 @@ static bool Channel_Write_Members(
                     }
                     if (!status &&
                         (wp_data.error_class == ERROR_CLASS_OBJECT) &&
-                        (wp_data.error_code == ERROR_CODE_BUSY) && busy) {
-                        *busy = true;
+                        (wp_data.error_code == ERROR_CODE_BUSY)) {
+                        member_busy = true;
                     }
                     debug_log_fprintf(
                         DEBUG_LOG_DEBUG, stderr,
@@ -982,6 +983,13 @@ static bool Channel_Write_Members(
         pObject->Write_Status = BACNET_WRITE_STATUS_SUCCESSFUL;
     }
     pObject->Writeback_Active = false;
+    if (member_busy) {
+        /* a later member must not hide a BUSY error from a previous member */
+        status = false;
+        if (busy) {
+            *busy = true;
+        }
+    }
 
     return status;
 }
@@ -1025,7 +1033,9 @@ bool Channel_Present_Value_Set(
  *
  * @param wp_data - all of the WriteProperty data structure
  * @param value - application value
- * @return true if values are within range and present-value is sent.
+ * @return true if the write request is accepted, even if a member write
+ *  failed (see Write_Status); false with OBJECT/BUSY if a write is already
+ *  in progress, or with a PROPERTY error if priority is invalid.
  */
 static bool Channel_Present_Value_Write(
     BACNET_WRITE_PROPERTY_DATA *wp_data, const BACNET_CHANNEL_VALUE *value)
@@ -1055,12 +1065,12 @@ static bool Channel_Present_Value_Write(
                     } else {
                         if (status) {
                             pObject->Last_Priority = wp_data->priority;
-                            wp_data->error_class = ERROR_CLASS_PROPERTY;
-                            wp_data->error_code = ERROR_CODE_SUCCESS;
-                        } else {
-                            wp_data->error_class = ERROR_CLASS_PROPERTY;
-                            wp_data->error_code = ERROR_CODE_VALUE_OUT_OF_RANGE;
                         }
+                        /* member write or coercion failures are reported
+                           via Write_Status and Reliability, not as an
+                           error to the WriteProperty request */
+                        wp_data->error_class = ERROR_CLASS_PROPERTY;
+                        wp_data->error_code = ERROR_CODE_SUCCESS;
                         status = true;
                     }
                 }
