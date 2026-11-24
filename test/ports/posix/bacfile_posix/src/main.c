@@ -23,6 +23,11 @@ static void test_stream_read_write_append(void)
     const uint8_t data1[] = { 'A', 'B', 'C' };
     const uint8_t data2[] = { 'X', 'Y' };
     const uint8_t data3[] = { 'Z' };
+    /* leave a gap of 2 bytes when the padding limit allows it */
+    const size_t gap = (BACNET_FILE_POSIX_MAX_PAD_BYTES > 2)
+        ? 2
+        : BACNET_FILE_POSIX_MAX_PAD_BYTES;
+    const size_t pos = sizeof(data1) + gap;
     uint8_t buffer[8] = { 0 };
     size_t len = 0;
 
@@ -31,26 +36,31 @@ static void test_stream_read_write_append(void)
     len = bacfile_posix_write_stream_data(test_file, 0, data1, sizeof(data1));
     zassert_equal(len, sizeof(data1), NULL);
 
-    len = bacfile_posix_write_stream_data(test_file, 5, data2, sizeof(data2));
+    len = bacfile_posix_write_stream_data(
+        test_file, (int32_t)pos, data2, sizeof(data2));
     zassert_equal(len, sizeof(data2), NULL);
 
-    zassert_equal(bacfile_posix_file_size(test_file), 7U, NULL);
+    zassert_equal(
+        bacfile_posix_file_size(test_file), pos + sizeof(data2), NULL);
 
     len = bacfile_posix_read_stream_data(test_file, 0, buffer, sizeof(buffer));
-    zassert_equal(len, 7U, NULL);
+    zassert_equal(len, pos + sizeof(data2), NULL);
     zassert_equal(buffer[0], 'A', NULL);
     zassert_equal(buffer[1], 'B', NULL);
     zassert_equal(buffer[2], 'C', NULL);
-    zassert_equal(buffer[5], 'X', NULL);
-    zassert_equal(buffer[6], 'Y', NULL);
+    zassert_equal(buffer[pos], 'X', NULL);
+    zassert_equal(buffer[pos + 1], 'Y', NULL);
 
     len = bacfile_posix_write_stream_data(test_file, -1, data3, sizeof(data3));
     zassert_equal(len, sizeof(data3), NULL);
 
-    zassert_equal(bacfile_posix_file_size(test_file), 8U, NULL);
+    zassert_equal(
+        bacfile_posix_file_size(test_file), pos + sizeof(data2) + sizeof(data3),
+        NULL);
 
     memset(buffer, 0, sizeof(buffer));
-    len = bacfile_posix_read_stream_data(test_file, 7, buffer, 1);
+    len = bacfile_posix_read_stream_data(
+        test_file, (int32_t)(pos + sizeof(data2)), buffer, 1);
     zassert_equal(len, 1U, NULL);
     zassert_equal(buffer[0], 'Z', NULL);
 
@@ -351,7 +361,7 @@ static void test_record_count(void)
 static void test_stream_write_past_end(void)
 {
     const uint8_t data[] = { 'A', 'B', 'C', 'D' };
-    uint8_t buffer[BACNET_FILE_POSIX_MAX_PAD_BYTES] = { 0xFF };
+    uint8_t buffer[BACNET_FILE_POSIX_MAX_PAD_BYTES + sizeof(data)] = { 0xFF };
     size_t len = 0;
     size_t i;
 
@@ -378,9 +388,10 @@ static void test_stream_write_past_end(void)
         bacfile_posix_file_size(test_file),
         2 * sizeof(data) + BACNET_FILE_POSIX_MAX_PAD_BYTES, NULL);
     len = bacfile_posix_read_stream_data(
-        test_file, (int32_t)sizeof(data), buffer, sizeof(buffer));
-    zassert_equal(len, sizeof(buffer), NULL);
-    for (i = 0; i < sizeof(buffer); i++) {
+        test_file, (int32_t)sizeof(data), buffer,
+        BACNET_FILE_POSIX_MAX_PAD_BYTES);
+    zassert_equal(len, BACNET_FILE_POSIX_MAX_PAD_BYTES, NULL);
+    for (i = 0; i != BACNET_FILE_POSIX_MAX_PAD_BYTES; i++) {
         zassert_equal(buffer[i], 0U, NULL);
     }
 
