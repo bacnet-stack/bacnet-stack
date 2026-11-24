@@ -231,6 +231,10 @@ size_t bacfile_ramfs_write_stream_data(
         offset = pFile->size;
     } else {
         /* open for update */
+        if ((uintmax_t)fileStartPosition > (uintmax_t)SIZE_MAX) {
+            /* start position does not fit in size_t (16-bit targets) */
+            return 0;
+        }
         offset = (size_t)fileStartPosition;
         if ((offset > pFile->size) &&
             ((offset - pFile->size) > BACNET_FILE_RAMFS_MAX_PAD_BYTES)) {
