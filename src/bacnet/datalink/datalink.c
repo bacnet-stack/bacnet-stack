@@ -294,6 +294,10 @@ void datalink_get_broadcast_address(BACNET_ADDRESS *dest)
 {
     switch (Datalink_Transport) {
         case DATALINK_NONE:
+            if (dest) {
+                memset(dest, 0, sizeof(BACNET_ADDRESS));
+                dest->net = BACNET_BROADCAST_NETWORK;
+            }
             break;
 #if defined(BACDL_ARCNET)
         case DATALINK_ARCNET:
@@ -339,6 +343,9 @@ void datalink_get_my_address(BACNET_ADDRESS *my_address)
 {
     switch (Datalink_Transport) {
         case DATALINK_NONE:
+            if (my_address) {
+                memset(my_address, 0, sizeof(BACNET_ADDRESS));
+            }
             break;
 #if defined(BACDL_ARCNET)
         case DATALINK_ARCNET:
