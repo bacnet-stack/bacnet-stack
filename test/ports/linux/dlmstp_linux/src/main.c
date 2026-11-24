@@ -170,6 +170,8 @@ static void test_dlmstp_send_pdu_queue_status(void)
     BACNET_NPDU_DATA npdu_data = { 0 };
     uint8_t pdu[4] = { 1, 2, 3, 4 };
     uint8_t oversized_pdu[DLMSTP_MPDU_MAX + 1] = { 0 };
+    uint8_t max_pdu[MAX_PDU] = { 0 };
+    uint8_t over_max_pdu[MAX_PDU + 1] = { 0 };
     unsigned queued = 0;
 
     dlmstp_set_mac_address(200); /* > DEFAULT_MAX_MASTER (127) */
@@ -185,6 +187,19 @@ static void test_dlmstp_send_pdu_queue_status(void)
         0, NULL);
     zassert_true(
         dlmstp_send_pdu_queue_empty(), "oversized PDU must not be queued");
+
+    zassert_equal(
+        dlmstp_send_pdu(&dest, &npdu_data, over_max_pdu, sizeof(over_max_pdu)),
+        0, NULL);
+    zassert_true(
+        dlmstp_send_pdu_queue_empty(),
+        "PDU longer than MAX_PDU must not be queued");
+
+    zassert_equal(
+        dlmstp_send_pdu(&dest, &npdu_data, max_pdu, sizeof(max_pdu)),
+        (int)sizeof(max_pdu), NULL);
+    zassert_false(
+        dlmstp_send_pdu_queue_empty(), "a MAX_PDU length PDU must be accepted");
 
     zassert_equal(
         dlmstp_send_pdu(&dest, &npdu_data, pdu, sizeof(pdu)), sizeof(pdu),
