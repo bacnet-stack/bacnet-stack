@@ -66,21 +66,54 @@ static void routing_table_payload_apply(
     }
 }
 
-uint16_t
-process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff)
+static bool
+append_octet(uint8_t *buffer, size_t capacity, int *offset, uint8_t value)
+{
+    size_t length = (size_t)*offset;
+
+    if ((*offset < 0) || (length >= capacity)) {
+        return false;
+    }
+    buffer[*offset] = value;
+    (*offset)++;
+
+    return true;
+}
+
+static bool append_unsigned_network(
+    uint8_t *buffer, size_t capacity, int *offset, uint16_t value)
+{
+    size_t length = (size_t)*offset;
+
+    if ((*offset < 0) || (length > capacity) || ((capacity - length) < 2)) {
+        return false;
+    }
+    *offset += encode_unsigned16(&buffer[*offset], value);
+
+    return true;
+}
+
+int process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff)
 {
     BACNET_NPDU_DATA npdu_data;
     ROUTER_PORT *srcport;
     ROUTER_PORT *destport;
     uint16_t net;
     uint8_t error_code;
-    int16_t buff_len = 0;
+    int buff_len = 0;
     int apdu_offset;
     int apdu_len;
     int net_count;
     int i;
 
+    if (!msg || !msg->data || !data || !buff) {
+        return -2;
+    }
+    *buff = NULL;
     memmove(data, msg->data, sizeof(MSG_DATA));
+    if (!data->pdu || (data->pdu_len == 0)) {
+        return -2;
+    }
 
     apdu_offset = bacnet_npdu_decode(
         data->pdu, data->pdu_len, &data->dest, NULL, &npdu_data);
@@ -95,6 +128,10 @@ process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff)
     }
 
     srcport = find_snet(msg->origin);
+    if (!srcport) {
+        PRINT(ERROR, "Error: Unknown source port\n");
+        return -2;
+    }
     data->src.net = srcport->route_info.net;
 
     switch (npdu_data.network_message_type) {
@@ -249,93 +286,153 @@ bool is_network_msg(const BACMSG *msg)
     return control_byte & 0x80; /* check 7th bit */
 }
 
-uint16_t create_network_message(
+int create_network_message(
     BACNET_NETWORK_MESSAGE_TYPE network_message_type,
     MSG_DATA *data,
     uint8_t **buff,
     void *val)
 {
-    int16_t buff_len;
+    const size_t buffer_size = MAX_PDU;
+    int buff_len;
+    int npdu_len;
     bool data_expecting_reply = false;
     BACNET_NPDU_DATA npdu_data;
 
+    if (!data || !buff) {
+        return -1;
+    }
+    *buff = NULL;
     if (network_message_type == NETWORK_MESSAGE_INIT_RT_TABLE) {
         data_expecting_reply = true;
     }
     init_npdu(&npdu_data, network_message_type, data_expecting_reply);
 
-    *buff = (uint8_t *)malloc(128); /* resolve different length */
-
     /* manual destination setup for Init-RT-Table-Ack message */
     data->dest.net = BACNET_BROADCAST_NETWORK;
+    npdu_len = npdu_encode_pdu(NULL, &data->dest, NULL, &npdu_data);
+    if ((npdu_len <= 0) || ((size_t)npdu_len > buffer_size)) {
+        return -1;
+    }
+    *buff = (uint8_t *)malloc(buffer_size);
+    if (!*buff) {
+        PRINT(ERROR, "Error: Could not allocate network message\n");
+        return -1;
+    }
     buff_len = npdu_encode_pdu(*buff, &data->dest, NULL, &npdu_data);
+    if (buff_len != npdu_len) {
+        free(*buff);
+        *buff = NULL;
+        return -1;
+    }
 
     switch (network_message_type) {
         case NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK:
             if (val != NULL) {
-                uint8_t *valptr = (uint8_t *)val;
-                uint16_t val16 = (valptr[0]) + (valptr[1] << 8);
-                buff_len += encode_unsigned16(*buff + buff_len, val16);
+                uint16_t val16;
+                memmove(&val16, val, sizeof(val16));
+                if (!append_unsigned_network(
+                        *buff, buffer_size, &buff_len, val16)) {
+                    free(*buff);
+                    *buff = NULL;
+                    return -1;
+                }
             }
             break;
 
         case NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK:
             if (val != NULL) {
-                uint8_t *valptr = (uint8_t *)val;
-                uint16_t val16 = (valptr[0]) + (valptr[1] << 8);
-                buff_len += encode_unsigned16(*buff + buff_len, val16);
+                uint16_t val16;
+                memmove(&val16, val, sizeof(val16));
+                if (!append_unsigned_network(
+                        *buff, buffer_size, &buff_len, val16)) {
+                    free(*buff);
+                    *buff = NULL;
+                    return -1;
+                }
             } else {
                 ROUTER_PORT *port = head;
                 DNET *dnet;
+                bool buffer_full = false;
                 while (port != NULL) {
+                    expire_dnets(&port->route_info);
                     if (port->route_info.net != data->src.net) {
-                        buff_len += encode_unsigned16(
-                            *buff + buff_len, port->route_info.net);
-                        dnet = port->route_info.dnets;
-                        while (dnet != NULL) {
-                            buff_len +=
-                                encode_unsigned16(*buff + buff_len, dnet->net);
-                            dnet = dnet->next;
+                        if (!append_unsigned_network(
+                                *buff, buffer_size, &buff_len,
+                                port->route_info.net)) {
+                            buffer_full = true;
                         }
-                        port = port->next;
-                    } else {
-                        dnet = port->route_info.dnets;
-                        while (dnet != NULL) {
-                            buff_len +=
-                                encode_unsigned16(*buff + buff_len, dnet->net);
-                            dnet = dnet->next;
-                        }
-                        port = port->next;
                     }
+                    dnet = port->route_info.dnets;
+                    while (!buffer_full && (dnet != NULL)) {
+                        if (!append_unsigned_network(
+                                *buff, buffer_size, &buff_len, dnet->net)) {
+                            buffer_full = true;
+                            break;
+                        }
+                        dnet = dnet->next;
+                    }
+                    if (buffer_full) {
+                        PRINT(
+                            ERROR, "Error: I-Am-Router-To-Network truncated\n");
+                        break;
+                    }
+                    port = port->next;
                 }
             }
             break;
 
         case NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK: {
-            uint8_t *valptr = (uint8_t *)val;
-            uint16_t val16 = (valptr[0]) + (valptr[1] << 8);
-            buff_len += encode_unsigned16(*buff + buff_len, val16);
+            uint16_t val16;
+            if (!val) {
+                free(*buff);
+                *buff = NULL;
+                return -1;
+            }
+            memmove(&val16, val, sizeof(val16));
+            if (!append_unsigned_network(
+                    *buff, buffer_size, &buff_len, val16)) {
+                free(*buff);
+                *buff = NULL;
+                return -1;
+            }
             break;
         }
         case NETWORK_MESSAGE_INIT_RT_TABLE:
         case NETWORK_MESSAGE_INIT_RT_TABLE_ACK:
             if ((uint8_t *)val) {
-                (*buff)[buff_len++] = (uint8_t)port_count;
+                ROUTER_PORT *port = head;
+                int count_offset = buff_len;
+                uint8_t count = 0;
 
-                if (port_count > 0) {
-                    ROUTER_PORT *port = head;
-                    uint8_t portID = 1;
-
-                    while (port != NULL) {
-                        buff_len += encode_unsigned16(
-                            *buff + buff_len, port->route_info.net);
-                        (*buff)[buff_len++] = portID++;
-                        (*buff)[buff_len++] = 0;
-                        port = port->next;
-                    }
+                if (!append_octet(*buff, buffer_size, &buff_len, 0)) {
+                    free(*buff);
+                    *buff = NULL;
+                    return -1;
                 }
+                while ((port != NULL) && (count < UINT8_MAX)) {
+                    if ((size_t)(buffer_size - (size_t)buff_len) < 4) {
+                        break;
+                    }
+                    if (!append_unsigned_network(
+                            *buff, buffer_size, &buff_len,
+                            port->route_info.net) ||
+                        !append_octet(
+                            *buff, buffer_size, &buff_len, count + 1) ||
+                        !append_octet(*buff, buffer_size, &buff_len, 0)) {
+                        free(*buff);
+                        *buff = NULL;
+                        return -1;
+                    }
+                    count++;
+                    port = port->next;
+                }
+                (*buff)[count_offset] = count;
             } else {
-                (*buff)[buff_len++] = (uint8_t)0;
+                if (!append_octet(*buff, buffer_size, &buff_len, 0)) {
+                    free(*buff);
+                    *buff = NULL;
+                    return -1;
+                }
             }
             break;
 
@@ -375,15 +472,31 @@ void send_network_message(
 {
     BACMSG msg;
     ROUTER_PORT *port = head;
-    int16_t buff_len;
+    int buff_len;
+    bool allocated_data = false;
 
+    if (!buff) {
+        return;
+    }
+    *buff = NULL;
     if (!data) {
         data = (MSG_DATA *)malloc(sizeof(MSG_DATA));
+        if (!data) {
+            PRINT(ERROR, "Error: Could not allocate network message data\n");
+            return;
+        }
+        allocated_data = true;
         data->dest.net = BACNET_BROADCAST_NETWORK;
         data->dest.len = 0;
     }
 
     buff_len = create_network_message(network_message_type, data, buff, val);
+    if (buff_len <= 0) {
+        if (allocated_data) {
+            free(data);
+        }
+        return;
+    }
 
     /* form network message */
     data->pdu = *buff;

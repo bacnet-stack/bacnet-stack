@@ -13,6 +13,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <pthread.h>
 /* BACnet Stack defines - first */
 #include "bacnet/bacdef.h"
@@ -24,6 +25,14 @@
 #define ERROR 1
 #define INFO 2
 #define DEBUG 3
+
+#ifndef ROUTER_DNET_MAX_COUNT
+#define ROUTER_DNET_MAX_COUNT 256U
+#endif
+
+#ifndef ROUTER_DNET_MAX_AGE_MS
+#define ROUTER_DNET_MAX_AGE_MS (10UL * 60UL * 1000UL)
+#endif
 
 /* #define DEBUG_LEVEL 3 */
 #ifdef DEBUG_LEVEL
@@ -64,6 +73,7 @@ typedef struct _dnet {
     uint8_t mac_len;
     uint16_t net;
     bool state; /* enabled or disabled */
+    unsigned long last_seen_ms;
     struct _dnet *next;
 } DNET;
 
@@ -73,6 +83,7 @@ typedef struct _routing_table_entry {
     uint8_t mac_len;
     uint16_t net;
     DNET *dnets;
+    size_t dnet_count;
 } RT_ENTRY;
 
 typedef struct _port {
@@ -97,7 +108,10 @@ ROUTER_PORT *find_snet(MSGBOX_ID id);
 ROUTER_PORT *find_dnet(uint16_t net, BACNET_ADDRESS *addr);
 
 /* add reacheble network for specified router port */
-void add_dnet(RT_ENTRY *route_info, uint16_t net, BACNET_ADDRESS addr);
+bool add_dnet(RT_ENTRY *route_info, uint16_t net, BACNET_ADDRESS addr);
+
+/* remove route entries that have not been updated recently */
+void expire_dnets(RT_ENTRY *route_info);
 
 void cleanup_dnets(DNET *dnets);
 

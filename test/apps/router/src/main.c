@@ -10,6 +10,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include "network_layer.h"
+#include "bacnet/basic/sys/mstimer.h"
 /* the router PRINT macro conflicts with the one from ztest */
 #undef PRINT
 #include <zephyr/ztest.h>
@@ -18,33 +19,56 @@
 ROUTER_PORT *head;
 int port_count;
 
-/* routing table calls captured by the stubs below */
-#define ADDED_MAX 8
-static uint16_t Added_Net[ADDED_MAX];
-static int Added_Count;
 static ROUTER_PORT Test_Port;
 
-ROUTER_PORT *find_snet(MSGBOX_ID id)
+static void reset_routes(void)
 {
-    (void)id;
-    return &Test_Port;
+    cleanup_dnets(Test_Port.route_info.dnets);
+    memset(&Test_Port, 0, sizeof(Test_Port));
+    Test_Port.route_info.net = 1;
+    head = &Test_Port;
 }
 
-ROUTER_PORT *find_dnet(uint16_t net, BACNET_ADDRESS *addr)
+static uint16_t added_net(size_t index)
 {
-    (void)net;
-    (void)addr;
-    return NULL;
-}
+    DNET *dnet = Test_Port.route_info.dnets;
 
-void add_dnet(RT_ENTRY *route_info, uint16_t net, BACNET_ADDRESS addr)
-{
-    (void)route_info;
-    (void)addr;
-    if (Added_Count < ADDED_MAX) {
-        Added_Net[Added_Count] = net;
+    while ((index > 0) && (dnet != NULL)) {
+        dnet = dnet->next;
+        index--;
     }
-    Added_Count++;
+
+    return dnet ? dnet->net : 0;
+}
+
+static void add_test_dnets(size_t count)
+{
+    BACNET_ADDRESS addr = { 0 };
+    size_t i;
+
+    for (i = 0; i < count; i++) {
+        zassert_true(
+            add_dnet(&Test_Port.route_info, (uint16_t)(i + 2), addr),
+            "failed to add test DNET %u", (unsigned)i);
+    }
+}
+
+static void add_unbounded_test_dnets(size_t count)
+{
+    DNET **link = &Test_Port.route_info.dnets;
+    DNET *dnet;
+    size_t i;
+    unsigned long now = mstimer_now();
+
+    for (i = 0; i < count; i++) {
+        dnet = (DNET *)calloc(1, sizeof(DNET));
+        zassert_not_null(dnet, NULL);
+        dnet->net = (uint16_t)(i + 2);
+        dnet->last_seen_ms = now;
+        *link = dnet;
+        link = &dnet->next;
+    }
+    Test_Port.route_info.dnet_count = count;
 }
 
 /**
@@ -79,8 +103,7 @@ static int run(const uint8_t *pdu, size_t len, uint16_t *dest_net)
     msg.type = DATA;
     msg.data = &rx;
 
-    Added_Count = 0;
-    rc = (int16_t)process_network_message(&msg, &work, &buff);
+    rc = process_network_message(&msg, &work, &buff);
     if (dest_net) {
         *dest_net = work.dest.net;
     }
@@ -103,6 +126,7 @@ static void test_Who_Is_Router(void)
     const uint8_t net[] = { 1, 0x80, 0, 0x01, 0x02 };
     uint16_t dest_net = 0;
 
+    reset_routes();
     zassert_true(run(no_net, sizeof(no_net), NULL) > 0, NULL);
     zassert_equal(run(short_net, sizeof(short_net), NULL), -2, NULL);
     /* unknown network: router starts a search for it */
@@ -118,9 +142,10 @@ static void test_I_Am_Router(void)
 {
     const uint8_t odd[] = { 1, 0x80, 1, 0x00, 0x05, 0x00 };
 
+    reset_routes();
     zassert_equal(run(odd, sizeof(odd), NULL), 0, NULL);
-    zassert_equal(Added_Count, 1, NULL);
-    zassert_equal(Added_Net[0], 5, NULL);
+    zassert_equal(Test_Port.route_info.dnet_count, 1, NULL);
+    zassert_equal(added_net(0), 5, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -132,6 +157,7 @@ static void test_Reject_Message(void)
     const uint8_t empty[] = { 1, 0x80, 3 };
     const uint8_t reason[] = { 1, 0x80, 3, 1 };
 
+    reset_routes();
     zassert_equal(run(empty, sizeof(empty), NULL), -2, NULL);
     zassert_equal(run(reason, sizeof(reason), NULL), 0, NULL);
 }
@@ -153,19 +179,20 @@ static void test_Init_Routing_Table(void)
     };
     const uint8_t cut_info[] = { 1, 0x80, 6, 1, 0x00, 0x05, 1, 3, 0xAA };
 
+    reset_routes();
     zassert_true(run(query, sizeof(query), NULL) > 0, NULL);
-    zassert_equal(Added_Count, 0, NULL);
+    zassert_equal(Test_Port.route_info.dnet_count, 0, NULL);
     zassert_equal(run(no_count, sizeof(no_count), NULL), -2, NULL);
     zassert_equal(run(too_many, sizeof(too_many), NULL), -2, NULL);
     zassert_true(run(two, sizeof(two), NULL) > 0, NULL);
-    zassert_equal(Added_Count, 2, NULL);
-    zassert_equal(Added_Net[0], 5, NULL);
-    zassert_equal(Added_Net[1], 0x0100, NULL);
+    zassert_equal(Test_Port.route_info.dnet_count, 2, NULL);
+    zassert_equal(added_net(0), 5, NULL);
+    zassert_equal(added_net(1), 0x0100, NULL);
     /* a truncated table is rejected without adding any entry */
     zassert_equal(run(cut_entry, sizeof(cut_entry), NULL), -2, NULL);
-    zassert_equal(Added_Count, 0, NULL);
+    zassert_equal(Test_Port.route_info.dnet_count, 2, NULL);
     zassert_equal(run(cut_info, sizeof(cut_info), NULL), -2, NULL);
-    zassert_equal(Added_Count, 0, NULL);
+    zassert_equal(Test_Port.route_info.dnet_count, 2, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -179,13 +206,109 @@ static void test_Init_Routing_Table_Ack(void)
     const uint8_t one[] = { 1, 0x80, 7, 1, 0x00, 0x09, 1, 0 };
     const uint8_t cut_info[] = { 1, 0x80, 7, 1, 0x00, 0x09, 1, 3, 0xAA };
 
+    reset_routes();
     zassert_equal(run(no_count, sizeof(no_count), NULL), -2, NULL);
     zassert_equal(run(too_many, sizeof(too_many), NULL), -2, NULL);
     zassert_equal(run(one, sizeof(one), NULL), 0, NULL);
-    zassert_equal(Added_Count, 1, NULL);
-    zassert_equal(Added_Net[0], 9, NULL);
+    zassert_equal(Test_Port.route_info.dnet_count, 1, NULL);
+    zassert_equal(added_net(0), 9, NULL);
     zassert_equal(run(cut_info, sizeof(cut_info), NULL), -2, NULL);
-    zassert_equal(Added_Count, 0, NULL);
+    zassert_equal(Test_Port.route_info.dnet_count, 1, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(router_tests, test_I_Am_Router_Response_Bounds)
+#else
+static void test_I_Am_Router_Response_Bounds(void)
+#endif
+{
+    const uint8_t request[] = { 1, 0xA0, 0, 100, 7, 1, 2, 3, 4, 5, 6, 7, 1, 0 };
+    MSG_DATA data = { 0 };
+    uint8_t *buff = NULL;
+    int len;
+    size_t max_routes = (MAX_PDU - 14) / 2;
+
+    data.src.net = 1;
+    data.dest.net = BACNET_BROADCAST_NETWORK;
+    data.dest.len = 7;
+
+    reset_routes();
+    len = create_network_message(
+        NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK, &data, &buff, NULL);
+    zassert_equal(len, 14, NULL);
+    free(buff);
+
+    add_test_dnets(57);
+    len = create_network_message(
+        NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK, &data, &buff, NULL);
+    zassert_equal(len, 128, NULL);
+    free(buff);
+
+    reset_routes();
+    add_test_dnets(58);
+    len = run(request, sizeof(request), NULL);
+    zassert_equal(len, 130, NULL);
+
+    reset_routes();
+    add_unbounded_test_dnets(max_routes);
+    len = create_network_message(
+        NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK, &data, &buff, NULL);
+    zassert_equal(len, (int)MAX_PDU, NULL);
+    free(buff);
+
+    reset_routes();
+    add_unbounded_test_dnets(max_routes + 1);
+    len = create_network_message(
+        NETWORK_MESSAGE_I_AM_ROUTER_TO_NETWORK, &data, &buff, NULL);
+    zassert_equal(len, (int)MAX_PDU, NULL);
+    free(buff);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(router_tests, test_DNET_Limit_Update_And_Expiry)
+#else
+static void test_DNET_Limit_Update_And_Expiry(void)
+#endif
+{
+    BACNET_ADDRESS addr = { 0 };
+    DNET *dnet;
+    size_t i;
+
+    reset_routes();
+    addr.len = 1;
+    addr.adr[0] = 10;
+    zassert_true(add_dnet(&Test_Port.route_info, 100, addr), NULL);
+    addr.adr[0] = 20;
+    zassert_true(add_dnet(&Test_Port.route_info, 100, addr), NULL);
+    zassert_equal(Test_Port.route_info.dnet_count, 1, NULL);
+    zassert_equal(Test_Port.route_info.dnets->mac[0], 20, NULL);
+
+    Test_Port.route_info.dnets->last_seen_ms =
+        mstimer_now() - ROUTER_DNET_MAX_AGE_MS - 1;
+    expire_dnets(&Test_Port.route_info);
+    zassert_is_null(Test_Port.route_info.dnets, NULL);
+    zassert_equal(Test_Port.route_info.dnet_count, 0, NULL);
+
+    for (i = 0; i < ROUTER_DNET_MAX_COUNT; i++) {
+        zassert_true(
+            add_dnet(&Test_Port.route_info, (uint16_t)(1000 + i), addr), NULL);
+    }
+    zassert_false(
+        add_dnet(
+            &Test_Port.route_info, (uint16_t)(1000 + ROUTER_DNET_MAX_COUNT),
+            addr),
+        NULL);
+    zassert_equal(Test_Port.route_info.dnet_count, ROUTER_DNET_MAX_COUNT, NULL);
+
+    dnet = Test_Port.route_info.dnets;
+    zassert_not_null(dnet, NULL);
+    dnet->last_seen_ms = mstimer_now() - ROUTER_DNET_MAX_AGE_MS - 1;
+    zassert_true(
+        add_dnet(
+            &Test_Port.route_info, (uint16_t)(1000 + ROUTER_DNET_MAX_COUNT),
+            addr),
+        NULL);
+    zassert_equal(Test_Port.route_info.dnet_count, ROUTER_DNET_MAX_COUNT, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -199,6 +322,7 @@ static void test_Malformed_Npdu(void)
     /* too short to hold the control octet */
     const uint8_t one[] = { 1 };
 
+    reset_routes();
     zassert_equal(run(dlen, sizeof(dlen), NULL), -2, NULL);
     zassert_equal(run(one, sizeof(one), NULL), -2, NULL);
 }
@@ -237,6 +361,8 @@ void test_main(void)
         ztest_unit_test(test_I_Am_Router), ztest_unit_test(test_Reject_Message),
         ztest_unit_test(test_Init_Routing_Table),
         ztest_unit_test(test_Init_Routing_Table_Ack),
+        ztest_unit_test(test_I_Am_Router_Response_Bounds),
+        ztest_unit_test(test_DNET_Limit_Update_And_Expiry),
         ztest_unit_test(test_Malformed_Npdu),
         ztest_unit_test(test_Is_Network_Msg));
 
