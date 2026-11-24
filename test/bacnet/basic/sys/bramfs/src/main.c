@@ -105,8 +105,10 @@ static void test_BRAMFS_stream(void)
     file_size = bacfile_ramfs_file_size(NULL);
     zassert_equal(file_size, 0, "File size should be 0 on a null pathname");
 
-    /* append data to the end of the file */
-    fileStartPosition = 5;
+    /* write past the end of the empty file, within the allowed padding */
+    fileStartPosition = (BACNET_FILE_RAMFS_MAX_PAD_BYTES > 5)
+        ? 5
+        : BACNET_FILE_RAMFS_MAX_PAD_BYTES;
     file_size = bacfile_ramfs_write_stream_data(
         pathname, fileStartPosition, file_data, sizeof(file_data));
     zassert_equal(file_size, sizeof(file_data), "file_size=%zu", file_size);
@@ -421,7 +423,7 @@ static void test_BRAMFS_write_stream_past_end(void)
         pathname, (int32_t)sizeof(data), buffer,
         BACNET_FILE_RAMFS_MAX_PAD_BYTES);
     zassert_equal(len, BACNET_FILE_RAMFS_MAX_PAD_BYTES, NULL);
-    for (i = 0; i < BACNET_FILE_RAMFS_MAX_PAD_BYTES; i++) {
+    for (i = 0; i != BACNET_FILE_RAMFS_MAX_PAD_BYTES; i++) {
         zassert_equal(buffer[i], 0, "padding byte %zu not zero", i);
     }
     /* an empty write leaves an empty file, and the file is still usable */
