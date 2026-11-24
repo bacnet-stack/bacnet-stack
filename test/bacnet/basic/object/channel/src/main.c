@@ -552,25 +552,22 @@ static void test_Channel_Recursive_Write(void)
     zassert_equal(
         Channel_Write_Status(channel_b), BACNET_WRITE_STATUS_FAILED, NULL);
 
-    zassert_true(Channel_Delete(channel_a), NULL);
-    zassert_true(Channel_Delete(channel_b), NULL);
-    zassert_equal(Channel_Create(channel_a), channel_a, NULL);
-    zassert_equal(Channel_Create(channel_b), channel_b, NULL);
+    /* break the B->A reference in place and retry with the same objects:
+       the Writeback_Active guards must have been cleared by the failure */
     Write_Property_Recursive_Count = 0;
     Write_Property_Reject_Non_Channel = false;
-
-    member.objectIdentifier.type = OBJECT_CHANNEL;
-    member.objectIdentifier.instance = channel_b;
-    index = Channel_Reference_List_Member_Element_Add(channel_a, &member);
-    zassert_equal(index, 1, NULL);
     member.objectIdentifier.type = OBJECT_ANALOG_OUTPUT;
-    member.objectIdentifier.instance = 1;
-    index = Channel_Reference_List_Member_Element_Add(channel_b, &member);
-    zassert_equal(index, 1, NULL);
+    member.objectIdentifier.instance = 3;
+    status = Channel_Reference_List_Member_Element_Set(channel_b, 2, &member);
+    zassert_true(status, NULL);
 
+    wp_data.error_class = ERROR_CLASS_PROPERTY;
+    wp_data.error_code = ERROR_CODE_OTHER;
     status = Channel_Write_Property(&wp_data);
     zassert_true(status, NULL);
-    zassert_equal(Write_Property_Recursive_Count, 2, NULL);
+    zassert_equal(wp_data.error_code, ERROR_CODE_SUCCESS, NULL);
+    /* A: AO1, B (B: AO1, AO3), AO2 */
+    zassert_equal(Write_Property_Recursive_Count, 5, NULL);
     zassert_equal(
         Channel_Write_Status(channel_a), BACNET_WRITE_STATUS_SUCCESSFUL, NULL);
     zassert_equal(
