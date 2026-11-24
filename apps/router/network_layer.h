@@ -24,11 +24,12 @@
 #include "bacport.h"
 #include "portthread.h"
 
-int process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff);
+uint16_t
+process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff);
 
 bool is_network_msg(const BACMSG *msg);
 
-int create_network_message(
+uint16_t create_network_message(
     BACNET_NETWORK_MESSAGE_TYPE network_message_type,
     MSG_DATA *data,
     uint8_t **buff,

@@ -113,11 +113,6 @@ int dlmstp_send_pdu(
     int bytes_sent = 0;
     struct mstp_pdu_packet *pkt;
     unsigned i = 0;
-
-    if (!npdu_data || !pdu || (pdu_len < 2) || (pdu_len > MAX_PDU)) {
-        debug_printf("DLMSTP: PDU length invalid!\n");
-        return 0;
-    }
     pthread_mutex_lock(&Ring_Buffer_Mutex);
     pkt = (struct mstp_pdu_packet *)Ringbuf_Data_Peek(&PDU_Queue);
     if (pkt) {

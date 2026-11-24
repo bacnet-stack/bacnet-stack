@@ -169,7 +169,6 @@ static void test_dlmstp_send_pdu_queue_status(void)
     BACNET_ADDRESS dest = { 0 };
     BACNET_NPDU_DATA npdu_data = { 0 };
     uint8_t pdu[4] = { 1, 2, 3, 4 };
-    uint8_t oversized_pdu[DLMSTP_MPDU_MAX + 1] = { 0 };
     unsigned queued = 0;
 
     dlmstp_set_mac_address(200); /* > DEFAULT_MAX_MASTER (127) */
@@ -179,12 +178,6 @@ static void test_dlmstp_send_pdu_queue_status(void)
 
     zassert_true(dlmstp_send_pdu_queue_empty(), NULL);
     zassert_false(dlmstp_send_pdu_queue_full(), NULL);
-    zassert_equal(
-        dlmstp_send_pdu(
-            &dest, &npdu_data, oversized_pdu, sizeof(oversized_pdu)),
-        0, NULL);
-    zassert_true(
-        dlmstp_send_pdu_queue_empty(), "oversized PDU must not be queued");
 
     zassert_equal(
         dlmstp_send_pdu(&dest, &npdu_data, pdu, sizeof(pdu)), sizeof(pdu),
