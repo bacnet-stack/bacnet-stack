@@ -451,6 +451,41 @@ static void test_BRAMFS_write_stream_past_end(void)
 }
 
 /**
+ * @brief Unit Test for overflowing stream write sizes
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bramfs_tests, test_BRAMFS_stream_write_size_overflow)
+#else
+static void test_BRAMFS_stream_write_size_overflow(void)
+#endif
+{
+    const char *pathname = "testfile_write_size_overflow.txt";
+    const uint8_t original_data[] = { 'A', 'B', 'C', 'D' };
+    const uint8_t new_data = 'X';
+    uint8_t buffer[sizeof(original_data)] = { 0 };
+    size_t len = 0;
+
+    bacfile_ramfs_init();
+    len = bacfile_ramfs_write_stream_data(
+        pathname, 0, original_data, sizeof(original_data));
+    zassert_equal(len, sizeof(original_data), NULL);
+
+    len = bacfile_ramfs_write_stream_data(pathname, -1, &new_data, SIZE_MAX);
+    zassert_equal(len, 0, NULL);
+    len = bacfile_ramfs_write_stream_data(pathname, 1, &new_data, SIZE_MAX);
+    zassert_equal(len, 0, NULL);
+
+    zassert_equal(
+        bacfile_ramfs_file_size(pathname), sizeof(original_data), NULL);
+    len = bacfile_ramfs_read_stream_data(pathname, 0, buffer, sizeof(buffer));
+    zassert_equal(len, sizeof(original_data), NULL);
+    zassert_equal(
+        memcmp(buffer, original_data, sizeof(original_data)), 0, NULL);
+
+    bacfile_ramfs_deinit();
+}
+
+/**
  * @brief Unit Test for stream allocation failures
  */
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -465,6 +500,7 @@ static void test_BRAMFS_stream_allocation_failure(void)
     uint8_t buffer[sizeof(new_data)] = { 0 };
     size_t len = 0;
 
+    Realloc_Failure_Count = 0;
     bacfile_ramfs_init();
     len = bacfile_ramfs_write_stream_data(
         pathname, 0, original_data, sizeof(original_data));
@@ -684,6 +720,7 @@ void test_main(void)
         ztest_unit_test(test_BRAMFS_invalid_record_positions),
         ztest_unit_test(test_BRAMFS_consecutive_appends),
         ztest_unit_test(test_BRAMFS_record_replace_shorter),
+        ztest_unit_test(test_BRAMFS_stream_write_size_overflow),
         ztest_unit_test(test_BRAMFS_stream_allocation_failure));
 
     ztest_run_test_suite(bramfs_tests);
