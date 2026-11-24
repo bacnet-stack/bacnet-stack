@@ -123,6 +123,36 @@ int dlmstp_send_pdu(
 }
 
 /**
+ * @brief Determine if the send PDU queue is empty
+ * @return true if the send PDU queue is empty
+ */
+bool dlmstp_send_pdu_queue_empty(void)
+{
+    bool status;
+
+    WaitForSingleObject(Ring_Buffer_Mutex, INFINITE);
+    status = Ringbuf_Empty(&PDU_Queue);
+    ReleaseMutex(Ring_Buffer_Mutex);
+
+    return status;
+}
+
+/**
+ * @brief Determine if the send PDU queue is full
+ * @return true if the send PDU queue is full
+ */
+bool dlmstp_send_pdu_queue_full(void)
+{
+    bool status;
+
+    WaitForSingleObject(Ring_Buffer_Mutex, INFINITE);
+    status = Ringbuf_Full(&PDU_Queue);
+    ReleaseMutex(Ring_Buffer_Mutex);
+
+    return status;
+}
+
+/**
  * @brief The MS/TP state machine uses this function for getting data to send
  * @param mstp_port - specific MSTP port that is used for this datalink
  * @param timeout - number of milliseconds to wait for the data
@@ -172,7 +202,9 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
     struct mstp_pdu_packet *pkt;
 
     (void)timeout;
+    WaitForSingleObject(Ring_Buffer_Mutex, INFINITE);
     if (Ringbuf_Empty(&PDU_Queue)) {
+        ReleaseMutex(Ring_Buffer_Mutex);
         return 0;
     }
     pkt = (struct mstp_pdu_packet *)Ringbuf_Peek(&PDU_Queue);
@@ -182,6 +214,7 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
         mstp_port->SourceAddress, (uint8_t *)&pkt->buffer[0], pkt->length,
         pkt->destination_mac);
     if (!matched) {
+        ReleaseMutex(Ring_Buffer_Mutex);
         return 0;
     }
     if (pkt->data_expecting_reply) {
@@ -196,6 +229,7 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
         mstp_port->This_Station, (uint8_t *)&pkt->buffer[0], pkt->length);
     DLMSTP_Statistics.transmit_pdu_counter++;
     (void)Ringbuf_Pop(&PDU_Queue, NULL);
+    ReleaseMutex(Ring_Buffer_Mutex);
 
     return pdu_len;
 }

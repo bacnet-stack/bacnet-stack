@@ -6,6 +6,7 @@
  * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
+#include <process.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -26,7 +27,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define STRICT 1
 #include <windows.h>
-#include <MMSystem.h> /* for multimedia timers */
+#include <mmsystem.h> /* for multimedia timers */
 
 /* Number of MS/TP Packets Rx/Tx */
 uint16_t MSTP_Packets = 0;
@@ -37,6 +38,7 @@ static HANDLE Receive_Packet_Flag;
 /* mechanism to wait for a frame in state machine */
 HANDLE Received_Frame_Flag;
 static DLMSTP_PACKET Transmit_Packet;
+static HANDLE Transmit_Packet_Mutex;
 /* local MS/TP port data - shared with RS-485 */
 static struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
@@ -48,7 +50,7 @@ static uint32_t TimeBeginPeriod;
 /* 1-millisecond target resolution */
 #define TARGET_RESOLUTION 1
 
-static uint16_t Timer_Silence(void *arg)
+static uint32_t Timer_Silence(void *arg)
 {
     uint32_t now = timeGetTime();
     uint32_t delta_time = 0;
@@ -91,6 +93,9 @@ void dlmstp_cleanup(void)
     if (Receive_Packet_Flag) {
         CloseHandle(Receive_Packet_Flag);
     }
+    if (Transmit_Packet_Mutex) {
+        CloseHandle(Transmit_Packet_Mutex);
+    }
 }
 
 /* returns number of bytes sent on success, zero on failure */
@@ -103,6 +108,7 @@ int dlmstp_send_pdu(
     int bytes_sent = 0;
     unsigned i = 0;
 
+    WaitForSingleObject(Transmit_Packet_Mutex, INFINITE);
     if (!Transmit_Packet.ready) {
         if (npdu_data->data_expecting_reply) {
             Transmit_Packet.frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
@@ -118,8 +124,39 @@ int dlmstp_send_pdu(
         bytes_sent = pdu_len + DLMSTP_HEADER_MAX;
         Transmit_Packet.ready = true;
     }
+    ReleaseMutex(Transmit_Packet_Mutex);
 
     return bytes_sent;
+}
+
+/**
+ * @brief Determine if the send PDU queue is empty
+ * @return true if the send PDU queue is empty
+ */
+bool dlmstp_send_pdu_queue_empty(void)
+{
+    bool status;
+
+    WaitForSingleObject(Transmit_Packet_Mutex, INFINITE);
+    status = !Transmit_Packet.ready;
+    ReleaseMutex(Transmit_Packet_Mutex);
+
+    return status;
+}
+
+/**
+ * @brief Determine if the send PDU queue is full
+ * @return true if the send PDU queue is full
+ */
+bool dlmstp_send_pdu_queue_full(void)
+{
+    bool status;
+
+    WaitForSingleObject(Transmit_Packet_Mutex, INFINITE);
+    status = Transmit_Packet.ready;
+    ReleaseMutex(Transmit_Packet_Mutex);
+
+    return status;
 }
 
 uint16_t dlmstp_receive(
@@ -196,10 +233,10 @@ static void dlmstp_master_fsm_task(void *pArg)
                 dwMilliseconds = Tno_token;
                 break;
             case MSTP_MASTER_STATE_WAIT_FOR_REPLY:
-                dwMilliseconds = Treply_timeout;
+                dwMilliseconds = MSTP_Port.Treply_timeout;
                 break;
             case MSTP_MASTER_STATE_POLL_FOR_MASTER:
-                dwMilliseconds = Tusage_timeout;
+                dwMilliseconds = MSTP_Port.Tusage_timeout;
                 break;
             default:
                 dwMilliseconds = 0;
@@ -268,7 +305,9 @@ uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
     uint8_t destination = 0; /* destination address */
 
     (void)timeout;
+    WaitForSingleObject(Transmit_Packet_Mutex, INFINITE);
     if (!Transmit_Packet.ready) {
+        ReleaseMutex(Transmit_Packet_Mutex);
         return 0;
     }
     /* load destination MAC address */
@@ -279,6 +318,7 @@ uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
         destination = MSTP_BROADCAST_ADDRESS;
     }
     if ((DLMSTP_HEADER_MAX + Transmit_Packet.pdu_len) > DLMSTP_MPDU_MAX) {
+        ReleaseMutex(Transmit_Packet_Mutex);
         return 0;
     }
     /* convert the PDU into the MSTP Frame */
@@ -288,6 +328,7 @@ uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
         mstp_port->This_Station, &Transmit_Packet.pdu[0],
         Transmit_Packet.pdu_len);
     Transmit_Packet.ready = false;
+    ReleaseMutex(Transmit_Packet_Mutex);
 
     return pdu_len;
 }
@@ -314,16 +355,20 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
     bool matched = false;
 
     (void)timeout;
+    WaitForSingleObject(Transmit_Packet_Mutex, INFINITE);
     if (!Transmit_Packet.ready) {
+        ReleaseMutex(Transmit_Packet_Mutex);
         return 0;
     }
     /* load destination MAC address */
     if (Transmit_Packet.address.mac_len == 1) {
         destination = Transmit_Packet.address.mac[0];
     } else {
+        ReleaseMutex(Transmit_Packet_Mutex);
         return 0;
     }
     if ((DLMSTP_HEADER_MAX + Transmit_Packet.pdu_len) > DLMSTP_MPDU_MAX) {
+        ReleaseMutex(Transmit_Packet_Mutex);
         return 0;
     }
     /* is this the reply to the DER? */
@@ -332,6 +377,7 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
         mstp_port->SourceAddress, &Transmit_Packet.pdu[0],
         Transmit_Packet.pdu_len, destination);
     if (!matched) {
+        ReleaseMutex(Transmit_Packet_Mutex);
         return 0;
     }
     /* convert the PDU into the MSTP Frame */
@@ -341,6 +387,7 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
         mstp_port->This_Station, &Transmit_Packet.pdu[0],
         Transmit_Packet.pdu_len);
     Transmit_Packet.ready = false;
+    ReleaseMutex(Transmit_Packet_Mutex);
 
     return pdu_len;
 }
@@ -469,6 +516,14 @@ bool dlmstp_init(const char *ifname)
     uint32_t arg_value = 0;
     TIMECAPS tc;
 
+    Transmit_Packet_Mutex = CreateMutex(NULL, FALSE, NULL);
+    if (Transmit_Packet_Mutex == NULL) {
+        fprintf(
+            stderr, "MS/TP: CreateMutex error: %ld\n", (long)GetLastError());
+        exit(1);
+    }
+    Transmit_Packet.ready = false;
+    Transmit_Packet.pdu_len = 0;
     /* initialize packet queue */
     Receive_Packet.ready = false;
     Receive_Packet.pdu_len = 0;
