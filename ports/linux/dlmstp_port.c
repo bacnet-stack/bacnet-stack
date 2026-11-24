@@ -120,6 +120,10 @@ int dlmstp_send_pdu(
     unsigned i = 0;
     SHARED_MSTP_DATA *poSharedData;
     struct mstp_port_struct_t *mstp_port = (struct mstp_port_struct_t *)poPort;
+
+    if (!dest || !pdu || (pdu_len < 2) || (pdu_len > MAX_PDU)) {
+        return 0;
+    }
     if (!mstp_port) {
         return 0;
     }

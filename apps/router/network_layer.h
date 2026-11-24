@@ -24,18 +24,23 @@
 #include "bacport.h"
 #include "portthread.h"
 
-uint16_t
-process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff);
+int process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff);
+
+/* process_msg() result: *buff is Reject-Message-To-Network for the source.
+ * data->pdu_len is that PDU's length and data->dest is the sender. */
+#define ROUTER_MSG_REJECT (-4)
+
+int process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff);
 
 bool is_network_msg(const BACMSG *msg);
 
-uint16_t create_network_message(
+int create_network_message(
     BACNET_NETWORK_MESSAGE_TYPE network_message_type,
     MSG_DATA *data,
     uint8_t **buff,
     void *val);
 
-void send_network_message(
+int send_network_message(
     BACNET_NETWORK_MESSAGE_TYPE network_message_type,
     MSG_DATA *data,
     uint8_t **buff,
