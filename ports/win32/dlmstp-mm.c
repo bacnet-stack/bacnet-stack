@@ -6,6 +6,7 @@
  * SPDX-License-Identifier: MIT
  *
  *********************************************************************/
+#include <process.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -26,7 +27,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define STRICT 1
 #include <windows.h>
-#include <MMSystem.h> /* for multimedia timers */
+#include <mmsystem.h> /* for multimedia timers */
 
 /* Number of MS/TP Packets Rx/Tx */
 uint16_t MSTP_Packets = 0;
@@ -37,6 +38,11 @@ static HANDLE Receive_Packet_Flag;
 /* mechanism to wait for a frame in state machine */
 HANDLE Received_Frame_Flag;
 static DLMSTP_PACKET Transmit_Packet;
+static HANDLE Transmit_Packet_Mutex;
+/* state-machine threads; joined before the mutex handle is closed */
+static HANDLE Receive_FSM_Thread;
+static HANDLE Master_FSM_Thread;
+static volatile bool Thread_Run;
 /* local MS/TP port data - shared with RS-485 */
 static struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
@@ -48,7 +54,7 @@ static uint32_t TimeBeginPeriod;
 /* 1-millisecond target resolution */
 #define TARGET_RESOLUTION 1
 
-static uint16_t Timer_Silence(void *arg)
+static uint32_t Timer_Silence(void *arg)
 {
     uint32_t now = timeGetTime();
     uint32_t delta_time = 0;
@@ -72,6 +78,37 @@ static void Timer_Silence_Reset(void *arg)
     SilenceStartTime = timeGetTime();
 }
 
+/**
+ * @brief Lock an MS/TP mutex when the port is still open
+ * @param mutex - mutex handle, or NULL after cleanup
+ * @return true if the mutex was acquired
+ */
+static bool dlmstp_mutex_lock(HANDLE mutex)
+{
+    DWORD wait_status = 0;
+
+    if (!mutex) {
+        return false;
+    }
+    wait_status = WaitForSingleObject(mutex, INFINITE);
+    if ((wait_status == WAIT_OBJECT_0) || (wait_status == WAIT_ABANDONED)) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * @brief Unlock an MS/TP mutex when the port is still open
+ * @param mutex - mutex handle, or NULL after cleanup
+ */
+static void dlmstp_mutex_unlock(HANDLE mutex)
+{
+    if (mutex) {
+        ReleaseMutex(mutex);
+    }
+}
+
 void dlmstp_reinit(void)
 {
     /*RS485_Reinit(); */
@@ -84,12 +121,34 @@ void dlmstp_reinit(void)
 
 void dlmstp_cleanup(void)
 {
-    /* nothing to do for static buffers */
+    if ((Receive_FSM_Thread != NULL) || (Master_FSM_Thread != NULL)) {
+        Thread_Run = false;
+        /* wake the master thread if it is waiting for a frame */
+        if (Received_Frame_Flag) {
+            ReleaseSemaphore(Received_Frame_Flag, 1, NULL);
+        }
+    }
+    if (Receive_FSM_Thread) {
+        WaitForSingleObject(Receive_FSM_Thread, INFINITE);
+        CloseHandle(Receive_FSM_Thread);
+        Receive_FSM_Thread = NULL;
+    }
+    if (Master_FSM_Thread) {
+        WaitForSingleObject(Master_FSM_Thread, INFINITE);
+        CloseHandle(Master_FSM_Thread);
+        Master_FSM_Thread = NULL;
+    }
     if (Received_Frame_Flag) {
         CloseHandle(Received_Frame_Flag);
+        Received_Frame_Flag = NULL;
     }
     if (Receive_Packet_Flag) {
         CloseHandle(Receive_Packet_Flag);
+        Receive_Packet_Flag = NULL;
+    }
+    if (Transmit_Packet_Mutex) {
+        CloseHandle(Transmit_Packet_Mutex);
+        Transmit_Packet_Mutex = NULL;
     }
 }
 
@@ -103,6 +162,14 @@ int dlmstp_send_pdu(
     int bytes_sent = 0;
     unsigned i = 0;
 
+    if (!dlmstp_mutex_lock(Transmit_Packet_Mutex)) {
+        return 0;
+    }
+    /* MSTP_Get_Send/MSTP_Get_Reply reject a PDU longer than MAX_PDU */
+    if (pdu_len > MAX_PDU) {
+        dlmstp_mutex_unlock(Transmit_Packet_Mutex);
+        return 0;
+    }
     if (!Transmit_Packet.ready) {
         if (npdu_data->data_expecting_reply) {
             Transmit_Packet.frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
@@ -118,8 +185,43 @@ int dlmstp_send_pdu(
         bytes_sent = pdu_len + DLMSTP_HEADER_MAX;
         Transmit_Packet.ready = true;
     }
+    dlmstp_mutex_unlock(Transmit_Packet_Mutex);
 
     return bytes_sent;
+}
+
+/**
+ * @brief Determine if the send PDU queue is empty
+ * @return true if the send PDU queue is empty
+ */
+bool dlmstp_send_pdu_queue_empty(void)
+{
+    bool status = false;
+
+    if (!dlmstp_mutex_lock(Transmit_Packet_Mutex)) {
+        return false;
+    }
+    status = !Transmit_Packet.ready;
+    dlmstp_mutex_unlock(Transmit_Packet_Mutex);
+
+    return status;
+}
+
+/**
+ * @brief Determine if the send PDU queue is full
+ * @return true if the send PDU queue is full
+ */
+bool dlmstp_send_pdu_queue_full(void)
+{
+    bool status = false;
+
+    if (!dlmstp_mutex_lock(Transmit_Packet_Mutex)) {
+        return false;
+    }
+    status = Transmit_Packet.ready;
+    dlmstp_mutex_unlock(Transmit_Packet_Mutex);
+
+    return status;
 }
 
 uint16_t dlmstp_receive(
@@ -158,13 +260,13 @@ uint16_t dlmstp_receive(
     return pdu_len;
 }
 
-static void dlmstp_receive_fsm_task(void *pArg)
+static unsigned __stdcall dlmstp_receive_fsm_task(void *pArg)
 {
-    bool received_frame;
+    bool received_frame = false;
 
     (void)pArg;
     (void)SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
-    while (TRUE) {
+    while (Thread_Run) {
         /* only do receive state machine while we don't have a frame */
         if ((MSTP_Port.ReceivedValidFrame == false) &&
             (MSTP_Port.ReceivedValidFrameNotForUs == false) &&
@@ -179,27 +281,32 @@ static void dlmstp_receive_fsm_task(void *pArg)
                     ReleaseSemaphore(Received_Frame_Flag, 1, NULL);
                     break;
                 }
+                if (!Thread_Run) {
+                    break;
+                }
             } while (MSTP_Port.DataAvailable);
         }
     }
+
+    return 0;
 }
 
-static void dlmstp_master_fsm_task(void *pArg)
+static unsigned __stdcall dlmstp_master_fsm_task(void *pArg)
 {
     DWORD dwMilliseconds = 0;
 
     (void)pArg;
     (void)SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
-    while (TRUE) {
+    while (Thread_Run) {
         switch (MSTP_Port.master_state) {
             case MSTP_MASTER_STATE_IDLE:
                 dwMilliseconds = Tno_token;
                 break;
             case MSTP_MASTER_STATE_WAIT_FOR_REPLY:
-                dwMilliseconds = Treply_timeout;
+                dwMilliseconds = MSTP_Port.Treply_timeout;
                 break;
             case MSTP_MASTER_STATE_POLL_FOR_MASTER:
-                dwMilliseconds = Tusage_timeout;
+                dwMilliseconds = MSTP_Port.Tusage_timeout;
                 break;
             default:
                 dwMilliseconds = 0;
@@ -208,8 +315,13 @@ static void dlmstp_master_fsm_task(void *pArg)
         if (dwMilliseconds) {
             WaitForSingleObject(Received_Frame_Flag, dwMilliseconds);
         }
+        if (!Thread_Run) {
+            break;
+        }
         MSTP_Master_Node_FSM(&MSTP_Port);
     }
+
+    return 0;
 }
 
 void dlmstp_fill_bacnet_address(BACNET_ADDRESS *src, uint8_t mstp_address)
@@ -268,7 +380,11 @@ uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
     uint8_t destination = 0; /* destination address */
 
     (void)timeout;
+    if (!dlmstp_mutex_lock(Transmit_Packet_Mutex)) {
+        return 0;
+    }
     if (!Transmit_Packet.ready) {
+        dlmstp_mutex_unlock(Transmit_Packet_Mutex);
         return 0;
     }
     /* load destination MAC address */
@@ -278,7 +394,9 @@ uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
     } else {
         destination = MSTP_BROADCAST_ADDRESS;
     }
-    if ((DLMSTP_HEADER_MAX + Transmit_Packet.pdu_len) > DLMSTP_MPDU_MAX) {
+    if (Transmit_Packet.pdu_len > MAX_PDU) {
+        Transmit_Packet.ready = false;
+        dlmstp_mutex_unlock(Transmit_Packet_Mutex);
         return 0;
     }
     /* convert the PDU into the MSTP Frame */
@@ -288,6 +406,7 @@ uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
         mstp_port->This_Station, &Transmit_Packet.pdu[0],
         Transmit_Packet.pdu_len);
     Transmit_Packet.ready = false;
+    dlmstp_mutex_unlock(Transmit_Packet_Mutex);
 
     return pdu_len;
 }
@@ -314,16 +433,23 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
     bool matched = false;
 
     (void)timeout;
+    if (!dlmstp_mutex_lock(Transmit_Packet_Mutex)) {
+        return 0;
+    }
     if (!Transmit_Packet.ready) {
+        dlmstp_mutex_unlock(Transmit_Packet_Mutex);
         return 0;
     }
     /* load destination MAC address */
     if (Transmit_Packet.address.mac_len == 1) {
         destination = Transmit_Packet.address.mac[0];
     } else {
+        dlmstp_mutex_unlock(Transmit_Packet_Mutex);
         return 0;
     }
-    if ((DLMSTP_HEADER_MAX + Transmit_Packet.pdu_len) > DLMSTP_MPDU_MAX) {
+    if (Transmit_Packet.pdu_len > MAX_PDU) {
+        Transmit_Packet.ready = false;
+        dlmstp_mutex_unlock(Transmit_Packet_Mutex);
         return 0;
     }
     /* is this the reply to the DER? */
@@ -332,6 +458,7 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
         mstp_port->SourceAddress, &Transmit_Packet.pdu[0],
         Transmit_Packet.pdu_len, destination);
     if (!matched) {
+        dlmstp_mutex_unlock(Transmit_Packet_Mutex);
         return 0;
     }
     /* convert the PDU into the MSTP Frame */
@@ -341,6 +468,7 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
         mstp_port->This_Station, &Transmit_Packet.pdu[0],
         Transmit_Packet.pdu_len);
     Transmit_Packet.ready = false;
+    dlmstp_mutex_unlock(Transmit_Packet_Mutex);
 
     return pdu_len;
 }
@@ -465,10 +593,17 @@ void dlmstp_get_broadcast_address(BACNET_ADDRESS *dest)
 
 bool dlmstp_init(const char *ifname)
 {
-    unsigned long hThread = 0;
     uint32_t arg_value = 0;
     TIMECAPS tc;
 
+    Transmit_Packet_Mutex = CreateMutex(NULL, FALSE, NULL);
+    if (Transmit_Packet_Mutex == NULL) {
+        fprintf(
+            stderr, "MS/TP: CreateMutex error: %ld\n", (long)GetLastError());
+        exit(1);
+    }
+    Transmit_Packet.ready = false;
+    Transmit_Packet.pdu_len = 0;
     /* initialize packet queue */
     Receive_Packet.ready = false;
     Receive_Packet.pdu_len = 0;
@@ -540,13 +675,19 @@ bool dlmstp_init(const char *ifname)
     timeBeginPeriod(TimeBeginPeriod);
 
     /* start the threads */
-    hThread = _beginthread(dlmstp_receive_fsm_task, 4096, &arg_value);
-    if (hThread == 0) {
+    Thread_Run = true;
+    Receive_FSM_Thread = (HANDLE)_beginthreadex(
+        NULL, 4096, dlmstp_receive_fsm_task, &arg_value, 0, NULL);
+    if (Receive_FSM_Thread == NULL) {
         fprintf(stderr, "Failed to start recive FSM task\n");
     }
-    hThread = _beginthread(dlmstp_master_fsm_task, 4096, &arg_value);
-    if (hThread == 0) {
+    Master_FSM_Thread = (HANDLE)_beginthreadex(
+        NULL, 4096, dlmstp_master_fsm_task, &arg_value, 0, NULL);
+    if (Master_FSM_Thread == NULL) {
         fprintf(stderr, "Failed to start Master Node FSM task\n");
+    }
+    if ((Receive_FSM_Thread == NULL) && (Master_FSM_Thread == NULL)) {
+        Thread_Run = false;
     }
 
     return true;

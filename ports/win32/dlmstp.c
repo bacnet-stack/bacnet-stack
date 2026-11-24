@@ -35,6 +35,9 @@ static DLMSTP_PACKET Receive_Packet;
 static HANDLE Receive_Packet_Flag;
 static HANDLE Ring_Buffer_Mutex;
 static HANDLE Receive_Packet_Mutex;
+/* state-machine thread; joined before the mutex handles are closed */
+static HANDLE MSTP_Thread;
+static volatile bool Thread_Run;
 /* local MS/TP port data - shared with RS-485 */
 static struct mstp_port_struct_t MSTP_Port;
 /* buffers needed by mstp port struct */
@@ -66,19 +69,58 @@ static dlmstp_hook_frame_rx_complete_cb Invalid_Frame_Rx_Callback;
 static DLMSTP_STATISTICS DLMSTP_Statistics;
 
 /**
+ * @brief Lock an MS/TP mutex when the port is still open
+ * @param mutex - mutex handle, or NULL after cleanup
+ * @return true if the mutex was acquired
+ */
+static bool dlmstp_mutex_lock(HANDLE mutex)
+{
+    DWORD wait_status = 0;
+
+    if (!mutex) {
+        return false;
+    }
+    wait_status = WaitForSingleObject(mutex, INFINITE);
+    if ((wait_status == WAIT_OBJECT_0) || (wait_status == WAIT_ABANDONED)) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * @brief Unlock an MS/TP mutex when the port is still open
+ * @param mutex - mutex handle, or NULL after cleanup
+ */
+static void dlmstp_mutex_unlock(HANDLE mutex)
+{
+    if (mutex) {
+        ReleaseMutex(mutex);
+    }
+}
+
+/**
  * @brief Cleanup the MS/TP datalink
  */
 void dlmstp_cleanup(void)
 {
-    /* nothing to do for static buffers */
+    if (MSTP_Thread) {
+        Thread_Run = false;
+        WaitForSingleObject(MSTP_Thread, INFINITE);
+        CloseHandle(MSTP_Thread);
+        MSTP_Thread = NULL;
+    }
     if (Receive_Packet_Flag) {
         CloseHandle(Receive_Packet_Flag);
+        Receive_Packet_Flag = NULL;
     }
     if (Ring_Buffer_Mutex) {
         CloseHandle(Ring_Buffer_Mutex);
+        Ring_Buffer_Mutex = NULL;
     }
     if (Receive_Packet_Mutex) {
         CloseHandle(Receive_Packet_Mutex);
+        Receive_Packet_Mutex = NULL;
     }
 }
 
@@ -99,7 +141,15 @@ int dlmstp_send_pdu(
     int bytes_sent = 0;
     struct mstp_pdu_packet *pkt;
     unsigned i = 0;
-    WaitForSingleObject(Ring_Buffer_Mutex, INFINITE);
+
+    if (!dlmstp_mutex_lock(Ring_Buffer_Mutex)) {
+        return 0;
+    }
+    /* MSTP_Get_Send/MSTP_Get_Reply reject a PDU longer than MAX_PDU */
+    if (pdu_len > MAX_PDU) {
+        dlmstp_mutex_unlock(Ring_Buffer_Mutex);
+        return 0;
+    }
     pkt = (struct mstp_pdu_packet *)Ringbuf_Data_Peek(&PDU_Queue);
     if (pkt) {
         pkt->data_expecting_reply = npdu_data->data_expecting_reply;
@@ -117,9 +167,43 @@ int dlmstp_send_pdu(
             bytes_sent = pdu_len;
         }
     }
-    ReleaseMutex(Ring_Buffer_Mutex);
+    dlmstp_mutex_unlock(Ring_Buffer_Mutex);
 
     return bytes_sent;
+}
+
+/**
+ * @brief Determine if the send PDU queue is empty
+ * @return true if the send PDU queue is empty
+ */
+bool dlmstp_send_pdu_queue_empty(void)
+{
+    bool status = false;
+
+    if (!dlmstp_mutex_lock(Ring_Buffer_Mutex)) {
+        return false;
+    }
+    status = Ringbuf_Empty(&PDU_Queue);
+    dlmstp_mutex_unlock(Ring_Buffer_Mutex);
+
+    return status;
+}
+
+/**
+ * @brief Determine if the send PDU queue is full
+ * @return true if the send PDU queue is full
+ */
+bool dlmstp_send_pdu_queue_full(void)
+{
+    bool status = false;
+
+    if (!dlmstp_mutex_lock(Ring_Buffer_Mutex)) {
+        return false;
+    }
+    status = Ringbuf_Full(&PDU_Queue);
+    dlmstp_mutex_unlock(Ring_Buffer_Mutex);
+
+    return status;
 }
 
 /**
@@ -135,12 +219,19 @@ uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
     struct mstp_pdu_packet *pkt;
 
     (void)timeout;
-    WaitForSingleObject(Ring_Buffer_Mutex, INFINITE);
+    if (!dlmstp_mutex_lock(Ring_Buffer_Mutex)) {
+        return 0;
+    }
     if (Ringbuf_Empty(&PDU_Queue)) {
-        ReleaseMutex(Ring_Buffer_Mutex);
+        dlmstp_mutex_unlock(Ring_Buffer_Mutex);
         return 0;
     }
     pkt = (struct mstp_pdu_packet *)Ringbuf_Peek(&PDU_Queue);
+    if (pkt->length > MAX_PDU) {
+        (void)Ringbuf_Pop(&PDU_Queue, NULL);
+        dlmstp_mutex_unlock(Ring_Buffer_Mutex);
+        return 0;
+    }
     if (pkt->data_expecting_reply) {
         frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
     } else {
@@ -152,7 +243,7 @@ uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
         mstp_port->OutputBufferSize, frame_type, pkt->destination_mac,
         mstp_port->This_Station, (uint8_t *)&pkt->buffer[0], pkt->length);
     (void)Ringbuf_Pop(&PDU_Queue, NULL);
-    ReleaseMutex(Ring_Buffer_Mutex);
+    dlmstp_mutex_unlock(Ring_Buffer_Mutex);
 
     return pdu_len;
 }
@@ -172,16 +263,26 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
     struct mstp_pdu_packet *pkt;
 
     (void)timeout;
+    if (!dlmstp_mutex_lock(Ring_Buffer_Mutex)) {
+        return 0;
+    }
     if (Ringbuf_Empty(&PDU_Queue)) {
+        dlmstp_mutex_unlock(Ring_Buffer_Mutex);
         return 0;
     }
     pkt = (struct mstp_pdu_packet *)Ringbuf_Peek(&PDU_Queue);
+    if (pkt->length > MAX_PDU) {
+        (void)Ringbuf_Pop(&PDU_Queue, NULL);
+        dlmstp_mutex_unlock(Ring_Buffer_Mutex);
+        return 0;
+    }
     /* is this the reply to the DER? */
     matched = npdu_is_data_expecting_reply(
         &mstp_port->InputBuffer[0], mstp_port->DataLength,
         mstp_port->SourceAddress, (uint8_t *)&pkt->buffer[0], pkt->length,
         pkt->destination_mac);
     if (!matched) {
+        dlmstp_mutex_unlock(Ring_Buffer_Mutex);
         return 0;
     }
     if (pkt->data_expecting_reply) {
@@ -196,6 +297,7 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
         mstp_port->This_Station, (uint8_t *)&pkt->buffer[0], pkt->length);
     DLMSTP_Statistics.transmit_pdu_counter++;
     (void)Ringbuf_Pop(&PDU_Queue, NULL);
+    dlmstp_mutex_unlock(Ring_Buffer_Mutex);
 
     return pdu_len;
 }
@@ -224,7 +326,9 @@ uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port)
     uint16_t pdu_len = 0;
     BOOL rc;
 
-    WaitForSingleObject(Receive_Packet_Mutex, INFINITE);
+    if (!dlmstp_mutex_lock(Receive_Packet_Mutex)) {
+        return 0;
+    }
     if (!Receive_Packet.ready) {
         /* bounds check - maybe this should send an abort? */
         pdu_len = mstp_port->DataLength;
@@ -241,7 +345,7 @@ uint16_t MSTP_Put_Receive(struct mstp_port_struct_t *mstp_port)
         rc = ReleaseSemaphore(Receive_Packet_Flag, 1, NULL);
         (void)rc;
     }
-    ReleaseMutex(Receive_Packet_Mutex);
+    dlmstp_mutex_unlock(Receive_Packet_Mutex);
 
     return pdu_len;
 }
@@ -265,7 +369,9 @@ uint16_t dlmstp_receive(
 
     /* see if there is a packet available, and a place
        to put the reply (if necessary) and process it */
-    WaitForSingleObject(Receive_Packet_Mutex, INFINITE);
+    if (!dlmstp_mutex_lock(Receive_Packet_Mutex)) {
+        return 0;
+    }
     wait_status = WaitForSingleObject(Receive_Packet_Flag, timeout);
     if (wait_status == WAIT_OBJECT_0) {
         if (Receive_Packet.ready) {
@@ -287,7 +393,7 @@ uint16_t dlmstp_receive(
             Receive_Packet.ready = false;
         }
     }
-    ReleaseMutex(Receive_Packet_Mutex);
+    dlmstp_mutex_unlock(Receive_Packet_Mutex);
 
     return pdu_len;
 }
@@ -296,7 +402,7 @@ uint16_t dlmstp_receive(
  * @brief Thread for the MS/TP receive state machine
  * @param pArg not used
  */
-static void dlmstp_thread(void *pArg)
+static unsigned __stdcall dlmstp_thread(void *pArg)
 {
     uint32_t silence_milliseconds = 0;
     MSTP_MASTER_STATE master_state;
@@ -304,7 +410,7 @@ static void dlmstp_thread(void *pArg)
 
     (void)pArg;
     (void)SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
-    for (;;) {
+    while (Thread_Run) {
         /* only do receive state machine while we don't have a frame */
         if ((MSTP_Port.ReceivedValidFrame == false) &&
             (MSTP_Port.ReceivedValidFrameNotForUs == false) &&
@@ -398,10 +504,15 @@ static void dlmstp_thread(void *pArg)
                         }
                         master_state = MSTP_Port.master_state;
                     }
+                    if (!Thread_Run) {
+                        break;
+                    }
                 }
             }
         }
     }
+
+    return 0;
 }
 
 /**
@@ -805,11 +916,11 @@ void dlmstp_silence_reset(void *arg)
  */
 bool dlmstp_init(const char *ifname)
 {
-    unsigned long hThread = 0;
     uint32_t arg_value = 0;
 
-    /* Create a mutex with no initial owner, default security */
-    Ring_Buffer_Mutex = CreateMutex(NULL, FALSE, "dlmstpRingBufferMutex");
+    /* Create a mutex with no initial owner, default security.
+       An unnamed mutex is private to this process. */
+    Ring_Buffer_Mutex = CreateMutex(NULL, FALSE, NULL);
     if (Ring_Buffer_Mutex == NULL) {
         fprintf(
             stderr, "MS/TP: CreateMutex error: %ld\n", (long)GetLastError());
@@ -826,7 +937,7 @@ bool dlmstp_init(const char *ifname)
     if (Receive_Packet_Flag == NULL) {
         exit(1);
     }
-    Receive_Packet_Mutex = CreateMutex(NULL, FALSE, "dlmstpReceivePacketMutex");
+    Receive_Packet_Mutex = CreateMutex(NULL, FALSE, NULL);
     if (Receive_Packet_Mutex == NULL) {
         fprintf(
             stderr, "MS/TP: CreateMutex error: %ld\n", (long)GetLastError());
@@ -879,8 +990,11 @@ bool dlmstp_init(const char *ifname)
         (MSTP_Port.CheckAutoBaud ? "true" : "false"));
     fflush(stderr);
 #endif
-    hThread = _beginthread(dlmstp_thread, 4096, &arg_value);
-    if (hThread == 0) {
+    Thread_Run = true;
+    MSTP_Thread =
+        (HANDLE)_beginthreadex(NULL, 4096, dlmstp_thread, &arg_value, 0, NULL);
+    if (MSTP_Thread == NULL) {
+        Thread_Run = false;
         fprintf(stderr, "Failed to start MS/TP thread\n");
     }
 
