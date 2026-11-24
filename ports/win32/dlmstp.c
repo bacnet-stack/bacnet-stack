@@ -104,7 +104,6 @@ static void dlmstp_mutex_unlock(HANDLE mutex)
  */
 void dlmstp_cleanup(void)
 {
-    /* nothing to do for static buffers */
     if (MSTP_Thread) {
         Thread_Run = false;
         WaitForSingleObject(MSTP_Thread, INFINITE);
@@ -146,7 +145,8 @@ int dlmstp_send_pdu(
     if (!dlmstp_mutex_lock(Ring_Buffer_Mutex)) {
         return 0;
     }
-    if (pdu_len > sizeof(PDU_Buffer[0].buffer)) {
+    /* MSTP_Get_Send/MSTP_Get_Reply reject a PDU longer than MAX_PDU */
+    if (pdu_len > MAX_PDU) {
         dlmstp_mutex_unlock(Ring_Buffer_Mutex);
         return 0;
     }
@@ -227,6 +227,11 @@ uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
         return 0;
     }
     pkt = (struct mstp_pdu_packet *)Ringbuf_Peek(&PDU_Queue);
+    if (pkt->length > MAX_PDU) {
+        (void)Ringbuf_Pop(&PDU_Queue, NULL);
+        dlmstp_mutex_unlock(Ring_Buffer_Mutex);
+        return 0;
+    }
     if (pkt->data_expecting_reply) {
         frame_type = FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY;
     } else {
@@ -266,6 +271,11 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
         return 0;
     }
     pkt = (struct mstp_pdu_packet *)Ringbuf_Peek(&PDU_Queue);
+    if (pkt->length > MAX_PDU) {
+        (void)Ringbuf_Pop(&PDU_Queue, NULL);
+        dlmstp_mutex_unlock(Ring_Buffer_Mutex);
+        return 0;
+    }
     /* is this the reply to the DER? */
     matched = npdu_is_data_expecting_reply(
         &mstp_port->InputBuffer[0], mstp_port->DataLength,

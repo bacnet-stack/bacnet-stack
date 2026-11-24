@@ -121,7 +121,6 @@ void dlmstp_reinit(void)
 
 void dlmstp_cleanup(void)
 {
-    /* nothing to do for static buffers */
     if ((Receive_FSM_Thread != NULL) || (Master_FSM_Thread != NULL)) {
         Thread_Run = false;
         /* wake the master thread if it is waiting for a frame */
@@ -166,7 +165,8 @@ int dlmstp_send_pdu(
     if (!dlmstp_mutex_lock(Transmit_Packet_Mutex)) {
         return 0;
     }
-    if (pdu_len > sizeof(Transmit_Packet.pdu)) {
+    /* MSTP_Get_Send/MSTP_Get_Reply reject a PDU longer than MAX_PDU */
+    if (pdu_len > MAX_PDU) {
         dlmstp_mutex_unlock(Transmit_Packet_Mutex);
         return 0;
     }
@@ -394,7 +394,8 @@ uint16_t MSTP_Get_Send(struct mstp_port_struct_t *mstp_port, unsigned timeout)
     } else {
         destination = MSTP_BROADCAST_ADDRESS;
     }
-    if ((DLMSTP_HEADER_MAX + Transmit_Packet.pdu_len) > DLMSTP_MPDU_MAX) {
+    if (Transmit_Packet.pdu_len > MAX_PDU) {
+        Transmit_Packet.ready = false;
         dlmstp_mutex_unlock(Transmit_Packet_Mutex);
         return 0;
     }
@@ -446,7 +447,8 @@ uint16_t MSTP_Get_Reply(struct mstp_port_struct_t *mstp_port, unsigned timeout)
         dlmstp_mutex_unlock(Transmit_Packet_Mutex);
         return 0;
     }
-    if ((DLMSTP_HEADER_MAX + Transmit_Packet.pdu_len) > DLMSTP_MPDU_MAX) {
+    if (Transmit_Packet.pdu_len > MAX_PDU) {
+        Transmit_Packet.ready = false;
         dlmstp_mutex_unlock(Transmit_Packet_Mutex);
         return 0;
     }
