@@ -140,6 +140,8 @@ int main(int argc, char *argv[])
                     /* if buff_len */
                     /* >0 - form new message and send */
                     /* =-1 - try to find next router */
+                    /* =ROUTER_MSG_REJECT - send the reject back to the source
+                     */
                     /* other value - discard message */
 
                     if (buff_len > 0) {
@@ -157,16 +159,35 @@ int main(int argc, char *argv[])
                             send_to_msgbox(msg_src, &msg_storage);
                         } else if (
                             msg_data->dest.net != BACNET_BROADCAST_NETWORK) {
-                            msg_data->ref_count = 1;
                             port =
                                 find_dnet(msg_data->dest.net, &msg_data->dest);
-                            send_to_msgbox(port->port_id, &msg_storage);
+                            if (port == NULL) {
+                                BACNET_NETWORK_MESSAGE_TYPE message;
+                                uint16_t net;
+
+                                /* The route disappeared. Search instead of
+                                 * dereferencing a NULL port. */
+                                free(buff);
+                                buff = NULL;
+                                msg_data->pdu = NULL;
+                                net = msg_data->dest.net;
+                                message =
+                                    NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK;
+                                PRINT(INFO, "Searching NET...\n");
+                                if (send_network_message(
+                                        message, msg_data, &buff, &net) < 0) {
+                                    free(msg_data);
+                                }
+                            } else {
+                                msg_data->ref_count = 1;
+                                send_to_msgbox(port->port_id, &msg_storage);
+                            }
                         } else {
                             port = head;
                             msg_data->ref_count = port_count - 1;
                             while (port != NULL) {
-                                if (port->port_id == msg_src ||
-                                    port->state == FINISHED) {
+                                if ((port->port_id == msg_src) ||
+                                    (port->state == FINISHED)) {
                                     port = port->next;
                                     continue;
                                 }
@@ -174,6 +195,13 @@ int main(int argc, char *argv[])
                                 port = port->next;
                             }
                         }
+                    } else if (buff_len == ROUTER_MSG_REJECT) {
+                        msg_data->pdu = buff;
+                        msg_storage.origin = head->main_id;
+                        msg_storage.type = DATA;
+                        msg_storage.data = msg_data;
+                        msg_data->ref_count = 1;
+                        send_to_msgbox(msg_src, &msg_storage);
                     } else if (buff_len == -1) {
                         uint16_t net = msg_data->dest.net; /* NET to find */
                         PRINT(INFO, "Searching NET...\n");

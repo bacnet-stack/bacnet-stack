@@ -110,7 +110,12 @@ ROUTER_PORT *find_snet(MSGBOX_ID id);
 /* get sending router port */
 ROUTER_PORT *find_dnet(uint16_t net, BACNET_ADDRESS *addr);
 
-/* add reacheble network for specified router port */
+/* Learn a remote network on this port.
+ * Network 0, 0xFFFF, and any directly connected network are rejected.
+ * A network is stored on only one port; a newer announcement moves it
+ * here and drops the previous port's entry. A full table replaces the
+ * least-recently-seen entry so a new advertisement can still be recorded.
+ */
 bool add_dnet(RT_ENTRY *route_info, uint16_t net, BACNET_ADDRESS addr);
 
 /* remove route entries that have not been updated recently */

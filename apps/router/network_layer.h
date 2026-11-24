@@ -26,6 +26,10 @@
 
 int process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff);
 
+/* process_msg() result: *buff is Reject-Message-To-Network for the source.
+ * data->pdu_len is that PDU's length and data->dest is the sender. */
+#define ROUTER_MSG_REJECT (-4)
+
 int process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff);
 
 bool is_network_msg(const BACMSG *msg);
