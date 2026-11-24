@@ -13,10 +13,32 @@ The git repositories are hosted at the following sites:
 * <https://bacnet.sourceforge.net/>
 * <https://github.com/bacnet-stack/bacnet-stack/>
 
-## [unreleased] - 2026-11-17
+## [unreleased] - 2026-11-24
 
 ### Security
 
+* Secured the BACnet router application to limit the size of the network
+  messages that it encodes to the BACnet PDU capacity. The router rejects an
+  oversized send to a datalink. The router limits the number of learned DNET
+  entries, refreshes an existing entry, and expires a stale route. This
+  prevents unbounded memory growth. Added unit tests. (#1649)
+* Secured the POSIX and RAM file backends to limit how much a remote device
+  can grow a stream File object. The bacfile_posix_file_size_set() and
+  bacfile_ramfs_file_size_set() functions accept only a size of zero or the
+  current size. A stream write that starts more than
+  BACNET_FILE_POSIX_MAX_PAD_BYTES or BACNET_FILE_RAMFS_MAX_PAD_BYTES past
+  the end of the file fails. The RAM backend sets the padding bytes to zero.
+  The RAM backend changes the file only after the allocation succeeds.
+  Updated the unit tests. (#1647)
+* Secured the Channel object to prevent recursive member writes. The object
+  uses a private writeback flag as the recursion guard when it writes to its
+  members. The object returns the error OBJECT, BUSY on re-entry. Added a unit
+  test. (#1646)
+* Secured the Network Port object Accept-URIs property of the BACnet/SC
+  port. The code passed the byte size and not the element count to the URI
+  split function. A value with two or more separators wrote past the end of
+  a local index array. Moved the helpers to bacstr.c as bacnet_splite() and
+  bacnet_subsstr(). Added argument checks and unit tests. (#1642)
 * Secured the bacnet_array_encode() function to return an error when an
   element encoder returns a negative length. The function added the negative
   length to the total and to the APDU pointer. The next element then wrote
@@ -59,6 +81,21 @@ The git repositories are hosted at the following sites:
 
 ### Added
 
+* Added the dlmstp_send_pdu_queue_empty() and dlmstp_send_pdu_queue_full()
+  functions to the Windows MS/TP ports. The ports protect the queue state
+  with the mutex of the send and receive state machines. The dlmstp_cleanup()
+  function now stops and joins the state machine threads. (#1652)
+* Added the bvlc_last_result_address_get() function to get the B/IPv4
+  address of the device that sent the last BVLC-Result. The BBMD handlers
+  store the address with the result code. A foreign device can compare the
+  address with the address of its BBMD. Added a unit test. (#1651)
+* Added write support for the Shed_Levels and Shed_Level_Descriptions
+  properties of the Load Control object. The properties are resizable. The
+  object stores the level number, the local shed action, and the description
+  in one list. Added API functions to get and set a level number and to copy
+  a description. Changed bacnet_array_write() and
+  bacnet_array_write_resizable() to follow clause 12.1 of 135-2024. Added and
+  updated unit tests. (#1639)
 * Added the Lighting_Output_Blink_Warn_Feature() function to read the off
   value, interval, and count that the next WARN, WARN_OFF, or
   WARN_RELINQUISH operation uses. Added a unit test. (#1627)
@@ -111,6 +148,42 @@ The git repositories are hosted at the following sites:
 
 ### Fixed
 
+* Fixed the handler_device_communication_control() function to check the
+  password before it denies the deprecated DISABLE value. A DISABLE request
+  without the valid password now gets the error SECURITY, PASSWORD_FAILURE.
+  A DISABLE request with the valid password still gets the error SERVICES,
+  SERVICE_REQUEST_DENIED. Added a unit test. (#1650)
+* Fixed the lighting operation decoders to reject an out-of-range
+  enumerated value. The old check used a value that was always zero. Added
+  boundary tests. (#1645)
+* Fixed the Network Port object BBMD-Broadcast-Distribution-Table property
+  to write a BACnetLIST of ASN.1 entries. The old code wrote a fixed
+  BACnetARRAY of BVLL entries. Made the BBMD-Foreign-Device-Table property
+  read-only for IPv4 and IPv6. Added IPv6 BDT support and linked the BBMD6
+  tables to the object. The bip6_init() function of the Windows port now
+  calls bvlc6_init(). The object saves the IPv4 BDT with an atomic
+  temporary-file replace. Added unit tests. (#1641)
+* Fixed the ReadPropertyMultiple handler to skip the Property_List
+  property in the special properties ALL, REQUIRED, and OPTIONAL. Added a
+  unit test. (#1643)
+* Fixed the Network Port object and the Device object to return the error
+  PROPERTY, VALUE_OUT_OF_RANGE when a write sets the MS/TP Max_Info_Frames
+  property to 0 or above 255. Network_Port_MSTP_Max_Info_Frames_Set() refuses
+  0. The Network Port object also returns the error for a Max_Master value
+  above 255. Applied the same check to the piface app and to the at91sam7s,
+  bdk-atxx4-mstp, stm32f10x, stm32f4xx, and xplained ports. Added unit
+  tests. (#1638)
+* Fixed npdu_send_what_is_network_number() to send the message to the local
+  network only. The message has no DNET/DADR and no SNET/SADR. The function
+  sends a local broadcast when the destination is NULL, a global broadcast,
+  or a remote network without a MAC address. Updated the help text of the
+  whatisnetnum app. Added unit tests. (#1637)
+* Fixed the Linux MS/TP port to define the dlmstp_send_pdu_queue_empty()
+  and dlmstp_send_pdu_queue_full() functions. An application that called
+  them did not link. The functions read the queue under the mutex of
+  dlmstp_send_pdu(). Added a unit test. (#1640)
+* Fixed MAX_BACNET_SERVICES_SUPPORTED for protocol revisions 22 and 23.
+  (#1636)
 * Fixed bacnet_primitive_value_application_decode() to reject each tag that
   the value structure cannot store. The decoder accepted an OCTET_STRING of
   zero length as a Time_Value that bacnet_time_value_encode() cannot encode.
