@@ -491,23 +491,23 @@ static void test_BBMD_Result_Address(void)
         &mtu[0], sizeof(mtu), BVLC_RESULT_SUCCESSFUL_COMPLETION);
 
     bvlc_bbmd_disabled_handler(&bbmd, &src, &mtu[0], mtu_len);
-    bvlc_get_last_result_address(&sender);
+    bvlc_last_result_address_get(&sender);
     assert(!bvlc_address_different(&sender, &bbmd));
     bvlc_bbmd_disabled_handler(&other_device, &src, &mtu[0], mtu_len);
-    bvlc_get_last_result_address(&sender);
+    bvlc_last_result_address_get(&sender);
     assert(!bvlc_address_different(&sender, &other_device));
 
     bvlc_bbmd_enabled_handler(&bbmd, &src, &mtu[0], mtu_len);
-    bvlc_get_last_result_address(&sender);
+    bvlc_last_result_address_get(&sender);
     assert(!bvlc_address_different(&sender, &bbmd));
     bvlc_bbmd_enabled_handler(&other_device, &src, &mtu[0], mtu_len);
-    bvlc_get_last_result_address(&sender);
+    bvlc_last_result_address_get(&sender);
     assert(!bvlc_address_different(&sender, &other_device));
 
     /* a message that is not a BVLC-Result keeps the sender of the result */
     mtu_len = bvlc_encode_read_foreign_device_table(&mtu[0], sizeof(mtu));
     bvlc_bbmd_disabled_handler(&bbmd, &src, &mtu[0], mtu_len);
-    bvlc_get_last_result_address(&sender);
+    bvlc_last_result_address_get(&sender);
     assert(!bvlc_address_different(&sender, &other_device));
 }
 

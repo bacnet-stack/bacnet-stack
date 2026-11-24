@@ -1384,7 +1384,7 @@ uint16_t bvlc_get_last_result(void)
  * @param addr [out] B/IPv4 address of the sender, which is all zeros
  *  until a BVLL Result is received.
  */
-void bvlc_get_last_result_address(BACNET_IP_ADDRESS *addr)
+void bvlc_last_result_address_get(BACNET_IP_ADDRESS *addr)
 {
     bvlc_address_copy(addr, &BVLC_Result_Address);
 }
