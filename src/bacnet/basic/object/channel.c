@@ -840,7 +840,7 @@ bool Channel_Write_Member_Value(
  * @param pObject - object instance data
  * @param value - application value
  * @param priority - BACnet priority 0=none,1..16
- * @param busy - set to true when a re-entry error is encountered
+ * @param busy - set to true when Channel re-entry is encountered
  *
  * @return  true if values are within range and present-value is sent.
  */
@@ -907,7 +907,7 @@ static bool Channel_Write_Members(
                             wp_data.error_code = ERROR_CODE_SUCCESS;
                         }
                     }
-                    if (!status &&
+                    if (!status && (wp_data.object_type == OBJECT_CHANNEL) &&
                         (wp_data.error_class == ERROR_CLASS_OBJECT) &&
                         (wp_data.error_code == ERROR_CODE_BUSY)) {
                         member_busy = true;
