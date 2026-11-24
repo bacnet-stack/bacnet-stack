@@ -449,6 +449,8 @@ static void test_Process_Msg_Unknown_Source(void)
 
 /**
  * @brief Local NPDU for network 1 plus an APDU of the given length.
+ *  Layout: version, control (destination present), DNET 0x0001,
+ *  DLEN 0, hop count 0xFF, then the APDU.
  *  process_msg() re-encodes this without the destination specifier.
  */
 static uint8_t *local_apdu_message(size_t apdu_len, size_t *pdu_len)
@@ -536,7 +538,9 @@ static void test_Process_Msg_Too_Long(void)
     free(buff);
     buff = NULL;
 
-    /* SNET 50, SADR 0x0A, destined for the directly connected network. */
+    /* SNET 50, SADR 0x0A, destined for the directly connected network.
+     * version, control (DNET and SNET), DNET 0x0001, DLEN 0,
+     * SNET 0x0032, SLEN 1, SADR 0x0A, hop count, then the APDU */
     len = 10 + (size_t)MAX_PDU;
     pdu = (uint8_t *)calloc(1, len);
     zassert_not_null(pdu, NULL);
@@ -568,6 +572,46 @@ static void test_Process_Msg_Too_Long(void)
         npdu_data.network_message_type,
         NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK, NULL);
     zassert_equal(buff[offset], NETWORK_REJECT_MESSAGE_TOO_LONG, NULL);
+    rejected_net = 0;
+    decode_unsigned16(&buff[offset + 1], &rejected_net);
+    zassert_equal(rejected_net, 1, "payload DNET is the rejected network");
+    free(buff);
+    buff = NULL;
+
+    /* SNET equals the source port's own network. That specifier is ignored,
+     * so the reject stays local and does not name network 1 as DNET. */
+    len = 10 + (size_t)MAX_PDU;
+    pdu = (uint8_t *)calloc(1, len);
+    zassert_not_null(pdu, NULL);
+    /* version, control (DNET and SNET), DNET 0x0001, DLEN 0,
+     * SNET 0x0001, SLEN 1, SADR 0x0A, hop count, then the APDU */
+    pdu[0] = 0x01;
+    pdu[1] = 0x28;
+    pdu[2] = 0x00;
+    pdu[3] = 0x01;
+    pdu[4] = 0x00;
+    pdu[5] = 0x00;
+    pdu[6] = 0x01;
+    pdu[7] = 0x01;
+    pdu[8] = 0x0A;
+    pdu[9] = 0xFF;
+    reply_len = 0;
+    memset(&dest, 0, sizeof(dest));
+    memset(&npdu_data, 0, sizeof(npdu_data));
+    buff_len = run_process_msg(pdu, len, &buff, &reply_len);
+    free(pdu);
+    zassert_equal(buff_len, ROUTER_MSG_REJECT, NULL);
+    zassert_not_null(buff, NULL);
+    zassert_true(reply_len > 0, NULL);
+    offset =
+        bacnet_npdu_decode(buff, (uint16_t)reply_len, &dest, &src, &npdu_data);
+    zassert_true(offset > 0, NULL);
+    zassert_equal(dest.net, 0, "spoofed local SNET is not a reject DNET");
+    zassert_equal(dest.len, 0, NULL);
+    zassert_equal(buff[offset], NETWORK_REJECT_MESSAGE_TOO_LONG, NULL);
+    rejected_net = 0;
+    decode_unsigned16(&buff[offset + 1], &rejected_net);
+    zassert_equal(rejected_net, 1, NULL);
     free(buff);
 }
 

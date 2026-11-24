@@ -293,9 +293,12 @@ int process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff)
 /**
  * @brief Build Reject-Message-To-Network, reason 4.
  * @param origin - NPDU source of the rejected message. When it carries
- *  SNET/SADR, the reject's DNET/DADR is that device (ASHRAE 135 6.4.4).
- *  The frame is still returned to the source port; reply_to is the
- *  previous hop that will forward it. With no SNET, the reject is local.
+ *  SNET/SADR for a network other than local_net, the reject's DNET/DADR
+ *  is that device (ASHRAE 135 6.4.4). The frame is still returned to the
+ *  source port; reply_to is the previous hop that will forward it.
+ *  With no SNET, or an SNET equal to this port's own network, the reject
+ *  is local. The forward path ignores that specifier, and so does this.
+ * @param local_net - network directly connected to the receiving port
  * @return ROUTER_MSG_REJECT, or -2 when the reject cannot be built.
  */
 static int reject_message_too_long(
@@ -303,6 +306,7 @@ static int reject_message_too_long(
     uint8_t **buff,
     const BACNET_ADDRESS *reply_to,
     const BACNET_ADDRESS *origin,
+    uint16_t local_net,
     uint16_t dnet)
 {
     BACNET_NPDU_DATA npdu_data = { 0 };
@@ -317,8 +321,9 @@ static int reject_message_too_long(
     npdu_dest = NULL;
     remote_origin = false;
     if (origin != NULL) {
+        /* SNET equal to the receiving port is not a remote device. */
         if ((origin->net > 0) && (origin->net < BACNET_BROADCAST_NETWORK) &&
-            (origin->len > 0)) {
+            (origin->len > 0) && (origin->net != local_net)) {
             remote_origin = true;
         }
     }
@@ -376,7 +381,6 @@ int process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
     ROUTER_PORT *srcport;
     ROUTER_PORT *destport;
     uint8_t npdu[MAX_NPDU];
-    uint16_t rejected_net = 0;
     int buff_len = 0;
     int apdu_offset;
     int apdu_len;
@@ -433,9 +437,9 @@ int process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
         return -2;
     }
     if ((size_t)apdu_len > (MAX_PDU - (size_t)npdu_len)) {
-        rejected_net = data->dest.net;
         return reject_message_too_long(
-            data, buff, &reply_to, &addr, rejected_net);
+            data, buff, &reply_to, &addr, srcport->route_info.net,
+            data->dest.net);
     }
     if ((data->dest.net == BACNET_BROADCAST_NETWORK) ||
         (destport->route_info.net != data->dest.net)) {
