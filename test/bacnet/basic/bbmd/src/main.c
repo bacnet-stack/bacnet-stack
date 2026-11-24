@@ -471,10 +471,51 @@ static void test_BBMD_Result(void)
     }
 }
 
+/**
+ * @brief A BVLC-Result is remembered with the address of its sender,
+ *  so that a foreign device can tell the answer of its BBMD
+ *  from a result that another device sent.
+ */
+static void test_BBMD_Result_Address(void)
+{
+    BACNET_IP_ADDRESS bbmd = { 0 };
+    BACNET_IP_ADDRESS other_device = { 0 };
+    BACNET_IP_ADDRESS sender = { 0 };
+    BACNET_ADDRESS src = { 0 };
+    uint8_t mtu[MAX_APDU] = { 0 };
+    uint16_t mtu_len = 0;
+
+    bvlc_address_port_from_ascii(&bbmd, "192.168.0.1", "0xBAC0");
+    bvlc_address_port_from_ascii(&other_device, "192.168.0.2", "0xBAC1");
+    mtu_len = bvlc_encode_result(
+        &mtu[0], sizeof(mtu), BVLC_RESULT_SUCCESSFUL_COMPLETION);
+
+    bvlc_bbmd_disabled_handler(&bbmd, &src, &mtu[0], mtu_len);
+    bvlc_get_last_result_address(&sender);
+    assert(!bvlc_address_different(&sender, &bbmd));
+    bvlc_bbmd_disabled_handler(&other_device, &src, &mtu[0], mtu_len);
+    bvlc_get_last_result_address(&sender);
+    assert(!bvlc_address_different(&sender, &other_device));
+
+    bvlc_bbmd_enabled_handler(&bbmd, &src, &mtu[0], mtu_len);
+    bvlc_get_last_result_address(&sender);
+    assert(!bvlc_address_different(&sender, &bbmd));
+    bvlc_bbmd_enabled_handler(&other_device, &src, &mtu[0], mtu_len);
+    bvlc_get_last_result_address(&sender);
+    assert(!bvlc_address_different(&sender, &other_device));
+
+    /* a message that is not a BVLC-Result keeps the sender of the result */
+    mtu_len = bvlc_encode_read_foreign_device_table(&mtu[0], sizeof(mtu));
+    bvlc_bbmd_disabled_handler(&bbmd, &src, &mtu[0], mtu_len);
+    bvlc_get_last_result_address(&sender);
+    assert(!bvlc_address_different(&sender, &other_device));
+}
+
 int main(void)
 {
     /* individual tests */
     test_BBMD_Result();
+    test_BBMD_Result_Address();
     test_Initiate_Original_Broadcast_NPDU();
     test_Initiate_Original_Broadcast_NPDU_Uses_Broadcast_Port();
     test_BBMD_NAT_Anti_Loop_Forward();

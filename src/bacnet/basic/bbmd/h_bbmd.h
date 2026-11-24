@@ -60,6 +60,8 @@ BACNET_STACK_EXPORT
 uint16_t bvlc_get_last_result(void);
 BACNET_STACK_EXPORT
 void bvlc_set_last_result(uint16_t result_code);
+BACNET_STACK_EXPORT
+void bvlc_get_last_result_address(BACNET_IP_ADDRESS *addr);
 
 BACNET_STACK_EXPORT
 uint8_t bvlc_get_function_code(void);
