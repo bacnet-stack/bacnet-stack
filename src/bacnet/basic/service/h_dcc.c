@@ -104,7 +104,7 @@ void handler_device_communication_control(
     int len = 0;
     int pdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
-    BACNET_ADDRESS my_address;
+    BACNET_ADDRESS my_address = { 0 };
 
     /* encode the NPDU portion of the reply packet */
     datalink_get_my_address(&my_address);
