@@ -62,6 +62,17 @@ char *handler_dcc_password(void)
     return My_Password;
 }
 
+/**
+ * @brief Checks the password of a request against the DCC password
+ * @param password [in] The password that the request carries
+ * @return true if no DCC password is set, or if the password is the same
+ */
+static bool dcc_password_accepted(const BACNET_CHARACTER_STRING *password)
+{
+    return (My_Password[0] == '\0') ||
+        characterstring_ansi_same(password, My_Password);
+}
+
 /** Handler for a Device Communication Control (DCC) request.
  * @ingroup DMDCC
  * This handler will be invoked by apdu_handler() if it has been enabled
@@ -93,7 +104,7 @@ void handler_device_communication_control(
     int len = 0;
     int pdu_len = 0;
     BACNET_NPDU_DATA npdu_data;
-    BACNET_ADDRESS my_address;
+    BACNET_ADDRESS my_address = { 0 };
 
     /* encode the NPDU portion of the reply packet */
     datalink_get_my_address(&my_address);
@@ -144,10 +155,12 @@ void handler_device_communication_control(
         goto DCC_FAILURE;
     }
 #if (BACNET_PROTOCOL_REVISION >= 20)
-    if (state == COMMUNICATION_DISABLE) {
-        /*  If the request is valid and the 'Enable/Disable'
-            parameter is the deprecated value DISABLE, return the error
-            SERVICES, SERVICE_REQUEST_DENIED */
+    if ((state == COMMUNICATION_DISABLE) && dcc_password_accepted(&password)) {
+        /*  If the request is valid, which includes its password,
+            and the 'Enable/Disable' parameter is the deprecated value
+            DISABLE, return the error SERVICES, SERVICE_REQUEST_DENIED.
+            A request without the valid password gets the error
+            SECURITY, PASSWORD_FAILURE below. */
         len = bacerror_encode_apdu(
             &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
             SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL,
@@ -173,8 +186,7 @@ void handler_device_communication_control(
             goto DCC_FAILURE;
         }
 #endif
-        if ((My_Password[0] == '\0') ||
-            characterstring_ansi_same(&password, My_Password)) {
+        if (dcc_password_accepted(&password)) {
             len = encode_simple_ack(
                 &Handler_Transmit_Buffer[pdu_len], service_data->invoke_id,
                 SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL);
