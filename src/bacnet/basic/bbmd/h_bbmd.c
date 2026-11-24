@@ -40,6 +40,8 @@
 static bool BVLC_Debug = false;
 /** result from a client request */
 static uint16_t BVLC_Result_Code = BVLC_RESULT_INVALID;
+/** B/IPv4 address of the device that sent the result */
+static BACNET_IP_ADDRESS BVLC_Result_Address;
 /** incoming function */
 static uint8_t BVLC_Function_Code = BVLC_INVALID;
 /** Global IP address for NAT handling */
@@ -750,6 +752,7 @@ int bvlc_bbmd_disabled_handler(
                 function_len = bvlc_decode_result(pdu, pdu_len, &result_code);
                 if (function_len) {
                     BVLC_Result_Code = result_code;
+                    bvlc_address_copy(&BVLC_Result_Address, addr);
                     debug_print_unsigned(
                         "Received Result Code =", BVLC_Result_Code);
                 }
@@ -916,6 +919,7 @@ int bvlc_bbmd_enabled_handler(
             function_len = bvlc_decode_result(pdu, pdu_len, &result_code);
             if (function_len) {
                 BVLC_Result_Code = result_code;
+                bvlc_address_copy(&BVLC_Result_Address, addr);
                 debug_print_unsigned(
                     "Received Result Code =", BVLC_Result_Code);
             }
@@ -1416,6 +1420,19 @@ int bvlc_bbmd_read_fdt(const BACNET_IP_ADDRESS *bbmd_addr)
 uint16_t bvlc_get_last_result(void)
 {
     return BVLC_Result_Code;
+}
+
+/**
+ * Gets the B/IPv4 address of the device that sent the last BVLL Result
+ * we received. A device that sent a request to one BBMD can use it
+ * to tell the answer of that BBMD from a result that another device sent.
+ *
+ * @param addr [out] B/IPv4 address of the sender, which is all zeros
+ *  until a BVLL Result is received.
+ */
+void bvlc_last_result_address_get(BACNET_IP_ADDRESS *addr)
+{
+    bvlc_address_copy(addr, &BVLC_Result_Address);
 }
 
 /**
