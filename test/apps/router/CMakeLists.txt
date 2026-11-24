@@ -33,11 +33,14 @@ string(REGEX REPLACE
     ${CMAKE_CURRENT_SOURCE_DIR})
 set(ZTST_DIR "${TST_DIR}/ztest/src")
 
+# Production builds leave learned-route expiry disabled. Opt in here so
+# the unit test still removes entries older than the configured age.
 add_compile_definitions(
     BACNET_BIG_ENDIAN=0
     CONFIG_ZTEST=1
     BACNET_STACK_DEPRECATED_DISABLE=1
     _GNU_SOURCE
+    ROUTER_DNET_MAX_AGE_MS=600000
     )
 
 include_directories(

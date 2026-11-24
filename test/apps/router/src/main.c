@@ -327,6 +327,149 @@ static void test_Malformed_Npdu(void)
     zassert_equal(run(one, sizeof(one), NULL), -2, NULL);
 }
 
+/**
+ * @brief Invoke process_msg() the way main() does and return its status.
+ *  The received PDU is freed here; a forwarded PDU is left in @p buff.
+ */
+static int run_process_msg(const uint8_t *pdu, size_t len, uint8_t **buff)
+{
+    MSG_DATA rx = { 0 };
+    MSG_DATA work = { 0 };
+    BACMSG msg = { 0 };
+    uint8_t *storage;
+    int rc;
+
+    storage = (uint8_t *)malloc(len);
+    zassert_not_null(storage, NULL);
+    memcpy(storage, pdu, len);
+    rx.pdu = storage;
+    rx.pdu_len = (uint16_t)len;
+    msg.type = DATA;
+    msg.origin = Test_Port.port_id;
+    msg.data = &rx;
+
+    rc = process_msg(&msg, &work, buff);
+    free(storage);
+
+    return rc;
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(router_tests, test_Process_Msg_Return_Code)
+#else
+static void test_Process_Msg_Return_Code(void)
+#endif
+{
+    /* application NPDU for a network this router has not learned */
+    const uint8_t unknown_dnet[] = { 0x01, 0x20, 0x00, 0x63, 0x00, 0xFF, 0x10 };
+    /* destination length is larger than the NPDU */
+    const uint8_t malformed[] = { 0x01, 0x20, 0x00, 0x05, 0xFF };
+    /* application NPDU for the directly connected network */
+    const uint8_t local_dnet[] = { 0x01, 0x20, 0x00, 0x01, 0x00, 0xFF, 0x10 };
+    uint8_t stale = 0xA5;
+    uint8_t *buff;
+    int buff_len;
+
+    reset_routes();
+
+    /* main() sends only when the result is a positive length. */
+    buff = &stale;
+    buff_len = run_process_msg(unknown_dnet, sizeof(unknown_dnet), &buff);
+    zassert_equal(buff_len, -1, NULL);
+    zassert_false(buff_len > 0, "a net search must not be sent as a PDU");
+    zassert_is_null(buff, NULL);
+
+    buff = &stale;
+    buff_len = run_process_msg(malformed, sizeof(malformed), &buff);
+    zassert_equal(buff_len, -2, NULL);
+    zassert_false(buff_len > 0, "a discarded NPDU must not be sent as a PDU");
+    zassert_true(buff_len != -1, "a malformed NPDU must not start a search");
+    zassert_is_null(buff, NULL);
+
+    buff = NULL;
+    buff_len = run_process_msg(local_dnet, sizeof(local_dnet), &buff);
+    zassert_true(buff_len > 0, "a known destination is a PDU length");
+    zassert_not_null(buff, NULL);
+    free(buff);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(router_tests, test_DNET_Refresh_On_Traffic)
+#else
+static void test_DNET_Refresh_On_Traffic(void)
+#endif
+{
+    /* forwarded to learned network 99 */
+    const uint8_t to_remote[] = { 0x01, 0x20, 0x00, 0x63, 0x00, 0xFF, 0x10 };
+    /* received from learned network 50 and delivered locally */
+    const uint8_t from_remote[] = { 0x01, 0x28, 0x00, 0x01, 0x00, 0x00,
+                                    0x32, 0x01, 0x0A, 0xFF, 0x10 };
+    BACNET_ADDRESS addr = { 0 };
+    DNET *forwarded;
+    DNET *received;
+    uint8_t *buff = NULL;
+    unsigned long now;
+    unsigned long forwarded_seen;
+    unsigned long received_seen;
+    int buff_len;
+
+    reset_routes();
+    addr.len = 1;
+    addr.adr[0] = 9;
+    zassert_true(add_dnet(&Test_Port.route_info, 99, addr), NULL);
+    addr.adr[0] = 5;
+    zassert_true(add_dnet(&Test_Port.route_info, 50, addr), NULL);
+    forwarded = Test_Port.route_info.dnets;
+    received = forwarded->next;
+    zassert_not_null(received, NULL);
+    zassert_equal(forwarded->net, 99, NULL);
+    zassert_equal(received->net, 50, NULL);
+
+    now = mstimer_now();
+    forwarded_seen = (now > 1000UL) ? (now - 1000UL) : 0UL;
+    received_seen = forwarded_seen;
+    forwarded->last_seen_ms = forwarded_seen;
+    received->last_seen_ms = received_seen;
+
+    buff_len = run_process_msg(to_remote, sizeof(to_remote), &buff);
+    zassert_true(buff_len > 0, NULL);
+    zassert_true(
+        forwarded->last_seen_ms > forwarded_seen,
+        "forwarding via a DNET must refresh it");
+    free(buff);
+    buff = NULL;
+
+    /* find_dnet() of the local network does not walk learned entries */
+    buff_len = run_process_msg(from_remote, sizeof(from_remote), &buff);
+    zassert_true(buff_len > 0, NULL);
+    zassert_true(
+        received->last_seen_ms > received_seen,
+        "traffic received from a DNET must refresh it");
+    free(buff);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(router_tests, test_Send_Failure_Keeps_Caller_Data)
+#else
+static void test_Send_Failure_Keeps_Caller_Data(void)
+#endif
+{
+    MSG_DATA *data;
+    uint8_t *buff = NULL;
+    int rc;
+
+    reset_routes();
+    data = (MSG_DATA *)calloc(1, sizeof(*data));
+    zassert_not_null(data, NULL);
+    data->dest.net = BACNET_BROADCAST_NETWORK;
+    rc = send_network_message(
+        NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK, data, &buff, NULL);
+    zassert_true(rc < 0, NULL);
+    zassert_is_null(buff, NULL);
+    /* caller still owns the message and must free it, as main() does */
+    free(data);
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(router_tests, test_Is_Network_Msg)
 #else
@@ -364,6 +507,9 @@ void test_main(void)
         ztest_unit_test(test_I_Am_Router_Response_Bounds),
         ztest_unit_test(test_DNET_Limit_Update_And_Expiry),
         ztest_unit_test(test_Malformed_Npdu),
+        ztest_unit_test(test_Process_Msg_Return_Code),
+        ztest_unit_test(test_DNET_Refresh_On_Traffic),
+        ztest_unit_test(test_Send_Failure_Keeps_Caller_Data),
         ztest_unit_test(test_Is_Network_Msg));
 
     ztest_run_test_suite(router_tests);

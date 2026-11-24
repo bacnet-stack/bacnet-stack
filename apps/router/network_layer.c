@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "network_layer.h"
 #include "bacnet/bacint.h"
 
@@ -95,6 +96,7 @@ static bool append_unsigned_network(
 
 int process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff)
 {
+    BACNET_ADDRESS addr = { 0 };
     BACNET_NPDU_DATA npdu_data;
     ROUTER_PORT *srcport;
     ROUTER_PORT *destport;
@@ -116,7 +118,7 @@ int process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff)
     }
 
     apdu_offset = bacnet_npdu_decode(
-        data->pdu, data->pdu_len, &data->dest, NULL, &npdu_data);
+        data->pdu, data->pdu_len, &data->dest, &addr, &npdu_data);
     if (apdu_offset <= 0) {
         PRINT(ERROR, "Error: Malformed network message\n");
         return -2;
@@ -133,6 +135,11 @@ int process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff)
         return -2;
     }
     data->src.net = srcport->route_info.net;
+    /* traffic received from a learned network */
+    if ((addr.net > 0) && (addr.net < BACNET_BROADCAST_NETWORK) &&
+        (addr.net != data->src.net)) {
+        refresh_dnet(&srcport->route_info, addr.net);
+    }
 
     switch (npdu_data.network_message_type) {
         case NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK:
@@ -268,6 +275,96 @@ int process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff)
         default:
             PRINT(ERROR, "Error: Message unsupported\n");
             break;
+    }
+
+    /* create_network_message() returns -1 when the reply cannot be built.
+     * That is a discard, not a request to search for a network. */
+    if (buff_len < 0) {
+        return -2;
+    }
+
+    return buff_len;
+}
+
+/**
+ * @brief Forward an application NPDU toward its destination network.
+ * @param msg - received router message
+ * @param data - working copy of the message; the PDU stays shared with
+ *  the received message
+ * @param buff - set to the forwarded PDU, or NULL when nothing is sent
+ * @return positive length to send, -1 to search for the destination
+ *  network, or -2 to discard the message
+ */
+int process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
+{
+    BACNET_ADDRESS addr = { 0 };
+    BACNET_NPDU_DATA npdu_data = { 0 };
+    ROUTER_PORT *srcport;
+    ROUTER_PORT *destport;
+    uint8_t npdu[MAX_NPDU];
+    int buff_len = 0;
+    int apdu_offset;
+    int apdu_len;
+    int npdu_len;
+
+    if (buff) {
+        *buff = NULL;
+    }
+    if (!msg || !msg->data || !data || !buff) {
+        return -2;
+    }
+    memmove(data, msg->data, sizeof(MSG_DATA));
+
+    apdu_offset = bacnet_npdu_decode(
+        data->pdu, data->pdu_len, &data->dest, &addr, &npdu_data);
+    if (apdu_offset <= 0) {
+        /* malformed NPDU: discard */
+        return -2;
+    }
+    apdu_len = data->pdu_len - apdu_offset;
+
+    srcport = find_snet(msg->origin);
+    destport = find_dnet(data->dest.net, NULL);
+    assert(srcport);
+
+    if (srcport && destport) {
+        data->src.net = srcport->route_info.net;
+
+        /* if received from another router save real source address (not other
+         * router source address) */
+        if (addr.net > 0 && addr.net < BACNET_BROADCAST_NETWORK &&
+            data->src.net != addr.net) {
+            refresh_dnet(&srcport->route_info, addr.net);
+            memmove(&data->src, &addr, sizeof(BACNET_ADDRESS));
+        }
+
+        /* encode both source and destination for broadcast and router-to-router
+         * communication */
+        if (data->dest.net == BACNET_BROADCAST_NETWORK ||
+            destport->route_info.net != data->dest.net) {
+            npdu_len =
+                npdu_encode_pdu(npdu, &data->dest, &data->src, &npdu_data);
+        } else {
+            npdu_len = npdu_encode_pdu(npdu, NULL, &data->src, &npdu_data);
+        }
+
+        if ((npdu_len <= 0) || (apdu_len < 0)) {
+            return -2;
+        }
+        buff_len = npdu_len + apdu_len;
+        *buff = (uint8_t *)malloc((size_t)buff_len);
+        if (!*buff) {
+            PRINT(ERROR, "Error: Could not allocate message\n");
+            return -2;
+        }
+        memmove(*buff, npdu, npdu_len); /* copy newly formed NPDU */
+        memmove(
+            *buff + npdu_len, &data->pdu[apdu_offset],
+            apdu_len); /* copy APDU */
+
+    } else {
+        /* request net search */
+        return -1;
     }
 
     return buff_len;
@@ -464,7 +561,13 @@ int create_network_message(
     return buff_len;
 }
 
-void send_network_message(
+/**
+ * @brief Build a network message and queue it to every active port.
+ * @return positive length of the queued PDU, or -1 when it was not sent.
+ *  On failure the caller still owns @p data when it supplied that pointer.
+ *  A NULL @p data is allocated and released here.
+ */
+int send_network_message(
     BACNET_NETWORK_MESSAGE_TYPE network_message_type,
     MSG_DATA *data,
     uint8_t **buff,
@@ -476,14 +579,14 @@ void send_network_message(
     bool allocated_data = false;
 
     if (!buff) {
-        return;
+        return -1;
     }
     *buff = NULL;
     if (!data) {
         data = (MSG_DATA *)malloc(sizeof(MSG_DATA));
         if (!data) {
             PRINT(ERROR, "Error: Could not allocate network message data\n");
-            return;
+            return -1;
         }
         allocated_data = true;
         data->dest.net = BACNET_BROADCAST_NETWORK;
@@ -495,7 +598,7 @@ void send_network_message(
         if (allocated_data) {
             free(data);
         }
-        return;
+        return -1;
     }
 
     /* form network message */
@@ -514,6 +617,8 @@ void send_network_message(
         send_to_msgbox(port->port_id, &msg);
         port = port->next;
     }
+
+    return buff_len;
 }
 
 void init_npdu(

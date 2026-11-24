@@ -30,8 +30,11 @@
 #define ROUTER_DNET_MAX_COUNT 256U
 #endif
 
+/* 0 keeps learned routes. BACnet routers do not re-announce them.
+ * A build may set ROUTER_DNET_MAX_AGE_MS to expire unused entries.
+ */
 #ifndef ROUTER_DNET_MAX_AGE_MS
-#define ROUTER_DNET_MAX_AGE_MS (10UL * 60UL * 1000UL)
+#define ROUTER_DNET_MAX_AGE_MS 0
 #endif
 
 /* #define DEBUG_LEVEL 3 */
@@ -112,6 +115,9 @@ bool add_dnet(RT_ENTRY *route_info, uint16_t net, BACNET_ADDRESS addr);
 
 /* remove route entries that have not been updated recently */
 void expire_dnets(RT_ENTRY *route_info);
+
+/* mark a learned network as recently used, if the entry exists */
+void refresh_dnet(RT_ENTRY *route_info, uint16_t net);
 
 void cleanup_dnets(DNET *dnets);
 

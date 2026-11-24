@@ -18,7 +18,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h> /* for time */
-#include <assert.h>
 #include <fcntl.h>
 #include <libconfig.h> /* read config files */
 #include <unistd.h> /* for getopt */
@@ -54,8 +53,6 @@ bool init_router(void);
 void cleanup(void);
 
 void print_msg(const BACMSG *msg);
-
-uint16_t process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff);
 
 uint16_t get_next_free_dnet(void);
 
@@ -180,9 +177,12 @@ int main(int argc, char *argv[])
                     } else if (buff_len == -1) {
                         uint16_t net = msg_data->dest.net; /* NET to find */
                         PRINT(INFO, "Searching NET...\n");
-                        send_network_message(
-                            NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK, msg_data,
-                            &buff, &net);
+                        if (send_network_message(
+                                NETWORK_MESSAGE_WHO_IS_ROUTER_TO_NETWORK,
+                                msg_data, &buff, &net) < 0) {
+                            /* PDU is shared with rx_data and freed with it */
+                            free(msg_data);
+                        }
                     } else {
                         /* if invalid message send Reject-Message-To-Network */
                         PRINT(ERROR, "Error: Invalid message\n");
@@ -766,68 +766,6 @@ void print_msg(const BACMSG *msg)
             PRINT(DEBUG, "\n");
         }
     }
-}
-
-uint16_t process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
-{
-    BACNET_ADDRESS addr;
-    BACNET_NPDU_DATA npdu_data;
-    ROUTER_PORT *srcport;
-    ROUTER_PORT *destport;
-    uint8_t npdu[MAX_NPDU];
-    int16_t buff_len = 0;
-    int apdu_offset;
-    int apdu_len;
-    int npdu_len;
-
-    memmove(data, msg->data, sizeof(MSG_DATA));
-
-    apdu_offset = bacnet_npdu_decode(
-        data->pdu, data->pdu_len, &data->dest, &addr, &npdu_data);
-    if (apdu_offset <= 0) {
-        /* malformed NPDU: discard */
-        return -2;
-    }
-    apdu_len = data->pdu_len - apdu_offset;
-
-    srcport = find_snet(msg->origin);
-    destport = find_dnet(data->dest.net, NULL);
-    assert(srcport);
-
-    if (srcport && destport) {
-        data->src.net = srcport->route_info.net;
-
-        /* if received from another router save real source address (not other
-         * router source address) */
-        if (addr.net > 0 && addr.net < BACNET_BROADCAST_NETWORK &&
-            data->src.net != addr.net) {
-            memmove(&data->src, &addr, sizeof(BACNET_ADDRESS));
-        }
-
-        /* encode both source and destination for broadcast and router-to-router
-         * communication */
-        if (data->dest.net == BACNET_BROADCAST_NETWORK ||
-            destport->route_info.net != data->dest.net) {
-            npdu_len =
-                npdu_encode_pdu(npdu, &data->dest, &data->src, &npdu_data);
-        } else {
-            npdu_len = npdu_encode_pdu(npdu, NULL, &data->src, &npdu_data);
-        }
-
-        buff_len = npdu_len + data->pdu_len - apdu_offset;
-
-        *buff = (uint8_t *)malloc(buff_len);
-        memmove(*buff, npdu, npdu_len); /* copy newly formed NPDU */
-        memmove(
-            *buff + npdu_len, &data->pdu[apdu_offset],
-            apdu_len); /* copy APDU */
-
-    } else {
-        /* request net search */
-        return -1;
-    }
-
-    return buff_len;
 }
 
 int kbhit(void)

@@ -14,16 +14,41 @@
 #include "portthread.h"
 #include "bacnet/basic/sys/mstimer.h"
 
+#if ROUTER_DNET_MAX_AGE_MS > 0
 static bool dnet_expired(const DNET *dnet, unsigned long now)
 {
-    if (ROUTER_DNET_MAX_AGE_MS == 0) {
-        return false;
+    return (unsigned long)(now - dnet->last_seen_ms) >=
+        (unsigned long)ROUTER_DNET_MAX_AGE_MS;
+}
+#endif
+
+static void dnet_mark_seen(DNET *dnet)
+{
+    if (dnet) {
+        dnet->last_seen_ms = mstimer_now();
     }
-    return (unsigned long)(now - dnet->last_seen_ms) >= ROUTER_DNET_MAX_AGE_MS;
+}
+
+void refresh_dnet(RT_ENTRY *route_info, uint16_t net)
+{
+    DNET *dnet;
+
+    if (!route_info) {
+        return;
+    }
+    dnet = route_info->dnets;
+    while (dnet != NULL) {
+        if (dnet->net == net) {
+            dnet_mark_seen(dnet);
+            return;
+        }
+        dnet = dnet->next;
+    }
 }
 
 void expire_dnets(RT_ENTRY *route_info)
 {
+#if ROUTER_DNET_MAX_AGE_MS > 0
     DNET **link;
     DNET *dnet;
     unsigned long now;
@@ -45,6 +70,10 @@ void expire_dnets(RT_ENTRY *route_info)
             link = &dnet->next;
         }
     }
+#else
+    /* A zero age keeps learned routes. BACnet routers do not re-announce. */
+    (void)route_info;
+#endif
 }
 
 ROUTER_PORT *find_snet(MSGBOX_ID id)
@@ -84,6 +113,8 @@ ROUTER_PORT *find_dnet(uint16_t net, BACNET_ADDRESS *addr)
             dnet = port->route_info.dnets;
             while (dnet != NULL) {
                 if (net == dnet->net) {
+                    /* traffic forwarded via this learned network */
+                    dnet_mark_seen(dnet);
                     if (addr) {
                         memmove(&addr->len, &dnet->mac_len, 1);
                         memmove(&addr->adr[0], &dnet->mac[0], MAX_MAC_LEN);
