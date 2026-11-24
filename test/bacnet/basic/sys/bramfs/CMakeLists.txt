@@ -31,6 +31,10 @@ include_directories(
     ${TST_DIR}/bacnet/basic/object/test
     )
 
+set_source_files_properties(
+    ${SRC_DIR}/bacnet/basic/sys/bramfs.c
+    PROPERTIES COMPILE_DEFINITIONS realloc=bacfile_ramfs_test_realloc)
+
 add_executable(${PROJECT_NAME}
     # File(s) under test
     ${SRC_DIR}/bacnet/basic/sys/bramfs.c
