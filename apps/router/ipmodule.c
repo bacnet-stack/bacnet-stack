@@ -217,7 +217,13 @@ int dl_ip_send(
     int buff_len = 0;
     int bytes_sent = 0;
 
-    if (data->socket < 0) {
+    if (!data || !dest || !pdu || (data->socket < 0)) {
+        return -1;
+    }
+    if (!data->buff || (data->max_buff < BIP_HEADER_MAX) || (pdu_len < 2) ||
+        (pdu_len > MAX_PDU) ||
+        (pdu_len > (unsigned)(data->max_buff - BIP_HEADER_MAX))) {
+        PRINT(ERROR, "BIP: send PDU exceeds maximum frame size\n");
         return -1;
     }
 

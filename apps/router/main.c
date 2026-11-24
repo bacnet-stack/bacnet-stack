@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
     BACMSG msg_storage, *bacmsg = NULL;
     MSG_DATA *msg_data = NULL;
     uint8_t *buff = NULL;
-    int16_t buff_len = 0;
+    int buff_len = 0;
     const char *filename = argv[0];
 
     if ((argc > 1) && (strcmp(argv[1], "--version") == 0)) {

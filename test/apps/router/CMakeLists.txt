@@ -50,6 +50,7 @@ include_directories(
 add_executable(${PROJECT_NAME}
     # File(s) under test
     ${APPS_DIR}/router/network_layer.c
+    ${APPS_DIR}/router/portthread.c
     # Support files (pathname alphabetical)
     ${SRC_DIR}/bacnet/bacaddr.c
     ${SRC_DIR}/bacnet/bacdcode.c
@@ -61,6 +62,7 @@ add_executable(${PROJECT_NAME}
     ${SRC_DIR}/bacnet/basic/sys/debug.c
     ${SRC_DIR}/bacnet/indtext.c
     ${SRC_DIR}/bacnet/npdu.c
+    ${PORTS_DIR}/linux/mstimer-init.c
     ${APPS_DIR}/router/msgqueue.c
     # Test and test library files
     ./src/main.c
