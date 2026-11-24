@@ -330,7 +330,11 @@ static void test_DNET_Limit_Update_And_Expiry(void)
         DNET *newer;
 
         seen_now = mstimer_now();
-        dnet->last_seen_ms = (seen_now > 0UL) ? (seen_now - 1UL) : 0UL;
+        if (seen_now > 0UL) {
+            dnet->last_seen_ms = seen_now - 1UL;
+        } else {
+            dnet->last_seen_ms = 0UL;
+        }
         newer = dnet->next;
         while (newer != NULL) {
             newer->last_seen_ms = seen_now;
@@ -443,6 +447,32 @@ static void test_Process_Msg_Unknown_Source(void)
     reset_routes();
 }
 
+/**
+ * @brief Local NPDU for network 1 plus an APDU of the given length.
+ *  process_msg() re-encodes this without the destination specifier.
+ */
+static uint8_t *local_apdu_message(size_t apdu_len, size_t *pdu_len)
+{
+    uint8_t *pdu;
+    size_t len;
+
+    len = 6 + apdu_len;
+    pdu = (uint8_t *)calloc(1, len);
+    zassert_not_null(pdu, NULL);
+    pdu[0] = 0x01;
+    pdu[1] = 0x20;
+    pdu[2] = 0x00;
+    pdu[3] = 0x01;
+    pdu[4] = 0x00;
+    pdu[5] = 0xFF;
+    if (apdu_len > 0) {
+        pdu[6] = 0x10;
+    }
+    *pdu_len = len;
+
+    return pdu;
+}
+
 #if defined(CONFIG_ZTEST_NEW_API)
 ZTEST(router_tests, test_Process_Msg_Too_Long)
 #else
@@ -455,38 +485,89 @@ static void test_Process_Msg_Too_Long(void)
     BACNET_ADDRESS dest = { 0 };
     BACNET_ADDRESS src = { 0 };
     size_t len;
+    size_t apdu_len;
     int buff_len;
+    int reply_len;
+    int overhead;
     int offset;
-    uint16_t rejected_net = 0;
+    uint16_t rejected_net;
 
     reset_routes();
-    len = 7 + (size_t)MAX_PDU;
-    pdu = (uint8_t *)calloc(1, len);
-    zassert_not_null(pdu, NULL);
-    pdu[0] = 0x01;
-    pdu[1] = 0x20;
-    pdu[2] = 0x00;
-    pdu[3] = 0x01;
-    pdu[4] = 0x00;
-    pdu[5] = 0xFF;
-    pdu[6] = 0x10;
+    pdu = local_apdu_message(1, &len);
+    buff_len = run_process_msg(pdu, len, &buff, NULL);
+    free(pdu);
+    zassert_true(buff_len > 1, NULL);
+    overhead = buff_len - 1;
+    free(buff);
+    buff = NULL;
 
-    buff_len = run_process_msg(pdu, len, &buff, &offset);
+    apdu_len = (size_t)((int)MAX_PDU - overhead);
+    pdu = local_apdu_message(apdu_len, &len);
+    buff_len = run_process_msg(pdu, len, &buff, NULL);
+    free(pdu);
+    zassert_equal(buff_len, (int)MAX_PDU, "MAX_PDU is forwarded");
+    zassert_not_null(buff, NULL);
+    zassert_equal(buff[1] & 0x80, 0, "a forwarded APDU is not a reject");
+    free(buff);
+    buff = NULL;
+
+    apdu_len = (size_t)((int)MAX_PDU - overhead + 1);
+    pdu = local_apdu_message(apdu_len, &len);
+    reply_len = 0;
+    buff_len = run_process_msg(pdu, len, &buff, &reply_len);
     free(pdu);
     zassert_equal(buff_len, ROUTER_MSG_REJECT, NULL);
-    zassert_false(buff_len > 0, "an oversize forward must not be sent");
+    zassert_false(buff_len > 0, "MAX_PDU + 1 must not be forwarded");
     zassert_not_null(buff, NULL);
-    zassert_true(offset > 0, NULL);
+    zassert_true(reply_len > 0, NULL);
     offset =
-        bacnet_npdu_decode(buff, (uint16_t)offset, &dest, &src, &npdu_data);
+        bacnet_npdu_decode(buff, (uint16_t)reply_len, &dest, &src, &npdu_data);
     zassert_true(offset > 0, NULL);
+    zassert_equal(dest.net, 0, "a local origin has no DNET");
+    zassert_equal(dest.len, 0, NULL);
     zassert_true(npdu_data.network_layer_message, NULL);
     zassert_equal(
         npdu_data.network_message_type,
         NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK, NULL);
     zassert_equal(buff[offset], NETWORK_REJECT_MESSAGE_TOO_LONG, NULL);
+    rejected_net = 0;
     decode_unsigned16(&buff[offset + 1], &rejected_net);
     zassert_equal(rejected_net, 1, NULL);
+    free(buff);
+    buff = NULL;
+
+    /* SNET 50, SADR 0x0A, destined for the directly connected network. */
+    len = 10 + (size_t)MAX_PDU;
+    pdu = (uint8_t *)calloc(1, len);
+    zassert_not_null(pdu, NULL);
+    pdu[0] = 0x01;
+    pdu[1] = 0x28;
+    pdu[2] = 0x00;
+    pdu[3] = 0x01;
+    pdu[4] = 0x00;
+    pdu[5] = 0x00;
+    pdu[6] = 0x32;
+    pdu[7] = 0x01;
+    pdu[8] = 0x0A;
+    pdu[9] = 0xFF;
+    reply_len = 0;
+    memset(&dest, 0, sizeof(dest));
+    memset(&npdu_data, 0, sizeof(npdu_data));
+    buff_len = run_process_msg(pdu, len, &buff, &reply_len);
+    free(pdu);
+    zassert_equal(buff_len, ROUTER_MSG_REJECT, NULL);
+    zassert_not_null(buff, NULL);
+    zassert_true(reply_len > 0, NULL);
+    offset =
+        bacnet_npdu_decode(buff, (uint16_t)reply_len, &dest, &src, &npdu_data);
+    zassert_true(offset > 0, NULL);
+    zassert_equal(dest.net, 50, "reject DNET is the original SNET");
+    zassert_equal(dest.len, 1, "reject DADR is present");
+    zassert_equal(dest.adr[0], 0x0A, "reject DADR is the original SADR");
+    zassert_equal(
+        npdu_data.network_message_type,
+        NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK, NULL);
+    zassert_equal(buff[offset], NETWORK_REJECT_MESSAGE_TOO_LONG, NULL);
     free(buff);
 }
 
@@ -609,7 +690,11 @@ static void test_DNET_Refresh_On_Traffic(void)
     zassert_equal(received->net, 50, NULL);
 
     now = mstimer_now();
-    forwarded_seen = (now > 1000UL) ? (now - 1000UL) : 0UL;
+    if (now > 1000UL) {
+        forwarded_seen = now - 1000UL;
+    } else {
+        forwarded_seen = 0UL;
+    }
     received_seen = forwarded_seen;
     forwarded->last_seen_ms = forwarded_seen;
     received->last_seen_ms = received_seen;

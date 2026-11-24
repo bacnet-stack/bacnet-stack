@@ -291,28 +291,49 @@ int process_network_message(const BACMSG *msg, MSG_DATA *data, uint8_t **buff)
 }
 
 /**
- * @brief Build Reject-Message-To-Network, reason 4, aimed at the sender.
+ * @brief Build Reject-Message-To-Network, reason 4.
+ * @param origin - NPDU source of the rejected message. When it carries
+ *  SNET/SADR, the reject's DNET/DADR is that device (ASHRAE 135 6.4.4).
+ *  The frame is still returned to the source port; reply_to is the
+ *  previous hop that will forward it. With no SNET, the reject is local.
  * @return ROUTER_MSG_REJECT, or -2 when the reject cannot be built.
  */
 static int reject_message_too_long(
     MSG_DATA *data,
     uint8_t **buff,
     const BACNET_ADDRESS *reply_to,
+    const BACNET_ADDRESS *origin,
     uint16_t dnet)
 {
     BACNET_NPDU_DATA npdu_data = { 0 };
+    BACNET_ADDRESS remote_dest = { 0 };
+    BACNET_ADDRESS *npdu_dest;
     uint8_t header[MAX_NPDU];
     uint8_t *pdu;
     int npdu_len;
     int total;
+    bool remote_origin;
 
+    npdu_dest = NULL;
+    remote_origin = false;
+    if (origin != NULL) {
+        if ((origin->net > 0) && (origin->net < BACNET_BROADCAST_NETWORK) &&
+            (origin->len > 0)) {
+            remote_origin = true;
+        }
+    }
+    /* Original source device. A local origin has no DNET/DADR. */
+    if (remote_origin) {
+        memmove(&remote_dest, origin, sizeof(remote_dest));
+        npdu_dest = &remote_dest;
+    }
     init_npdu(&npdu_data, NETWORK_MESSAGE_REJECT_MESSAGE_TO_NETWORK, false);
-    npdu_len = npdu_encode_pdu(NULL, NULL, NULL, &npdu_data);
+    npdu_len = npdu_encode_pdu(NULL, npdu_dest, NULL, &npdu_data);
     if ((npdu_len <= 0) || (npdu_len > MAX_NPDU) ||
         ((size_t)npdu_len > (MAX_PDU - 3))) {
         return -2;
     }
-    if (npdu_encode_pdu(header, NULL, NULL, &npdu_data) != npdu_len) {
+    if (npdu_encode_pdu(header, npdu_dest, NULL, &npdu_data) != npdu_len) {
         return -2;
     }
     total = npdu_len + 3;
@@ -325,6 +346,7 @@ static int reject_message_too_long(
     encode_unsigned16(&pdu[npdu_len + 1], dnet);
     *buff = pdu;
     data->pdu_len = (uint16_t)total;
+    /* Previous hop on the source port. The port uses this MAC locally. */
     if (reply_to) {
         memmove(&data->dest, reply_to, sizeof(data->dest));
     }
@@ -412,7 +434,8 @@ int process_msg(BACMSG *msg, MSG_DATA *data, uint8_t **buff)
     }
     if ((size_t)apdu_len > (MAX_PDU - (size_t)npdu_len)) {
         rejected_net = data->dest.net;
-        return reject_message_too_long(data, buff, &reply_to, rejected_net);
+        return reject_message_too_long(
+            data, buff, &reply_to, &addr, rejected_net);
     }
     if ((data->dest.net == BACNET_BROADCAST_NETWORK) ||
         (destport->route_info.net != data->dest.net)) {
