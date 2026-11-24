@@ -5,10 +5,25 @@
  * @copyright SPDX-License-Identifier: MIT
  */
 #include <limits.h>
+#include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 #include <zephyr/ztest.h>
 #include <bacnet/bacstr.h>
 #include <bacnet/basic/sys/bramfs.h>
+
+static bool Realloc_Fail;
+static size_t Realloc_Failure_Count;
+
+void *bacfile_ramfs_test_realloc(void *ptr, size_t size)
+{
+    if (Realloc_Fail) {
+        Realloc_Failure_Count++;
+        return NULL;
+    }
+
+    return realloc(ptr, size);
+}
 
 /**
  * @addtogroup bacnet_tests
@@ -45,20 +60,18 @@ static void test_BRAMFS_stream(void)
 
     file_size = bacfile_ramfs_file_size(pathname);
     zassert_equal(file_size, 0, "File size should be 0 after initialization");
-    zassert_true(
+    /* arbitrary resizing is rejected, and the file stays empty */
+    zassert_false(
         bacfile_ramfs_file_size_set(pathname, sizeof(null_file_data)),
-        "Failed to set file size");
-    file_size = bacfile_ramfs_file_size(pathname);
-    zassert_equal(
-        file_size, sizeof(null_file_data),
-        "File size should be 256 after setting");
-    file_size = bacfile_ramfs_read_stream_data(
-        pathname, 0, test_file_data, sizeof(test_file_data));
-    zassert_equal(
-        file_size, sizeof(test_file_data), "file_size=%zu", file_size);
+        "Growing the file size should fail");
+    zassert_false(
+        bacfile_ramfs_file_size_set(pathname, SIZE_MAX),
+        "Growing the file size should fail");
     zassert_true(
-        memcmp(test_file_data, null_file_data, sizeof(test_file_data)) == 0,
-        "File data should be zeroed out initially");
+        bacfile_ramfs_file_size_set(pathname, 0),
+        "Setting the same file size should succeed");
+    file_size = bacfile_ramfs_file_size(pathname);
+    zassert_equal(file_size, 0, "File size should be 0 after failed resize");
     file_size = bacfile_ramfs_write_stream_data(
         pathname, 0, file_data, sizeof(file_data));
     zassert_equal(file_size, sizeof(file_data), "file_size=%zu", file_size);
@@ -106,8 +119,10 @@ static void test_BRAMFS_stream(void)
     file_size = bacfile_ramfs_file_size(NULL);
     zassert_equal(file_size, 0, "File size should be 0 on a null pathname");
 
-    /* append data to the end of the file */
-    fileStartPosition = 5;
+    /* write past the end of the empty file, within the allowed padding */
+    fileStartPosition = (BACNET_FILE_RAMFS_MAX_PAD_BYTES > 5)
+        ? 5
+        : BACNET_FILE_RAMFS_MAX_PAD_BYTES;
     file_size = bacfile_ramfs_write_stream_data(
         pathname, fileStartPosition, file_data, sizeof(file_data));
     zassert_equal(file_size, sizeof(file_data), "file_size=%zu", file_size);
@@ -383,6 +398,145 @@ static void test_BRAMFS_invalid_stream_positions(void)
 }
 
 /**
+ * @brief Unit Test for stream writes past the end of the file
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bramfs_tests, test_BRAMFS_write_stream_past_end)
+#else
+static void test_BRAMFS_write_stream_past_end(void)
+#endif
+{
+    const char *pathname = "testfile_stream_past_end.txt";
+    const uint8_t data[] = { 'A', 'B', 'C', 'D' };
+    uint8_t buffer[BACNET_FILE_RAMFS_MAX_PAD_BYTES + sizeof(data)] = { 0 };
+    size_t len = 0;
+    size_t i;
+
+    bacfile_ramfs_init();
+    len = bacfile_ramfs_write_stream_data(pathname, 0, data, sizeof(data));
+    zassert_equal(len, sizeof(data), NULL);
+    /* a large start position must not allocate memory */
+    len = bacfile_ramfs_write_stream_data(
+        pathname, INT32_MAX, data, sizeof(data));
+    zassert_equal(len, 0, NULL);
+    len = bacfile_ramfs_write_stream_data(
+        pathname, (int32_t)(sizeof(data) + BACNET_FILE_RAMFS_MAX_PAD_BYTES + 1),
+        data, sizeof(data));
+    zassert_equal(len, 0, NULL);
+    zassert_equal(bacfile_ramfs_file_size(pathname), sizeof(data), NULL);
+    /* the largest allowed gap is zero filled */
+    memset(buffer, 0xFF, sizeof(buffer));
+    len = bacfile_ramfs_write_stream_data(
+        pathname, (int32_t)(sizeof(data) + BACNET_FILE_RAMFS_MAX_PAD_BYTES),
+        data, sizeof(data));
+    zassert_equal(len, sizeof(data), NULL);
+    zassert_equal(
+        bacfile_ramfs_file_size(pathname),
+        2 * sizeof(data) + BACNET_FILE_RAMFS_MAX_PAD_BYTES, NULL);
+    len = bacfile_ramfs_read_stream_data(
+        pathname, (int32_t)sizeof(data), buffer,
+        BACNET_FILE_RAMFS_MAX_PAD_BYTES);
+    zassert_equal(len, BACNET_FILE_RAMFS_MAX_PAD_BYTES, NULL);
+    for (i = 0; i != BACNET_FILE_RAMFS_MAX_PAD_BYTES; i++) {
+        zassert_equal(buffer[i], 0, "padding byte %zu not zero", i);
+    }
+    /* an empty write leaves an empty file, and the file is still usable */
+    len = bacfile_ramfs_write_stream_data(pathname, 0, data, 0);
+    zassert_equal(len, 0, NULL);
+    zassert_equal(bacfile_ramfs_file_size(pathname), 0U, NULL);
+    len = bacfile_ramfs_write_stream_data(pathname, -1, data, sizeof(data));
+    zassert_equal(len, sizeof(data), NULL);
+    zassert_equal(bacfile_ramfs_file_size(pathname), sizeof(data), NULL);
+    bacfile_ramfs_deinit();
+}
+
+/**
+ * @brief Unit Test for overflowing stream write sizes
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bramfs_tests, test_BRAMFS_stream_write_size_overflow)
+#else
+static void test_BRAMFS_stream_write_size_overflow(void)
+#endif
+{
+    const char *pathname = "testfile_write_size_overflow.txt";
+    const uint8_t original_data[] = { 'A', 'B', 'C', 'D' };
+    const uint8_t new_data = 'X';
+    uint8_t buffer[sizeof(original_data)] = { 0 };
+    size_t len = 0;
+
+    bacfile_ramfs_init();
+    len = bacfile_ramfs_write_stream_data(
+        pathname, 0, original_data, sizeof(original_data));
+    zassert_equal(len, sizeof(original_data), NULL);
+
+    len = bacfile_ramfs_write_stream_data(pathname, -1, &new_data, SIZE_MAX);
+    zassert_equal(len, 0, NULL);
+    len = bacfile_ramfs_write_stream_data(pathname, 1, &new_data, SIZE_MAX);
+    zassert_equal(len, 0, NULL);
+
+    zassert_equal(
+        bacfile_ramfs_file_size(pathname), sizeof(original_data), NULL);
+    len = bacfile_ramfs_read_stream_data(pathname, 0, buffer, sizeof(buffer));
+    zassert_equal(len, sizeof(original_data), NULL);
+    zassert_equal(
+        memcmp(buffer, original_data, sizeof(original_data)), 0, NULL);
+
+    bacfile_ramfs_deinit();
+}
+
+/**
+ * @brief Unit Test for stream allocation failures
+ */
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bramfs_tests, test_BRAMFS_stream_allocation_failure)
+#else
+static void test_BRAMFS_stream_allocation_failure(void)
+#endif
+{
+    const char *pathname = "testfile_allocation_failure.txt";
+    const uint8_t original_data[] = { 'A', 'B', 'C', 'D' };
+    const uint8_t new_data[] = { '1', '2', '3', '4', '5', '6' };
+    uint8_t buffer[sizeof(new_data)] = { 0 };
+    size_t len = 0;
+
+    Realloc_Failure_Count = 0;
+    bacfile_ramfs_init();
+    len = bacfile_ramfs_write_stream_data(
+        pathname, 0, original_data, sizeof(original_data));
+    zassert_equal(len, sizeof(original_data), NULL);
+
+    Realloc_Fail = true;
+    len = bacfile_ramfs_write_stream_data(
+        pathname, -1, new_data, sizeof(new_data));
+    Realloc_Fail = false;
+    zassert_equal(Realloc_Failure_Count, 1U, NULL);
+    zassert_equal(len, 0, NULL);
+    zassert_equal(
+        bacfile_ramfs_file_size(pathname), sizeof(original_data), NULL);
+    len = bacfile_ramfs_read_stream_data(pathname, 0, buffer, sizeof(buffer));
+    zassert_equal(len, sizeof(original_data), NULL);
+    zassert_equal(
+        memcmp(buffer, original_data, sizeof(original_data)), 0, NULL);
+
+    Realloc_Fail = true;
+    len = bacfile_ramfs_write_stream_data(
+        pathname, 0, new_data, sizeof(new_data));
+    Realloc_Fail = false;
+    zassert_equal(Realloc_Failure_Count, 2U, NULL);
+    zassert_equal(len, 0, NULL);
+    zassert_equal(
+        bacfile_ramfs_file_size(pathname), sizeof(original_data), NULL);
+    memset(buffer, 0, sizeof(buffer));
+    len = bacfile_ramfs_read_stream_data(pathname, 0, buffer, sizeof(buffer));
+    zassert_equal(len, sizeof(original_data), NULL);
+    zassert_equal(
+        memcmp(buffer, original_data, sizeof(original_data)), 0, NULL);
+
+    bacfile_ramfs_deinit();
+}
+
+/**
  * @brief Unit Test for invalid file start records in record access
  */
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -561,10 +715,13 @@ void test_main(void)
         ztest_unit_test(test_BRAMFS_records),
         ztest_unit_test(test_BRAMFS_empty_record),
         ztest_unit_test(test_BRAMFS_write_record_past_end),
+        ztest_unit_test(test_BRAMFS_write_stream_past_end),
         ztest_unit_test(test_BRAMFS_invalid_stream_positions),
         ztest_unit_test(test_BRAMFS_invalid_record_positions),
         ztest_unit_test(test_BRAMFS_consecutive_appends),
-        ztest_unit_test(test_BRAMFS_record_replace_shorter));
+        ztest_unit_test(test_BRAMFS_record_replace_shorter),
+        ztest_unit_test(test_BRAMFS_stream_write_size_overflow),
+        ztest_unit_test(test_BRAMFS_stream_allocation_failure));
 
     ztest_run_test_suite(bramfs_tests);
 }

@@ -16,6 +16,12 @@
 #define BACNET_FILE_POSIX_MAX_PAD_RECORDS 1024
 #endif
 
+/* maximum number of zero bytes added by one stream write past the end of
+   a file; 0 disables the padding */
+#ifndef BACNET_FILE_POSIX_MAX_PAD_BYTES
+#define BACNET_FILE_POSIX_MAX_PAD_BYTES 1024
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

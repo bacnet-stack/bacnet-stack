@@ -115,32 +115,25 @@ size_t bacfile_ramfs_file_size(const char *pathname)
 }
 
 /**
- * @brief Sets the file size property value
+ * @brief Sets the file size property value.
+ *  Arbitrary resizing is not supported, because a remote peer could
+ *  otherwise force an unbounded allocation and zero-fill that exhausts
+ *  the memory. Only truncation to zero bytes, or a size equal to the
+ *  current size, succeeds.
  * @param pathname - name of the file to set the size for
- * @param file_size - value of the file size property
- * @return true if file size is writable
+ * @param new_size - value of the file size property
+ * @return true if the file now has the requested size
  */
 bool bacfile_ramfs_file_size_set(const char *pathname, size_t new_size)
 {
     struct file_data *pFile;
-    char *new_data;
-
     bool status = false;
 
     pFile = bacfile_ramfs_open(pathname);
     if (pFile) {
-        if (new_size > 0) {
-            new_data = realloc(pFile->data, new_size);
-            if (new_data) {
-                /* zero the new memory to avoid leaking sensitive data */
-                if (new_size > pFile->size) {
-                    memset(new_data + pFile->size, 0, new_size - pFile->size);
-                }
-                pFile->data = new_data;
-                pFile->size = new_size;
-                status = true;
-            }
-        } else {
+        if (new_size == pFile->size) {
+            status = true;
+        } else if (new_size == 0) {
             /* free the data */
             free(pFile->data);
             pFile->data = NULL;
@@ -207,6 +200,8 @@ size_t bacfile_ramfs_read_stream_data(
  * @param fileData - data buffer to write from
  * @param fileDataLen - size of the data buffer
  * @return number of bytes written, or 0 if not successful
+ * @note A write that starts more than BACNET_FILE_RAMFS_MAX_PAD_BYTES past
+ *  the end of the file fails. The padding bytes are set to zero.
  */
 size_t bacfile_ramfs_write_stream_data(
     const char *pathname,
@@ -214,55 +209,69 @@ size_t bacfile_ramfs_write_stream_data(
     const uint8_t *fileData,
     size_t fileDataLen)
 {
-    size_t bytes_written = 0;
     struct file_data *pFile;
-    size_t old_size;
+    size_t offset;
+    size_t new_size;
     char *new_data = NULL;
 
+    if (fileStartPosition < -1) {
+        return 0;
+    }
     pFile = bacfile_ramfs_open(pathname);
-    if (pFile) {
-        if (fileStartPosition == 0) {
-            /* open the file as a clean slate when starting at 0 */
-            new_data = realloc(pFile->data, fileDataLen);
-            if (new_data) {
-                pFile->data = new_data;
-                memcpy(pFile->data, fileData, fileDataLen);
-                pFile->size = fileDataLen;
-                bytes_written = fileDataLen;
-            }
-        } else if (fileStartPosition == -1) {
-            /* If 'File Start Position' parameter has the special
-               value -1, then the write operation shall be treated
-               as an append to the current end of file. */
-            old_size = pFile->size;
-            pFile->size += fileDataLen;
-            new_data = realloc(pFile->data, pFile->size);
-            if (new_data) {
-                pFile->data = new_data;
-                memcpy(pFile->data + old_size, fileData, fileDataLen);
-                bytes_written = fileDataLen;
-            }
-        } else if (fileStartPosition > 0) {
-            /* open for update */
-            if (fileStartPosition + fileDataLen > pFile->size) {
-                /* extend the file size */
-                new_data =
-                    realloc(pFile->data, fileStartPosition + fileDataLen);
-                if (new_data) {
-                    pFile->data = new_data;
-                    pFile->size = fileStartPosition + fileDataLen;
-                    memcpy(
-                        pFile->data + fileStartPosition, fileData, fileDataLen);
-                    bytes_written = fileDataLen;
-                }
-            } else {
-                memcpy(pFile->data + fileStartPosition, fileData, fileDataLen);
-                bytes_written = fileDataLen;
-            }
+    if (!pFile) {
+        return 0;
+    }
+    if (fileStartPosition == 0) {
+        /* open the file as a clean slate when starting at 0 */
+        offset = 0;
+    } else if (fileStartPosition == -1) {
+        /* If 'File Start Position' parameter has the special
+           value -1, then the write operation shall be treated
+           as an append to the current end of file. */
+        offset = pFile->size;
+    } else {
+        /* open for update */
+        if ((uintmax_t)fileStartPosition > (uintmax_t)SIZE_MAX) {
+            /* start position does not fit in size_t (16-bit targets) */
+            return 0;
+        }
+        offset = (size_t)fileStartPosition;
+        if ((offset > pFile->size) &&
+            ((offset - pFile->size) > BACNET_FILE_RAMFS_MAX_PAD_BYTES)) {
+            return 0;
         }
     }
+    if (fileDataLen > (SIZE_MAX - offset)) {
+        return 0;
+    }
+    new_size = offset + fileDataLen;
+    if (fileStartPosition != 0 && new_size < pFile->size) {
+        new_size = pFile->size;
+    }
+    if (new_size == 0) {
+        /* realloc of zero bytes may free the buffer and return NULL */
+        free(pFile->data);
+        pFile->data = NULL;
+        pFile->size = 0;
+        return 0;
+    }
+    if (new_size != pFile->size) {
+        new_data = realloc(pFile->data, new_size);
+        if (!new_data) {
+            return 0;
+        }
+        if (offset > pFile->size) {
+            /* zero the padding to avoid leaking heap contents */
+            memset(new_data + pFile->size, 0, offset - pFile->size);
+        }
+        pFile->data = new_data;
+        pFile->size = new_size;
+    }
+    if (fileDataLen > 0) {
+        memcpy(pFile->data + offset, fileData, fileDataLen);
+    }
 
-    return bytes_written;
+    return fileDataLen;
 }
 
 /**

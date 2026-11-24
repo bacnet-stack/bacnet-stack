@@ -68,21 +68,84 @@ size_t bacfile_posix_file_size(const char *pathname)
 }
 
 /**
- * @brief Sets the file size property value
- * @param pathname - name of the file to set the size for
- * @param file_size - value of the file size property
- * @return true if file size is writable
+ * @brief Shrink a file to a smaller size, keeping the leading bytes.
+ *  The file is never grown, so the work is bounded by the current size.
+ * @param pathname - name of the file to shrink
+ * @param file_size - new size, which shall be less than the current size
+ * @return true if the file now has the requested size
  */
-bool bacfile_posix_file_size_set(const char *pathname, size_t file_size)
+static bool file_truncate(const char *pathname, size_t file_size)
 {
     bool status = false;
     FILE *pFile = NULL;
     FILE *pScratch = NULL;
-    size_t current_size = 0;
-    size_t copy_size = 0;
     size_t remaining = 0;
     size_t chunk_size = 0;
     uint8_t buffer[256] = { 0 };
+
+    if (file_size >= bacfile_posix_file_size(pathname)) {
+        return false;
+    }
+    pFile = fopen(pathname, "rb");
+    pScratch = tmpfile();
+    if (!pFile || !pScratch) {
+        goto cleanup;
+    }
+    /* stdio cannot truncate in place, so preserve the leading bytes
+       in a scratch stream before the file is reopened in truncate mode */
+    remaining = file_size;
+    while (remaining > 0) {
+        chunk_size = (remaining > sizeof(buffer)) ? sizeof(buffer) : remaining;
+        if ((fread(buffer, 1, chunk_size, pFile) != chunk_size) ||
+            (fwrite(buffer, 1, chunk_size, pScratch) != chunk_size)) {
+            goto cleanup;
+        }
+        remaining -= chunk_size;
+    }
+    if ((fflush(pScratch) != 0) || (fseek(pScratch, 0L, SEEK_SET) != 0)) {
+        goto cleanup;
+    }
+    fclose(pFile);
+    pFile = fopen(pathname, "wb");
+    if (!pFile) {
+        goto cleanup;
+    }
+    remaining = file_size;
+    while (remaining > 0) {
+        chunk_size = (remaining > sizeof(buffer)) ? sizeof(buffer) : remaining;
+        if ((fread(buffer, 1, chunk_size, pScratch) != chunk_size) ||
+            (fwrite(buffer, 1, chunk_size, pFile) != chunk_size)) {
+            goto cleanup;
+        }
+        remaining -= chunk_size;
+    }
+    status = (fflush(pFile) == 0);
+
+cleanup:
+    if (pFile && (fclose(pFile) != 0)) {
+        status = false;
+    }
+    if (pScratch) {
+        fclose(pScratch);
+    }
+
+    return status;
+}
+
+/**
+ * @brief Sets the file size property value.
+ *  Arbitrary resizing is not supported, because a remote peer could
+ *  otherwise force an unbounded zero-fill that blocks the server and
+ *  exhausts the storage. Only truncation to zero bytes, or a size equal
+ *  to the current size, succeeds.
+ * @param pathname - name of the file to set the size for
+ * @param file_size - value of the file size property
+ * @return true if the file now has the requested size
+ */
+bool bacfile_posix_file_size_set(const char *pathname, size_t file_size)
+{
+    FILE *pFile = NULL;
+    size_t current_size = 0;
 
     /* Validate the input path before doing any file operations. */
     if (!filename_path_valid(pathname)) {
@@ -112,118 +175,7 @@ bool bacfile_posix_file_size_set(const char *pathname, size_t file_size)
         return true;
     }
 
-    /* Open original file for reading and determine how much
-       existing content we can preserve in the resized output. */
-    pFile = fopen(pathname, "rb");
-    copy_size = (file_size < current_size) ? file_size : current_size;
-    if ((copy_size > 0) && !pFile) {
-        debug_log_fprintf(
-            DEBUG_LOG_DEBUG, stderr,
-            "Failed to reopen %s for reading during resize!\n", pathname);
-        goto cleanup;
-    }
-
-    /* Copy the preserved portion into a scratch stream.
-       This prevents losing original bytes when destination is reopened
-       in truncate mode for rewrite. */
-    if (copy_size > 0) {
-        pScratch = tmpfile();
-        if (!pScratch) {
-            goto cleanup;
-        }
-        remaining = copy_size;
-        while (remaining > 0) {
-            chunk_size =
-                (remaining > sizeof(buffer)) ? sizeof(buffer) : remaining;
-            if (fread(buffer, 1, chunk_size, pFile) != chunk_size) {
-                goto cleanup;
-            }
-            if (fwrite(buffer, 1, chunk_size, pScratch) != chunk_size) {
-                goto cleanup;
-            }
-            remaining -= chunk_size;
-        }
-        if (fflush(pScratch) != 0) {
-            goto cleanup;
-        }
-    }
-
-    /* Close the original input handle before opening the same
-       pathname for writing. */
-    if (pFile) {
-        fclose(pFile);
-        pFile = NULL;
-    }
-
-    /* Recreate/truncate destination, then rebuild the file
-       contents from preserved bytes plus any required zero-fill. */
-    /* Weaker but stdio-only behavior: rewrite destination directly. */
-    pFile = fopen(pathname, "wb");
-    if (!pFile) {
-        debug_log_fprintf(
-            DEBUG_LOG_DEBUG, stderr,
-            "Failed to reopen %s for writing during resize!\n", pathname);
-        goto cleanup;
-    }
-
-    /* Restore preserved bytes at the beginning of the file. */
-    if (copy_size > 0) {
-        if (fseek(pScratch, 0L, SEEK_SET) != 0) {
-            goto cleanup;
-        }
-        remaining = copy_size;
-        while (remaining > 0) {
-            chunk_size =
-                (remaining > sizeof(buffer)) ? sizeof(buffer) : remaining;
-            if (fread(buffer, 1, chunk_size, pScratch) != chunk_size) {
-                goto cleanup;
-            }
-            if (fwrite(buffer, 1, chunk_size, pFile) != chunk_size) {
-                goto cleanup;
-            }
-            remaining -= chunk_size;
-        }
-    }
-
-    /* If growing the file, append zero bytes to reach the
-       requested final size. */
-    /* grow by writing zero fill directly to destination */
-    remaining = file_size - copy_size;
-    memset(buffer, 0, sizeof(buffer));
-    while (remaining > 0) {
-        chunk_size = (remaining > sizeof(buffer)) ? sizeof(buffer) : remaining;
-        if (fwrite(buffer, 1, chunk_size, pFile) != chunk_size) {
-            goto cleanup;
-        }
-        remaining -= chunk_size;
-    }
-
-    /* Flush and close so data reaches storage and descriptors
-       are released before reporting success. */
-    if (fflush(pFile) != 0) {
-        goto cleanup;
-    }
-    if (fclose(pFile) != 0) {
-        pFile = NULL;
-        goto cleanup;
-    }
-    pFile = NULL;
-
-    /* Mark operation successful; cleanup still runs to close
-       any scratch resources. */
-    status = true;
-
-cleanup:
-    /* Best-effort cleanup of any handles still open due to
-       normal flow or early error exit. */
-    if (pFile) {
-        fclose(pFile);
-    }
-    if (pScratch) {
-        fclose(pScratch);
-    }
-
-    return status;
+    return false;
 }
 
 /**
@@ -284,6 +236,8 @@ size_t bacfile_posix_read_stream_data(
  * @param fileData - data buffer to write from
  * @param fileDataLen - size of the data buffer
  * @return number of bytes written, or 0 if not successful
+ * @note A write that starts more than BACNET_FILE_POSIX_MAX_PAD_BYTES past
+ *  the end of the file fails.
  */
 size_t bacfile_posix_write_stream_data(
     const char *pathname,
@@ -293,6 +247,7 @@ size_t bacfile_posix_write_stream_data(
 {
     size_t bytes_written = 0;
     FILE *pFile = NULL;
+    long size = 0;
 
     if (filename_path_valid(pathname)) {
         if (fileStartPosition == 0) {
@@ -306,6 +261,17 @@ size_t bacfile_posix_write_stream_data(
         } else if (fileStartPosition > 0) {
             /* open for update */
             pFile = fopen(pathname, "rb+");
+            if (pFile) {
+                /* limit the gap, which would be filled with zero bytes */
+                size = (fseek(pFile, 0L, SEEK_END) == 0) ? ftell(pFile) : -1L;
+                if ((size < 0) ||
+                    ((fileStartPosition > size) &&
+                     ((fileStartPosition - size) >
+                      BACNET_FILE_POSIX_MAX_PAD_BYTES))) {
+                    fclose(pFile);
+                    return 0;
+                }
+            }
         }
         if (pFile) {
             if (fileStartPosition != -1) {
@@ -540,9 +506,8 @@ static bool record_replace(
         status = false;
     }
     if (status && (new_len < (old_end - start))) {
-        /* stdio cannot truncate in place */
         size -= (old_end - start) - new_len;
-        status = bacfile_posix_file_size_set(pathname, (size_t)size);
+        status = file_truncate(pathname, (size_t)size);
     }
 
     return status;
