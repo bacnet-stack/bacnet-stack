@@ -17,7 +17,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+#if defined(__linux__) || defined(__unix__) || defined(__APPLE__) || \
+    defined(__QNX__)
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -30,7 +31,8 @@
 #include "modbus_rtu.h"
 #include "bacnet/bacstr.h"
 
-#if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+#if defined(__linux__) || defined(__unix__) || defined(__APPLE__) || \
+    defined(__QNX__)
 
 /* -----------------------------------------------------------------------
  * Internal state

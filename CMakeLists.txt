@@ -1009,6 +1009,32 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
       )
     endif()
   endif()
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "QNX")
+  # QNX 8.0: ports/qnx provides MS/TP (RS-485 via devc-ser*) and reuses the
+  # BSD BACnet/IP code, since io-sock networking is derived from FreeBSD.
+  message(STATUS "BACNET: building for QNX")
+  set(BACNET_PORT_DIRECTORY_PATH ${CMAKE_CURRENT_LIST_DIR}/ports/qnx)
+  add_compile_definitions(BACNET_PORT=qnx)
+  add_compile_definitions(_QNX_SOURCE)
+  include_directories(ports/posix)
+  # sockets, getifaddrs and sysctl live in libsocket on QNX
+  link_libraries(socket)
+  link_libraries(m)
+
+  target_sources(${PROJECT_NAME} PRIVATE
+    ports/qnx/bacport.h
+    ports/posix/bacfile-posix.c
+    ports/posix/bacfile-posix.h
+    $<$<BOOL:${BACDL_BIP}>:ports/qnx/bip-init.c>
+    $<$<BOOL:${BACDL_MSTP}>:ports/qnx/rs485.c>
+    $<$<BOOL:${BACDL_MSTP}>:ports/qnx/rs485.h>
+    $<$<BOOL:${BACDL_MSTP}>:ports/qnx/dlmstp.c>
+    ports/qnx/datetime-init.c
+    ports/qnx/mstimer-init.c)
+
+  if(BACDL_BIP6 OR BACDL_ETHERNET OR BACDL_BSC OR BACDL_ARCNET)
+    message(WARNING "BACNET: QNX port supports BACDL_BIP and BACDL_MSTP only")
+  endif()
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC

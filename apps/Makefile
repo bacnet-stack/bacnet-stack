@@ -174,9 +174,9 @@ endif
 CSTANDARD = -std=c99
 endif
 ifeq (${BACNET_PORT},qnx)
-# QNX 8.0: io-sock networking is derived from FreeBSD, so QNX uses ports/bsd.
-# Sockets, getifaddrs and sysctl are in libsocket.
-BACNET_PORT_DIRNAME = bsd
+# QNX 8.0: ports/qnx provides MS/TP (RS-485 via devc-ser*) and reuses the
+# BSD BACnet/IP code, since io-sock networking is derived from FreeBSD.
+# Sockets, getifaddrs and sysctl are in libsocket; pthreads are in libc.
 PFLAGS =
 TARGET_EXT =
 SYSTEM_LIB=-lc,-lsocket,-lm

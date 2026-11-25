@@ -9,7 +9,8 @@ cd build
 cmake ..
 make
 
-QNX 8.0 (QNX SDP 8.0) also uses this port, for BACnet/IP (BACDL=bip) only.
+QNX 8.0 (QNX SDP 8.0) now has its own port in ports/qnx (MS/TP and BACnet/IP);
+ports/qnx/bip-init.c reuses the BACnet/IP code from this port.
 Cross-compile from a Linux host with QNX SDP 8.0 installed, for an aarch64le
 target:
 
