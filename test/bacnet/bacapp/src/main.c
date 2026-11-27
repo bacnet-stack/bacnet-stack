@@ -1238,6 +1238,48 @@ static void testBACnetApplicationData(void)
     verifyBACnetComplexDataValue(
         &value, OBJECT_NETWORK_PORT, PROP_BBMD_BROADCAST_DISTRIBUTION_TABLE);
 
+    {
+        /* BACnetVMACEntry: a ZigBee node's VMAC and its native address,
+           the EUI64 and the endpoint (Annex O) */
+        static const uint8_t vmac_apdu[] = { 0x0B, 0x00, 0x00, 0x64, 0x1D,
+                                             0x09, 0x00, 0x12, 0x4B, 0x00,
+                                             0x29, 0xE7, 0xF2, 0x69, 0x06 };
+        /* 19 octets: one more than BACNET_VMAC_MAC_MAX */
+        static const uint8_t vmac_too_long[] = {
+            0x0B, 0x00, 0x00, 0x64, 0x1D, 0x13, 0, 0, 0, 0, 0, 0, 0,
+            0,    0,    0,    0,    0,    0,    0, 0, 0, 0, 0, 0
+        };
+        BACNET_APPLICATION_DATA_VALUE vmac_value = { 0 };
+        BACNET_OBJECT_PROPERTY_VALUE object_value = { 0 };
+        char vmac_text[64] = "";
+        int vmac_len = 0;
+
+        vmac_len = bacapp_decode_known_property(
+            vmac_apdu, sizeof(vmac_apdu), &vmac_value, OBJECT_NETWORK_PORT,
+            PROP_VIRTUAL_MAC_ADDRESS_TABLE);
+        zassert_equal(vmac_len, sizeof(vmac_apdu), NULL);
+        zassert_equal(vmac_value.tag, BACNET_APPLICATION_TAG_VMAC_ENTRY, NULL);
+        zassert_equal(
+            vmac_value.type.VMAC_Entry.virtual_mac_address.len, 3, NULL);
+        zassert_equal(
+            vmac_value.type.VMAC_Entry.native_mac_address_len, 9, NULL);
+        verifyBACnetComplexDataValue(
+            &vmac_value, OBJECT_NETWORK_PORT, PROP_VIRTUAL_MAC_ADDRESS_TABLE);
+        object_value.object_type = OBJECT_NETWORK_PORT;
+        object_value.object_property = PROP_VIRTUAL_MAC_ADDRESS_TABLE;
+        object_value.array_index = BACNET_ARRAY_ALL;
+        object_value.value = &vmac_value;
+        bacapp_snprintf_value(vmac_text, sizeof(vmac_text), &object_value);
+        zassert_true(
+            strcmp(vmac_text, "{000064,00124B0029E7F26906}") == 0, "%s",
+            vmac_text);
+        /* a native address longer than the entry holds is refused */
+        vmac_len = bacapp_decode_known_property(
+            vmac_too_long, sizeof(vmac_too_long), &vmac_value,
+            OBJECT_NETWORK_PORT, PROP_VIRTUAL_MAC_ADDRESS_TABLE);
+        zassert_true(vmac_len < 0, "decoded length=%d", vmac_len);
+    }
+
     char special_event_calendar[] =
         "calendar:5,{12:30:15.05,15,16:01:02.03,0},5";
     status = bacapp_parse_application_data(

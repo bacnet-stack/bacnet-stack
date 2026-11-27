@@ -155,6 +155,9 @@ typedef struct BACnet_Application_Data_Value {
 #if defined(BACAPP_FDT_ENTRY)
         BACNET_FDT_ENTRY FDT_Entry;
 #endif
+#if defined(BACAPP_VMAC_ENTRY)
+        BACNET_VMAC_ENTRY VMAC_Entry;
+#endif
 #if defined(BACAPP_ACTION_COMMAND)
         BACNET_ACTION_LIST_ENTRY Action_List_Entry;
 #endif

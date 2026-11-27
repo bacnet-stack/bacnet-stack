@@ -748,6 +748,99 @@ int bacnet_vmac_entry_decode(
     return apdu_len;
 }
 
+/* move past what snprintf wrote, as bacapp_snprintf_shift does */
+static int bacnet_vmac_entry_shift(int len, char **buf, size_t *buf_size)
+{
+    if (len < 0) {
+        return 0;
+    }
+    if (*buf && *buf_size) {
+        if ((size_t)len < *buf_size) {
+            *buf += len;
+            *buf_size -= (size_t)len;
+        } else {
+            *buf += *buf_size - 1;
+            *buf_size = 1;
+        }
+    }
+    return len;
+}
+
+/**
+ * @brief Compare two BACnetVMACEntry values
+ * @param value1 - first value to compare
+ * @param value2 - second value to compare
+ * @return true if both have the same virtual and native MAC addresses
+ */
+bool bacnet_vmac_entry_same(
+    const BACNET_VMAC_ENTRY *value1, const BACNET_VMAC_ENTRY *value2)
+{
+    if (!value1 || !value2) {
+        return false;
+    }
+    if ((value1->virtual_mac_address.len != value2->virtual_mac_address.len) ||
+        (value1->native_mac_address_len != value2->native_mac_address_len)) {
+        return false;
+    }
+    if ((value1->virtual_mac_address.len >
+         sizeof(value1->virtual_mac_address.adr)) ||
+        (value1->native_mac_address_len > sizeof(value1->native_mac_address))) {
+        return false;
+    }
+    if (memcmp(
+            value1->virtual_mac_address.adr, value2->virtual_mac_address.adr,
+            value1->virtual_mac_address.len) != 0) {
+        return false;
+    }
+    return memcmp(
+               value1->native_mac_address, value2->native_mac_address,
+               value1->native_mac_address_len) == 0;
+}
+
+/**
+ * @brief Print a BACnetVMACEntry as its two addresses in hexadecimal,
+ *  the virtual MAC address first: "0010E1,00124B0029E7EF4206"
+ * @param str - the buffer, or NULL for the length only
+ * @param str_size - the size of the buffer
+ * @param value - the value to print
+ * @return the number of characters the whole text has, as snprintf
+ */
+int bacnet_vmac_entry_to_ascii(
+    char *str, size_t str_size, const BACNET_VMAC_ENTRY *value)
+{
+    int len = 0;
+    int slen = 0;
+    size_t i = 0;
+    uint8_t vmac_len = 0;
+    uint8_t native_len = 0;
+
+    if (!value) {
+        return 0;
+    }
+    vmac_len = value->virtual_mac_address.len;
+    if (vmac_len > sizeof(value->virtual_mac_address.adr)) {
+        vmac_len = sizeof(value->virtual_mac_address.adr);
+    }
+    native_len = value->native_mac_address_len;
+    if (native_len > sizeof(value->native_mac_address)) {
+        native_len = sizeof(value->native_mac_address);
+    }
+    for (i = 0; i < vmac_len; i++) {
+        slen = snprintf(
+            str, str_size, "%02X", (unsigned)value->virtual_mac_address.adr[i]);
+        len += bacnet_vmac_entry_shift(slen, &str, &str_size);
+    }
+    slen = snprintf(str, str_size, ",");
+    len += bacnet_vmac_entry_shift(slen, &str, &str_size);
+    for (i = 0; i < native_len; i++) {
+        slen = snprintf(
+            str, str_size, "%02X", (unsigned)value->native_mac_address[i]);
+        len += bacnet_vmac_entry_shift(slen, &str, &str_size);
+    }
+
+    return len;
+}
+
 /** Set a BACnet VMAC Address from a Device ID
  *
  * @param addr - BACnet address that be set

@@ -355,6 +355,13 @@ int bacapp_encode_application_data(
                     bacnet_fdt_entry_encode(apdu, &value->type.FDT_Entry);
                 break;
 #endif
+#if defined(BACAPP_VMAC_ENTRY)
+            case BACNET_APPLICATION_TAG_VMAC_ENTRY:
+                /* BACnetVMACEntry */
+                apdu_len = bacnet_vmac_entry_data_encode(
+                    apdu, &value->type.VMAC_Entry);
+                break;
+#endif
 #if defined(BACAPP_ACTION_COMMAND)
             case BACNET_APPLICATION_TAG_ACTION_LIST_ENTRY:
                 /* one BACnetActionCommand of a BACnetActionList, with the
@@ -1248,6 +1255,9 @@ int bacapp_known_property_tag(
         case PROP_BBMD_FOREIGN_DEVICE_TABLE:
             /* BACnetFDTEntry */
             return BACNET_APPLICATION_TAG_FDT_ENTRY;
+        case PROP_VIRTUAL_MAC_ADDRESS_TABLE:
+            /* BACnetLIST of BACnetVMACEntry */
+            return BACNET_APPLICATION_TAG_VMAC_ENTRY;
         case PROP_POSITIVE_ACCESS_RULES:
         case PROP_NEGATIVE_ACCESS_RULES:
             /* BACnetAccessRule */
@@ -1557,6 +1567,13 @@ int bacapp_decode_application_tag_value(
             /* BACnetFDTEntry */
             apdu_len = bacnet_fdt_entry_decode(
                 apdu, apdu_size, NULL, &value->type.FDT_Entry);
+            break;
+#endif
+#if defined(BACAPP_VMAC_ENTRY)
+        case BACNET_APPLICATION_TAG_VMAC_ENTRY:
+            /* BACnetVMACEntry */
+            apdu_len = bacnet_vmac_entry_decode(
+                apdu, apdu_size, &value->type.VMAC_Entry);
             break;
 #endif
 #if defined(BACAPP_ACTION_COMMAND)
@@ -3954,7 +3971,7 @@ int bacapp_snprintf_value(
     BACNET_OBJECT_TYPE object_type = MAX_BACNET_OBJECT_TYPE;
     int ret_val = 0;
 #if defined(BACAPP_BDT_ENTRY) || defined(BACAPP_FDT_ENTRY) || \
-    defined(BACAPP_SHED_LEVEL)
+    defined(BACAPP_VMAC_ENTRY) || defined(BACAPP_SHED_LEVEL)
     int slen = 0;
 #endif
 
@@ -4167,6 +4184,17 @@ int bacapp_snprintf_value(
                 ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
                 slen = bacnet_fdt_entry_to_ascii(
                     str, str_len, &value->type.FDT_Entry);
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+                slen = bacapp_snprintf(str, str_len, "}");
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+                break;
+#endif
+#if defined(BACAPP_VMAC_ENTRY)
+            case BACNET_APPLICATION_TAG_VMAC_ENTRY:
+                slen = bacapp_snprintf(str, str_len, "{");
+                ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
+                slen = bacnet_vmac_entry_to_ascii(
+                    str, str_len, &value->type.VMAC_Entry);
                 ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
                 slen = bacapp_snprintf(str, str_len, "}");
                 ret_val += bacapp_snprintf_shift(slen, &str, &str_len);
@@ -6172,6 +6200,12 @@ bool bacapp_same_value(
             case BACNET_APPLICATION_TAG_FDT_ENTRY:
                 status = bacnet_fdt_entry_same(
                     &value->type.FDT_Entry, &test_value->type.FDT_Entry);
+                break;
+#endif
+#if defined(BACAPP_VMAC_ENTRY)
+            case BACNET_APPLICATION_TAG_VMAC_ENTRY:
+                status = bacnet_vmac_entry_same(
+                    &value->type.VMAC_Entry, &test_value->type.VMAC_Entry);
                 break;
 #endif
 #if defined(BACAPP_ACTION_COMMAND)
