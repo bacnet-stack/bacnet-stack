@@ -4255,8 +4255,9 @@ static void test_BAD_HEADER_OPTIONS(void)
     memmove(&buf[9], &buf[4], 1);
     buf[1] |= BVLC_SC_CONTROL_DATA_OPTIONS;
     buf[4] = BVLC_SC_OPTION_TYPE_PROPRIETARY | BVLC_SC_HEADER_DATA;
-    npdulen = 2;
-    memcpy(&buf[5], &npdulen, sizeof(npdulen));
+    /* 'Header Length' 2, most significant octet first */
+    buf[5] = 0x00;
+    buf[6] = 0x02;
     buf[7] = 0x34;
     buf[8] = 0x12;
     len += 5;
@@ -4266,6 +4267,107 @@ static void test_BAD_HEADER_OPTIONS(void)
     zassert_equal(ret, false, NULL);
     zassert_equal(error_code, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
     zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_sc_tests, test_BYTE_ORDER)
+#else
+static void test_BYTE_ORDER(void)
+#endif
+{
+    /* "All multi-octet numeric values are encoded with most significant
+       octet first" (AB.2) */
+    uint8_t buf[256];
+    uint8_t optbuf[64];
+    uint8_t data[2] = { 0xaa, 0xbb };
+    size_t len = 0;
+    BVLC_SC_DECODED_MESSAGE message;
+    uint16_t error_code = ERROR_CODE_HEADER_NOT_UNDERSTOOD;
+    uint16_t error_class = ERROR_CLASS_COMMUNICATION;
+    uint8_t marker = 0x7f;
+    bool ret = false;
+    BACNET_SC_VMAC_ADDRESS vmac;
+    BACNET_SC_UUID uuid;
+    const char *err_desc = NULL;
+
+    memset(&vmac, 0x88, sizeof(vmac));
+    memset(&uuid, 0x22, sizeof(uuid));
+    memset(&message, 0, sizeof(message));
+
+    /* Connect-Request: Message ID, Max-BVLC-Length, Max-NPDU-Length */
+    len = bvlc_sc_encode_connect_request(
+        buf, sizeof(buf), 0x1234, &vmac, &uuid, 0x05dc, 0x05d9);
+    zassert_equal(len, 30, NULL);
+    zassert_equal(buf[2], 0x12, NULL);
+    zassert_equal(buf[3], 0x34, NULL);
+    zassert_equal(buf[26], 0x05, NULL);
+    zassert_equal(buf[27], 0xdc, NULL);
+    zassert_equal(buf[28], 0x05, NULL);
+    zassert_equal(buf[29], 0xd9, NULL);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
+    zassert_true(ret, NULL);
+    zassert_equal(message.hdr.message_id, 0x1234, NULL);
+    zassert_equal(message.payload.connect_request.max_bvlc_len, 0x05dc, NULL);
+    zassert_equal(message.payload.connect_request.max_npdu_len, 0x05d9, NULL);
+
+    /* BVLC-Result NAK: Error Class and Error Code */
+    error_code = ERROR_CODE_HEADER_NOT_UNDERSTOOD;
+    error_class = ERROR_CLASS_COMMUNICATION;
+    len = bvlc_sc_encode_result(
+        buf, sizeof(buf), 0x1234, NULL, NULL, BVLC_SC_CONNECT_REQUEST, 1,
+        &marker, &error_class, &error_code, NULL);
+    zassert_equal(len, 11, NULL);
+    zassert_equal(buf[7], (uint8_t)(ERROR_CLASS_COMMUNICATION >> 8), NULL);
+    zassert_equal(buf[8], (uint8_t)(ERROR_CLASS_COMMUNICATION & 0xff), NULL);
+    zassert_equal(
+        buf[9], (uint8_t)(ERROR_CODE_HEADER_NOT_UNDERSTOOD >> 8), NULL);
+    zassert_equal(
+        buf[10], (uint8_t)(ERROR_CODE_HEADER_NOT_UNDERSTOOD & 0xff), NULL);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
+    zassert_true(ret, NULL);
+    zassert_equal(
+        message.payload.result.error_class, ERROR_CLASS_COMMUNICATION, NULL);
+    zassert_equal(
+        message.payload.result.error_code, ERROR_CODE_HEADER_NOT_UNDERSTOOD,
+        NULL);
+
+    /* Proprietary Header Option: 'Header Length' and Vendor Identifier
+       (AB.2.3.2) */
+    len = bvlc_sc_encode_proprietary_option(
+        optbuf, sizeof(optbuf), false, 0x0123, 0x45, data, sizeof(data));
+    zassert_equal(len, 8, NULL);
+    zassert_equal(optbuf[1], 0x00, NULL);
+    zassert_equal(optbuf[2], 0x05, NULL);
+    zassert_equal(optbuf[3], 0x01, NULL);
+    zassert_equal(optbuf[4], 0x23, NULL);
+    zassert_equal(optbuf[5], 0x45, NULL);
+    zassert_equal(optbuf[6], 0xaa, NULL);
+    len = bvlc_sc_encode_heartbeat_request(buf, sizeof(buf), 0x1234);
+    zassert_not_equal(len, 0, NULL);
+    len = bvlc_sc_add_option_to_destination_options(
+        buf, sizeof(buf), buf, len, optbuf, 8);
+    zassert_not_equal(len, 0, NULL);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
+    zassert_true(ret, NULL);
+    zassert_equal(message.hdr.dest_options_num, 1, NULL);
+    zassert_equal(
+        message.dest_options[0].specific.proprietary.vendor_id, 0x0123, NULL);
+    zassert_equal(
+        message.dest_options[0].specific.proprietary.data_len, 2, NULL);
+
+    /* Proprietary Message: Vendor Identifier (AB.2.16) */
+    len = bvlc_sc_encode_proprietary_message(
+        buf, sizeof(buf), 0x1234, NULL, NULL, 0x0123, 0x45, data, sizeof(data));
+    zassert_not_equal(len, 0, NULL);
+    zassert_equal(buf[4], 0x01, NULL);
+    zassert_equal(buf[5], 0x23, NULL);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
+    zassert_true(ret, NULL);
+    zassert_equal(message.payload.proprietary.vendor_id, 0x0123, NULL);
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -4668,6 +4770,7 @@ void test_main(void)
         ztest_unit_test(test_HEARTBEAT_ACK),
         ztest_unit_test(test_PROPRIETARY_MESSAGE),
         ztest_unit_test(test_BAD_HEADER_OPTIONS),
+        ztest_unit_test(test_BYTE_ORDER),
         ztest_unit_test(test_TRAILING_MORE_OPTION),
         ztest_unit_test(test_BAD_ENCODE_PARAMS),
         ztest_unit_test(test_BAD_DECODE_PARAMS),
