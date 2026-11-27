@@ -4058,7 +4058,9 @@ static void test_BAD_HEADER_OPTIONS(void)
     zassert_equal(error_code, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
     zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 
-    /* form unknown header option */
+    /* a header option of another type (here 3, Identity) is no encoding
+       error: it is skipped, and its 'Must Understand' flag decides later
+       (AB.3.1.4); but a heartbeat has no data options */
 
     len = bvlc_sc_encode_heartbeat_request(buf, sizeof(buf), message_id);
     zassert_not_equal(len, 0, NULL);
@@ -4071,27 +4073,9 @@ static void test_BAD_HEADER_OPTIONS(void)
     ret = bvlc_sc_decode_message(
         buf, len, &message, &error_code, &error_class, &err_desc);
     zassert_equal(ret, false, NULL);
-    zassert_equal(error_code, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
+    zassert_equal(error_code, ERROR_CODE_INCONSISTENT_PARAMETERS, NULL);
     zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
 
-    memset(buf, 0, sizeof(buf));
-    memset(&message, 0, sizeof(message));
-
-    /* form unknown header option */
-
-    len = bvlc_sc_encode_heartbeat_request(buf, sizeof(buf), message_id);
-    zassert_not_equal(len, 0, NULL);
-
-    optlen = bvlc_sc_encode_secure_path_option(optbuf, sizeof(optbuf), true);
-    zassert_not_equal(optlen, 0, NULL);
-    len = bvlc_sc_add_option_to_data_options(
-        buf, sizeof(buf), buf, len, optbuf, optlen);
-    buf[4] |= 2;
-    ret = bvlc_sc_decode_message(
-        buf, len, &message, &error_code, &error_class, &err_desc);
-    zassert_equal(ret, false, NULL);
-    zassert_equal(error_code, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
-    zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
     memset(buf, 0, sizeof(buf));
     memset(&message, 0, sizeof(message));
 
@@ -4266,6 +4250,88 @@ static void test_BAD_HEADER_OPTIONS(void)
     zassert_equal(ret, false, NULL);
     zassert_equal(error_code, ERROR_CODE_HEADER_ENCODING_ERROR, NULL);
     zassert_equal(error_class, ERROR_CLASS_COMMUNICATION, NULL);
+}
+
+#if defined(CONFIG_ZTEST_NEW_API)
+ZTEST(bvlc_sc_tests, test_HELLO_OPTION)
+#else
+static void test_HELLO_OPTION(void)
+#endif
+{
+    uint8_t buf[256];
+    size_t len = 0;
+    BVLC_SC_DECODED_MESSAGE message;
+    uint16_t error_code = 0;
+    uint16_t error_class = 0;
+    uint16_t message_id = 0xf508;
+    bool ret = false;
+    BACNET_SC_VMAC_ADDRESS local_vmac;
+    BACNET_SC_UUID local_uuid;
+    const char *err_desc = NULL;
+    /* Hello (AB.2.3.1.2): 'Must Understand' 0, 'Header Data' 1, type 2,
+       'Header Length' 1, the capabilities ('identity relay') */
+    uint8_t hello[] = { 0x22, 0x00, 0x01, 0x01 };
+    /* an Identity option, 'Must Understand' 1, with header data of 3
+       octets: its type is made a reserved one (30) once it is added */
+    uint8_t unknown[] = { 0x63, 0x00, 0x03, 0xaa, 0xbb, 0xcc };
+
+    memset(&local_vmac, 0x88, sizeof(local_vmac));
+    memset(&local_uuid, 0x22, sizeof(local_uuid));
+    memset(buf, 0, sizeof(buf));
+    memset(&message, 0, sizeof(message));
+
+    /* a Connect-Request with Hello, as a 135-2024 node sends it */
+    len = bvlc_sc_encode_connect_request(
+        buf, sizeof(buf), message_id, &local_vmac, &local_uuid, 1500, 1497);
+    zassert_not_equal(len, 0, NULL);
+    len = bvlc_sc_add_option_to_destination_options(
+        buf, sizeof(buf), buf, len, hello, sizeof(hello));
+    zassert_not_equal(len, 0, NULL);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
+    zassert_equal(ret, true, "%s", err_desc ? err_desc : "");
+    zassert_equal(message.hdr.dest_options_num, 1, NULL);
+    zassert_equal(message.dest_options[0].type, 2, NULL);
+    zassert_equal(message.dest_options[0].must_understand, false, NULL);
+    zassert_equal(message.hdr.payload_len, 26, NULL);
+    zassert_equal(message.payload.connect_request.max_bvlc_len, 1500, NULL);
+    zassert_equal(message.payload.connect_request.max_npdu_len, 1497, NULL);
+
+    /* and an unknown option before it: both are walked, by their lengths */
+    len = bvlc_sc_add_option_to_destination_options(
+        buf, sizeof(buf), buf, len, unknown, sizeof(unknown));
+    zassert_not_equal(len, 0, NULL);
+    /* the first option follows the 4 octets of the fixed header */
+    buf[4] = (uint8_t)((buf[4] & ~BVLC_SC_HEADER_OPTION_TYPE_MASK) | 30);
+    ret = bvlc_sc_decode_message(
+        buf, len, &message, &error_code, &error_class, &err_desc);
+    zassert_equal(ret, true, "%s", err_desc ? err_desc : "");
+    zassert_equal(message.hdr.dest_options_num, 2, NULL);
+    zassert_equal(message.dest_options[0].type, 30, NULL);
+    zassert_equal(message.dest_options[0].must_understand, true, NULL);
+    zassert_equal(message.dest_options[1].type, 2, NULL);
+    zassert_equal(message.dest_options[1].must_understand, false, NULL);
+    zassert_equal(message.payload.connect_request.max_npdu_len, 1497, NULL);
+
+    /* a reserved type is not sent */
+    unknown[0] = 0x7e;
+    zassert_equal(
+        bvlc_sc_add_option_to_destination_options(
+            buf, sizeof(buf), buf, len, unknown, sizeof(unknown)),
+        0, NULL);
+
+    /* a Hello whose 'Header Length' runs past the message is incomplete */
+    len = bvlc_sc_encode_heartbeat_request(buf, sizeof(buf), message_id);
+    zassert_not_equal(len, 0, NULL);
+    hello[2] = 0x40;
+    len = bvlc_sc_add_option_to_destination_options(
+        buf, sizeof(buf), buf, len, hello, sizeof(hello));
+    if (len) {
+        ret = bvlc_sc_decode_message(
+            buf, len, &message, &error_code, &error_class, &err_desc);
+        zassert_equal(ret, false, NULL);
+        zassert_equal(error_code, ERROR_CODE_MESSAGE_INCOMPLETE, NULL);
+    }
 }
 
 #if defined(CONFIG_ZTEST_NEW_API)
@@ -4668,6 +4734,7 @@ void test_main(void)
         ztest_unit_test(test_HEARTBEAT_ACK),
         ztest_unit_test(test_PROPRIETARY_MESSAGE),
         ztest_unit_test(test_BAD_HEADER_OPTIONS),
+        ztest_unit_test(test_HELLO_OPTION),
         ztest_unit_test(test_TRAILING_MORE_OPTION),
         ztest_unit_test(test_BAD_ENCODE_PARAMS),
         ztest_unit_test(test_BAD_DECODE_PARAMS),

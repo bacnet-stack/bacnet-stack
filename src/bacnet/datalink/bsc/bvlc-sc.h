@@ -124,10 +124,14 @@ typedef struct BACnet_SC_Uuid {
 /** @} */
 
 /*
- * AB.2.3.1 Secure Path Header Option
+ * AB.2.3.1 Standard Header Options, AB.2.3.2 Proprietary Header Options
  */
 typedef enum BVLC_SC_Option_Type {
     BVLC_SC_OPTION_TYPE_SECURE_PATH = 1,
+    BVLC_SC_OPTION_TYPE_HELLO = 2,
+    BVLC_SC_OPTION_TYPE_IDENTITY = 3,
+    BVLC_SC_OPTION_TYPE_HINT = 4,
+    BVLC_SC_OPTION_TYPE_TOKEN = 5,
     BVLC_SC_OPTION_TYPE_PROPRIETARY = 31
 } BVLC_SC_OPTION_TYPE;
 
