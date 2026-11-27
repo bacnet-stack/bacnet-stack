@@ -209,6 +209,7 @@ INDTEXT_DATA bacnet_application_tag_names[] = {
       "BACnetSCHubConnection" },
     { BACNET_APPLICATION_TAG_BDT_ENTRY, "BACnetBDTEntry" },
     { BACNET_APPLICATION_TAG_FDT_ENTRY, "BACnetFDTEntry" },
+    { BACNET_APPLICATION_TAG_VMAC_ENTRY, "BACnetVMACEntry" },
     { BACNET_APPLICATION_TAG_ACTION_LIST_ENTRY, "BACnetActionList" },
     { BACNET_APPLICATION_TAG_SCALE, "BACnetScale" },
     { BACNET_APPLICATION_TAG_SHED_LEVEL, "BACnetShedLevel" },

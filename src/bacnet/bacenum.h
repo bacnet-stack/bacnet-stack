@@ -1687,6 +1687,8 @@ typedef enum {
     BACNET_APPLICATION_TAG_BDT_ENTRY,
     /* BACnetFDTEntry */
     BACNET_APPLICATION_TAG_FDT_ENTRY,
+    /* BACnetVMACEntry */
+    BACNET_APPLICATION_TAG_VMAC_ENTRY,
     /* BACnetActionList entry: one BACnetActionCommand */
     BACNET_APPLICATION_TAG_ACTION_LIST_ENTRY,
     /* BACnetScale */

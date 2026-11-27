@@ -232,6 +232,7 @@
     defined(BACAPP_DESTINATION) || \
     defined(BACAPP_BDT_ENTRY) || \
     defined(BACAPP_FDT_ENTRY) || \
+    defined(BACAPP_VMAC_ENTRY) || \
     defined(BACAPP_ACTION_COMMAND) || \
     defined(BACAPP_SCALE) || \
     defined(BACAPP_SHED_LEVEL) || \
@@ -318,6 +319,8 @@
 #define BACAPP_BDT_ENTRY
 #undef BACAPP_FDT_ENTRY
 #define BACAPP_FDT_ENTRY
+#undef BACAPP_VMAC_ENTRY
+#define BACAPP_VMAC_ENTRY
 #undef BACAPP_ACTION_COMMAND
 #define BACAPP_ACTION_COMMAND
 #undef BACAPP_SCALE
@@ -362,6 +365,7 @@
     defined(BACAPP_SECURE_CONNECT) || \
     defined(BACAPP_BDT_ENTRY) || \
     defined(BACAPP_FDT_ENTRY) || \
+    defined(BACAPP_VMAC_ENTRY) || \
     defined(BACAPP_ACTION_COMMAND) || \
     defined(BACAPP_SCALE) || \
     defined(BACAPP_SHED_LEVEL) || \
