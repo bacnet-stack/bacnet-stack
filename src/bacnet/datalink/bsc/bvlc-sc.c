@@ -14,8 +14,8 @@ typedef enum BACNet_Option_Validation_Type {
 } BACNET_OPTION_VALIDATION_TYPE;
 
 static const char *s_message_is_incompleted = "header options is truncated";
-static const char *s_invalid_header_option_type =
-    "header option type must be 'Secure Path' or 'Proprietary Header'";
+static const char *s_reserved_header_option_type =
+    "header option type is reserved";
 static const char *s_invalid_header_1 =
     "'Secure Path' header option can be added only to data options in bvlc "
     "message";
@@ -103,6 +103,9 @@ static const char *s_proprietary_payload =
 /**
  * @brief Validate BVLC-SC header options
  * @param validation_type - type of validation
+ * @param received - true for the options of a received message, which may
+ *  be of any type (AB.3.1.4); false for options to be sent, which must be
+ *  of a type of AB.2.3.1 or AB.2.3.2
  * @param option_headers - pointer to the option headers
  * @param option_headers_max_len - maximum length of the option headers
  * @param out_option_headers_real_length - pointer to the real length of the
@@ -115,6 +118,7 @@ static const char *s_proprietary_payload =
  */
 static bool bvlc_sc_validate_options_headers(
     BACNET_OPTION_VALIDATION_TYPE validation_type,
+    bool received,
     uint8_t *option_headers,
     size_t option_headers_max_len,
     size_t *out_option_headers_real_length,
@@ -145,11 +149,12 @@ static bool bvlc_sc_validate_options_headers(
 
         option = flags & BVLC_SC_HEADER_OPTION_TYPE_MASK;
 
-        if (option != BVLC_SC_OPTION_TYPE_SECURE_PATH &&
-            option != BVLC_SC_OPTION_TYPE_PROPRIETARY) {
+        if (!received && (option != BVLC_SC_OPTION_TYPE_PROPRIETARY) &&
+            ((option < BVLC_SC_OPTION_TYPE_SECURE_PATH) ||
+             (option > BVLC_SC_OPTION_TYPE_TOKEN))) {
             *error_code = ERROR_CODE_HEADER_ENCODING_ERROR;
             *error_class = ERROR_CLASS_COMMUNICATION;
-            *error_desc_string = s_invalid_header_option_type;
+            *error_desc_string = s_reserved_header_option_type;
             return false;
         }
 
@@ -198,6 +203,26 @@ static bool bvlc_sc_validate_options_headers(
             }
             options_len +=
                 2 /* header length */ + hdr_len /* length of data header */;
+        } else {
+            /* Any other header option, such as Hello, Identity, Hint and
+               Token (AB.2.3.1) or one this implementation does not know:
+               skipped by its length. Whether one that is not understood
+               may be ignored depends on its 'Must Understand' flag, which
+               is handled where the message is processed (AB.3.1.4). */
+            options_len++;
+            if (flags & BVLC_SC_HEADER_DATA) {
+                if ((size_t)options_len + 2 > option_headers_max_len) {
+                    *error_code = ERROR_CODE_MESSAGE_INCOMPLETE;
+                    *error_class = ERROR_CLASS_COMMUNICATION;
+                    *error_desc_string = s_message_is_incompleted;
+                    return false;
+                }
+                /* 'Header Length' is most significant octet first */
+                hdr_len =
+                    (uint16_t)(((uint16_t)option_headers[options_len] << 8) |
+                               option_headers[options_len + 1]);
+                options_len += 2 /* header length */ + hdr_len;
+            }
         }
 
         if (options_len > option_headers_max_len) {
@@ -301,7 +326,7 @@ static size_t bvlc_sc_add_option(
 
     /* ensure that user wants to add valid option */
     if (!bvlc_sc_validate_options_headers(
-            BACNET_USER_OPTION_VALIDATION, sc_option, sc_option_len,
+            BACNET_USER_OPTION_VALIDATION, false, sc_option, sc_option_len,
             &options_len, NULL, &error_code, &error_class, &err_desc)) {
         return 0;
     }
@@ -330,7 +355,7 @@ static size_t bvlc_sc_add_option(
             /* some options are already presented in message.
                Validate them at first. */
             if (!bvlc_sc_validate_options_headers(
-                    BACNET_PDU_DEST_OPTION_VALIDATION, &in_pdu[offs],
+                    BACNET_PDU_DEST_OPTION_VALIDATION, false, &in_pdu[offs],
                     in_pdu_len - offs, &options_len, NULL, &error_code,
                     &error_class, &err_desc)) {
                 return 0;
@@ -346,7 +371,7 @@ static size_t bvlc_sc_add_option(
         /* some options are already presented in message.
            Validate them at first. */
         if (!bvlc_sc_validate_options_headers(
-                vt, &in_pdu[offs], in_pdu_len - offs, &options_len, NULL,
+                vt, false, &in_pdu[offs], in_pdu_len - offs, &options_len, NULL,
                 &error_code, &error_class, &err_desc)) {
             return 0;
         }
@@ -582,6 +607,15 @@ static void bvlc_sc_decode_option_hdr(
         if (in_options_list[0] & BVLC_SC_HEADER_MORE) {
             *out_next_option = in_options_list + hdr_len;
         }
+    } else if (in_options_list[0] & BVLC_SC_HEADER_MORE) {
+        /* any other header option: the marker, and the 'Header Length'
+           (most significant octet first) and 'Header Data' if present */
+        size_t option_len = 1;
+        if (in_options_list[0] & BVLC_SC_HEADER_DATA) {
+            option_len +=
+                2 + (((size_t)in_options_list[1] << 8) | in_options_list[2]);
+        }
+        *out_next_option = in_options_list + option_len;
     }
 }
 
@@ -1804,7 +1838,7 @@ static bool bvlc_sc_decode_hdr(
 
     if (message[1] & BVLC_SC_CONTROL_DEST_OPTIONS) {
         ret = bvlc_sc_validate_options_headers(
-            BACNET_PDU_DEST_OPTION_VALIDATION, &message[offs],
+            BACNET_PDU_DEST_OPTION_VALIDATION, true, &message[offs],
             message_len - offs, &hdr_opt_len, &hdr->dest_options_num,
             error_code, error_class, err_desc);
 
@@ -1818,7 +1852,7 @@ static bool bvlc_sc_decode_hdr(
 
     if (message[1] & BVLC_SC_CONTROL_DATA_OPTIONS) {
         ret = bvlc_sc_validate_options_headers(
-            BACNET_PDU_DATA_OPTION_VALIDATION, &message[offs],
+            BACNET_PDU_DATA_OPTION_VALIDATION, true, &message[offs],
             message_len - offs, &hdr_opt_len, &hdr->data_options_num,
             error_code, error_class, err_desc);
         if (!ret) {
